@@ -1,2 +1,5 @@
 flask
 numpy
+torch
+torchvision
+laion-clap

@@ -3,7 +3,8 @@ import math
 import struct
 import wave
 
-import random
+import numpy as np
+import laion_clap
 
 from flask import Flask, jsonify, request, send_file
 
@@ -15,11 +16,14 @@ app = Flask(__name__)
 
 SAMPLE_RATE = 44100
 NUM_CLIPS = 20
-EMBEDDING_DIM = 128
 
 clips = {}  # id -> {id, duration, file_size, embedding, wav_bytes}
 good_votes: set[int] = set()
 bad_votes: set[int] = set()
+
+# Load CLAP model for audio/text embeddings
+clap_model = laion_clap.CLAP_Module(enable_fusion=False)
+clap_model.load_ckpt()  # downloads default pretrained checkpoint
 
 
 def generate_wav(frequency: float, duration: float) -> bytes:
@@ -39,21 +43,45 @@ def generate_wav(frequency: float, duration: float) -> bytes:
     return buf.getvalue()
 
 
+def wav_bytes_to_float(wav_bytes: bytes) -> np.ndarray:
+    """Convert WAV bytes to a float32 numpy array normalised to [-1, 1]."""
+    buf = io.BytesIO(wav_bytes)
+    with wave.open(buf, "rb") as wf:
+        frames = wf.readframes(wf.getnframes())
+    return np.frombuffer(frames, dtype=np.int16).astype(np.float32) / 32768.0
+
+
 def init_clips():
-    rng = random.Random(42)
     for i in range(1, NUM_CLIPS + 1):
         freq = 200 + (i - 1) * 50  # 200 Hz .. 1150 Hz
         duration = round(1.0 + (i % 5) * 0.5, 1)  # 1.0 – 3.0 s
         wav_bytes = generate_wav(freq, duration)
-        embedding = [rng.gauss(0, 1) for _ in range(EMBEDDING_DIM)]
         clips[i] = {
             "id": i,
             "frequency": freq,
             "duration": duration,
             "file_size": len(wav_bytes),
-            "embedding": embedding,
+            "embedding": None,
             "wav_bytes": wav_bytes,
         }
+
+    # Compute CLAP audio embeddings for all clips in one batch
+    audio_arrays = []
+    max_len = 0
+    for i in range(1, NUM_CLIPS + 1):
+        arr = wav_bytes_to_float(clips[i]["wav_bytes"])
+        audio_arrays.append(arr)
+        max_len = max(max_len, len(arr))
+
+    # Pad all arrays to the same length for batched inference
+    padded = np.zeros((NUM_CLIPS, max_len), dtype=np.float32)
+    for idx, arr in enumerate(audio_arrays):
+        padded[idx, : len(arr)] = arr
+
+    embeddings = clap_model.get_audio_embedding_from_data(padded)
+
+    for i in range(1, NUM_CLIPS + 1):
+        clips[i]["embedding"] = embeddings[i - 1]
 
 
 init_clips()
@@ -118,6 +146,31 @@ def vote_clip(clip_id):
             bad_votes.add(clip_id)
 
     return jsonify({"ok": True})
+
+
+@app.route("/api/sort", methods=["POST"])
+def sort_clips():
+    """Return clips sorted by cosine similarity to a text query."""
+    data = request.get_json(force=True)
+    text = data.get("text", "").strip()
+    if not text:
+        return jsonify({"error": "text is required"}), 400
+
+    text_embedding = clap_model.get_text_embedding([text])
+    text_vec = text_embedding[0]
+
+    results = []
+    for clip_id, clip in clips.items():
+        audio_vec = clip["embedding"]
+        norm_product = np.linalg.norm(audio_vec) * np.linalg.norm(text_vec)
+        if norm_product == 0:
+            similarity = 0.0
+        else:
+            similarity = float(np.dot(audio_vec, text_vec) / norm_product)
+        results.append({"id": clip_id, "similarity": round(similarity, 4)})
+
+    results.sort(key=lambda x: x["similarity"], reverse=True)
+    return jsonify(results)
 
 
 @app.route("/api/votes")

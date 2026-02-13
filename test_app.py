@@ -3,6 +3,7 @@ import json
 import struct
 import wave
 
+import numpy as np
 import pytest
 
 import app as app_module
@@ -78,7 +79,9 @@ class TestInitClips:
 
     def test_clip_has_embedding(self):
         for clip in app_module.clips.values():
-            assert len(clip["embedding"]) == app_module.EMBEDDING_DIM
+            emb = clip["embedding"]
+            assert isinstance(emb, np.ndarray)
+            assert len(emb) > 0
 
     def test_clip_has_wav_bytes(self):
         for clip in app_module.clips.values():
@@ -89,14 +92,16 @@ class TestInitClips:
         for clip in app_module.clips.values():
             assert clip["file_size"] == len(clip["wav_bytes"])
 
-    def test_deterministic_with_seed(self):
-        """Embeddings should be deterministic because the RNG is seeded."""
-        emb_first = app_module.clips[1]["embedding"][:]
+    def test_deterministic_embeddings(self):
+        """CLAP embeddings should be deterministic for the same input audio."""
+        emb_first = app_module.clips[1]["embedding"].copy()
         # Re-init and check the same values appear
         old_clips = dict(app_module.clips)
         app_module.clips.clear()
         app_module.init_clips()
-        assert app_module.clips[1]["embedding"] == emb_first
+        np.testing.assert_array_almost_equal(
+            app_module.clips[1]["embedding"], emb_first
+        )
         # Restore
         app_module.clips.clear()
         app_module.clips.update(old_clips)
@@ -276,3 +281,75 @@ class TestGetVotes:
         data = resp.get_json()
         assert 3 in data["good"]
         assert 5 in data["bad"]
+
+
+# ---------------------------------------------------------------------------
+# wav_bytes_to_float
+# ---------------------------------------------------------------------------
+
+class TestWavBytesToFloat:
+    def test_returns_float32_array(self):
+        wav = app_module.generate_wav(440.0, 0.5)
+        arr = app_module.wav_bytes_to_float(wav)
+        assert arr.dtype == np.float32
+
+    def test_values_in_range(self):
+        wav = app_module.generate_wav(440.0, 0.5)
+        arr = app_module.wav_bytes_to_float(wav)
+        assert arr.min() >= -1.0
+        assert arr.max() <= 1.0
+
+    def test_length_matches_sample_count(self):
+        dur = 1.0
+        wav = app_module.generate_wav(440.0, dur)
+        arr = app_module.wav_bytes_to_float(wav)
+        assert len(arr) == int(app_module.SAMPLE_RATE * dur)
+
+
+# ---------------------------------------------------------------------------
+# POST /api/sort
+# ---------------------------------------------------------------------------
+
+class TestSortClips:
+    def test_returns_all_clips(self, client):
+        resp = client.post("/api/sort", json={"text": "high pitched beep"})
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert len(data) == app_module.NUM_CLIPS
+
+    def test_result_contains_id_and_similarity(self, client):
+        resp = client.post("/api/sort", json={"text": "low tone"})
+        data = resp.get_json()
+        for entry in data:
+            assert "id" in entry
+            assert "similarity" in entry
+
+    def test_sorted_by_descending_similarity(self, client):
+        resp = client.post("/api/sort", json={"text": "a beeping sound"})
+        data = resp.get_json()
+        similarities = [e["similarity"] for e in data]
+        assert similarities == sorted(similarities, reverse=True)
+
+    def test_all_clip_ids_present(self, client):
+        resp = client.post("/api/sort", json={"text": "sine wave"})
+        data = resp.get_json()
+        ids = {e["id"] for e in data}
+        assert ids == set(range(1, app_module.NUM_CLIPS + 1))
+
+    def test_similarity_values_in_range(self, client):
+        resp = client.post("/api/sort", json={"text": "high pitch"})
+        data = resp.get_json()
+        for entry in data:
+            assert -1.0 <= entry["similarity"] <= 1.0
+
+    def test_empty_text_returns_400(self, client):
+        resp = client.post("/api/sort", json={"text": ""})
+        assert resp.status_code == 400
+
+    def test_missing_text_returns_400(self, client):
+        resp = client.post("/api/sort", json={"other": "field"})
+        assert resp.status_code == 400
+
+    def test_whitespace_only_returns_400(self, client):
+        resp = client.post("/api/sort", json={"text": "   "})
+        assert resp.status_code == 400

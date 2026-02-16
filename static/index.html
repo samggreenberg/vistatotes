@@ -578,7 +578,7 @@
 
   // Close burger menu when clicking outside
   document.addEventListener("click", (e) => {
-    if (!burgerDropdown.contains(e.target) && e.target !== burgerBtn) {
+    if (!burgerDropdown.contains(e.target) && !burgerBtn.contains(e.target)) {
       burgerDropdown.classList.remove("show");
     }
   });

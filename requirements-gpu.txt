@@ -1,0 +1,7 @@
+flask
+numpy
+torch
+laion_clap
+librosa
+requests
+tqdm

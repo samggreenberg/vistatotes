@@ -1,0 +1,7 @@
+flask
+numpy
+torch==2.0.0 --index-url https://download.pytorch.org/whl/cpu
+laion_clap
+librosa
+requests
+tqdm

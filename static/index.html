@@ -70,6 +70,34 @@
   .label-io button { flex: 1; padding: 6px 0; border: 1px solid #2a2d3a; border-radius: 4px; background: #1a1d27; color: #aaa; font-size: 0.75rem; cursor: pointer; transition: background 0.15s, color 0.15s; }
   .label-io button:hover { background: #252940; color: #e0e0e0; }
   .label-io-status { font-size: 0.7rem; color: #666; padding: 0 16px 8px; }
+
+  /* Dataset management */
+  .dataset-welcome { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 48px; max-width: 600px; margin: 0 auto; text-align: center; }
+  .dataset-welcome h2 { font-size: 1.8rem; color: #7c8aff; margin-bottom: 8px; }
+  .dataset-welcome p { font-size: 1rem; color: #aaa; margin-bottom: 16px; }
+  .dataset-options { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+  .dataset-option { padding: 16px 20px; border: 2px solid #2a2d3a; border-radius: 8px; background: #1a1d27; color: #e0e0e0; cursor: pointer; transition: all 0.2s; text-align: left; }
+  .dataset-option:hover { border-color: #7c8aff; background: #1e2030; }
+  .dataset-option h3 { font-size: 1.1rem; margin-bottom: 4px; color: #7c8aff; }
+  .dataset-option p { font-size: 0.85rem; color: #888; margin: 0; }
+  .dataset-progress { width: 100%; max-width: 500px; }
+  .progress-bar { width: 100%; height: 24px; background: #1a1d27; border: 1px solid #2a2d3a; border-radius: 4px; overflow: hidden; position: relative; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #7c8aff, #a0aaff); transition: width 0.3s; }
+  .progress-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.75rem; color: #fff; font-weight: bold; }
+  .progress-message { font-size: 0.85rem; color: #aaa; margin-top: 8px; text-align: center; }
+  .demo-datasets { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; width: 100%; margin-top: 16px; }
+  .demo-dataset { padding: 16px; border: 2px solid #2a2d3a; border-radius: 8px; background: #1a1d27; cursor: pointer; transition: all 0.2s; text-align: center; }
+  .demo-dataset:hover { border-color: #7c8aff; background: #1e2030; }
+  .demo-dataset.ready { border-color: #4caf50; }
+  .demo-dataset h4 { font-size: 1rem; color: #7c8aff; margin-bottom: 4px; text-transform: capitalize; }
+  .demo-dataset p { font-size: 0.75rem; color: #888; margin: 0; }
+  .demo-dataset .ready-badge { display: inline-block; margin-top: 4px; padding: 2px 8px; background: #4caf50; color: #fff; font-size: 0.7rem; border-radius: 4px; }
+  .back-button { margin-top: 16px; padding: 8px 24px; border: 1px solid #2a2d3a; border-radius: 4px; background: #1a1d27; color: #aaa; cursor: pointer; transition: all 0.2s; }
+  .back-button:hover { background: #252940; color: #e0e0e0; }
+  .dataset-bar { padding: 12px 16px; border-bottom: 1px solid #2a2d3a; display: flex; justify-content: space-between; align-items: center; }
+  .dataset-bar .dataset-info { font-size: 0.85rem; color: #aaa; }
+  .dataset-bar button { padding: 6px 16px; border: 1px solid #2a2d3a; border-radius: 4px; background: #1a1d27; color: #aaa; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; }
+  .dataset-bar button:hover { background: #252940; color: #e0e0e0; }
 </style>
 </head>
 <body>
@@ -79,9 +107,16 @@
 </header>
 <div class="layout">
   <!-- Left panel -->
-  <div class="panel-left">
+  <div class="panel-left" id="left-panel">
+    <div class="dataset-bar" id="dataset-bar" style="display:none">
+      <span class="dataset-info" id="dataset-info">No dataset loaded</span>
+      <div style="display: flex; gap: 8px;">
+        <button id="export-dataset-btn">Export</button>
+        <button id="change-dataset-btn">Change</button>
+      </div>
+    </div>
     <h2>Clips</h2>
-    <div class="sort-bar">
+    <div class="sort-bar" id="sort-bar">
       <span class="sort-label">Sort</span>
       <div class="sort-mode">
         <label><input type="radio" name="sort-mode" value="none" checked> None</label>
@@ -106,9 +141,39 @@
   </div>
 
   <!-- Center panel -->
-  <div class="panel-center empty" id="center">
-    <p>Select a clip from the left panel</p>
+  <div class="panel-center" id="center">
+    <div class="dataset-welcome" id="dataset-welcome">
+      <div>
+        <h2>Welcome to VectoryTones</h2>
+        <p>Load or generate a dataset to get started</p>
+      </div>
+      <div class="dataset-options" id="dataset-options">
+        <button class="dataset-option" id="load-file-btn">
+          <h3>📁 Load from File</h3>
+          <p>Load a previously saved dataset file (.pkl)</p>
+        </button>
+        <button class="dataset-option" id="load-folder-btn">
+          <h3>🎵 Generate from Folder</h3>
+          <p>Process audio files from a folder on your computer</p>
+        </button>
+        <button class="dataset-option" id="load-demo-btn">
+          <h3>🎯 Load Demo Dataset</h3>
+          <p>Choose from pre-configured ESC-50 datasets</p>
+        </button>
+      </div>
+      <div class="dataset-progress" id="dataset-progress" style="display:none">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+          <div class="progress-text" id="progress-text">0%</div>
+        </div>
+        <div class="progress-message" id="progress-message">Loading...</div>
+      </div>
+      <div class="demo-datasets" id="demo-datasets" style="display:none"></div>
+      <button class="back-button" id="back-button" style="display:none">Back</button>
+    </div>
   </div>
+  <input type="file" id="file-input" accept=".pkl" style="display:none">
+  <input type="file" id="folder-input" webkitdirectory directory multiple style="display:none">
 
   <!-- Right panel -->
   <div class="panel-right">
@@ -139,6 +204,8 @@
   let selectMode = "good"; // "good" | "hard"
   let threshold = null;    // threshold for Good/Bad boundary
   let sortTimer = null;
+  let datasetLoaded = false;
+  let progressTimer = null;
 
   const clipList = document.getElementById("clip-list");
   const center = document.getElementById("center");
@@ -150,6 +217,253 @@
   const nextClipBtn = document.getElementById("next-clip-btn");
   const stripeOverview = document.getElementById("stripe-overview");
   const stripeContainer = document.getElementById("stripe-container");
+
+  // Dataset management elements
+  const datasetWelcome = document.getElementById("dataset-welcome");
+  const datasetOptions = document.getElementById("dataset-options");
+  const datasetProgress = document.getElementById("dataset-progress");
+  const progressFill = document.getElementById("progress-fill");
+  const progressText = document.getElementById("progress-text");
+  const progressMessage = document.getElementById("progress-message");
+  const demoDatasetsDiv = document.getElementById("demo-datasets");
+  const backButton = document.getElementById("back-button");
+  const loadFileBtn = document.getElementById("load-file-btn");
+  const loadFolderBtn = document.getElementById("load-folder-btn");
+  const loadDemoBtn = document.getElementById("load-demo-btn");
+  const fileInput = document.getElementById("file-input");
+  const folderInput = document.getElementById("folder-input");
+  const datasetBar = document.getElementById("dataset-bar");
+  const datasetInfo = document.getElementById("dataset-info");
+  const exportDatasetBtn = document.getElementById("export-dataset-btn");
+  const changeDatasetBtn = document.getElementById("change-dataset-btn");
+  const leftPanel = document.getElementById("left-panel");
+  const sortBar = document.getElementById("sort-bar");
+
+  // ---- Dataset Management ----
+
+  async function checkDatasetStatus() {
+    const res = await fetch("/api/dataset/status");
+    const status = await res.json();
+    datasetLoaded = status.loaded;
+
+    if (datasetLoaded) {
+      showMainUI();
+      datasetInfo.textContent = `${status.num_clips} clips loaded`;
+    } else {
+      showWelcomeScreen();
+    }
+
+    return status;
+  }
+
+  function showWelcomeScreen() {
+    datasetWelcome.style.display = "flex";
+    center.className = "panel-center";
+    datasetOptions.style.display = "flex";
+    datasetProgress.style.display = "none";
+    demoDatasetsDiv.style.display = "none";
+    backButton.style.display = "none";
+    sortBar.style.display = "none";
+    datasetBar.style.display = "none";
+    clipList.innerHTML = "";
+  }
+
+  function showMainUI() {
+    datasetWelcome.style.display = "none";
+    sortBar.style.display = "block";
+    datasetBar.style.display = "flex";
+    if (!selected) {
+      center.className = "panel-center empty";
+      center.innerHTML = "<p>Select a clip from the left panel</p>";
+    }
+  }
+
+  function showProgress() {
+    datasetOptions.style.display = "none";
+    demoDatasetsDiv.style.display = "none";
+    datasetProgress.style.display = "block";
+    backButton.style.display = "none";
+  }
+
+  async function pollProgress() {
+    const res = await fetch("/api/dataset/progress");
+    const progress = await res.json();
+
+    if (progress.error) {
+      progressMessage.textContent = `Error: ${progress.error}`;
+      progressMessage.style.color = "#f44336";
+      stopProgressPolling();
+      setTimeout(() => {
+        showWelcomeScreen();
+      }, 3000);
+      return;
+    }
+
+    if (progress.status === "idle") {
+      stopProgressPolling();
+      await checkDatasetStatus();
+      if (datasetLoaded) {
+        await fetchClips();
+        await fetchVotes();
+      }
+      return;
+    }
+
+    // Update progress bar
+    let percentage = 0;
+    if (progress.total > 0) {
+      percentage = Math.round((progress.current / progress.total) * 100);
+    }
+
+    progressFill.style.width = `${percentage}%`;
+    progressText.textContent = `${percentage}%`;
+    progressMessage.textContent = progress.message || "Loading...";
+    progressMessage.style.color = "#aaa";
+  }
+
+  function startProgressPolling() {
+    if (progressTimer) return;
+    showProgress();
+    progressTimer = setInterval(pollProgress, 500);
+  }
+
+  function stopProgressPolling() {
+    if (progressTimer) {
+      clearInterval(progressTimer);
+      progressTimer = null;
+    }
+  }
+
+  // Load from file
+  loadFileBtn.addEventListener("click", () => {
+    fileInput.click();
+  });
+
+  fileInput.addEventListener("change", async () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    startProgressPolling();
+
+    try {
+      const res = await fetch("/api/dataset/load-file", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        progressMessage.textContent = `Error: ${error.error}`;
+        progressMessage.style.color = "#f44336";
+        stopProgressPolling();
+      }
+    } catch (e) {
+      progressMessage.textContent = `Error: ${e.message}`;
+      progressMessage.style.color = "#f44336";
+      stopProgressPolling();
+    }
+
+    fileInput.value = "";
+  });
+
+  // Load from folder (Note: folder selection requires server-side path input)
+  loadFolderBtn.addEventListener("click", () => {
+    const path = prompt("Enter the full path to the folder containing audio files:");
+    if (!path) return;
+
+    startProgressPolling();
+
+    fetch("/api/dataset/load-folder", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path }),
+    }).then(res => {
+      if (!res.ok) {
+        res.json().then(error => {
+          progressMessage.textContent = `Error: ${error.error}`;
+          progressMessage.style.color = "#f44336";
+          stopProgressPolling();
+        });
+      }
+    }).catch(e => {
+      progressMessage.textContent = `Error: ${e.message}`;
+      progressMessage.style.color = "#f44336";
+      stopProgressPolling();
+    });
+  });
+
+  // Load demo dataset
+  loadDemoBtn.addEventListener("click", async () => {
+    datasetOptions.style.display = "none";
+    demoDatasetsDiv.style.display = "grid";
+    backButton.style.display = "block";
+
+    // Fetch demo datasets
+    const res = await fetch("/api/dataset/demo-list");
+    const data = await res.json();
+
+    demoDatasetsDiv.innerHTML = "";
+    data.datasets.forEach(dataset => {
+      const div = document.createElement("div");
+      div.className = "demo-dataset" + (dataset.ready ? " ready" : "");
+      div.innerHTML = `
+        <h4>${dataset.name}</h4>
+        <p>${dataset.num_categories} categories</p>
+        ${dataset.ready ? '<span class="ready-badge">Ready</span>' : '<span style="font-size:0.7rem;color:#888;">Needs download</span>'}
+      `;
+      div.onclick = () => loadDemo(dataset.name);
+      demoDatasetsDiv.appendChild(div);
+    });
+  });
+
+  async function loadDemo(name) {
+    startProgressPolling();
+
+    try {
+      const res = await fetch("/api/dataset/load-demo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        progressMessage.textContent = `Error: ${error.error}`;
+        progressMessage.style.color = "#f44336";
+        stopProgressPolling();
+      }
+    } catch (e) {
+      progressMessage.textContent = `Error: ${e.message}`;
+      progressMessage.style.color = "#f44336";
+      stopProgressPolling();
+    }
+  }
+
+  backButton.addEventListener("click", () => {
+    showWelcomeScreen();
+  });
+
+  // Export dataset
+  exportDatasetBtn.addEventListener("click", () => {
+    window.location.href = "/api/dataset/export";
+  });
+
+  // Change dataset
+  changeDatasetBtn.addEventListener("click", () => {
+    if (confirm("Clear current dataset and load a new one?")) {
+      fetch("/api/dataset/clear", { method: "POST" })
+        .then(() => {
+          showWelcomeScreen();
+          clips = [];
+          votes = { good: [], bad: [] };
+          selected = null;
+          datasetLoaded = false;
+        });
+    }
+  });
 
   // ---- Sort mode switching ----
 
@@ -304,11 +618,19 @@
     ordered.forEach(c => {
       const div = document.createElement("div");
       div.className = "clip-item" + (selected === c.id ? " active" : "");
-      let html = `Clip #${c.id}`;
+      let html = `<div style="font-weight: 500;">${c.filename || 'Clip #' + c.id}</div>`;
       if (scoreMap[c.id] !== undefined) {
         html += `<span class="sim">${(scoreMap[c.id] * 100).toFixed(1)}%</span>`;
       }
-      html += `<div class="sub">${c.frequency} Hz &middot; ${c.duration}s</div>`;
+      let subInfo = [];
+      if (c.frequency) {
+        subInfo.push(`${c.frequency} Hz`);
+      }
+      if (c.category && c.category !== "unknown") {
+        subInfo.push(c.category);
+      }
+      subInfo.push(`${c.duration.toFixed(1)}s`);
+      html += `<div class="sub">${subInfo.join(' &middot; ')}</div>`;
       div.innerHTML = html;
       div.onclick = () => selectClip(c.id);
       clipList.appendChild(div);
@@ -329,10 +651,21 @@
     const isGood = votes.good.includes(c.id);
     const isBad = votes.bad.includes(c.id);
     center.className = "panel-center";
+
+    let metaInfo = [];
+    if (c.frequency) {
+      metaInfo.push(`${c.frequency} Hz`);
+    }
+    if (c.category && c.category !== "unknown") {
+      metaInfo.push(c.category);
+    }
+    metaInfo.push(`${c.duration.toFixed(1)}s`);
+    metaInfo.push(`${(c.file_size / 1024).toFixed(1)} KB`);
+
     center.innerHTML = `
       <div class="meta">
-        <h2>Clip #${c.id}</h2>
-        <p>${c.frequency} Hz &middot; ${c.duration}s &middot; ${(c.file_size / 1024).toFixed(1)} KB</p>
+        <h2>${c.filename || 'Clip #' + c.id}</h2>
+        <p>${metaInfo.join(' &middot; ')}</p>
       </div>
       <audio controls loop autoplay src="/api/clips/${c.id}/audio"></audio>
       <div class="vote-buttons">
@@ -493,8 +826,8 @@
     importFile.value = "";
   });
 
-  fetchClips();
-  fetchVotes();
+  // Initialize
+  checkDatasetStatus();
 })();
 </script>
 </body>

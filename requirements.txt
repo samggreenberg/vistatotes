@@ -5,3 +5,5 @@ torchvision
 transformers
 accelerate
 scikit-learn
+librosa
+requests

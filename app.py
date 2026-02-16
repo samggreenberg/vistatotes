@@ -491,6 +491,7 @@ def list_clips():
             "file_size": c["file_size"],
             "filename": c.get("filename", f"clip_{c['id']}.wav"),
             "category": c.get("category", "unknown"),
+            "md5": c["md5"],
         }
         # Only include frequency if it exists (for synthetic clips)
         if "frequency" in c:

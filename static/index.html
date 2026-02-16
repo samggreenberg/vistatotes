@@ -7,10 +7,26 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #0f1117; color: #e0e0e0; height: 100vh; display: flex; flex-direction: column; }
-  header { background: #1a1d27; padding: 12px 24px; border-bottom: 1px solid #2a2d3a; display: flex; align-items: center; gap: 12px; }
+  header { background: #1a1d27; padding: 12px 24px; border-bottom: 1px solid #2a2d3a; display: flex; align-items: center; gap: 12px; position: relative; }
   header h1 { font-size: 1.3rem; color: #7c8aff; }
   header span { font-size: 0.85rem; color: #888; }
   .layout { display: flex; flex: 1; overflow: hidden; }
+
+  /* Burger menu */
+  .burger-menu { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); }
+  .burger-btn { width: 32px; height: 32px; background: transparent; border: 1px solid #2a2d3a; border-radius: 4px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 0; transition: all 0.2s; }
+  .burger-btn:hover { background: #252940; border-color: #7c8aff; }
+  .burger-btn span { display: block; width: 18px; height: 2px; background: #aaa; transition: all 0.2s; }
+  .burger-btn:hover span { background: #7c8aff; }
+  .burger-dropdown { position: absolute; top: 40px; left: 0; background: #1a1d27; border: 1px solid #2a2d3a; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); min-width: 220px; z-index: 1000; display: none; }
+  .burger-dropdown.show { display: block; }
+  .burger-section { padding: 8px 0; border-bottom: 1px solid #2a2d3a; }
+  .burger-section:last-child { border-bottom: none; }
+  .burger-section-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: #666; padding: 8px 16px 4px; }
+  .burger-item { padding: 10px 16px; cursor: pointer; font-size: 0.85rem; color: #aaa; transition: all 0.15s; display: flex; align-items: center; gap: 8px; }
+  .burger-item:hover { background: #252940; color: #e0e0e0; }
+  .burger-status { font-size: 0.7rem; color: #666; padding: 4px 16px 8px; }
+  header h1 { margin-left: 48px; }
 
   /* Left panel – clip list */
   .panel-left { width: 240px; border-right: 1px solid #2a2d3a; overflow-y: auto; background: #14161e; display: flex; flex-direction: column; position: relative; }
@@ -127,6 +143,32 @@
 </head>
 <body>
 <header>
+  <div class="burger-menu">
+    <button class="burger-btn" id="burger-btn">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <div class="burger-dropdown" id="burger-dropdown">
+      <div class="burger-section">
+        <div class="burger-section-title">Dataset</div>
+        <div class="burger-item" id="menu-dataset-export">Export Dataset</div>
+        <div class="burger-item" id="menu-dataset-change">Change Dataset</div>
+      </div>
+      <div class="burger-section">
+        <div class="burger-section-title">Labels</div>
+        <div class="burger-item" id="menu-labels-export">Export Labels</div>
+        <div class="burger-item" id="menu-labels-import">Import Labels</div>
+        <div class="burger-status" id="menu-labels-status"></div>
+      </div>
+      <div class="burger-section">
+        <div class="burger-section-title">Detector</div>
+        <div class="burger-item" id="menu-detector-import">Import Detector</div>
+        <div class="burger-item" id="menu-detector-export">Export Detector</div>
+        <div class="burger-status" id="menu-detector-status"></div>
+      </div>
+    </div>
+  </div>
   <h1>VectoryTones</h1>
   <span>Sound clip explorer with vector embeddings</span>
 </header>
@@ -135,10 +177,6 @@
   <div class="panel-left" id="left-panel">
     <div class="dataset-bar" id="dataset-bar" style="display:none">
       <span class="dataset-info" id="dataset-info">No dataset loaded</span>
-      <div style="display: flex; gap: 8px;">
-        <button id="export-dataset-btn">Export</button>
-        <button id="change-dataset-btn">Change</button>
-      </div>
     </div>
     <h2>Clips</h2>
     <div class="sort-bar" id="sort-bar">
@@ -169,7 +207,6 @@
       <div style="text-align:center; font-size:0.75rem; color:#aaa; margin-top:2px">
         <span id="inclusion-value">0</span>
       </div>
-      <button id="next-clip-btn" style="width:100%; margin-top:8px; padding:6px; background:#7c8aff; color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:0.85rem;">Next Clip</button>
       <div id="sort-status" class="sort-status"></div>
     </div>
     <div id="clip-list"></div>
@@ -215,16 +252,7 @@
 
   <!-- Right panel -->
   <div class="panel-right">
-    <div class="label-io">
-      <button id="export-btn">Export Labels</button>
-      <button id="import-btn">Import Labels</button>
-      <input type="file" id="import-file" accept=".json" style="display:none">
-    </div>
-    <div id="label-io-status" class="label-io-status"></div>
-    <div class="label-io">
-      <button id="export-detector-btn">Export Detector</button>
-    </div>
-    <div id="detector-io-status" class="label-io-status"></div>
+    <input type="file" id="import-file" accept=".json" style="display:none">
     <div class="vote-section">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
         <h3 class="good" style="margin: 0;">Good</h3>
@@ -279,7 +307,6 @@
   const learnedRadio = document.getElementById("learned-radio");
   const loadRadio = document.getElementById("load-radio");
   const sortStatus = document.getElementById("sort-status");
-  const nextClipBtn = document.getElementById("next-clip-btn");
   const stripeOverview = document.getElementById("stripe-overview");
   const stripeContainer = document.getElementById("stripe-container");
   const inclusionSlider = document.getElementById("inclusion-slider");
@@ -301,10 +328,20 @@
   const folderInput = document.getElementById("folder-input");
   const datasetBar = document.getElementById("dataset-bar");
   const datasetInfo = document.getElementById("dataset-info");
-  const exportDatasetBtn = document.getElementById("export-dataset-btn");
-  const changeDatasetBtn = document.getElementById("change-dataset-btn");
   const leftPanel = document.getElementById("left-panel");
   const sortBar = document.getElementById("sort-bar");
+
+  // Burger menu elements
+  const burgerBtn = document.getElementById("burger-btn");
+  const burgerDropdown = document.getElementById("burger-dropdown");
+  const menuDatasetExport = document.getElementById("menu-dataset-export");
+  const menuDatasetChange = document.getElementById("menu-dataset-change");
+  const menuLabelsExport = document.getElementById("menu-labels-export");
+  const menuLabelsImport = document.getElementById("menu-labels-import");
+  const menuLabelsStatus = document.getElementById("menu-labels-status");
+  const menuDetectorImport = document.getElementById("menu-detector-import");
+  const menuDetectorExport = document.getElementById("menu-detector-export");
+  const menuDetectorStatus = document.getElementById("menu-detector-status");
 
   // ---- Dataset Management ----
 
@@ -531,13 +568,29 @@
     showWelcomeScreen();
   });
 
-  // Export dataset
-  exportDatasetBtn.addEventListener("click", () => {
-    window.location.href = "/api/dataset/export";
+  // ---- Burger Menu ----
+
+  // Toggle burger menu
+  burgerBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    burgerDropdown.classList.toggle("show");
   });
 
-  // Change dataset
-  changeDatasetBtn.addEventListener("click", () => {
+  // Close burger menu when clicking outside
+  document.addEventListener("click", (e) => {
+    if (!burgerDropdown.contains(e.target) && e.target !== burgerBtn) {
+      burgerDropdown.classList.remove("show");
+    }
+  });
+
+  // Dataset export
+  menuDatasetExport.addEventListener("click", () => {
+    window.location.href = "/api/dataset/export";
+    burgerDropdown.classList.remove("show");
+  });
+
+  // Dataset change
+  menuDatasetChange.addEventListener("click", () => {
     if (confirm("Clear current dataset and load a new one?")) {
       fetch("/api/dataset/clear", { method: "POST" })
         .then(() => {
@@ -548,6 +601,67 @@
           datasetLoaded = false;
         });
     }
+    burgerDropdown.classList.remove("show");
+  });
+
+  // Labels export
+  menuLabelsExport.addEventListener("click", async () => {
+    menuLabelsStatus.textContent = "";
+    const res = await fetch("/api/labels/export");
+    const data = await res.json();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "labels.json";
+    a.click();
+    URL.revokeObjectURL(url);
+    menuLabelsStatus.textContent = `Exported ${data.labels.length} labels`;
+    setTimeout(() => { menuLabelsStatus.textContent = ""; }, 3000);
+    burgerDropdown.classList.remove("show");
+  });
+
+  // Labels import
+  menuLabelsImport.addEventListener("click", () => {
+    importFile.click();
+    burgerDropdown.classList.remove("show");
+  });
+
+  // Detector import
+  menuDetectorImport.addEventListener("click", () => {
+    loadDetectorFile.click();
+    burgerDropdown.classList.remove("show");
+  });
+
+  // Detector export
+  menuDetectorExport.addEventListener("click", async () => {
+    menuDetectorStatus.textContent = "";
+    if (votes.good.length === 0 || votes.bad.length === 0) {
+      menuDetectorStatus.textContent = "Vote good & bad clips first";
+      setTimeout(() => { menuDetectorStatus.textContent = ""; }, 3000);
+      return;
+    }
+    menuDetectorStatus.textContent = "Exporting detector\u2026";
+    const res = await fetch("/api/detector/export", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+    if (!res.ok) {
+      menuDetectorStatus.textContent = "Export failed";
+      setTimeout(() => { menuDetectorStatus.textContent = ""; }, 3000);
+      return;
+    }
+    const data = await res.json();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "detector.json";
+    a.click();
+    URL.revokeObjectURL(url);
+    menuDetectorStatus.textContent = "Detector exported";
+    setTimeout(() => { menuDetectorStatus.textContent = ""; }, 3000);
+    burgerDropdown.classList.remove("show");
   });
 
   // ---- Sort mode switching ----
@@ -558,10 +672,10 @@
     learnedRadio.parentElement.style.opacity = hasGoodAndBad ? "1" : "0.5";
     learnedRadio.parentElement.style.cursor = hasGoodAndBad ? "pointer" : "not-allowed";
 
-    const hasLoadedDetector = loadedDetector !== null;
-    loadRadio.disabled = !hasLoadedDetector;
-    loadRadio.parentElement.style.opacity = hasLoadedDetector ? "1" : "0.5";
-    loadRadio.parentElement.style.cursor = hasLoadedDetector ? "pointer" : "not-allowed";
+    // Load radio is always enabled - selecting it prompts for detector file
+    loadRadio.disabled = false;
+    loadRadio.parentElement.style.opacity = "1";
+    loadRadio.parentElement.style.cursor = "pointer";
   }
 
   document.querySelectorAll('input[name="sort-mode"]').forEach(radio => {
@@ -573,10 +687,14 @@
         document.querySelector('input[name="sort-mode"][value="text"]').checked = true;
         return;
       }
-      if (radio.value === "load" && loadedDetector === null) {
-        sortStatus.textContent = "Load a detector first";
-        // Revert to text mode
-        document.querySelector('input[name="sort-mode"][value="text"]').checked = true;
+      if (radio.value === "load") {
+        // Immediately prompt to select a detector file
+        sortMode = radio.value;
+        textSortWrap.style.display = "none";
+        loadSortWrap.style.display = "";
+        sortStatus.textContent = "";
+        // Trigger file picker
+        loadDetectorFile.click();
         return;
       }
 
@@ -589,8 +707,6 @@
         onTextSortInput();
       } else if (sortMode === "learned") {
         fetchLearnedSort();
-      } else if (sortMode === "load") {
-        fetchLoadedSort();
       }
     });
   });
@@ -725,14 +841,27 @@
 
   loadDetectorFile.addEventListener("change", async () => {
     const file = loadDetectorFile.files[0];
-    if (!file) return;
+    if (!file) {
+      // User cancelled - revert to text mode if no detector loaded
+      if (loadedDetector === null) {
+        document.querySelector('input[name="sort-mode"][value="text"]').checked = true;
+        sortMode = "text";
+        textSortWrap.style.display = "";
+        loadSortWrap.style.display = "none";
+        sortStatus.textContent = "";
+      }
+      return;
+    }
     sortStatus.textContent = "Loading detector\u2026";
+    menuDetectorStatus.textContent = "Loading detector\u2026";
     const text = await file.text();
     try {
       loadedDetector = JSON.parse(text);
       sortStatus.textContent = "Detector loaded";
+      menuDetectorStatus.textContent = "Detector loaded";
+      setTimeout(() => { menuDetectorStatus.textContent = ""; }, 3000);
       updateSortModeAvailability();
-      // Auto-switch to load mode
+      // Ensure load mode is selected
       document.querySelector('input[name="sort-mode"][value="load"]').checked = true;
       sortMode = "load";
       loadSortWrap.style.display = "";
@@ -740,8 +869,15 @@
       fetchLoadedSort();
     } catch (e) {
       sortStatus.textContent = "Invalid detector file";
+      menuDetectorStatus.textContent = "Invalid detector file";
+      setTimeout(() => { menuDetectorStatus.textContent = ""; }, 3000);
       loadedDetector = null;
       updateSortModeAvailability();
+      // Revert to text mode on error
+      document.querySelector('input[name="sort-mode"][value="text"]').checked = true;
+      sortMode = "text";
+      textSortWrap.style.display = "";
+      loadSortWrap.style.display = "none";
     }
     loadDetectorFile.value = "";
   });
@@ -783,25 +919,6 @@
 
     return nextClip;
   }
-
-  nextClipBtn.addEventListener("click", () => {
-    const nextClip = findNextClip();
-
-    if (!sortOrder || sortOrder.length === 0) {
-      sortStatus.textContent = "Sort clips first";
-      return;
-    }
-
-    if (nextClip) {
-      selectClip(nextClip.id);
-    } else {
-      if (selectMode === "hard" && threshold === null) {
-        sortStatus.textContent = "No threshold available";
-      } else {
-        sortStatus.textContent = "All clips labeled";
-      }
-    }
-  });
 
   // ---- Rendering ----
 
@@ -1127,43 +1244,21 @@
     }
   });
 
-  // ---- Label export / import ----
+  // ---- Label import handler ----
 
-  const exportBtn = document.getElementById("export-btn");
-  const importBtn = document.getElementById("import-btn");
   const importFile = document.getElementById("import-file");
-  const labelIoStatus = document.getElementById("label-io-status");
-  const exportDetectorBtn = document.getElementById("export-detector-btn");
-  const detectorIoStatus = document.getElementById("detector-io-status");
-
-  exportBtn.addEventListener("click", async () => {
-    labelIoStatus.textContent = "";
-    const res = await fetch("/api/labels/export");
-    const data = await res.json();
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "labels.json";
-    a.click();
-    URL.revokeObjectURL(url);
-    labelIoStatus.textContent = `Exported ${data.labels.length} labels`;
-  });
-
-  importBtn.addEventListener("click", () => {
-    importFile.click();
-  });
 
   importFile.addEventListener("change", async () => {
     const file = importFile.files[0];
     if (!file) return;
-    labelIoStatus.textContent = "Importing\u2026";
+    menuLabelsStatus.textContent = "Importing\u2026";
     const text = await file.text();
     let data;
     try {
       data = JSON.parse(text);
     } catch (e) {
-      labelIoStatus.textContent = "Invalid JSON file";
+      menuLabelsStatus.textContent = "Invalid JSON file";
+      setTimeout(() => { menuLabelsStatus.textContent = ""; }, 3000);
       importFile.value = "";
       return;
     }
@@ -1174,40 +1269,14 @@
     });
     const result = await res.json();
     if (res.ok) {
-      labelIoStatus.textContent = `Applied ${result.applied}, skipped ${result.skipped}`;
+      menuLabelsStatus.textContent = `Applied ${result.applied}, skipped ${result.skipped}`;
       await fetchVotes();
+      setTimeout(() => { menuLabelsStatus.textContent = ""; }, 3000);
     } else {
-      labelIoStatus.textContent = result.error || "Import failed";
+      menuLabelsStatus.textContent = result.error || "Import failed";
+      setTimeout(() => { menuLabelsStatus.textContent = ""; }, 3000);
     }
     importFile.value = "";
-  });
-
-  // ---- Detector export ----
-
-  exportDetectorBtn.addEventListener("click", async () => {
-    detectorIoStatus.textContent = "";
-    if (votes.good.length === 0 || votes.bad.length === 0) {
-      detectorIoStatus.textContent = "Vote good & bad clips first";
-      return;
-    }
-    detectorIoStatus.textContent = "Exporting detector\u2026";
-    const res = await fetch("/api/detector/export", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-    });
-    if (!res.ok) {
-      detectorIoStatus.textContent = "Export failed";
-      return;
-    }
-    const data = await res.json();
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "detector.json";
-    a.click();
-    URL.revokeObjectURL(url);
-    detectorIoStatus.textContent = "Detector exported";
   });
 
   // Initialize

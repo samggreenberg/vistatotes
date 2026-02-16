@@ -72,6 +72,7 @@
   #waveform-canvas { border: 1px solid #2a2d3a; border-radius: 8px; background: #1a1d27; }
 
   audio { width: 320px; }
+  video { max-width: 600px; max-height: 400px; }
 
   /* Metadata grid */
   .metadata-grid {
@@ -518,8 +519,11 @@
       const div = document.createElement("div");
       div.className = "demo-dataset" + (dataset.ready ? " ready" : "");
 
-      // Format file count
-      const fileCountText = `${dataset.num_files} sound files`;
+      // Format file count with media type indicator
+      const mediaType = dataset.media_type || "audio";
+      const mediaLabel = mediaType === "video" ? "video clips" : "sound files";
+      const mediaIcon = mediaType === "video" ? "🎬" : "🔊";
+      const fileCountText = `${mediaIcon} ${dataset.num_files} ${mediaLabel}`;
 
       // Format download size
       const sizeText = dataset.ready
@@ -984,7 +988,8 @@
       if (isGood) className += " labeled-good";
       if (isBad) className += " labeled-bad";
       div.className = className;
-      let html = `<div style="font-weight: 500;">${c.filename || 'Clip #' + c.id}</div>`;
+      const mediaIcon = (c.type === "video") ? "🎬 " : "";
+      let html = `<div style="font-weight: 500;">${mediaIcon}${c.filename || 'Clip #' + c.id}</div>`;
       if (scoreMap[c.id] !== undefined) {
         html += `<span class="sim">${(scoreMap[c.id] * 100).toFixed(1)}%</span>`;
       }
@@ -1018,6 +1023,7 @@
     const isBad = votes.bad.includes(c.id);
     center.className = "panel-center";
 
+    const mediaType = c.type || "audio";
     let metaInfo = [];
     if (c.frequency) {
       metaInfo.push(`${c.frequency} Hz`);
@@ -1028,13 +1034,22 @@
     metaInfo.push(`${c.duration.toFixed(1)}s`);
     metaInfo.push(`${(c.file_size / 1024).toFixed(1)} KB`);
 
+    // Render audio or video player based on media type
+    let playerHTML = '';
+    if (mediaType === "video") {
+      playerHTML = `<video controls loop autoplay src="/api/clips/${c.id}/video" id="clip-video" style="width: 600px; max-height: 400px; border: 1px solid #2a2d3a; border-radius: 8px; background: #1a1d27;"></video>`;
+    } else {
+      playerHTML = `
+        <canvas id="waveform-canvas" width="600" height="120"></canvas>
+        <audio controls loop autoplay src="/api/clips/${c.id}/audio" id="clip-audio"></audio>`;
+    }
+
     center.innerHTML = `
       <div class="meta">
         <h2>${c.filename || 'Clip #' + c.id}</h2>
         <p>${metaInfo.join(' &middot; ')}</p>
       </div>
-      <canvas id="waveform-canvas" width="600" height="120"></canvas>
-      <audio controls loop autoplay src="/api/clips/${c.id}/audio" id="clip-audio"></audio>
+      ${playerHTML}
       <div class="metadata-grid">
         ${c.frequency ? `
         <div class="metadata-item">
@@ -1046,6 +1061,10 @@
           <span class="metadata-label">Category</span>
           <span class="metadata-value">${c.category}</span>
         </div>` : ''}
+        <div class="metadata-item">
+          <span class="metadata-label">Media Type</span>
+          <span class="metadata-value">${mediaType}</span>
+        </div>
         <div class="metadata-item">
           <span class="metadata-label">Duration</span>
           <span class="metadata-value">${c.duration.toFixed(1)}s</span>
@@ -1070,8 +1089,10 @@
     document.getElementById("vote-good").onclick = () => castVote(c.id, "good");
     document.getElementById("vote-bad").onclick = () => castVote(c.id, "bad");
 
-    // Draw waveform
-    drawWaveform(c.id);
+    // Draw waveform only for audio clips
+    if (mediaType === "audio") {
+      drawWaveform(c.id);
+    }
   }
 
   async function castVote(id, vote) {

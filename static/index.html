@@ -226,11 +226,23 @@
     </div>
     <div id="detector-io-status" class="label-io-status"></div>
     <div class="vote-section">
-      <h3 class="good">Good</h3>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <h3 class="good" style="margin: 0;">Good</h3>
+        <select id="good-sort-mode" style="font-size: 0.75rem; padding: 2px 4px; background: #2a2a2a; color: #aaa; border: 1px solid #444; border-radius: 3px;">
+          <option value="clip">By Clip#</option>
+          <option value="order">By Click</option>
+        </select>
+      </div>
       <div id="good-list"></div>
     </div>
     <div class="vote-section">
-      <h3 class="bad">Bad</h3>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <h3 class="bad" style="margin: 0;">Bad</h3>
+        <select id="bad-sort-mode" style="font-size: 0.75rem; padding: 2px 4px; background: #2a2a2a; color: #aaa; border: 1px solid #444; border-radius: 3px;">
+          <option value="clip">By Clip#</option>
+          <option value="order">By Click</option>
+        </select>
+      </div>
       <div id="bad-list"></div>
     </div>
   </div>
@@ -250,11 +262,15 @@
   let loadedDetector = null; // Stores loaded detector model weights
   let datasetLoaded = false;
   let progressTimer = null;
+  let goodSortMode = "clip"; // "clip" | "order"
+  let badSortMode = "clip";  // "clip" | "order"
 
   const clipList = document.getElementById("clip-list");
   const center = document.getElementById("center");
   const goodList = document.getElementById("good-list");
   const badList = document.getElementById("bad-list");
+  const goodSortSelect = document.getElementById("good-sort-mode");
+  const badSortSelect = document.getElementById("bad-sort-mode");
   const textSortInput = document.getElementById("text-sort");
   const textSortWrap = document.getElementById("text-sort-wrap");
   const loadSortWrap = document.getElementById("load-sort-wrap");
@@ -608,6 +624,18 @@
 
   inclusionSlider.addEventListener("input", () => {
     updateInclusion(parseInt(inclusionSlider.value));
+  });
+
+  // ---- Good/Bad vote list sorting ----
+
+  goodSortSelect.addEventListener("change", () => {
+    goodSortMode = goodSortSelect.value;
+    renderVotes();
+  });
+
+  badSortSelect.addEventListener("change", () => {
+    badSortMode = badSortSelect.value;
+    renderVotes();
   });
 
   // ---- Text sort ----
@@ -1003,14 +1031,26 @@
   function renderVotes() {
     goodList.innerHTML = "";
     badList.innerHTML = "";
-    votes.good.forEach(id => {
+
+    // Sort good votes based on selected mode
+    const sortedGood = goodSortMode === "clip"
+      ? [...votes.good].sort((a, b) => a - b)  // By clip# (numerical)
+      : [...votes.good];  // By click order (insertion order)
+
+    sortedGood.forEach(id => {
       const div = document.createElement("div");
       div.className = "vote-entry";
       div.textContent = `Clip #${id}`;
       div.onclick = () => selectClip(id);
       goodList.appendChild(div);
     });
-    votes.bad.forEach(id => {
+
+    // Sort bad votes based on selected mode
+    const sortedBad = badSortMode === "clip"
+      ? [...votes.bad].sort((a, b) => a - b)  // By clip# (numerical)
+      : [...votes.bad];  // By click order (insertion order)
+
+    sortedBad.forEach(id => {
       const div = document.createElement("div");
       div.className = "vote-entry";
       div.textContent = `Clip #${id}`;

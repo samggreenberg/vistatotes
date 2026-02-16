@@ -36,8 +36,8 @@ SAMPLE_RATE = 48000
 NUM_CLIPS = 20
 
 clips = {}  # id -> {id, duration, file_size, embedding, wav_bytes}
-good_votes: set[int] = set()
-bad_votes: set[int] = set()
+good_votes: dict[int, None] = {}  # OrderedDict behavior via dict (Python 3.7+)
+bad_votes: dict[int, None] = {}  # OrderedDict behavior via dict (Python 3.7+)
 inclusion: int = 0  # Inclusion setting: -10 to +10, default 0
 
 # Load CLAP model for audio/text embeddings
@@ -639,16 +639,16 @@ def vote_clip(clip_id):
 
     if vote == "good":
         if clip_id in good_votes:
-            good_votes.discard(clip_id)
+            good_votes.pop(clip_id, None)
         else:
-            bad_votes.discard(clip_id)
-            good_votes.add(clip_id)
+            bad_votes.pop(clip_id, None)
+            good_votes[clip_id] = None
     else:
         if clip_id in bad_votes:
-            bad_votes.discard(clip_id)
+            bad_votes.pop(clip_id, None)
         else:
-            good_votes.discard(clip_id)
-            bad_votes.add(clip_id)
+            good_votes.pop(clip_id, None)
+            bad_votes[clip_id] = None
 
     return jsonify({"ok": True})
 
@@ -940,8 +940,8 @@ def learned_sort():
 def get_votes():
     return jsonify(
         {
-            "good": sorted(good_votes),
-            "bad": sorted(bad_votes),
+            "good": list(good_votes),  # Maintains insertion order (dict keys)
+            "bad": list(bad_votes),    # Maintains insertion order (dict keys)
         }
     )
 
@@ -950,11 +950,11 @@ def get_votes():
 def export_labels():
     """Export labels as JSON keyed by clip MD5 hash."""
     labels = []
-    for cid in sorted(good_votes):
+    for cid in good_votes:  # Maintains insertion order
         clip = clips.get(cid)
         if clip:
             labels.append({"md5": clip["md5"], "label": "good"})
-    for cid in sorted(bad_votes):
+    for cid in bad_votes:  # Maintains insertion order
         clip = clips.get(cid)
         if clip:
             labels.append({"md5": clip["md5"], "label": "bad"})
@@ -990,11 +990,11 @@ def import_labels():
 
         # Apply the label, overriding any existing vote
         if label == "good":
-            bad_votes.discard(cid)
-            good_votes.add(cid)
+            bad_votes.pop(cid, None)
+            good_votes[cid] = None
         else:
-            good_votes.discard(cid)
-            bad_votes.add(cid)
+            good_votes.pop(cid, None)
+            bad_votes[cid] = None
         applied += 1
 
     return jsonify({"applied": applied, "skipped": skipped})

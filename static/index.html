@@ -96,6 +96,15 @@
         <label><input type="radio" name="select-mode" value="good" checked> Good</label>
         <label><input type="radio" name="select-mode" value="hard"> Hard</label>
       </div>
+      <span class="sort-label" style="margin-top:8px">Inclusion</span>
+      <div style="display:flex; align-items:center; gap:8px; margin-top:4px">
+        <span style="font-size:0.7rem; color:#888">-10</span>
+        <input type="range" id="inclusion-slider" min="-10" max="10" value="0" step="1" style="flex:1; accent-color:#7c8aff">
+        <span style="font-size:0.7rem; color:#888">+10</span>
+      </div>
+      <div style="text-align:center; font-size:0.75rem; color:#aaa; margin-top:2px">
+        <span id="inclusion-value">0</span>
+      </div>
       <button id="next-clip-btn" style="width:100%; margin-top:8px; padding:6px; background:#7c8aff; color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:0.85rem;">Next Clip</button>
       <div id="sort-status" class="sort-status"></div>
     </div>
@@ -139,6 +148,7 @@
   let selectMode = "good"; // "good" | "hard"
   let threshold = null;    // threshold for Good/Bad boundary
   let sortTimer = null;
+  let inclusion = 0;       // Inclusion setting: -10 to +10
 
   const clipList = document.getElementById("clip-list");
   const center = document.getElementById("center");
@@ -150,6 +160,8 @@
   const nextClipBtn = document.getElementById("next-clip-btn");
   const stripeOverview = document.getElementById("stripe-overview");
   const stripeContainer = document.getElementById("stripe-container");
+  const inclusionSlider = document.getElementById("inclusion-slider");
+  const inclusionValue = document.getElementById("inclusion-value");
 
   // ---- Sort mode switching ----
 
@@ -176,6 +188,29 @@
     radio.addEventListener("change", () => {
       selectMode = radio.value;
     });
+  });
+
+  // ---- Inclusion slider ----
+
+  async function updateInclusion(newInclusion) {
+    inclusion = newInclusion;
+    inclusionValue.textContent = inclusion;
+
+    // Save to server
+    await fetch("/api/inclusion", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ inclusion }),
+    });
+
+    // Re-calculate threshold if in learned sort mode
+    if (sortMode === "learned" && votes.good.length > 0 && votes.bad.length > 0) {
+      await fetchLearnedSort();
+    }
+  }
+
+  inclusionSlider.addEventListener("input", () => {
+    updateInclusion(parseInt(inclusionSlider.value));
   });
 
   // ---- Text sort ----
@@ -285,6 +320,14 @@
     renderVotes();
     renderStripe();
     if (selected) renderCenter();
+  }
+
+  async function fetchInclusion() {
+    const res = await fetch("/api/inclusion");
+    const data = await res.json();
+    inclusion = data.inclusion;
+    inclusionSlider.value = inclusion;
+    inclusionValue.textContent = inclusion;
   }
 
   function renderClipList() {
@@ -495,6 +538,7 @@
 
   fetchClips();
   fetchVotes();
+  fetchInclusion();
 })();
 </script>
 </body>

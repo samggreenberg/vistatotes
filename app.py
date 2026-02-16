@@ -24,6 +24,7 @@ NUM_CLIPS = 20
 clips = {}  # id -> {id, duration, file_size, embedding, wav_bytes}
 good_votes: set[int] = set()
 bad_votes: set[int] = set()
+inclusion = 0  # Inclusion setting: -10 to +10, default 0
 
 # Load CLAP model for audio/text embeddings
 clap_model = laion_clap.CLAP_Module(enable_fusion=False)
@@ -217,8 +218,19 @@ def sort_clips():
     return jsonify({"results": results, "threshold": round(threshold, 4)})
 
 
-def train_model(X_train, y_train, input_dim):
-    """Train a small MLP and return the trained model."""
+def train_model(X_train, y_train, input_dim, inclusion_value=0):
+    """
+    Train a small MLP and return the trained model.
+
+    Args:
+        X_train: Training data
+        y_train: Training labels (1 for good, 0 for bad)
+        input_dim: Input dimension
+        inclusion_value: Inclusion setting (-10 to +10)
+            - If 0: balance classes equally
+            - If positive: weight True samples more (effectively more Trues)
+            - If negative: weight False samples more (effectively more Falses)
+    """
     model = nn.Sequential(
         nn.Linear(input_dim, 64),
         nn.ReLU(),
@@ -227,42 +239,106 @@ def train_model(X_train, y_train, input_dim):
     )
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
-    loss_fn = nn.BCELoss()
+
+    # Calculate class weights based on inclusion
+    num_true = y_train.sum().item()
+    num_false = len(y_train) - num_true
+
+    # Base weights for balanced classes
+    if num_true > 0 and num_false > 0:
+        weight_true = num_false / num_true
+        weight_false = 1.0
+    else:
+        weight_true = 1.0
+        weight_false = 1.0
+
+    # Adjust weights based on inclusion
+    if inclusion_value >= 0:
+        # Increase weight for True samples
+        weight_true *= (2.0 ** inclusion_value)
+    else:
+        # Increase weight for False samples
+        weight_false *= (2.0 ** (-inclusion_value))
+
+    # Create sample weights
+    weights = torch.where(y_train == 1, weight_true, weight_false).squeeze()
+    loss_fn = nn.BCELoss(reduction='none')
 
     model.train()
     for _ in range(200):
         optimizer.zero_grad()
-        loss = loss_fn(model(X_train), y_train)
-        loss.backward()
+        predictions = model(X_train)
+        losses = loss_fn(predictions, y_train)
+        weighted_loss = (losses.squeeze() * weights).mean()
+        weighted_loss.backward()
         optimizer.step()
 
     model.eval()
     return model
 
 
-def find_optimal_threshold(scores, labels):
-    """Find the best threshold that separates good (1) from bad (0)."""
+def find_optimal_threshold(scores, labels, inclusion_value=0):
+    """
+    Find the best threshold that separates good (1) from bad (0).
+
+    Args:
+        scores: List of model scores
+        labels: List of true labels (1 for good, 0 for bad)
+        inclusion_value: Inclusion setting (-10 to +10)
+            - If 0: minimize fpr + fnr
+            - If positive: minimize fpr + 2^inclusion * fnr (include more)
+            - If negative: minimize 2^inclusion * fpr + fnr (exclude more)
+    """
     sorted_pairs = sorted(zip(scores, labels), reverse=True)
     best_threshold = 0.5
-    best_accuracy = 0.0
+    best_cost = float('inf')
+
+    # Calculate weights based on inclusion
+    if inclusion_value >= 0:
+        fpr_weight = 1.0
+        fnr_weight = 2.0 ** inclusion_value
+    else:
+        fpr_weight = 2.0 ** inclusion_value
+        fnr_weight = 1.0
 
     for i in range(len(sorted_pairs)):
         threshold = sorted_pairs[i][0]
-        # Count correct predictions with this threshold
-        correct = 0
+
+        # Calculate FPR and FNR at this threshold
+        fp = 0  # false positives
+        fn = 0  # false negatives
+        tp = 0  # true positives
+        tn = 0  # true negatives
+
         for score, label in sorted_pairs:
             predicted = 1 if score >= threshold else 0
-            if predicted == label:
-                correct += 1
-        accuracy = correct / len(sorted_pairs)
-        if accuracy > best_accuracy:
-            best_accuracy = accuracy
+            if predicted == 1 and label == 0:
+                fp += 1
+            elif predicted == 0 and label == 1:
+                fn += 1
+            elif predicted == 1 and label == 1:
+                tp += 1
+            else:  # predicted == 0 and label == 0
+                tn += 1
+
+        # Calculate rates
+        total_positives = sum(1 for _, label in sorted_pairs if label == 1)
+        total_negatives = len(sorted_pairs) - total_positives
+
+        fpr = fp / total_negatives if total_negatives > 0 else 0
+        fnr = fn / total_positives if total_positives > 0 else 0
+
+        # Calculate weighted cost
+        cost = fpr_weight * fpr + fnr_weight * fnr
+
+        if cost < best_cost:
+            best_cost = cost
             best_threshold = threshold
 
     return best_threshold
 
 
-def calculate_cross_calibration_threshold(X_list, y_list, input_dim):
+def calculate_cross_calibration_threshold(X_list, y_list, input_dim, inclusion_value=0):
     """
     Calculate threshold using cross-calibration:
     - Split data into two halves D1 and D2
@@ -287,28 +363,28 @@ def calculate_cross_calibration_threshold(X_list, y_list, input_dim):
     # Train M1 on D1
     X1 = torch.tensor(X_np[idx1], dtype=torch.float32)
     y1 = torch.tensor(y_np[idx1], dtype=torch.float32).unsqueeze(1)
-    M1 = train_model(X1, y1, input_dim)
+    M1 = train_model(X1, y1, input_dim, inclusion_value)
 
     # Train M2 on D2
     X2 = torch.tensor(X_np[idx2], dtype=torch.float32)
     y2 = torch.tensor(y_np[idx2], dtype=torch.float32).unsqueeze(1)
-    M2 = train_model(X2, y2, input_dim)
+    M2 = train_model(X2, y2, input_dim, inclusion_value)
 
     # Find t1: use M1 on D2
     with torch.no_grad():
         scores1_on_2 = M1(X2).squeeze(1).tolist()
-    t1 = find_optimal_threshold(scores1_on_2, y_np[idx2].tolist())
+    t1 = find_optimal_threshold(scores1_on_2, y_np[idx2].tolist(), inclusion_value)
 
     # Find t2: use M2 on D1
     with torch.no_grad():
         scores2_on_1 = M2(X1).squeeze(1).tolist()
-    t2 = find_optimal_threshold(scores2_on_1, y_np[idx1].tolist())
+    t2 = find_optimal_threshold(scores2_on_1, y_np[idx1].tolist(), inclusion_value)
 
     # Return mean
     return (t1 + t2) / 2.0
 
 
-def train_and_score():
+def train_and_score(inclusion_value=0):
     """Train a small MLP on voted clip embeddings and score every clip."""
     X_list = []
     y_list = []
@@ -325,10 +401,10 @@ def train_and_score():
     input_dim = X.shape[1]
 
     # Calculate threshold using cross-calibration
-    threshold = calculate_cross_calibration_threshold(X_list, y_list, input_dim)
+    threshold = calculate_cross_calibration_threshold(X_list, y_list, input_dim, inclusion_value)
 
     # Train final model on all data
-    model = train_model(X, y, input_dim)
+    model = train_model(X, y, input_dim, inclusion_value)
 
     # Score every clip
     all_ids = sorted(clips.keys())
@@ -347,7 +423,7 @@ def learned_sort():
     """Train MLP on voted clips, return all clips sorted by predicted score."""
     if not good_votes or not bad_votes:
         return jsonify({"error": "need at least one good and one bad vote"}), 400
-    results, threshold = train_and_score()
+    results, threshold = train_and_score(inclusion)
     return jsonify({"results": results, "threshold": round(threshold, 4)})
 
 
@@ -410,6 +486,29 @@ def import_labels():
         applied += 1
 
     return jsonify({"applied": applied, "skipped": skipped})
+
+
+@app.route("/api/inclusion")
+def get_inclusion():
+    """Get the current Inclusion setting."""
+    return jsonify({"inclusion": inclusion})
+
+
+@app.route("/api/inclusion", methods=["POST"])
+def set_inclusion():
+    """Set the Inclusion setting."""
+    global inclusion
+    data = request.get_json(force=True)
+    new_inclusion = data.get("inclusion")
+
+    if not isinstance(new_inclusion, (int, float)):
+        return jsonify({"error": "inclusion must be a number"}), 400
+
+    # Clamp to -10 to +10 range
+    new_inclusion = max(-10, min(10, new_inclusion))
+    inclusion = new_inclusion
+
+    return jsonify({"inclusion": inclusion})
 
 
 if __name__ == "__main__":

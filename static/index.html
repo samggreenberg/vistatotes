@@ -596,7 +596,7 @@
   // Dataset change
   if (menuDatasetChange && burgerDropdown) {
     menuDatasetChange.addEventListener("click", () => {
-      if (confirm("Clear current dataset and load a new one?")) {
+      if (confirm("Changing the dataset will erase your current dataset. Continue?")) {
         fetch("/api/dataset/clear", { method: "POST" })
           .then(() => {
             showWelcomeScreen();
@@ -604,9 +604,11 @@
             votes = { good: [], bad: [] };
             selected = null;
             datasetLoaded = false;
+            burgerDropdown.classList.remove("show");
           });
+      } else {
+        burgerDropdown.classList.remove("show");
       }
-      burgerDropdown.classList.remove("show");
     });
   }
 

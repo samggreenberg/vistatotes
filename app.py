@@ -402,16 +402,24 @@ def download_esc50() -> Path:
 
     extract_dir = DATA_DIR / "ESC-50-master"
     if not extract_dir.exists():
-        update_progress("downloading", "Extracting ESC-50...", 0, 0)
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
-            zip_ref.extractall(DATA_DIR)
+            members = zip_ref.namelist()
+            total = len(members)
+            for i, member in enumerate(members, 1):
+                update_progress(
+                    "downloading",
+                    f"Extracting {member.split('/')[-1]}...",
+                    i,
+                    total,
+                )
+                zip_ref.extract(member, DATA_DIR)
 
     return extract_dir / "audio"
 
 
 def load_esc50_metadata(esc50_dir: Path) -> dict:
     """Load ESC-50 metadata CSV."""
-    meta_file = esc50_dir.parent / "meta" / "esc50.csv"
+    meta_file = esc50_dir / "meta" / "esc50.csv"
 
     metadata = {}
     with open(meta_file, "r") as f:
@@ -458,9 +466,17 @@ def load_demo_dataset(dataset_name: str):
     clips.clear()
     clip_id = 1
     total = len(audio_files)
+    update_progress(
+        "embedding", f"Starting embedding for {total} audio files...", 0, total
+    )
 
     for i, (audio_path, meta) in enumerate(audio_files):
-        update_progress("embedding", f"Embedding {audio_path.name}...", i + 1, total)
+        update_progress(
+            "embedding",
+            f"Embedding {meta['category']}: {audio_path.name} ({i + 1}/{total})",
+            i + 1,
+            total,
+        )
 
         embedding = embed_audio_file(audio_path)
         if embedding is None:

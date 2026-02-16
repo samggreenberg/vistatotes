@@ -460,9 +460,20 @@
       data.datasets.forEach(dataset => {
       const div = document.createElement("div");
       div.className = "demo-dataset" + (dataset.ready ? " ready" : "");
+
+      // Format file count
+      const fileCountText = `${dataset.num_files} sound files`;
+
+      // Format download size
+      const sizeText = dataset.ready
+        ? `${dataset.download_size_mb} MB (cached)`
+        : `${dataset.download_size_mb} MB download`;
+
       div.innerHTML = `
         <h4>${dataset.name}</h4>
-        <p>${dataset.num_categories} categories</p>
+        <p style="margin: 4px 0; font-size: 0.85rem;">${fileCountText}</p>
+        <p style="margin: 4px 0; font-size: 0.8rem; color: #888;">${dataset.num_categories} categories</p>
+        <p style="margin: 4px 0; font-size: 0.8rem; color: #666;">${sizeText}</p>
         ${dataset.ready ? '<span class="ready-badge">Ready</span>' : '<span style="font-size:0.7rem;color:#888;">Needs download</span>'}
       `;
       div.onclick = () => loadDemo(dataset.name);

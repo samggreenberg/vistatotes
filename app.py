@@ -61,81 +61,97 @@ progress_data = {
 }
 
 # Demo dataset definitions (from setup_datasets.py)
+# ESC-50 has 40 clips per category
+CLIPS_PER_CATEGORY = 40
+ESC50_DOWNLOAD_SIZE_MB = 600  # Approximate download size of full ESC-50 dataset
+
 DEMO_DATASETS = {
-    "animals": [
-        "dog",
-        "rooster",
-        "pig",
-        "cow",
-        "frog",
-        "cat",
-        "hen",
-        "insects",
-        "sheep",
-        "crow",
-        "rain",
-        "sea_waves",
-        "crackling_fire",
-        "crickets",
-        "chirping_birds",
-        "water_drops",
-        "wind",
-        "pouring_water",
-        "toilet_flush",
-        "thunderstorm",
-    ],
-    "natural": [
-        "rain",
-        "sea_waves",
-        "crackling_fire",
-        "crickets",
-        "chirping_birds",
-        "water_drops",
-        "wind",
-        "pouring_water",
-        "thunderstorm",
-        "frog",
-    ],
-    "urban": [
-        "clock_alarm",
-        "clock_tick",
-        "door_wood_knock",
-        "mouse_click",
-        "keyboard_typing",
-        "door_wood_creaks",
-        "can_opening",
-        "washing_machine",
-        "vacuum_cleaner",
-        "helicopter",
-        "chainsaw",
-        "siren",
-        "car_horn",
-        "engine",
-        "train",
-        "church_bells",
-        "airplane",
-        "fireworks",
-        "hand_saw",
-    ],
-    "household": [
-        "clock_alarm",
-        "clock_tick",
-        "door_wood_knock",
-        "mouse_click",
-        "keyboard_typing",
-        "door_wood_creaks",
-        "can_opening",
-        "washing_machine",
-        "vacuum_cleaner",
-        "sneezing",
-        "coughing",
-        "breathing",
-        "laughing",
-        "brushing_teeth",
-        "snoring",
-        "drinking_sipping",
-        "footsteps",
-    ],
+    "animals": {
+        "categories": [
+            "dog",
+            "rooster",
+            "pig",
+            "cow",
+            "frog",
+            "cat",
+            "hen",
+            "insects",
+            "sheep",
+            "crow",
+            "rain",
+            "sea_waves",
+            "crackling_fire",
+            "crickets",
+            "chirping_birds",
+            "water_drops",
+            "wind",
+            "pouring_water",
+            "toilet_flush",
+            "thunderstorm",
+        ],
+        "description": "Animal and nature sounds"
+    },
+    "natural": {
+        "categories": [
+            "rain",
+            "sea_waves",
+            "crackling_fire",
+            "crickets",
+            "chirping_birds",
+            "water_drops",
+            "wind",
+            "pouring_water",
+            "thunderstorm",
+            "frog",
+        ],
+        "description": "Natural environmental sounds"
+    },
+    "urban": {
+        "categories": [
+            "clock_alarm",
+            "clock_tick",
+            "door_wood_knock",
+            "mouse_click",
+            "keyboard_typing",
+            "door_wood_creaks",
+            "can_opening",
+            "washing_machine",
+            "vacuum_cleaner",
+            "helicopter",
+            "chainsaw",
+            "siren",
+            "car_horn",
+            "engine",
+            "train",
+            "church_bells",
+            "airplane",
+            "fireworks",
+            "hand_saw",
+        ],
+        "description": "Urban and mechanical sounds"
+    },
+    "household": {
+        "categories": [
+            "clock_alarm",
+            "clock_tick",
+            "door_wood_knock",
+            "mouse_click",
+            "keyboard_typing",
+            "door_wood_creaks",
+            "can_opening",
+            "washing_machine",
+            "vacuum_cleaner",
+            "sneezing",
+            "coughing",
+            "breathing",
+            "laughing",
+            "brushing_teeth",
+            "snoring",
+            "drinking_sipping",
+            "footsteps",
+        ],
+        "description": "Household and human sounds"
+    },
 }
 
 
@@ -468,7 +484,7 @@ def load_demo_dataset(dataset_name: str):
     metadata = load_esc50_metadata(audio_dir.parent)
 
     # Filter files for this dataset
-    categories = DEMO_DATASETS[dataset_name]
+    categories = DEMO_DATASETS[dataset_name]["categories"]
     audio_files = []
     for audio_path in sorted(audio_dir.glob("*.wav")):
         if audio_path.name in metadata:
@@ -1119,13 +1135,30 @@ def dataset_progress():
 def demo_dataset_list():
     """List available demo datasets."""
     demos = []
-    for name in DEMO_DATASETS.keys():
+    for name, dataset_info in DEMO_DATASETS.items():
         pkl_file = EMBEDDINGS_DIR / f"{name}.pkl"
+        is_ready = pkl_file.exists()
+
+        # Calculate number of files (40 clips per ESC-50 category)
+        num_categories = len(dataset_info["categories"])
+        num_files = num_categories * CLIPS_PER_CATEGORY
+
+        # Calculate download size
+        if is_ready:
+            # If ready, show the actual .pkl file size
+            download_size_mb = pkl_file.stat().st_size / (1024 * 1024)
+        else:
+            # If not ready, user needs to download full ESC-50
+            download_size_mb = ESC50_DOWNLOAD_SIZE_MB
+
         demos.append(
             {
                 "name": name,
-                "ready": pkl_file.exists(),
-                "num_categories": len(DEMO_DATASETS[name]),
+                "ready": is_ready,
+                "num_categories": num_categories,
+                "num_files": num_files,
+                "download_size_mb": round(download_size_mb, 1),
+                "description": dataset_info.get("description", "")
             }
         )
     return jsonify({"datasets": demos})

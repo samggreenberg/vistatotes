@@ -13,12 +13,23 @@
   .layout { display: flex; flex: 1; overflow: hidden; }
 
   /* Left panel – clip list */
-  .panel-left { width: 220px; border-right: 1px solid #2a2d3a; overflow-y: auto; background: #14161e; }
+  .panel-left { width: 240px; border-right: 1px solid #2a2d3a; overflow-y: auto; background: #14161e; display: flex; flex-direction: column; }
   .panel-left h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: #888; padding: 12px 16px 8px; }
+  .sort-bar { padding: 8px 16px 12px; border-bottom: 1px solid #2a2d3a; }
+  .sort-mode { display: flex; gap: 10px; margin-bottom: 6px; }
+  .sort-mode label { font-size: 0.75rem; color: #aaa; cursor: pointer; display: flex; align-items: center; gap: 3px; }
+  .sort-mode input[type="radio"] { accent-color: #7c8aff; margin: 0; }
+  .sort-bar .sort-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #888; display: block; margin-bottom: 4px; }
+  .sort-bar input[type="text"] { width: 100%; padding: 6px 8px; border: 1px solid #2a2d3a; border-radius: 4px; background: #1a1d27; color: #e0e0e0; font-size: 0.85rem; outline: none; }
+  .sort-bar input[type="text"]:focus { border-color: #7c8aff; }
+  .sort-bar input[type="text"]::placeholder { color: #555; }
+  .sort-bar .sort-status { font-size: 0.7rem; color: #666; margin-top: 4px; }
+  #clip-list { overflow-y: auto; flex: 1; }
   .clip-item { padding: 10px 16px; cursor: pointer; font-size: 0.9rem; border-bottom: 1px solid #1e2030; transition: background 0.15s; }
   .clip-item:hover { background: #1e2030; }
   .clip-item.active { background: #252940; color: #7c8aff; }
   .clip-item .sub { font-size: 0.75rem; color: #666; margin-top: 2px; }
+  .clip-item .sim { font-size: 0.7rem; color: #7c8aff; float: right; margin-top: 2px; }
 
   /* Center panel – player */
   .panel-center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 32px; }
@@ -54,6 +65,17 @@
   <!-- Left panel -->
   <div class="panel-left">
     <h2>Clips</h2>
+    <div class="sort-bar">
+      <div class="sort-mode">
+        <label><input type="radio" name="sort-mode" value="none" checked> None</label>
+        <label><input type="radio" name="sort-mode" value="text"> Text</label>
+        <label><input type="radio" name="sort-mode" value="learned"> Learned</label>
+      </div>
+      <div id="text-sort-wrap" style="display:none">
+        <input type="text" id="text-sort" placeholder='e.g. "high pitched beep"'>
+      </div>
+      <div id="sort-status" class="sort-status"></div>
+    </div>
     <div id="clip-list"></div>
   </div>
 
@@ -80,11 +102,83 @@
   let clips = [];
   let votes = { good: [], bad: [] };
   let selected = null;
+  let sortOrder = null;   // null = default, or [{id, score}, ...]
+  let sortMode = "none";  // "none" | "text" | "learned"
+  let sortTimer = null;
 
   const clipList = document.getElementById("clip-list");
   const center = document.getElementById("center");
   const goodList = document.getElementById("good-list");
   const badList = document.getElementById("bad-list");
+  const textSortInput = document.getElementById("text-sort");
+  const textSortWrap = document.getElementById("text-sort-wrap");
+  const sortStatus = document.getElementById("sort-status");
+
+  // ---- Sort mode switching ----
+
+  document.querySelectorAll('input[name="sort-mode"]').forEach(radio => {
+    radio.addEventListener("change", () => {
+      sortMode = radio.value;
+      textSortWrap.style.display = sortMode === "text" ? "" : "none";
+      sortStatus.textContent = "";
+      if (sortMode === "none") {
+        sortOrder = null;
+        renderClipList();
+      } else if (sortMode === "text") {
+        onTextSortInput();
+      } else if (sortMode === "learned") {
+        fetchLearnedSort();
+      }
+    });
+  });
+
+  // ---- Text sort ----
+
+  async function fetchTextSort(text) {
+    const res = await fetch("/api/sort", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+    const data = await res.json();
+    sortOrder = data.map(e => ({ id: e.id, score: e.similarity }));
+    renderClipList();
+  }
+
+  function onTextSortInput() {
+    clearTimeout(sortTimer);
+    const text = textSortInput.value.trim();
+    if (!text) {
+      sortOrder = null;
+      renderClipList();
+      return;
+    }
+    sortTimer = setTimeout(() => fetchTextSort(text), 400);
+  }
+
+  textSortInput.addEventListener("input", onTextSortInput);
+
+  // ---- Learned sort ----
+
+  async function fetchLearnedSort() {
+    sortStatus.textContent = "Training\u2026";
+    const res = await fetch("/api/learned-sort", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+    if (!res.ok) {
+      sortOrder = null;
+      sortStatus.textContent = "Vote good & bad first";
+      renderClipList();
+      return;
+    }
+    const data = await res.json();
+    sortOrder = data;  // already [{id, score}, ...]
+    sortStatus.textContent = "";
+    renderClipList();
+  }
+
+  // ---- Rendering ----
 
   async function fetchClips() {
     const res = await fetch("/api/clips");
@@ -101,10 +195,27 @@
 
   function renderClipList() {
     clipList.innerHTML = "";
-    clips.forEach(c => {
+    const scoreMap = {};
+    if (sortOrder) {
+      sortOrder.forEach(s => { scoreMap[s.id] = s.score; });
+    }
+
+    let ordered;
+    if (sortOrder) {
+      ordered = sortOrder.map(s => clips.find(c => c.id === s.id)).filter(Boolean);
+    } else {
+      ordered = clips;
+    }
+
+    ordered.forEach(c => {
       const div = document.createElement("div");
       div.className = "clip-item" + (selected === c.id ? " active" : "");
-      div.innerHTML = `Clip #${c.id}<div class="sub">${c.frequency} Hz &middot; ${c.duration}s</div>`;
+      let html = `Clip #${c.id}`;
+      if (scoreMap[c.id] !== undefined) {
+        html += `<span class="sim">${(scoreMap[c.id] * 100).toFixed(1)}%</span>`;
+      }
+      html += `<div class="sub">${c.frequency} Hz &middot; ${c.duration}s</div>`;
+      div.innerHTML = html;
       div.onclick = () => selectClip(c.id);
       clipList.appendChild(div);
     });
@@ -143,6 +254,7 @@
       body: JSON.stringify({ vote }),
     });
     await fetchVotes();
+    if (sortMode === "learned") fetchLearnedSort();
   }
 
   function renderVotes() {

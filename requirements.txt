@@ -1,7 +1,5 @@
 flask
 numpy
 torch
-laion_clap
-librosa
-requests
-tqdm
+torchvision
+laion-clap

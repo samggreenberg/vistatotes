@@ -1,115 +1,125 @@
 # VectoryTones
 
-A Flask web application for audio clip evaluation with LAION-CLAP embeddings.
+A sound clip explorer web app. Browse 20 synthetic sine-wave audio clips, listen to them in the browser, and vote clips as "good" or "bad." Built with Flask (Python) and vanilla JavaScript.
 
-## Quick Start
+## Prerequisites
 
-### 1. Install Dependencies
+You need **Python 3.9+** installed. Check by running:
 
-Choose the requirements file based on your system:
-
-**For GPU systems** (with NVIDIA GPU):
 ```bash
-cd ~/vectorytones
+python3 --version
+```
+
+If you see something like `Python 3.11.4`, you're good. If the command isn't found, install Python from [python.org/downloads](https://www.python.org/downloads/) or with your system package manager:
+
+```bash
+# Ubuntu / Debian
+sudo apt update && sudo apt install python3 python3-pip python3-venv
+
+# macOS (with Homebrew)
+brew install python
+```
+
+You also need **Git** to download the code:
+
+```bash
+git --version
+```
+
+If it's not installed:
+
+```bash
+# Ubuntu / Debian
+sudo apt install git
+
+# macOS (with Homebrew)
+brew install git
+```
+
+## Getting the code
+
+Open a terminal and run:
+
+```bash
+git clone https://github.com/samggreenberg/vectorytones.git
+cd vectorytones
+```
+
+This downloads the project and moves you into its folder.
+
+## Setting up a virtual environment
+
+A virtual environment keeps this project's dependencies separate from the rest of your system. This is optional but recommended.
+
+```bash
+python3 -m venv venv
+```
+
+Then activate it:
+
+```bash
+# Linux / macOS
 source venv/bin/activate
-pip install -r requirements-gpu.txt
+
+# Windows (Command Prompt)
+venv\Scripts\activate.bat
+
+# Windows (PowerShell)
+venv\Scripts\Activate.ps1
 ```
 
-**For CPU-only systems** (Chromebook, Mac, or systems without GPU):
-```bash
-cd ~/vectorytones
-source venv/bin/activate
-pip install -r requirements-cpu.txt
-```
+When activated, you'll see `(venv)` at the start of your terminal prompt.
 
-The main difference is the PyTorch version:
-- `requirements-gpu.txt` installs full PyTorch with CUDA support (~2GB)
-- `requirements-cpu.txt` installs PyTorch CPU-only (~500MB)
-
-### 2. Download and Setup Datasets
-
-Run the setup script to download ESC-50 audio dataset and generate CLAP embeddings:
+## Installing dependencies
 
 ```bash
-python setup_datasets.py
+pip install -r requirements.txt
 ```
 
-This will:
-- Download ~600MB of audio data
-- Generate semantic embeddings using LAION-CLAP
-- Create 4 themed datasets (animals, natural, urban, household)
-- Takes ~10-20 minutes depending on your hardware
+This installs Flask and NumPy.
 
-### 3. Run the Application
+## Running the app
 
 ```bash
 python app.py
 ```
 
-Visit http://localhost:5000
+You should see output like:
 
-## Features
+```
+ * Running on http://127.0.0.1:5000
+```
 
-- **Multiple Preset Datasets**: Choose from animals, natural sounds, urban sounds, or household sounds
-- **LAION-CLAP Embeddings**: Each audio clip has a 512-dimensional semantic embedding
-- **Voting System**: Rate clips as good or bad
-- **REST API**: Full API for programmatic access
+Open that URL in your browser. You'll see the VectoryTones interface with a list of clips on the left. Click a clip to play it and use the Good/Bad buttons to vote.
 
-## API Endpoints
+Press **Ctrl+C** in the terminal to stop the server.
 
-### Datasets
-- `GET /api/datasets` - List available datasets
-- `POST /api/datasets/<name>/select` - Switch dataset
+## Running the tests
 
-### Clips
-- `GET /api/clips` - List all clips in current dataset
-- `GET /api/clips/<id>` - Get clip details with embedding
-- `GET /api/clips/<id>/audio` - Stream audio file
-- `POST /api/clips/<id>/vote` - Vote on a clip
+First, install pytest (if you haven't already):
 
-### System
-- `GET /api/status` - Application status
-- `GET /api/votes` - Current votes
+```bash
+pip install pytest
+```
 
-## Project Structure
+Then run:
+
+```bash
+python -m pytest test_app.py -v
+```
+
+You should see all 36 tests pass.
+
+## Project structure
 
 ```
 vectorytones/
-├── app.py                      # Flask application
-├── setup_datasets.py           # Dataset download & embedding script
-├── requirements-gpu.txt        # Python dependencies (GPU systems)
-├── requirements-cpu.txt        # Python dependencies (CPU-only systems)
-├── static/                     # Frontend assets
-├── templates/                  # HTML templates
-└── data/                       # Downloaded datasets (not in git)
-    ├── ESC-50-master/          # ESC-50 audio files
-    └── embeddings/             # Precomputed CLAP embeddings
+├── app.py           # Flask backend — routes, audio generation, voting
+├── static/
+│   └── index.html   # Frontend UI (HTML, CSS, JavaScript)
+├── templates/
+│   └── index.html   # Duplicate of static/index.html
+├── test_app.py      # Test suite
+├── requirements.txt # Python dependencies
+└── README.md        # This file
 ```
-
-## Tech Stack
-
-- **Backend**: Flask, Python 3.11
-- **Audio**: librosa, soundfile
-- **Embeddings**: LAION-CLAP (Contrastive Language-Audio Pretraining)
-- **Dataset**: ESC-50 (Environmental Sound Classification)
-
-## License
-
-- Application code: Your license
-- ESC-50 dataset: CC BY-NC
-- LAION-CLAP model: MIT
-
-## References
-
-- [LAION-CLAP](https://github.com/LAION-AI/CLAP)
-- [ESC-50 Dataset](https://github.com/karolpiczak/ESC-50)
-- [Setup Guide](SETUP_DATASETS.md)
-
-## Development
-
-For detailed setup instructions, see [SETUP_DATASETS.md](SETUP_DATASETS.md).
-
-For production deployment, remember to:
-- Set `debug=False` in `app.py`
-- Use a production WSGI server (gunicorn, uwsgi)
-- Set up proper authentication if needed

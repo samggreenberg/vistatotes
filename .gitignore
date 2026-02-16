@@ -1,28 +1,4 @@
-# Virtual environment
-venv/
-env/
-*.pyc
 __pycache__/
-
-# Data files (downloaded datasets)
-data/
-*.pkl
-*.zip
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-
-# Model checkpoints (CLAP downloads)
-*.pt
-*.pth
+*.pyc
+.pytest_cache/
+.venv/

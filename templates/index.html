@@ -13,7 +13,7 @@
   .layout { display: flex; flex: 1; overflow: hidden; }
 
   /* Left panel – clip list */
-  .panel-left { width: 240px; border-right: 1px solid #2a2d3a; overflow-y: auto; background: #14161e; display: flex; flex-direction: column; }
+  .panel-left { width: 240px; border-right: 1px solid #2a2d3a; overflow-y: auto; background: #14161e; display: flex; flex-direction: column; position: relative; }
   .panel-left h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: #888; padding: 12px 16px 8px; }
   .sort-bar { padding: 8px 16px 12px; border-bottom: 1px solid #2a2d3a; }
   .sort-mode { display: flex; gap: 10px; margin-bottom: 6px; }
@@ -30,6 +30,16 @@
   .clip-item.active { background: #252940; color: #7c8aff; }
   .clip-item .sub { font-size: 0.75rem; color: #666; margin-top: 2px; }
   .clip-item .sim { font-size: 0.7rem; color: #7c8aff; float: right; margin-top: 2px; }
+
+  /* Stripe overview */
+  .stripe-overview { position: absolute; right: 0; top: 0; bottom: 0; width: 20px; background: #1a1d27; border-left: 1px solid #2a2d3a; cursor: pointer; }
+  .stripe-container { position: relative; height: 100%; }
+  .stripe-dot { position: absolute; left: 50%; width: 6px; height: 6px; border-radius: 50%; transform: translateX(-50%); }
+  .stripe-dot.good { background: #4caf50; }
+  .stripe-dot.bad { background: #f44336; }
+  .stripe-threshold { position: absolute; left: 0; right: 0; height: 2px; background: #7c8aff; }
+  .stripe-threshold::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-top: 4px solid transparent; border-bottom: 4px solid transparent; border-left: 6px solid #7c8aff; }
+  .stripe-threshold::after { content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-top: 4px solid transparent; border-bottom: 4px solid transparent; border-right: 6px solid #7c8aff; }
 
   /* Center panel – player */
   .panel-center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 32px; }
@@ -54,6 +64,12 @@
   .vote-section h3.bad { color: #f44336; }
   .vote-entry { padding: 6px 0; font-size: 0.85rem; cursor: pointer; color: #bbb; }
   .vote-entry:hover { color: #fff; }
+
+  /* Import/Export bar */
+  .label-io { display: flex; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #2a2d3a; }
+  .label-io button { flex: 1; padding: 6px 0; border: 1px solid #2a2d3a; border-radius: 4px; background: #1a1d27; color: #aaa; font-size: 0.75rem; cursor: pointer; transition: background 0.15s, color 0.15s; }
+  .label-io button:hover { background: #252940; color: #e0e0e0; }
+  .label-io-status { font-size: 0.7rem; color: #666; padding: 0 16px 8px; }
 </style>
 </head>
 <body>
@@ -66,17 +82,27 @@
   <div class="panel-left">
     <h2>Clips</h2>
     <div class="sort-bar">
+      <span class="sort-label">Sort</span>
       <div class="sort-mode">
         <label><input type="radio" name="sort-mode" value="none" checked> None</label>
         <label><input type="radio" name="sort-mode" value="text"> Text</label>
-        <label><input type="radio" name="sort-mode" value="learned"> Learned</label>
+        <label><input type="radio" name="sort-mode" value="learned"> Learn</label>
       </div>
       <div id="text-sort-wrap" style="display:none">
         <input type="text" id="text-sort" placeholder='e.g. "high pitched beep"'>
       </div>
+      <span class="sort-label" style="margin-top:8px">Select</span>
+      <div class="sort-mode">
+        <label><input type="radio" name="select-mode" value="good" checked> Good</label>
+        <label><input type="radio" name="select-mode" value="hard"> Hard</label>
+      </div>
+      <button id="next-clip-btn" style="width:100%; margin-top:8px; padding:6px; background:#7c8aff; color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:0.85rem;">Next Clip</button>
       <div id="sort-status" class="sort-status"></div>
     </div>
     <div id="clip-list"></div>
+    <div class="stripe-overview" id="stripe-overview">
+      <div class="stripe-container" id="stripe-container"></div>
+    </div>
   </div>
 
   <!-- Center panel -->
@@ -86,6 +112,12 @@
 
   <!-- Right panel -->
   <div class="panel-right">
+    <div class="label-io">
+      <button id="export-btn">Export Labels</button>
+      <button id="import-btn">Import Labels</button>
+      <input type="file" id="import-file" accept=".json" style="display:none">
+    </div>
+    <div id="label-io-status" class="label-io-status"></div>
     <div class="vote-section">
       <h3 class="good">Good</h3>
       <div id="good-list"></div>
@@ -104,6 +136,8 @@
   let selected = null;
   let sortOrder = null;   // null = default, or [{id, score}, ...]
   let sortMode = "none";  // "none" | "text" | "learned"
+  let selectMode = "good"; // "good" | "hard"
+  let threshold = null;    // threshold for Good/Bad boundary
   let sortTimer = null;
 
   const clipList = document.getElementById("clip-list");
@@ -113,6 +147,9 @@
   const textSortInput = document.getElementById("text-sort");
   const textSortWrap = document.getElementById("text-sort-wrap");
   const sortStatus = document.getElementById("sort-status");
+  const nextClipBtn = document.getElementById("next-clip-btn");
+  const stripeOverview = document.getElementById("stripe-overview");
+  const stripeContainer = document.getElementById("stripe-container");
 
   // ---- Sort mode switching ----
 
@@ -123,12 +160,21 @@
       sortStatus.textContent = "";
       if (sortMode === "none") {
         sortOrder = null;
+        threshold = null;
         renderClipList();
       } else if (sortMode === "text") {
         onTextSortInput();
       } else if (sortMode === "learned") {
         fetchLearnedSort();
       }
+    });
+  });
+
+  // ---- Select mode switching ----
+
+  document.querySelectorAll('input[name="select-mode"]').forEach(radio => {
+    radio.addEventListener("change", () => {
+      selectMode = radio.value;
     });
   });
 
@@ -141,7 +187,9 @@
       body: JSON.stringify({ text }),
     });
     const data = await res.json();
-    sortOrder = data.map(e => ({ id: e.id, score: e.similarity }));
+    sortOrder = data.results.map(e => ({ id: e.id, score: e.similarity }));
+    threshold = data.threshold;
+    sortStatus.textContent = `Threshold: ${(threshold * 100).toFixed(1)}%`;
     renderClipList();
   }
 
@@ -168,15 +216,60 @@
     });
     if (!res.ok) {
       sortOrder = null;
+      threshold = null;
       sortStatus.textContent = "Vote good & bad first";
       renderClipList();
       return;
     }
     const data = await res.json();
-    sortOrder = data;  // already [{id, score}, ...]
-    sortStatus.textContent = "";
+    sortOrder = data.results;  // [{id, score}, ...]
+    threshold = data.threshold;
+    sortStatus.textContent = `Threshold: ${(threshold * 100).toFixed(1)}%`;
     renderClipList();
   }
+
+  // ---- Next Clip Selection ----
+
+  nextClipBtn.addEventListener("click", () => {
+    if (!sortOrder || sortOrder.length === 0) {
+      sortStatus.textContent = "Sort clips first";
+      return;
+    }
+
+    // Get unlabeled clips (not voted on)
+    const unlabeled = sortOrder.filter(item => {
+      return !votes.good.includes(item.id) && !votes.bad.includes(item.id);
+    });
+
+    if (unlabeled.length === 0) {
+      sortStatus.textContent = "All clips labeled";
+      return;
+    }
+
+    let nextClip;
+    if (selectMode === "good") {
+      // Select highest scoring unlabeled clip
+      nextClip = unlabeled[0];
+    } else {
+      // Select clip closest to threshold
+      if (threshold === null) {
+        sortStatus.textContent = "No threshold available";
+        return;
+      }
+      let minDist = Infinity;
+      for (const item of unlabeled) {
+        const dist = Math.abs(item.score - threshold);
+        if (dist < minDist) {
+          minDist = dist;
+          nextClip = item;
+        }
+      }
+    }
+
+    if (nextClip) {
+      selectClip(nextClip.id);
+    }
+  });
 
   // ---- Rendering ----
 
@@ -190,6 +283,7 @@
     const res = await fetch("/api/votes");
     votes = await res.json();
     renderVotes();
+    renderStripe();
     if (selected) renderCenter();
   }
 
@@ -219,6 +313,8 @@
       div.onclick = () => selectClip(c.id);
       clipList.appendChild(div);
     });
+
+    renderStripe();
   }
 
   function selectClip(id) {
@@ -275,6 +371,127 @@
       badList.appendChild(div);
     });
   }
+
+  function renderStripe() {
+    stripeContainer.innerHTML = "";
+
+    // Only show stripe when sorted
+    if (!sortOrder || sortOrder.length === 0) {
+      stripeOverview.style.display = "none";
+      return;
+    }
+
+    stripeOverview.style.display = "block";
+    const totalClips = sortOrder.length;
+
+    // Render dots for each labeled clip
+    sortOrder.forEach((item, index) => {
+      const isGood = votes.good.includes(item.id);
+      const isBad = votes.bad.includes(item.id);
+
+      if (isGood || isBad) {
+        const dot = document.createElement("div");
+        dot.className = `stripe-dot ${isGood ? "good" : "bad"}`;
+        dot.style.top = `${(index / totalClips) * 100}%`;
+        dot.setAttribute("data-clip-id", item.id);
+        dot.setAttribute("data-index", index);
+        stripeContainer.appendChild(dot);
+      }
+    });
+
+    // Render threshold line if available
+    if (threshold !== null) {
+      // Find the index where score crosses threshold
+      let thresholdIndex = 0;
+      for (let i = 0; i < sortOrder.length; i++) {
+        if (sortOrder[i].score < threshold) {
+          thresholdIndex = i;
+          break;
+        }
+      }
+
+      const thresholdLine = document.createElement("div");
+      thresholdLine.className = "stripe-threshold";
+      thresholdLine.style.top = `${(thresholdIndex / totalClips) * 100}%`;
+      stripeContainer.appendChild(thresholdLine);
+    }
+  }
+
+  // ---- Stripe click handler ----
+
+  stripeOverview.addEventListener("click", (e) => {
+    if (!sortOrder || sortOrder.length === 0) return;
+
+    const rect = stripeOverview.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const percentage = y / rect.height;
+    const index = Math.floor(percentage * sortOrder.length);
+    const clampedIndex = Math.max(0, Math.min(index, sortOrder.length - 1));
+
+    if (sortOrder[clampedIndex]) {
+      const clipId = sortOrder[clampedIndex].id;
+      selectClip(clipId);
+
+      // Scroll the clip into view
+      const clipItems = clipList.querySelectorAll(".clip-item");
+      if (clipItems[clampedIndex]) {
+        clipItems[clampedIndex].scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+  });
+
+  // ---- Label export / import ----
+
+  const exportBtn = document.getElementById("export-btn");
+  const importBtn = document.getElementById("import-btn");
+  const importFile = document.getElementById("import-file");
+  const labelIoStatus = document.getElementById("label-io-status");
+
+  exportBtn.addEventListener("click", async () => {
+    labelIoStatus.textContent = "";
+    const res = await fetch("/api/labels/export");
+    const data = await res.json();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "labels.json";
+    a.click();
+    URL.revokeObjectURL(url);
+    labelIoStatus.textContent = `Exported ${data.labels.length} labels`;
+  });
+
+  importBtn.addEventListener("click", () => {
+    importFile.click();
+  });
+
+  importFile.addEventListener("change", async () => {
+    const file = importFile.files[0];
+    if (!file) return;
+    labelIoStatus.textContent = "Importing\u2026";
+    const text = await file.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      labelIoStatus.textContent = "Invalid JSON file";
+      importFile.value = "";
+      return;
+    }
+    const res = await fetch("/api/labels/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    const result = await res.json();
+    if (res.ok) {
+      labelIoStatus.textContent = `Applied ${result.applied}, skipped ${result.skipped}`;
+      await fetchVotes();
+    } else {
+      labelIoStatus.textContent = result.error || "Import failed";
+    }
+    importFile.value = "";
+  });
 
   fetchClips();
   fetchVotes();

@@ -1,3 +1,4 @@
+import hashlib
 import io
 import json
 import struct
@@ -456,3 +457,192 @@ class TestLearnedSort:
         data = resp.get_json()
         for entry in data["results"]:
             assert 0.0 <= entry["score"] <= 1.0
+
+
+# ---------------------------------------------------------------------------
+# Clip MD5 tracking
+# ---------------------------------------------------------------------------
+
+class TestClipMD5:
+    def test_clip_has_md5(self):
+        for clip in app_module.clips.values():
+            assert "md5" in clip
+            assert isinstance(clip["md5"], str)
+            assert len(clip["md5"]) == 32  # MD5 hex digest length
+
+    def test_md5_matches_wav_bytes(self):
+        for clip in app_module.clips.values():
+            expected = hashlib.md5(clip["wav_bytes"]).hexdigest()
+            assert clip["md5"] == expected
+
+    def test_different_clips_have_different_md5(self):
+        md5s = [clip["md5"] for clip in app_module.clips.values()]
+        assert len(md5s) == len(set(md5s))
+
+    def test_md5_deterministic(self):
+        """Re-init should produce the same MD5 values."""
+        md5_before = app_module.clips[1]["md5"]
+        old_clips = dict(app_module.clips)
+        app_module.clips.clear()
+        app_module.init_clips()
+        assert app_module.clips[1]["md5"] == md5_before
+        app_module.clips.clear()
+        app_module.clips.update(old_clips)
+
+
+# ---------------------------------------------------------------------------
+# GET /api/labels/export
+# ---------------------------------------------------------------------------
+
+class TestExportLabels:
+    def test_empty_export(self, client):
+        resp = client.get("/api/labels/export")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data == {"labels": []}
+
+    def test_export_good_labels(self, client):
+        app_module.good_votes.update({1, 3})
+        resp = client.get("/api/labels/export")
+        data = resp.get_json()
+        good_labels = [e for e in data["labels"] if e["label"] == "good"]
+        assert len(good_labels) == 2
+        md5s = {e["md5"] for e in good_labels}
+        assert app_module.clips[1]["md5"] in md5s
+        assert app_module.clips[3]["md5"] in md5s
+
+    def test_export_bad_labels(self, client):
+        app_module.bad_votes.update({2, 4})
+        resp = client.get("/api/labels/export")
+        data = resp.get_json()
+        bad_labels = [e for e in data["labels"] if e["label"] == "bad"]
+        assert len(bad_labels) == 2
+
+    def test_export_mixed_labels(self, client):
+        app_module.good_votes.update({1, 5})
+        app_module.bad_votes.update({2, 6})
+        resp = client.get("/api/labels/export")
+        data = resp.get_json()
+        assert len(data["labels"]) == 4
+        good_labels = [e for e in data["labels"] if e["label"] == "good"]
+        bad_labels = [e for e in data["labels"] if e["label"] == "bad"]
+        assert len(good_labels) == 2
+        assert len(bad_labels) == 2
+
+    def test_export_contains_md5_and_label(self, client):
+        app_module.good_votes.add(1)
+        resp = client.get("/api/labels/export")
+        data = resp.get_json()
+        for entry in data["labels"]:
+            assert "md5" in entry
+            assert "label" in entry
+            assert entry["label"] in ("good", "bad")
+
+
+# ---------------------------------------------------------------------------
+# POST /api/labels/import
+# ---------------------------------------------------------------------------
+
+class TestImportLabels:
+    def test_import_good_label(self, client):
+        md5 = app_module.clips[1]["md5"]
+        resp = client.post(
+            "/api/labels/import",
+            json={"labels": [{"md5": md5, "label": "good"}]},
+        )
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["applied"] == 1
+        assert data["skipped"] == 0
+        assert 1 in app_module.good_votes
+
+    def test_import_bad_label(self, client):
+        md5 = app_module.clips[2]["md5"]
+        resp = client.post(
+            "/api/labels/import",
+            json={"labels": [{"md5": md5, "label": "bad"}]},
+        )
+        assert resp.status_code == 200
+        assert 2 in app_module.bad_votes
+
+    def test_import_skips_unknown_md5(self, client):
+        resp = client.post(
+            "/api/labels/import",
+            json={"labels": [{"md5": "0" * 32, "label": "good"}]},
+        )
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["applied"] == 0
+        assert data["skipped"] == 1
+
+    def test_import_overrides_existing_label(self, client):
+        app_module.good_votes.add(1)
+        md5 = app_module.clips[1]["md5"]
+        resp = client.post(
+            "/api/labels/import",
+            json={"labels": [{"md5": md5, "label": "bad"}]},
+        )
+        assert resp.status_code == 200
+        assert 1 not in app_module.good_votes
+        assert 1 in app_module.bad_votes
+
+    def test_import_mixed_known_and_unknown(self, client):
+        md5_known = app_module.clips[1]["md5"]
+        resp = client.post(
+            "/api/labels/import",
+            json={
+                "labels": [
+                    {"md5": md5_known, "label": "good"},
+                    {"md5": "f" * 32, "label": "bad"},
+                ]
+            },
+        )
+        data = resp.get_json()
+        assert data["applied"] == 1
+        assert data["skipped"] == 1
+
+    def test_import_invalid_label_value(self, client):
+        md5 = app_module.clips[1]["md5"]
+        resp = client.post(
+            "/api/labels/import",
+            json={"labels": [{"md5": md5, "label": "maybe"}]},
+        )
+        data = resp.get_json()
+        assert data["applied"] == 0
+        assert data["skipped"] == 1
+
+    def test_import_not_a_list(self, client):
+        resp = client.post(
+            "/api/labels/import",
+            json={"labels": "not a list"},
+        )
+        assert resp.status_code == 400
+
+    def test_import_multiple_labels(self, client):
+        labels = []
+        for cid in [1, 2, 3]:
+            labels.append({"md5": app_module.clips[cid]["md5"], "label": "good"})
+        for cid in [4, 5]:
+            labels.append({"md5": app_module.clips[cid]["md5"], "label": "bad"})
+        resp = client.post("/api/labels/import", json={"labels": labels})
+        data = resp.get_json()
+        assert data["applied"] == 5
+        assert data["skipped"] == 0
+        assert app_module.good_votes == {1, 2, 3}
+        assert app_module.bad_votes == {4, 5}
+
+    def test_roundtrip_export_import(self, client):
+        """Export labels, clear votes, import, and verify same state."""
+        app_module.good_votes.update({1, 3, 5})
+        app_module.bad_votes.update({2, 4})
+        resp = client.get("/api/labels/export")
+        exported = resp.get_json()
+
+        app_module.good_votes.clear()
+        app_module.bad_votes.clear()
+
+        resp = client.post("/api/labels/import", json=exported)
+        data = resp.get_json()
+        assert data["applied"] == 5
+        assert app_module.good_votes == {1, 3, 5}
+        assert app_module.bad_votes == {2, 4}

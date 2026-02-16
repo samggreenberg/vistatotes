@@ -64,6 +64,12 @@
   .vote-section h3.bad { color: #f44336; }
   .vote-entry { padding: 6px 0; font-size: 0.85rem; cursor: pointer; color: #bbb; }
   .vote-entry:hover { color: #fff; }
+
+  /* Import/Export bar */
+  .label-io { display: flex; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #2a2d3a; }
+  .label-io button { flex: 1; padding: 6px 0; border: 1px solid #2a2d3a; border-radius: 4px; background: #1a1d27; color: #aaa; font-size: 0.75rem; cursor: pointer; transition: background 0.15s, color 0.15s; }
+  .label-io button:hover { background: #252940; color: #e0e0e0; }
+  .label-io-status { font-size: 0.7rem; color: #666; padding: 0 16px 8px; }
 </style>
 </head>
 <body>
@@ -106,6 +112,12 @@
 
   <!-- Right panel -->
   <div class="panel-right">
+    <div class="label-io">
+      <button id="export-btn">Export Labels</button>
+      <button id="import-btn">Import Labels</button>
+      <input type="file" id="import-file" accept=".json" style="display:none">
+    </div>
+    <div id="label-io-status" class="label-io-status"></div>
     <div class="vote-section">
       <h3 class="good">Good</h3>
       <div id="good-list"></div>
@@ -426,6 +438,59 @@
         clipItems[clampedIndex].scrollIntoView({ behavior: "smooth", block: "center" });
       }
     }
+  });
+
+  // ---- Label export / import ----
+
+  const exportBtn = document.getElementById("export-btn");
+  const importBtn = document.getElementById("import-btn");
+  const importFile = document.getElementById("import-file");
+  const labelIoStatus = document.getElementById("label-io-status");
+
+  exportBtn.addEventListener("click", async () => {
+    labelIoStatus.textContent = "";
+    const res = await fetch("/api/labels/export");
+    const data = await res.json();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "labels.json";
+    a.click();
+    URL.revokeObjectURL(url);
+    labelIoStatus.textContent = `Exported ${data.labels.length} labels`;
+  });
+
+  importBtn.addEventListener("click", () => {
+    importFile.click();
+  });
+
+  importFile.addEventListener("change", async () => {
+    const file = importFile.files[0];
+    if (!file) return;
+    labelIoStatus.textContent = "Importing\u2026";
+    const text = await file.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      labelIoStatus.textContent = "Invalid JSON file";
+      importFile.value = "";
+      return;
+    }
+    const res = await fetch("/api/labels/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    const result = await res.json();
+    if (res.ok) {
+      labelIoStatus.textContent = `Applied ${result.applied}, skipped ${result.skipped}`;
+      await fetchVotes();
+    } else {
+      labelIoStatus.textContent = result.error || "Import failed";
+    }
+    importFile.value = "";
   });
 
   fetchClips();

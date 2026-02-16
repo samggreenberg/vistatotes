@@ -1,3 +1,4 @@
+import hashlib
 import io
 import math
 import struct
@@ -64,6 +65,7 @@ def init_clips():
             "frequency": freq,
             "duration": duration,
             "file_size": len(wav_bytes),
+            "md5": hashlib.md5(wav_bytes).hexdigest(),
             "embedding": None,
             "wav_bytes": wav_bytes,
         }
@@ -357,6 +359,57 @@ def get_votes():
             "bad": sorted(bad_votes),
         }
     )
+
+
+@app.route("/api/labels/export")
+def export_labels():
+    """Export labels as JSON keyed by clip MD5 hash."""
+    labels = []
+    for cid in sorted(good_votes):
+        clip = clips.get(cid)
+        if clip:
+            labels.append({"md5": clip["md5"], "label": "good"})
+    for cid in sorted(bad_votes):
+        clip = clips.get(cid)
+        if clip:
+            labels.append({"md5": clip["md5"], "label": "bad"})
+    return jsonify({"labels": labels})
+
+
+@app.route("/api/labels/import", methods=["POST"])
+def import_labels():
+    """Import labels from JSON, matching clips by MD5 hash."""
+    data = request.get_json(force=True)
+    labels = data.get("labels")
+    if not isinstance(labels, list):
+        return jsonify({"error": "labels must be a list"}), 400
+
+    # Build MD5 -> clip ID lookup
+    md5_to_id = {clip["md5"]: clip["id"] for clip in clips.values()}
+
+    applied = 0
+    skipped = 0
+    for entry in labels:
+        md5 = entry.get("md5")
+        label = entry.get("label")
+        if label not in ("good", "bad"):
+            skipped += 1
+            continue
+        cid = md5_to_id.get(md5)
+        if cid is None:
+            skipped += 1
+            continue
+
+        # Apply the label, overriding any existing vote
+        if label == "good":
+            bad_votes.discard(cid)
+            good_votes.add(cid)
+        else:
+            good_votes.discard(cid)
+            bad_votes.add(cid)
+        applied += 1
+
+    return jsonify({"applied": applied, "skipped": skipped})
 
 
 if __name__ == "__main__":

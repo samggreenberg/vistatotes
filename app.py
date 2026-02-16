@@ -272,6 +272,7 @@ def load_dataset_from_pickle(file_path: Path):
         clips_data = data
 
     # Convert to the app's clip format
+    missing_audio = 0
     for clip_id, clip_info in clips_data.items():
         # Load the actual audio file if we have a filename and audio_dir
         wav_bytes = None
@@ -282,6 +283,8 @@ def load_dataset_from_pickle(file_path: Path):
             if audio_path.exists():
                 with open(audio_path, "rb") as f:
                     wav_bytes = f.read()
+            else:
+                missing_audio += 1
 
         if wav_bytes:
             clips[clip_id] = {
@@ -294,6 +297,9 @@ def load_dataset_from_pickle(file_path: Path):
                 "filename": clip_info.get("filename", f"clip_{clip_id}.wav"),
                 "category": clip_info.get("category", "unknown"),
             }
+
+    if missing_audio > 0:
+        print(f"WARNING: {missing_audio} audio files missing from {file_path}", flush=True)
 
 
 def embed_audio_file(audio_path: Path) -> Optional[np.ndarray]:
@@ -447,8 +453,15 @@ def load_demo_dataset(dataset_name: str):
     if pkl_file.exists():
         update_progress("loading", f"Loading {dataset_name} dataset...", 0, 0)
         load_dataset_from_pickle(pkl_file)
-        update_progress("idle", f"Loaded {dataset_name} dataset")
-        return
+
+        # Check if any clips were actually loaded
+        if len(clips) == 0:
+            # Pickle file exists but audio files are missing, delete and re-embed
+            update_progress("loading", f"Audio files missing, re-embedding {dataset_name}...", 0, 0)
+            pkl_file.unlink()
+        else:
+            update_progress("idle", f"Loaded {dataset_name} dataset")
+            return
 
     # Need to download and embed
     audio_dir = download_esc50()
@@ -597,6 +610,9 @@ def vote_clip(clip_id):
     if clip_id not in clips:
         return jsonify({"error": "not found"}), 404
     data = request.get_json(force=True)
+    if data is None:
+        return jsonify({"error": "Invalid request body"}), 400
+
     vote = data.get("vote")
     if vote not in ("good", "bad"):
         return jsonify({"error": "vote must be 'good' or 'bad'"}), 400
@@ -655,6 +671,9 @@ def calculate_gmm_threshold(scores):
 def sort_clips():
     """Return clips sorted by cosine similarity to a text query."""
     data = request.get_json(force=True)
+    if data is None:
+        return jsonify({"error": "Invalid request body"}), 400
+
     text = data.get("text", "").strip()
     if not text:
         return jsonify({"error": "text is required"}), 400
@@ -924,6 +943,9 @@ def export_labels():
 def import_labels():
     """Import labels from JSON, matching clips by MD5 hash."""
     data = request.get_json(force=True)
+    if data is None:
+        return jsonify({"error": "Invalid request body"}), 400
+
     labels = data.get("labels")
     if not isinstance(labels, list):
         return jsonify({"error": "labels must be a list"}), 400
@@ -967,6 +989,9 @@ def set_inclusion():
     """Set the Inclusion setting."""
     global inclusion
     data = request.get_json(force=True)
+    if data is None:
+        return jsonify({"error": "Invalid request body"}), 400
+
     new_inclusion = data.get("inclusion")
 
     if not isinstance(new_inclusion, (int, float)):
@@ -1019,6 +1044,9 @@ def export_detector():
 def detector_sort():
     """Score all clips using a loaded detector model."""
     data = request.get_json(force=True)
+    if data is None:
+        return jsonify({"error": "Invalid request body"}), 400
+
     detector = data.get("detector")
     if not detector:
         return jsonify({"error": "detector is required"}), 400
@@ -1103,6 +1131,9 @@ def demo_dataset_list():
 def load_demo_dataset_route():
     """Load a demo dataset in a background thread."""
     data = request.get_json(force=True)
+    if data is None:
+        return jsonify({"error": "Invalid request body"}), 400
+
     dataset_name = data.get("name")
 
     if not dataset_name or dataset_name not in DEMO_DATASETS:
@@ -1158,6 +1189,9 @@ def load_dataset_file():
 def load_dataset_folder():
     """Generate dataset from a folder of audio files."""
     data = request.get_json(force=True)
+    if data is None:
+        return jsonify({"error": "Invalid request body"}), 400
+
     folder_path = data.get("path")
 
     if not folder_path:

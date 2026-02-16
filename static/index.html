@@ -449,11 +449,15 @@
     backButton.style.display = "block";
 
     // Fetch demo datasets
-    const res = await fetch("/api/dataset/demo-list");
-    const data = await res.json();
+    try {
+      const res = await fetch("/api/dataset/demo-list");
+      if (!res.ok) {
+        throw new Error(`Server returned ${res.status}`);
+      }
+      const data = await res.json();
 
-    demoDatasetsDiv.innerHTML = "";
-    data.datasets.forEach(dataset => {
+      demoDatasetsDiv.innerHTML = "";
+      data.datasets.forEach(dataset => {
       const div = document.createElement("div");
       div.className = "demo-dataset" + (dataset.ready ? " ready" : "");
       div.innerHTML = `
@@ -464,6 +468,9 @@
       div.onclick = () => loadDemo(dataset.name);
       demoDatasetsDiv.appendChild(div);
     });
+    } catch (e) {
+      demoDatasetsDiv.innerHTML = `<div style="color:#f44336; text-align:center;">Error loading demo datasets: ${e.message}</div>`;
+    }
   });
 
   async function loadDemo(name) {

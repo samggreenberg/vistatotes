@@ -230,10 +230,9 @@
 
   // ---- Next Clip Selection ----
 
-  nextClipBtn.addEventListener("click", () => {
+  function findNextClip() {
     if (!sortOrder || sortOrder.length === 0) {
-      sortStatus.textContent = "Sort clips first";
-      return;
+      return null;
     }
 
     // Get unlabeled clips (not voted on)
@@ -242,8 +241,7 @@
     });
 
     if (unlabeled.length === 0) {
-      sortStatus.textContent = "All clips labeled";
-      return;
+      return null;
     }
 
     let nextClip;
@@ -253,8 +251,7 @@
     } else {
       // Select clip closest to threshold
       if (threshold === null) {
-        sortStatus.textContent = "No threshold available";
-        return;
+        return null;
       }
       let minDist = Infinity;
       for (const item of unlabeled) {
@@ -266,8 +263,25 @@
       }
     }
 
+    return nextClip;
+  }
+
+  nextClipBtn.addEventListener("click", () => {
+    const nextClip = findNextClip();
+
+    if (!sortOrder || sortOrder.length === 0) {
+      sortStatus.textContent = "Sort clips first";
+      return;
+    }
+
     if (nextClip) {
       selectClip(nextClip.id);
+    } else {
+      if (selectMode === "hard" && threshold === null) {
+        sortStatus.textContent = "No threshold available";
+      } else {
+        sortStatus.textContent = "All clips labeled";
+      }
     }
   });
 
@@ -350,7 +364,13 @@
       body: JSON.stringify({ vote }),
     });
     await fetchVotes();
-    if (sortMode === "learned") fetchLearnedSort();
+    if (sortMode === "learned") await fetchLearnedSort();
+
+    // Auto-advance to next clip
+    const nextClip = findNextClip();
+    if (nextClip) {
+      selectClip(nextClip.id);
+    }
   }
 
   function renderVotes() {

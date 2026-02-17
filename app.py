@@ -32,8 +32,6 @@ from transformers import (
     ClapProcessor,
     CLIPModel,
     CLIPProcessor,
-    VideoMAEImageProcessor,
-    VideoMAEModel,
     XCLIPModel,
     XCLIPProcessor,
 )
@@ -77,7 +75,9 @@ ESC50_URL = "https://github.com/karolpiczak/ESC-50/archive/master.zip"
 # Video datasets
 # Using a custom small video dataset similar to ESC-50
 # Format: GitHub repo with videos organized by category folders
-SAMPLE_VIDEOS_URL = "https://github.com/sample-datasets/video-clips/archive/refs/heads/main.zip"
+SAMPLE_VIDEOS_URL = (
+    "https://github.com/sample-datasets/video-clips/archive/refs/heads/main.zip"
+)
 SAMPLE_VIDEOS_DOWNLOAD_SIZE_MB = 150  # Approximate size
 CLIPS_PER_VIDEO_CATEGORY = 10  # Approximate number of clips per category
 
@@ -313,7 +313,14 @@ def init_clips():
 
 
 def initialize_app():
-    global clap_model, clap_processor, xclip_model, xclip_processor, clip_model, clip_processor, e5_model
+    global \
+        clap_model, \
+        clap_processor, \
+        xclip_model, \
+        xclip_processor, \
+        clip_model, \
+        clip_processor, \
+        e5_model
     print("DEBUG: initialize_app called", flush=True)
 
     # Optimize for low-memory environments
@@ -347,7 +354,10 @@ def initialize_app():
 
     # Load E5-LARGE-V2 model for Paragraphs modality
     if e5_model is None:
-        print("DEBUG: Loading E5-LARGE-V2 model for Paragraphs (SentenceTransformers)...", flush=True)
+        print(
+            "DEBUG: Loading E5-LARGE-V2 model for Paragraphs (SentenceTransformers)...",
+            flush=True,
+        )
         e5_model = SentenceTransformer("intfloat/e5-large-v2")
         print("DEBUG: E5-LARGE-V2 model loaded.", flush=True)
 
@@ -555,10 +565,7 @@ def embed_video_file(video_path: Path) -> Optional[np.ndarray]:
 
         # Process frames with X-CLIP processor
         # X-CLIP expects a list of PIL Images
-        inputs = xclip_processor(
-            videos=list(frames),
-            return_tensors="pt"
-        )
+        inputs = xclip_processor(videos=list(frames), return_tensors="pt")
 
         # Get embedding from X-CLIP
         with torch.no_grad():
@@ -610,7 +617,9 @@ def embed_paragraph_file(text_path: Path) -> Optional[np.ndarray]:
 
         # Embed with E5-LARGE-V2 using "passage:" prefix
         # This is important for E5 model to distinguish between passages and queries
-        embedding = e5_model.encode(f"passage: {text_content}", normalize_embeddings=True)
+        embedding = e5_model.encode(
+            f"passage: {text_content}", normalize_embeddings=True
+        )
 
         return embedding
     except Exception as e:
@@ -672,7 +681,12 @@ def load_dataset_from_folder(folder_path: Path, media_type: str = "sounds"):
     embed_func = embed_functions[media_type]
 
     for i, file_path in enumerate(media_files):
-        update_progress("embedding", f"Embedding {media_type} {file_path.name}...", i + 1, total_files)
+        update_progress(
+            "embedding",
+            f"Embedding {media_type} {file_path.name}...",
+            i + 1,
+            total_files,
+        )
 
         embedding = embed_func(file_path)
         if embedding is None:
@@ -896,7 +910,9 @@ def load_demo_dataset(dataset_name: str):
                 update_progress("idle", "")
                 raise e
 
-            metadata = load_video_metadata_from_folders(video_dir, dataset_info["categories"])
+            metadata = load_video_metadata_from_folders(
+                video_dir, dataset_info["categories"]
+            )
             video_files = [(meta["path"], meta) for meta in metadata.values()]
 
             # Generate embeddings for videos
@@ -1177,11 +1193,13 @@ def clip_paragraph(clip_id):
     if c.get("type") != "paragraph" or not c.get("text_content"):
         return jsonify({"error": "not a paragraph clip"}), 400
 
-    return jsonify({
-        "content": c.get("text_content", ""),
-        "word_count": c.get("word_count", 0),
-        "character_count": c.get("character_count", 0),
-    })
+    return jsonify(
+        {
+            "content": c.get("text_content", ""),
+            "word_count": c.get("word_count", 0),
+            "character_count": c.get("character_count", 0),
+        }
+    )
 
 
 @app.route("/api/clips/<int:clip_id>/vote", methods=["POST"])
@@ -1534,7 +1552,7 @@ def get_votes():
     return jsonify(
         {
             "good": list(good_votes),  # Maintains insertion order (dict keys)
-            "bad": list(bad_votes),    # Maintains insertion order (dict keys)
+            "bad": list(bad_votes),  # Maintains insertion order (dict keys)
         }
     )
 
@@ -1741,9 +1759,7 @@ def example_sort():
             if norm_product == 0:
                 similarity = 0.0
             else:
-                similarity = float(
-                    np.dot(audio_vec, example_embedding) / norm_product
-                )
+                similarity = float(np.dot(audio_vec, example_embedding) / norm_product)
             results.append({"id": clip_id, "similarity": round(similarity, 4)})
             scores.append(similarity)
 
@@ -1863,9 +1879,7 @@ def label_file_sort():
         with torch.no_grad():
             scores = model(X_all).squeeze(1).tolist()
 
-        results = [
-            {"id": cid, "score": round(s, 4)} for cid, s in zip(all_ids, scores)
-        ]
+        results = [{"id": cid, "score": round(s, 4)} for cid, s in zip(all_ids, scores)]
         results.sort(key=lambda x: x["score"], reverse=True)
 
         return jsonify(
@@ -2028,7 +2042,9 @@ def load_dataset_folder():
         return jsonify({"error": "Invalid request body"}), 400
 
     folder_path = data.get("path")
-    media_type = data.get("media_type", "sounds")  # Default to sounds for backward compatibility
+    media_type = data.get(
+        "media_type", "sounds"
+    )  # Default to sounds for backward compatibility
 
     if not folder_path:
         return jsonify({"error": "No folder path provided"}), 400

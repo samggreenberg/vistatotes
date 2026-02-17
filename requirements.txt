@@ -7,5 +7,5 @@ accelerate
 scikit-learn
 librosa
 requests
-opencv-python
+opencv-python-headless
 tqdm

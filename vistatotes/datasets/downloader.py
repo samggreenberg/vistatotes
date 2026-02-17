@@ -16,8 +16,22 @@ from config import (
 from vistatotes.utils import update_progress
 
 
-def download_file_with_progress(url: str, dest_path: Path, expected_size: int = 0):
-    """Download a file with progress tracking."""
+def download_file_with_progress(url: str, dest_path: Path, expected_size: int = 0) -> None:
+    """Download a file from a URL to a local path, reporting byte-level progress.
+
+    Streams the HTTP response in 8 KB chunks and calls :func:`update_progress`
+    after each chunk so that a polling client can track download progress.
+
+    Args:
+        url: The HTTP/HTTPS URL to download from.
+        dest_path: Local filesystem path where the downloaded file will be written.
+        expected_size: Expected file size in bytes, used as a fallback when the
+            server does not supply a ``Content-Length`` header. Pass 0 (default)
+            if the size is unknown.
+
+    Raises:
+        requests.HTTPError: If the server returns a non-2xx status code.
+    """
     response = requests.get(url, stream=True)
     response.raise_for_status()
     total_size = int(response.headers.get("content-length", 0))
@@ -35,7 +49,16 @@ def download_file_with_progress(url: str, dest_path: Path, expected_size: int = 
 
 
 def download_esc50() -> Path:
-    """Download and extract ESC-50 dataset."""
+    """Download and extract the ESC-50 environmental sounds dataset.
+
+    Downloads ``esc50.zip`` from the configured ``ESC50_URL`` into ``DATA_DIR``
+    if it is not already present, then extracts it. Both steps report progress
+    via :func:`update_progress`.
+
+    Returns:
+        Path to the ``audio/`` subdirectory inside the extracted ``ESC-50-master``
+        directory (e.g. ``data/ESC-50-master/audio``).
+    """
     zip_path = DATA_DIR / "esc50.zip"
     DATA_DIR.mkdir(exist_ok=True)
 
@@ -63,7 +86,16 @@ def download_esc50() -> Path:
 
 
 def download_cifar10() -> Path:
-    """Download and extract CIFAR-10 dataset."""
+    """Download and extract the CIFAR-10 image classification dataset.
+
+    Downloads ``cifar-10-python.tar.gz`` from the configured ``CIFAR10_URL``
+    into ``DATA_DIR`` if it is not already present, then extracts it. Both steps
+    report progress via :func:`update_progress`.
+
+    Returns:
+        Path to the ``cifar-10-batches-py/`` directory containing the raw pickle
+        batch files (e.g. ``data/cifar-10-batches-py``).
+    """
     import tarfile
 
     tar_path = DATA_DIR / "cifar-10-python.tar.gz"
@@ -85,10 +117,22 @@ def download_cifar10() -> Path:
 
 
 def download_ucf101_subset() -> Path:
-    """Download UCF-101 action recognition videos.
+    """Return the path to the UCF-101 video dataset, raising if it is not present.
 
-    Note: UCF-101 is distributed as a RAR file. For demo purposes, we'll
-    try to download from a mirror or use a smaller subset if available.
+    UCF-101 is distributed as a ~6.5 GB RAR file and cannot be downloaded
+    automatically. This function checks whether the dataset has already been
+    manually placed in the expected directory and returns its path, or raises a
+    descriptive error with setup instructions.
+
+    Returns:
+        Path to the ``ucf101/`` directory inside ``VIDEO_DIR`` (e.g.
+        ``data/video/ucf101``), guaranteed to contain at least one ``*.avi`` file
+        in a subdirectory.
+
+    Raises:
+        ValueError: If the UCF-101 directory does not exist or contains no
+            ``*.avi`` files. The error message includes manual download
+            instructions.
     """
     # Try to download from a ZIP mirror or subset
     video_dir = VIDEO_DIR / "ucf101"
@@ -110,12 +154,36 @@ def download_ucf101_subset() -> Path:
     )
 
 
-def download_20newsgroups(categories: list[str]) -> tuple:
-    """Download and prepare 20 Newsgroups dataset.
+def download_20newsgroups(categories: list[str]) -> tuple[list[str], list[int], list[str]]:
+    """Download and prepare a subset of the 20 Newsgroups text dataset.
+
+    Uses scikit-learn's :func:`sklearn.datasets.fetch_20newsgroups` (which
+    handles caching automatically) to fetch training articles for the requested
+    category names. Category names are mapped from simplified labels (e.g.
+    ``"science"``) to the full newsgroup names (e.g. ``"sci.space"``) before
+    downloading, then mapped back for the returned ``target_names``.
+
+    Args:
+        categories: List of simplified category names to include. Recognised
+            values and their newsgroup mappings are:
+
+            - ``"world"``    → ``"talk.politics.misc"``
+            - ``"sports"``   → ``"rec.sport.baseball"``
+            - ``"business"`` → ``"misc.forsale"``
+            - ``"science"``  → ``"sci.space"``
+
+            Any category not in the mapping is passed through unchanged as the
+            full newsgroup name.
 
     Returns:
-        tuple: (texts, labels, category_names) where texts is list of strings,
-               labels is list of category indices, and category_names is list of category names
+        A 3-tuple ``(texts, labels, category_names)`` where:
+
+        - ``texts`` is a list of article strings (headers, footers, and quoted
+          text removed).
+        - ``labels`` is a list of integer category indices, aligned with
+          ``texts``, referencing ``category_names``.
+        - ``category_names`` is a list of simplified category name strings,
+          ordered to correspond with label index values.
     """
     from sklearn.datasets import fetch_20newsgroups
 

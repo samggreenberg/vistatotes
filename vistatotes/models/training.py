@@ -1,15 +1,27 @@
 """ML training utilities for learned sorting."""
 
+from typing import Any
+
 import numpy as np
 import torch
 import torch.nn as nn
 from sklearn.mixture import GaussianMixture
 
 
-def calculate_gmm_threshold(scores):
-    """
-    Use Gaussian Mixture Model to find threshold between two distributions.
-    Assumes scores come from a bimodal distribution (Bad + Good).
+def calculate_gmm_threshold(scores: list[float]) -> float:
+    """Use a Gaussian Mixture Model to find a threshold between two score distributions.
+
+    Fits a 2-component GMM to the provided scores, assuming a bimodal distribution
+    representing Bad (low) and Good (high) classes. Returns the midpoint between the
+    two component means as the decision threshold.
+
+    Args:
+        scores: List of model confidence scores, expected to follow a bimodal distribution.
+
+    Returns:
+        A float threshold. Scores at or above this value are classified as Good.
+        Falls back to the median of scores if GMM fitting fails or fewer than 2 scores
+        are provided.
     """
     if len(scores) < 2:
         return 0.5
@@ -39,18 +51,33 @@ def calculate_gmm_threshold(scores):
         return float(np.median(scores))
 
 
-def train_model(X_train, y_train, input_dim, inclusion_value=0):
-    """
-    Train a small MLP and return the trained model.
+def train_model(
+    X_train: torch.Tensor,
+    y_train: torch.Tensor,
+    input_dim: int,
+    inclusion_value: int = 0,
+) -> nn.Sequential:
+    """Train a small MLP classifier and return the trained model.
+
+    Trains a two-layer MLP (input -> 64 -> 1) using weighted binary cross-entropy
+    loss. Class weights are adjusted based on ``inclusion_value`` to bias the
+    classifier toward including more (positive) or fewer (positive) items.
 
     Args:
-        X_train: Training data
-        y_train: Training labels (1 for good, 0 for bad)
-        input_dim: Input dimension
-        inclusion_value: Inclusion setting (-10 to +10)
-            - If 0: balance classes equally
-            - If positive: weight True samples more (effectively more Trues)
-            - If negative: weight False samples more (effectively more Falses)
+        X_train: Float tensor of shape ``(N, input_dim)`` containing training embeddings.
+        y_train: Float tensor of shape ``(N, 1)`` containing binary labels
+            (1.0 for good, 0.0 for bad).
+        input_dim: Dimensionality of the input embeddings.
+        inclusion_value: Integer in ``[-10, 10]`` controlling class-weight bias.
+            - 0: balance classes equally (weight_true = num_false / num_true).
+            - Positive: increase weight for True samples by ``2 ** inclusion_value``,
+              causing the model to include more items.
+            - Negative: increase weight for False samples by ``2 ** (-inclusion_value)``,
+              causing the model to exclude more items.
+
+    Returns:
+        A trained ``nn.Sequential`` model in eval mode with layers:
+        ``Linear(input_dim, 64) -> ReLU -> Linear(64, 1) -> Sigmoid``.
     """
     model = nn.Sequential(
         nn.Linear(input_dim, 64),
@@ -98,17 +125,32 @@ def train_model(X_train, y_train, input_dim, inclusion_value=0):
     return model
 
 
-def find_optimal_threshold(scores, labels, inclusion_value=0):
-    """
-    Find the best threshold that separates good (1) from bad (0).
+def find_optimal_threshold(
+    scores: list[float],
+    labels: list[float],
+    inclusion_value: int = 0,
+) -> float:
+    """Find the score threshold that best separates good (1) from bad (0) examples.
+
+    Iterates over all candidate thresholds (each unique score value) and picks the
+    one that minimises a weighted combination of false-positive rate (FPR) and
+    false-negative rate (FNR). The relative weight of FPR vs. FNR is governed by
+    ``inclusion_value``.
 
     Args:
-        scores: List of model scores
-        labels: List of true labels (1 for good, 0 for bad)
-        inclusion_value: Inclusion setting (-10 to +10)
-            - If 0: minimize fpr + fnr
-            - If positive: minimize fpr + 2^inclusion * fnr (include more)
-            - If negative: minimize 2^inclusion * fpr + fnr (exclude more)
+        scores: List of model output scores, one per example.
+        labels: List of true binary labels (1.0 for good, 0.0 for bad),
+            corresponding to ``scores``.
+        inclusion_value: Integer in ``[-10, 10]`` controlling the FPR/FNR trade-off.
+            - 0: minimise ``fpr + fnr`` (equal weight).
+            - Positive: minimise ``fpr + 2^inclusion_value * fnr`` (prefer recall,
+              i.e., include more items).
+            - Negative: minimise ``2^(-inclusion_value) * fpr + fnr`` (prefer
+              precision, i.e., exclude more items).
+
+    Returns:
+        The float threshold that achieves the lowest weighted cost.
+        Defaults to 0.5 if the score list is empty.
     """
     sorted_pairs = sorted(zip(scores, labels), reverse=True)
     best_threshold = 0.5
@@ -159,13 +201,36 @@ def find_optimal_threshold(scores, labels, inclusion_value=0):
     return best_threshold
 
 
-def calculate_cross_calibration_threshold(X_list, y_list, input_dim, inclusion_value=0):
-    """
-    Calculate threshold using cross-calibration:
-    - Split data into two halves D1 and D2
-    - Train M1 on D1, find threshold t1 using M1 on D2
-    - Train M2 on D2, find threshold t2 using M2 on D1
-    - Return mean(t1, t2)
+def calculate_cross_calibration_threshold(
+    X_list: list[np.ndarray],
+    y_list: list[float],
+    input_dim: int,
+    inclusion_value: int = 0,
+) -> float:
+    """Estimate a decision threshold using cross-calibration.
+
+    Splits the labelled data into two halves (D1, D2), trains one model on each
+    half, and uses each model to find an optimal threshold on the *other* half.
+    The returned threshold is the mean of the two per-half thresholds, which
+    reduces overfitting to the training split.
+
+    Algorithm:
+        1. Randomly split data into D1 and D2.
+        2. Train M1 on D1; find threshold t1 by evaluating M1 on D2.
+        3. Train M2 on D2; find threshold t2 by evaluating M2 on D1.
+        4. Return ``(t1 + t2) / 2``.
+
+    Args:
+        X_list: List of embedding arrays (one per labelled example).
+        y_list: List of binary labels (1.0 for good, 0.0 for bad),
+            aligned with ``X_list``.
+        input_dim: Dimensionality of the embeddings.
+        inclusion_value: Integer in ``[-10, 10]`` passed to :func:`train_model`
+            and :func:`find_optimal_threshold` to control the FPR/FNR trade-off.
+
+    Returns:
+        A float threshold. Returns 0.5 if fewer than 4 examples are provided
+        (insufficient data for cross-calibration).
     """
     n = len(X_list)
     if n < 4:
@@ -205,17 +270,32 @@ def calculate_cross_calibration_threshold(X_list, y_list, input_dim, inclusion_v
     return (t1 + t2) / 2.0
 
 
-def train_and_score(clips_dict, good_votes, bad_votes, inclusion_value=0):
+def train_and_score(
+    clips_dict: dict[int, dict[str, Any]],
+    good_votes: dict[int, None],
+    bad_votes: dict[int, None],
+    inclusion_value: int = 0,
+) -> tuple[list[dict[str, Any]], float]:
     """Train a small MLP on voted clip embeddings and score every clip.
 
+    Uses cross-calibration to determine an appropriate decision threshold, then
+    trains a final model on all labelled data and scores every clip in
+    ``clips_dict``.
+
     Args:
-        clips_dict: Dictionary of clips
-        good_votes: Dict of good vote clip IDs
-        bad_votes: Dict of bad vote clip IDs
-        inclusion_value: Inclusion setting
+        clips_dict: Mapping of clip ID to clip data dict. Each value must contain
+            an ``"embedding"`` key with a ``numpy.ndarray`` embedding vector.
+        good_votes: Dict whose keys are clip IDs labelled as good (values are ``None``).
+        bad_votes: Dict whose keys are clip IDs labelled as bad (values are ``None``).
+        inclusion_value: Integer in ``[-10, 10]`` passed to the training and
+            threshold-finding functions to control the inclusion/exclusion bias.
 
     Returns:
-        (results, threshold) where results is a list of {id, score} dicts
+        A tuple ``(results, threshold)`` where:
+
+        - ``results`` is a list of ``{"id": int, "score": float}`` dicts, sorted
+          by score in descending order (highest confidence first).
+        - ``threshold`` is the cross-calibrated decision boundary as a float.
     """
     X_list = []
     y_list = []

@@ -5,7 +5,7 @@ import hashlib
 import io
 import pickle
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import cv2
 import librosa
@@ -38,8 +38,25 @@ from vistatotes.models import (
 from vistatotes.utils import update_progress
 
 
-def load_esc50_metadata(esc50_dir: Path) -> dict:
-    """Load ESC-50 metadata CSV."""
+def load_esc50_metadata(esc50_dir: Path) -> dict[str, dict[str, Any]]:
+    """Load clip metadata from the ESC-50 ``esc50.csv`` metadata file.
+
+    Reads ``<esc50_dir>/meta/esc50.csv`` and builds a mapping from audio
+    filename to its associated metadata fields.
+
+    Args:
+        esc50_dir: Path to the root ESC-50 dataset directory (the directory that
+            contains the ``meta/`` and ``audio/`` subdirectories).
+
+    Returns:
+        A dict mapping audio filename (e.g. ``"1-100032-A-0.wav"``) to a dict
+        with the keys:
+
+        - ``"category"`` (``str``): Human-readable sound category label.
+        - ``"esc10"`` (``bool``): Whether the clip belongs to the ESC-10 subset.
+        - ``"target"`` (``int``): Integer class index.
+        - ``"fold"`` (``int``): Cross-validation fold number (1–5).
+    """
     meta_file = esc50_dir / "meta" / "esc50.csv"
 
     metadata = {}
@@ -56,8 +73,24 @@ def load_esc50_metadata(esc50_dir: Path) -> dict:
     return metadata
 
 
-def load_cifar10_batch(file_path: Path) -> tuple:
-    """Load a CIFAR-10 batch file and return images and labels."""
+def load_cifar10_batch(file_path: Path) -> tuple[np.ndarray, list[int], list[str]]:
+    """Load a CIFAR-10 pickle batch file and return images, labels, and label names.
+
+    Args:
+        file_path: Path to a CIFAR-10 batch file (e.g. ``data_batch_1``) in the
+            unpickled binary format used by the original dataset.
+
+    Returns:
+        A 3-tuple ``(images, labels, label_names)`` where:
+
+        - ``images`` is a ``numpy.ndarray`` of shape ``(N, 32, 32, 3)`` with
+          ``uint8`` pixel values in RGB order.
+        - ``labels`` is a list of integer class indices (one per image), each in
+          the range ``[0, 9]``.
+        - ``label_names`` is a fixed list of 10 human-readable class name strings
+          (e.g. ``"airplane"``, ``"automobile"``, …, ``"truck"``), ordered so that
+          ``label_names[i]`` corresponds to label value ``i``.
+    """
     with open(file_path, "rb") as f:
         batch = pickle.load(f, encoding="bytes")
 
@@ -84,8 +117,27 @@ def load_cifar10_batch(file_path: Path) -> tuple:
     return images, labels, label_names
 
 
-def load_video_metadata_from_folders(video_dir: Path, categories: list[str]) -> dict:
-    """Load video file metadata from category folders."""
+def load_video_metadata_from_folders(
+    video_dir: Path, categories: list[str]
+) -> dict[str, dict[str, Any]]:
+    """Scan category subdirectories and collect video file metadata.
+
+    Iterates over immediate subdirectories of ``video_dir``, keeping only those
+    whose name appears in ``categories``, and collects paths for all video files
+    with common extensions (``mp4``, ``avi``, ``mov``, ``webm``, ``mkv``).
+
+    Args:
+        video_dir: Root directory whose immediate subdirectories represent
+            category folders.
+        categories: List of category folder names to include. Subdirectories
+            not in this list are skipped.
+
+    Returns:
+        A dict mapping video filename (basename only) to a dict with the keys:
+
+        - ``"category"`` (``str``): Name of the category folder.
+        - ``"path"`` (``Path``): Full path to the video file.
+    """
     metadata = {}
 
     for category_folder in video_dir.iterdir():
@@ -107,8 +159,27 @@ def load_video_metadata_from_folders(video_dir: Path, categories: list[str]) -> 
     return metadata
 
 
-def load_image_metadata_from_folders(image_dir: Path, categories: list[str]) -> dict:
-    """Load image file metadata from category folders."""
+def load_image_metadata_from_folders(
+    image_dir: Path, categories: list[str]
+) -> dict[str, dict[str, Any]]:
+    """Scan category subdirectories and collect image file metadata.
+
+    Iterates over immediate subdirectories of ``image_dir``, keeping only those
+    whose name appears in ``categories``, and collects paths for all image files
+    with common extensions (``png``, ``jpg``, ``jpeg``, ``gif``, ``bmp``, ``webp``).
+
+    Args:
+        image_dir: Root directory whose immediate subdirectories represent
+            category folders.
+        categories: List of category folder names to include. Subdirectories
+            not in this list are skipped.
+
+    Returns:
+        A dict mapping image filename (basename only) to a dict with the keys:
+
+        - ``"category"`` (``str``): Name of the category folder.
+        - ``"path"`` (``Path``): Full path to the image file.
+    """
     metadata = {}
 
     for category_folder in image_dir.iterdir():
@@ -130,8 +201,27 @@ def load_image_metadata_from_folders(image_dir: Path, categories: list[str]) -> 
     return metadata
 
 
-def load_paragraph_metadata_from_folders(text_dir: Path, categories: list[str]) -> dict:
-    """Load paragraph/text file metadata from category folders."""
+def load_paragraph_metadata_from_folders(
+    text_dir: Path, categories: list[str]
+) -> dict[str, dict[str, Any]]:
+    """Scan category subdirectories and collect text file metadata.
+
+    Iterates over immediate subdirectories of ``text_dir``, keeping only those
+    whose name appears in ``categories``, and collects paths for all plain-text
+    files with extensions ``txt`` or ``md``.
+
+    Args:
+        text_dir: Root directory whose immediate subdirectories represent
+            category folders.
+        categories: List of category folder names to include. Subdirectories
+            not in this list are skipped.
+
+    Returns:
+        A dict mapping text filename (basename only) to a dict with the keys:
+
+        - ``"category"`` (``str``): Name of the category folder.
+        - ``"path"`` (``Path``): Full path to the text file.
+    """
     metadata = {}
 
     for category_folder in text_dir.iterdir():
@@ -153,13 +243,37 @@ def load_paragraph_metadata_from_folders(text_dir: Path, categories: list[str]) 
     return metadata
 
 
-def load_dataset_from_folder(folder_path: Path, media_type: str, clips: dict):
-    """Generate dataset from a folder of media files.
+def load_dataset_from_folder(
+    folder_path: Path, media_type: str, clips: dict[int, dict[str, Any]]
+) -> None:
+    """Generate a dataset in-place from a flat folder of media files.
+
+    Scans ``folder_path`` for all files matching the extensions for ``media_type``,
+    embeds each file using the appropriate model, and populates ``clips`` with
+    the resulting clip dicts. Progress is reported via :func:`update_progress`.
+
+    The ``clips`` dict is cleared before loading begins.
 
     Args:
-        folder_path: Path to folder containing media files
-        media_type: One of "sounds", "videos", "images", "paragraphs"
-        clips: Dictionary to populate with loaded clips
+        folder_path: Path to a flat directory containing media files. All
+            matching files in the directory are loaded (non-recursive).
+        media_type: The type of media to load. Must be one of:
+
+            - ``"sounds"``     – WAV/MP3/FLAC/OGG/M4A files; embedded with CLAP.
+            - ``"videos"``     – MP4/AVI/MOV/WEBM/MKV files; embedded with X-CLIP.
+            - ``"images"``     – JPEG/PNG/GIF/BMP/WEBP files; embedded with CLIP.
+            - ``"paragraphs"`` – TXT/MD files; embedded with E5-large-v2.
+
+        clips: Dict to populate in-place. Existing entries are removed before
+            loading. Keys are sequential integer clip IDs starting from 1.
+            Each value is a clip data dict containing at minimum: ``id``,
+            ``type``, ``file_size``, ``md5``, ``embedding``, ``filename``,
+            ``category``, and media-type-specific fields (``wav_bytes``,
+            ``video_bytes``, ``image_bytes``, or ``text_content``).
+
+    Raises:
+        ValueError: If ``media_type`` is not one of the four supported values,
+            or if no matching files are found in ``folder_path``.
     """
     update_progress("embedding", "Scanning media files...", 0, 0)
 
@@ -286,12 +400,32 @@ def load_dataset_from_folder(folder_path: Path, media_type: str, clips: dict):
     update_progress("idle", f"Loaded {len(clips)} {media_type} clips from folder")
 
 
-def load_dataset_from_pickle(file_path: Path, clips: dict):
-    """Load a dataset from a pickle file.
+def load_dataset_from_pickle(
+    file_path: Path, clips: dict[int, dict[str, Any]]
+) -> None:
+    """Load a dataset from a pickle file into the clips dict in-place.
+
+    Supports two pickle formats:
+
+    - **New format**: A dict with a ``"clips"`` key mapping to clip data dicts.
+      May also include ``"audio_dir"``, ``"video_dir"``, ``"image_dir"``, or
+      ``"text_dir"`` keys pointing to directories containing the raw media files
+      when the bytes are not stored inline.
+    - **Old format**: A plain dict mapping clip ID to clip data dict (no wrapping
+      ``"clips"`` key).
+
+    If media bytes are not stored inline in the pickle, the function attempts to
+    load them from the companion directory entry in the pickle. Clips for which
+    no media bytes can be resolved are silently skipped (a warning is printed to
+    stdout after loading).
+
+    The ``clips`` dict is cleared before loading begins.
 
     Args:
-        file_path: Path to the pickle file
-        clips: Dictionary to populate with loaded clips
+        file_path: Path to a ``.pkl`` file previously created by
+            :func:`export_dataset_to_file` or :func:`load_demo_dataset`.
+        clips: Dict to populate in-place. Existing entries are removed before
+            loading. Keys are clip IDs (int); values are clip data dicts.
     """
     with open(file_path, "rb") as f:
         data = pickle.load(f)
@@ -401,7 +535,20 @@ def load_dataset_from_pickle(file_path: Path, clips: dict):
 
 
 def embed_image_file_from_pil(image: Image.Image) -> Optional[np.ndarray]:
-    """Generate CLIP embedding for a PIL Image."""
+    """Generate a CLIP embedding vector for a PIL Image object.
+
+    A convenience wrapper around the CLIP vision model for cases where the
+    image is already in memory as a PIL Image (e.g. reconstructed from a
+    NumPy array) rather than a file path.
+
+    Args:
+        image: A PIL Image in any mode; will be converted to RGB internally.
+
+    Returns:
+        A 1-D ``numpy.ndarray`` of shape ``(embedding_dim,)`` representing the
+        CLIP image embedding, or ``None`` if the CLIP model is not loaded or if
+        an exception occurs during processing.
+    """
     clip_model, clip_processor = get_clip_model()
     if clip_model is None or clip_processor is None:
         return None
@@ -424,13 +571,43 @@ def embed_image_file_from_pil(image: Image.Image) -> Optional[np.ndarray]:
         return None
 
 
-def load_demo_dataset(dataset_name: str, clips: dict, e5_model):
-    """Load a demo dataset, downloading and embedding if necessary.
+def load_demo_dataset(
+    dataset_name: str,
+    clips: dict[int, dict[str, Any]],
+    e5_model: Any,
+) -> None:
+    """Load a named demo dataset into the clips dict, downloading and embedding as needed.
+
+    Checks for a cached ``.pkl`` file in ``EMBEDDINGS_DIR``; if found, loads
+    from that file. If the cache is missing or the media bytes it references can
+    no longer be found on disk, the raw data is re-downloaded and re-embedded.
+
+    Supported datasets and their sources:
+
+    - Audio datasets (ESC-50 subsets): downloaded from ``ESC50_URL``, embedded
+      with CLAP.
+    - Image datasets (CIFAR-10 subsets): downloaded from ``CIFAR10_URL``,
+      embedded with CLIP.
+    - Paragraph datasets (20 Newsgroups subsets): downloaded via
+      ``sklearn.datasets.fetch_20newsgroups``, embedded with E5-large-v2.
+    - Video datasets (UCF-101): must be manually placed at
+      ``VIDEO_DIR/ucf101/``; embedded with X-CLIP.
+
+    Progress throughout the operation is reported via :func:`update_progress`.
 
     Args:
-        dataset_name: Name of the demo dataset to load
-        clips: Dictionary to populate with loaded clips
-        e5_model: E5 model instance for paragraph embeddings
+        dataset_name: Key into ``DEMO_DATASETS`` identifying which demo dataset to
+            load. Raises ``ValueError`` if the key is not found.
+        clips: Dict to populate in-place. Existing entries are removed before
+            loading. Keys are integer clip IDs; values are clip data dicts.
+        e5_model: A loaded ``sentence_transformers.SentenceTransformer`` instance
+            (E5-large-v2) used for embedding paragraph datasets. May be ``None``
+            if no paragraph datasets are being loaded (a ``None`` check is
+            performed internally).
+
+    Raises:
+        ValueError: If ``dataset_name`` is not in ``DEMO_DATASETS``, or if the
+            UCF-101 dataset is requested but not yet downloaded.
     """
     if dataset_name not in DEMO_DATASETS:
         raise ValueError(f"Unknown dataset: {dataset_name}")
@@ -824,14 +1001,27 @@ def load_demo_dataset(dataset_name: str, clips: dict, e5_model):
     update_progress("idle", f"Loaded {dataset_name} dataset")
 
 
-def export_dataset_to_file(clips: dict) -> bytes:
-    """Export the current dataset to a pickle file.
+def export_dataset_to_file(clips: dict[int, dict[str, Any]]) -> bytes:
+    """Serialise the current clip dataset to a pickle-formatted byte string.
+
+    Converts the in-memory ``clips`` dict to a portable format (converting any
+    ``numpy.ndarray`` embeddings to plain Python lists) and returns it as bytes
+    suitable for writing to a ``.pkl`` file or sending as an HTTP response.
+
+    The resulting bytes can be reloaded with :func:`load_dataset_from_pickle`.
 
     Args:
-        clips: Dictionary of clips to export
+        clips: Mapping of clip ID to clip data dict. Each value may contain
+            any combination of the standard clip fields (``id``, ``type``,
+            ``duration``, ``file_size``, ``md5``, ``embedding``, ``filename``,
+            ``category``, ``wav_bytes``, ``video_bytes``, ``image_bytes``,
+            ``text_content``, ``word_count``, ``character_count``, ``width``,
+            ``height``). ``embedding`` values that are ``numpy.ndarray`` objects
+            are converted to lists for pickle compatibility.
 
     Returns:
-        Pickle file contents as bytes
+        Raw bytes of the pickled dataset dict, ready to be written to disk or
+        returned as a file download.
     """
     data = {
         "clips": {

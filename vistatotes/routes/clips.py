@@ -2,8 +2,9 @@
 
 import io
 from pathlib import Path
+from typing import Any
 
-from flask import Blueprint, jsonify, request, send_file
+from flask import Blueprint, Response, jsonify, request, send_file
 
 from vistatotes.utils import add_label_to_history, bad_votes, clips, good_votes
 
@@ -11,10 +12,21 @@ clips_bp = Blueprint("clips", __name__)
 
 
 @clips_bp.route("/api/clips")
-def list_clips():
-    result = []
+def list_clips() -> Response:
+    """Return metadata for all loaded clips as a JSON array.
+
+    Excludes heavyweight fields (``embedding``, ``wav_bytes``, ``video_bytes``,
+    ``image_bytes``, ``text_content``) from the response. Only includes the
+    ``frequency`` field when it is present (synthetic clips only).
+
+    Returns:
+        A JSON array of clip metadata dicts, each containing: ``id``, ``type``,
+        ``duration``, ``file_size``, ``filename``, ``category``, ``md5``, and
+        optionally ``frequency``.
+    """
+    result: list[dict[str, Any]] = []
     for c in clips.values():
-        clip_data = {
+        clip_data: dict[str, Any] = {
             "id": c["id"],
             "type": c.get("type", "audio"),
             "duration": c["duration"],
@@ -31,7 +43,16 @@ def list_clips():
 
 
 @clips_bp.route("/api/clips/<int:clip_id>/audio")
-def clip_audio(clip_id):
+def clip_audio(clip_id: int) -> tuple[Response, int] | Response:
+    """Stream the WAV audio bytes for a single clip.
+
+    Args:
+        clip_id: Integer clip ID from the URL path.
+
+    Returns:
+        A ``audio/wav`` file response on success (HTTP 200), or a JSON error
+        response with HTTP 404 if the clip does not exist.
+    """
     c = clips.get(clip_id)
     if not c:
         return jsonify({"error": "not found"}), 404
@@ -43,7 +64,20 @@ def clip_audio(clip_id):
 
 
 @clips_bp.route("/api/clips/<int:clip_id>/video")
-def clip_video(clip_id):
+def clip_video(clip_id: int) -> tuple[Response, int] | Response:
+    """Stream the video bytes for a single video clip.
+
+    Determines the MIME type from the clip's filename extension, defaulting to
+    ``video/mp4`` for unrecognised extensions.
+
+    Args:
+        clip_id: Integer clip ID from the URL path.
+
+    Returns:
+        A video file response with the appropriate MIME type on success
+        (HTTP 200), a JSON 404 error if the clip does not exist, or a JSON 400
+        error if the clip exists but is not of type ``"video"``.
+    """
     c = clips.get(clip_id)
     if not c:
         return jsonify({"error": "not found"}), 404
@@ -70,7 +104,20 @@ def clip_video(clip_id):
 
 
 @clips_bp.route("/api/clips/<int:clip_id>/image")
-def clip_image(clip_id):
+def clip_image(clip_id: int) -> tuple[Response, int] | Response:
+    """Stream the image bytes for a single image clip.
+
+    Determines the MIME type from the clip's filename extension, defaulting to
+    ``image/jpeg`` for unrecognised extensions.
+
+    Args:
+        clip_id: Integer clip ID from the URL path.
+
+    Returns:
+        An image file response with the appropriate MIME type on success
+        (HTTP 200), a JSON 404 error if the clip does not exist, or a JSON 400
+        error if the clip exists but is not of type ``"image"``.
+    """
     c = clips.get(clip_id)
     if not c:
         return jsonify({"error": "not found"}), 404
@@ -98,7 +145,18 @@ def clip_image(clip_id):
 
 
 @clips_bp.route("/api/clips/<int:clip_id>/paragraph")
-def clip_paragraph(clip_id):
+def clip_paragraph(clip_id: int) -> tuple[Response, int] | Response:
+    """Return the text content and statistics for a single paragraph clip.
+
+    Args:
+        clip_id: Integer clip ID from the URL path.
+
+    Returns:
+        A JSON object with keys ``"content"`` (str), ``"word_count"`` (int),
+        and ``"character_count"`` (int) on success (HTTP 200), a JSON 404
+        error if the clip does not exist, or a JSON 400 error if the clip
+        exists but is not of type ``"paragraph"``.
+    """
     c = clips.get(clip_id)
     if not c:
         return jsonify({"error": "not found"}), 404
@@ -115,7 +173,31 @@ def clip_paragraph(clip_id):
 
 
 @clips_bp.route("/api/clips/<int:clip_id>/vote", methods=["POST"])
-def vote_clip(clip_id):
+def vote_clip(clip_id: int) -> tuple[Response, int] | Response:
+    """Record or toggle a good/bad vote for a single clip.
+
+    Voting behaviour (toggle semantics):
+
+    - If ``vote == "good"`` and the clip is already in ``good_votes``, the vote
+      is *removed* (toggled off).
+    - If ``vote == "good"`` and the clip is not yet in ``good_votes``, it is
+      added to ``good_votes`` (removed from ``bad_votes`` if present) and the
+      event is appended to ``label_history``.
+    - The same toggle logic applies symmetrically for ``vote == "bad"``.
+
+    Args:
+        clip_id: Integer clip ID from the URL path.
+
+    Request body (JSON):
+        ``{"vote": "good"}`` or ``{"vote": "bad"}``.
+
+    Returns:
+        ``{"ok": True}`` (HTTP 200) on success, or a JSON error response for:
+
+        - HTTP 404 – clip not found.
+        - HTTP 400 – request body is missing, malformed, or ``vote`` is not
+          ``"good"`` or ``"bad"``.
+    """
     if clip_id not in clips:
         print(f"DEBUG: Vote failed - Clip {clip_id} not found", flush=True)
         return jsonify({"error": "not found"}), 404

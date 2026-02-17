@@ -33,7 +33,24 @@ e5_model: Optional[SentenceTransformer] = None
 
 
 def initialize_models() -> None:
-    """Initialize all embedding models."""
+    """Download (if necessary) and load all four embedding models into memory.
+
+    Models are loaded lazily: a model is only fetched and instantiated if its
+    global variable is currently ``None``. Calling this function a second time
+    is therefore a no-op if all models are already loaded. Models are cached to
+    ``MODELS_CACHE_DIR`` so that subsequent startups do not require a network
+    connection.
+
+    Loaded models (one per media modality):
+
+    - **CLAP** (``CLAP_MODEL_ID``) – audio embeddings.
+    - **X-CLIP** (``XCLIP_MODEL_ID``) – video embeddings.
+    - **CLIP** (``CLIP_MODEL_ID``) – image embeddings.
+    - **E5-large-v2** (``E5_MODEL_ID``) – paragraph embeddings.
+
+    Sets ``torch.set_num_threads(1)`` and calls ``gc.collect()`` before loading
+    to reduce peak memory usage in constrained environments.
+    """
     global clap_model, clap_processor, xclip_model, xclip_processor
     global clip_model, clip_processor, e5_model
 
@@ -87,20 +104,43 @@ def initialize_models() -> None:
 
 
 def get_clap_model() -> tuple[Optional[ClapModel], Optional[ClapProcessor]]:
-    """Get CLAP model and processor."""
+    """Return the global CLAP model and processor instances.
+
+    Returns:
+        A 2-tuple ``(clap_model, clap_processor)`` where each element is either
+        the loaded instance or ``None`` if :func:`initialize_models` has not
+        been called yet.
+    """
     return clap_model, clap_processor
 
 
 def get_xclip_model() -> tuple[Optional[XCLIPModel], Optional[XCLIPProcessor]]:
-    """Get X-CLIP model and processor."""
+    """Return the global X-CLIP model and processor instances.
+
+    Returns:
+        A 2-tuple ``(xclip_model, xclip_processor)`` where each element is
+        either the loaded instance or ``None`` if :func:`initialize_models` has
+        not been called yet.
+    """
     return xclip_model, xclip_processor
 
 
 def get_clip_model() -> tuple[Optional[CLIPModel], Optional[CLIPProcessor]]:
-    """Get CLIP model and processor."""
+    """Return the global CLIP model and processor instances.
+
+    Returns:
+        A 2-tuple ``(clip_model, clip_processor)`` where each element is either
+        the loaded instance or ``None`` if :func:`initialize_models` has not
+        been called yet.
+    """
     return clip_model, clip_processor
 
 
 def get_e5_model() -> Optional[SentenceTransformer]:
-    """Get E5 model."""
+    """Return the global E5-large-v2 SentenceTransformer instance.
+
+    Returns:
+        The loaded ``SentenceTransformer`` model, or ``None`` if
+        :func:`initialize_models` has not been called yet.
+    """
     return e5_model

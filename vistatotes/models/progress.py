@@ -1,30 +1,58 @@
 """Progress tracking and stopping condition analysis."""
 
+from typing import Any, Optional
+
 import numpy as np
 import torch
+import torch.nn as nn
 
 from vistatotes.models.training import find_optimal_threshold, train_model
 
 
-def recreate_model_at_time(clips_dict, label_history, time_index, inclusion_value=0):
-    """
-    Recreate model M_t using only labels up to time_index.
+def recreate_model_at_time(
+    clips_dict: dict[int, dict[str, Any]],
+    label_history: list[tuple[int, str, float]],
+    time_index: int,
+    inclusion_value: int = 0,
+) -> tuple[Optional[nn.Sequential], Optional[float], list[int], list[int]]:
+    """Recreate the classifier that would have been trained after a given labelling step.
+
+    Builds training data from all labels in ``label_history`` up to and including
+    ``time_index``, then trains an MLP and computes a threshold using those labels.
+    Later labels for the same clip override earlier ones (last label wins).
 
     Args:
-        clips_dict: Dictionary of all clips
-        label_history: List of (clip_id, label, timestamp) tuples
-        time_index: Index into label_history (use labels up to this index)
-        inclusion_value: Inclusion setting
+        clips_dict: Mapping of clip ID to clip data dict. Each value must contain
+            an ``"embedding"`` key with a ``numpy.ndarray`` embedding vector.
+        label_history: Ordered list of ``(clip_id, label, timestamp)`` tuples
+            representing all labelling events, where ``label`` is ``"good"`` or
+            ``"bad"``.
+        time_index: Index into ``label_history``. Labels from index 0 through
+            ``time_index`` (inclusive) are used. Must be in
+            ``[0, len(label_history) - 1]``.
+        inclusion_value: Integer in ``[-10, 10]`` controlling the FPR/FNR trade-off
+            passed to :func:`~vistatotes.models.training.train_model` and
+            :func:`~vistatotes.models.training.find_optimal_threshold`.
 
     Returns:
-        (model, threshold, good_ids, bad_ids) or (None, None, [], []) if insufficient data
+        A 4-tuple ``(model, threshold, good_ids, bad_ids)`` where:
+
+        - ``model`` is the trained ``nn.Sequential`` model, or ``None`` if there
+          is insufficient labelled data (fewer than 2 examples, or all labels are
+          the same class).
+        - ``threshold`` is the float decision boundary, or ``None`` when ``model``
+          is ``None``.
+        - ``good_ids`` is a list of clip IDs currently labelled good (may be
+          non-empty even when ``model`` is ``None``).
+        - ``bad_ids`` is a list of clip IDs currently labelled bad (may be
+          non-empty even when ``model`` is ``None``).
     """
     if time_index < 0 or time_index >= len(label_history):
         return None, None, [], []
 
     # Collect labels up to time_index
-    good_ids = set()
-    bad_ids = set()
+    good_ids: set[int] = set()
+    bad_ids: set[int] = set()
 
     for i in range(time_index + 1):
         clip_id, label, _ = label_history[i]
@@ -40,8 +68,8 @@ def recreate_model_at_time(clips_dict, label_history, time_index, inclusion_valu
         return None, None, list(good_ids), list(bad_ids)
 
     # Build training data
-    X_list = []
-    y_list = []
+    X_list: list[np.ndarray] = []
+    y_list: list[float] = []
     for cid in good_ids:
         if cid in clips_dict:
             X_list.append(clips_dict[cid]["embedding"])
@@ -70,22 +98,45 @@ def recreate_model_at_time(clips_dict, label_history, time_index, inclusion_valu
 
 
 def calculate_error_cost_over_time(
-    clips_dict, label_history, current_good_votes, current_bad_votes, inclusion_value=0
-):
-    """
-    Calculate error cost (FPR + FNR weighted by inclusion) for each M_t against current labelset.
+    clips_dict: dict[int, dict[str, Any]],
+    label_history: list[tuple[int, str, float]],
+    current_good_votes: dict[int, None],
+    current_bad_votes: dict[int, None],
+    inclusion_value: int = 0,
+) -> list[dict[str, Any]]:
+    """Calculate classification error cost at each labelling step against the current labelset.
+
+    For each time step ``t`` in ``label_history``, recreates the model trained on
+    labels up to ``t`` and evaluates it against the *current* full labelset. This
+    shows how the model's quality improved as more labels were added.
 
     Args:
-        clips_dict: Dictionary of all clips
-        label_history: List of (clip_id, label, timestamp) tuples
-        current_good_votes: Current good votes dict
-        current_bad_votes: Current bad votes dict
-        inclusion_value: Inclusion setting
+        clips_dict: Mapping of clip ID to clip data dict. Each value must contain
+            an ``"embedding"`` key with a ``numpy.ndarray`` embedding vector.
+        label_history: Ordered list of ``(clip_id, label, timestamp)`` tuples
+            representing all labelling events.
+        current_good_votes: Dict whose keys are clip IDs currently labelled good.
+        current_bad_votes: Dict whose keys are clip IDs currently labelled bad.
+        inclusion_value: Integer in ``[-10, 10]`` controlling the FPR/FNR trade-off.
+            - 0: cost = ``fpr + fnr``.
+            - Positive: cost = ``fpr + 2^inclusion_value * fnr`` (penalise misses more).
+            - Negative: cost = ``2^(-inclusion_value) * fpr + fnr`` (penalise false
+              alarms more).
 
     Returns:
-        List of {time_index, num_labels, error_cost, fpr, fnr}
+        A list of dicts, one per time step where a model could be trained (i.e.
+        where both classes were present). Each dict has the keys:
+
+        - ``"time_index"`` (``int``): Index into ``label_history``.
+        - ``"num_labels"`` (``int``): Total number of labelled clips at this step.
+        - ``"error_cost"`` (``float``): Weighted ``fpr + fnr``, rounded to 4 dp.
+        - ``"fpr"`` (``float``): False-positive rate, rounded to 4 dp.
+        - ``"fnr"`` (``float``): False-negative rate, rounded to 4 dp.
+
+        Returns an empty list if ``current_good_votes`` and ``current_bad_votes``
+        are both empty.
     """
-    results = []
+    results: list[dict[str, Any]] = []
 
     # Determine weights based on inclusion
     if inclusion_value >= 0:
@@ -96,7 +147,7 @@ def calculate_error_cost_over_time(
         fnr_weight = 1.0
 
     # Build current truth labels
-    current_labels = {}
+    current_labels: dict[int, float] = {}
     for cid in current_good_votes:
         current_labels[cid] = 1.0
     for cid in current_bad_votes:
@@ -107,8 +158,8 @@ def calculate_error_cost_over_time(
 
     # Only evaluate on currently labeled clips
     eval_ids = list(current_labels.keys())
-    eval_embs = []
-    eval_labels = []
+    eval_embs: list[np.ndarray] = []
+    eval_labels: list[float] = []
     for cid in eval_ids:
         if cid in clips_dict:
             eval_embs.append(clips_dict[cid]["embedding"])
@@ -172,21 +223,38 @@ def calculate_error_cost_over_time(
 
 
 def calculate_prediction_stability_over_time(
-    clips_dict, label_history, inclusion_value=0
-):
-    """
-    Calculate how many unlabeled clips change their predicted label at each time step.
+    clips_dict: dict[int, dict[str, Any]],
+    label_history: list[tuple[int, str, float]],
+    inclusion_value: int = 0,
+) -> list[dict[str, Any]]:
+    """Count how many unlabelled clips change their predicted label at each step.
+
+    At each time step ``t``, recreates the model trained on labels up to ``t``,
+    scores all *unlabelled* clips, and counts how many changed their predicted
+    label (flipped) compared to the previous time step. A decreasing flip count
+    is a sign that the model's predictions are stabilising.
 
     Args:
-        clips_dict: Dictionary of all clips
-        label_history: List of (clip_id, label, timestamp) tuples
-        inclusion_value: Inclusion setting
+        clips_dict: Mapping of clip ID to clip data dict. Each value must contain
+            an ``"embedding"`` key with a ``numpy.ndarray`` embedding vector.
+        label_history: Ordered list of ``(clip_id, label, timestamp)`` tuples
+            representing all labelling events.
+        inclusion_value: Integer in ``[-10, 10]`` controlling the decision
+            threshold used to binarise model scores. Passed to
+            :func:`recreate_model_at_time`.
 
     Returns:
-        List of {time_index, num_labels, num_flips, num_unlabeled}
+        A list of dicts, one per time step where a model could be trained. Each
+        dict has the keys:
+
+        - ``"time_index"`` (``int``): Index into ``label_history``.
+        - ``"num_labels"`` (``int``): Total number of labelled clips at this step.
+        - ``"num_flips"`` (``int``): Number of unlabelled clips whose predicted
+          label changed since the previous time step (0 for the first valid step).
+        - ``"num_unlabeled"`` (``int``): Number of unlabelled clips at this step.
     """
-    results = []
-    previous_predictions = None
+    results: list[dict[str, Any]] = []
+    previous_predictions: Optional[dict[int, int]] = None
 
     # Get all clip IDs
     all_clip_ids = sorted(clips_dict.keys())
@@ -224,7 +292,7 @@ def calculate_prediction_stability_over_time(
             scores = model(X_unlabeled).squeeze(1).tolist()
 
         # Convert scores to binary predictions
-        predictions = {
+        predictions: dict[int, int] = {
             cid: 1 if score >= threshold else 0
             for cid, score in zip(unlabeled_ids, scores)
         }
@@ -253,18 +321,38 @@ def calculate_prediction_stability_over_time(
 
 
 def analyze_labeling_progress(
-    clips_dict, label_history, current_good_votes, current_bad_votes, inclusion_value=0
-):
-    """
-    Comprehensive analysis of labeling progress.
+    clips_dict: dict[int, dict[str, Any]],
+    label_history: list[tuple[int, str, float]],
+    current_good_votes: dict[int, None],
+    current_bad_votes: dict[int, None],
+    inclusion_value: int = 0,
+) -> dict[str, Any]:
+    """Run a comprehensive analysis of labelling progress.
+
+    Combines error-cost tracking (how well the model fits the current labelset over
+    time) with prediction-stability tracking (how often unlabelled clips change
+    their predicted label over time). Together these metrics can help determine
+    when enough labels have been collected.
+
+    Args:
+        clips_dict: Mapping of clip ID to clip data dict. Each value must contain
+            an ``"embedding"`` key with a ``numpy.ndarray`` embedding vector.
+        label_history: Ordered list of ``(clip_id, label, timestamp)`` tuples
+            representing all labelling events.
+        current_good_votes: Dict whose keys are clip IDs currently labelled good.
+        current_bad_votes: Dict whose keys are clip IDs currently labelled bad.
+        inclusion_value: Integer in ``[-10, 10]`` controlling the FPR/FNR trade-off
+            passed to both sub-analyses.
 
     Returns:
-        {
-            "error_cost_over_time": [...],
-            "stability_over_time": [...],
-            "total_labels": int,
-            "total_clips": int,
-        }
+        A dict with the following keys:
+
+        - ``"error_cost_over_time"`` (``list[dict]``): Output of
+          :func:`calculate_error_cost_over_time`.
+        - ``"stability_over_time"`` (``list[dict]``): Output of
+          :func:`calculate_prediction_stability_over_time`.
+        - ``"total_labels"`` (``int``): Combined count of good and bad votes.
+        - ``"total_clips"`` (``int``): Total number of clips in ``clips_dict``.
     """
     error_cost = calculate_error_cost_over_time(
         clips_dict, label_history, current_good_votes, current_bad_votes, inclusion_value

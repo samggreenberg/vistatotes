@@ -19,7 +19,21 @@ from vistatotes.models.loader import (
 
 
 def embed_audio_file(audio_path: Path) -> Optional[np.ndarray]:
-    """Generate CLAP embedding for a single audio file."""
+    """Generate a CLAP audio embedding vector for a single audio file.
+
+    Loads the audio at the configured ``SAMPLE_RATE`` (48 kHz for CLAP),
+    runs it through the CLAP audio encoder, and projects it to the shared
+    audio-text embedding space.
+
+    Args:
+        audio_path: Path to an audio file in any format supported by
+            ``librosa.load`` (WAV, MP3, FLAC, OGG, etc.).
+
+    Returns:
+        A 1-D ``numpy.ndarray`` of shape ``(512,)`` containing the CLAP audio
+        embedding, or ``None`` if the CLAP model is not loaded or if an
+        exception occurs during loading or embedding.
+    """
     clap_model, clap_processor = get_clap_model()
     if clap_model is None or clap_processor is None:
         return None
@@ -53,7 +67,21 @@ def embed_audio_file(audio_path: Path) -> Optional[np.ndarray]:
 
 
 def embed_video_file(video_path: Path) -> Optional[np.ndarray]:
-    """Generate X-CLIP embedding for a single video file."""
+    """Generate an X-CLIP video embedding vector for a single video file.
+
+    Samples up to 8 frames evenly spaced throughout the video (the default
+    expected by X-CLIP), converts them from BGR to RGB PIL Images, and passes
+    them through the X-CLIP video encoder.
+
+    Args:
+        video_path: Path to a video file in any format supported by OpenCV
+            (MP4, AVI, MOV, WEBM, MKV, etc.).
+
+    Returns:
+        A 1-D ``numpy.ndarray`` containing the X-CLIP video embedding, or
+        ``None`` if the X-CLIP model is not loaded, the video cannot be opened,
+        no frames could be extracted, or an exception occurs during processing.
+    """
     xclip_model, xclip_processor = get_xclip_model()
     if xclip_model is None or xclip_processor is None:
         return None
@@ -106,7 +134,21 @@ def embed_video_file(video_path: Path) -> Optional[np.ndarray]:
 
 
 def embed_image_file(image_path: Path) -> Optional[np.ndarray]:
-    """Generate CLIP embedding for a single image file."""
+    """Generate a CLIP image embedding vector for a single image file.
+
+    Opens the image with PIL, converts it to RGB, and runs it through the
+    CLIP vision encoder to obtain a feature vector in the shared image-text
+    embedding space.
+
+    Args:
+        image_path: Path to an image file in any format supported by PIL
+            (JPEG, PNG, GIF, BMP, WEBP, etc.).
+
+    Returns:
+        A 1-D ``numpy.ndarray`` containing the CLIP image embedding, or
+        ``None`` if the CLIP model is not loaded or if an exception occurs
+        during loading or embedding.
+    """
     clip_model, clip_processor = get_clip_model()
     if clip_model is None or clip_processor is None:
         return None
@@ -130,7 +172,20 @@ def embed_image_file(image_path: Path) -> Optional[np.ndarray]:
 
 
 def embed_paragraph_file(text_path: Path) -> Optional[np.ndarray]:
-    """Generate E5-LARGE-V2 embedding for a text/paragraph file."""
+    """Generate an E5-large-v2 embedding vector for a plain-text file.
+
+    Reads the file as UTF-8, prepends the ``"passage: "`` prefix required by
+    the E5 asymmetric retrieval model, and encodes it with L2 normalisation.
+
+    Args:
+        text_path: Path to a UTF-8 encoded plain-text file (e.g. ``.txt`` or
+            ``.md``).
+
+    Returns:
+        A 1-D ``numpy.ndarray`` containing the L2-normalised E5 embedding, or
+        ``None`` if the E5 model is not loaded, the file is empty, or an
+        exception occurs during reading or encoding.
+    """
     e5_model = get_e5_model()
     if e5_model is None:
         return None
@@ -157,14 +212,32 @@ def embed_paragraph_file(text_path: Path) -> Optional[np.ndarray]:
 
 
 def embed_text_query(text: str, media_type: str) -> Optional[np.ndarray]:
-    """Embed a text query for the given media type.
+    """Embed a free-text search query into the embedding space for a given media type.
+
+    Selects the appropriate text encoder based on ``media_type`` and embeds
+    ``text`` so that it can be compared (via cosine similarity) against media
+    embeddings produced by the corresponding media encoder.
+
+    Model–media-type mapping:
+
+    - ``"audio"``     → CLAP text encoder + projection head.
+    - ``"video"``     → X-CLIP text encoder.
+    - ``"image"``     → CLIP text encoder.
+    - ``"paragraph"`` → E5-large-v2 with ``"query: "`` prefix.
 
     Args:
-        text: The text query to embed
-        media_type: One of "audio", "video", "image", "paragraph"
+        text: The natural-language search query string to embed.
+        media_type: The media modality the query should be matched against.
+            Must be one of ``"audio"``, ``"video"``, ``"image"``, or
+            ``"paragraph"``.
 
     Returns:
-        The text embedding as a numpy array, or None if failed
+        A 1-D ``numpy.ndarray`` containing the text embedding in the shared
+        embedding space for the requested media type, or ``None`` if:
+
+        - The required model is not loaded.
+        - ``media_type`` is not one of the four recognised values.
+        - An exception occurs during encoding.
     """
     if media_type == "audio":
         clap_model, clap_processor = get_clap_model()

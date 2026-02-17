@@ -4,6 +4,9 @@ import os
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 
+# Visual feedback for startup
+print("⏳ Initializing VectoryTones...", flush=True)
+
 import csv
 import gc
 import hashlib
@@ -17,6 +20,8 @@ import zipfile
 from pathlib import Path
 from typing import Optional
 
+print("⏳ Importing ML libraries (this may take a few seconds)...", flush=True)
+
 import cv2
 import librosa
 import numpy as np
@@ -28,6 +33,7 @@ from PIL import Image
 from sentence_transformers import SentenceTransformer
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.mixture import GaussianMixture
+from tqdm import tqdm
 from transformers import (
     ClapModel,
     ClapProcessor,
@@ -322,39 +328,43 @@ def initialize_app():
     torch.set_num_threads(1)
     gc.collect()
 
-    # Load CLAP model for Sounds modality
-    if clap_model is None:
-        print("DEBUG: Loading CLAP model for Sounds (Hugging Face)...", flush=True)
-        # Use the unfused model (~600MB) and low_cpu_mem_usage to avoid RAM spikes
-        model_id = "laion/clap-htsat-unfused"
-        clap_model = ClapModel.from_pretrained(model_id, low_cpu_mem_usage=True)
-        clap_processor = ClapProcessor.from_pretrained(model_id)
-        print("DEBUG: CLAP model loaded.", flush=True)
+    with tqdm(total=4, desc="Loading Models", unit="model") as pbar:
+        # Load CLAP model for Sounds modality
+        if clap_model is None:
+            pbar.set_description("Loading CLAP (Audio)")
+            # Use the unfused model (~600MB) and low_cpu_mem_usage to avoid RAM spikes
+            model_id = "laion/clap-htsat-unfused"
+            clap_model = ClapModel.from_pretrained(model_id, low_cpu_mem_usage=True)
+            clap_processor = ClapProcessor.from_pretrained(model_id, use_fast=False)
+            # print("DEBUG: CLAP model loaded.", flush=True)
+        pbar.update(1)
 
-    # Load X-CLIP model for Videos modality
-    if xclip_model is None:
-        print("DEBUG: Loading X-CLIP model for Videos (Hugging Face)...", flush=True)
-        model_id = "microsoft/xclip-base-patch32"
-        xclip_model = XCLIPModel.from_pretrained(model_id, low_cpu_mem_usage=True)
-        xclip_processor = XCLIPProcessor.from_pretrained(model_id)
-        print("DEBUG: X-CLIP model loaded.", flush=True)
+        # Load X-CLIP model for Videos modality
+        if xclip_model is None:
+            pbar.set_description("Loading X-CLIP (Video)")
+            model_id = "microsoft/xclip-base-patch32"
+            xclip_model = XCLIPModel.from_pretrained(model_id, low_cpu_mem_usage=True)
+            xclip_processor = XCLIPProcessor.from_pretrained(model_id, use_fast=False)
+            # print("DEBUG: X-CLIP model loaded.", flush=True)
+        pbar.update(1)
 
-    # Load CLIP model for Images modality
-    if clip_model is None:
-        print("DEBUG: Loading CLIP model for Images (Hugging Face)...", flush=True)
-        model_id = "openai/clip-vit-base-patch32"
-        clip_model = CLIPModel.from_pretrained(model_id, low_cpu_mem_usage=True)
-        clip_processor = CLIPProcessor.from_pretrained(model_id)
-        print("DEBUG: CLIP model loaded.", flush=True)
+        # Load CLIP model for Images modality
+        if clip_model is None:
+            pbar.set_description("Loading CLIP (Image)")
+            model_id = "openai/clip-vit-base-patch32"
+            clip_model = CLIPModel.from_pretrained(model_id, low_cpu_mem_usage=True)
+            clip_processor = CLIPProcessor.from_pretrained(model_id, use_fast=False)
+            # print("DEBUG: CLIP model loaded.", flush=True)
+        pbar.update(1)
 
-    # Load E5-LARGE-V2 model for Paragraphs modality
-    if e5_model is None:
-        print(
-            "DEBUG: Loading E5-LARGE-V2 model for Paragraphs (SentenceTransformers)...",
-            flush=True,
-        )
-        e5_model = SentenceTransformer("intfloat/e5-large-v2")
-        print("DEBUG: E5-LARGE-V2 model loaded.", flush=True)
+        # Load E5-LARGE-V2 model for Paragraphs modality
+        if e5_model is None:
+            pbar.set_description("Loading E5 (Text)")
+            e5_model = SentenceTransformer("intfloat/e5-large-v2")
+            # print("DEBUG: E5-LARGE-V2 model loaded.", flush=True)
+        pbar.update(1)
+
+        pbar.set_description("Ready")
 
     # Don't automatically load clips - user will load dataset via UI
     print("DEBUG: Ready to load dataset via UI", flush=True)
@@ -784,11 +794,13 @@ def load_dataset_from_folder(folder_path: Path, media_type: str = "sounds"):
     update_progress("idle", f"Loaded {len(clips)} {media_type} clips from folder")
 
 
-def download_file_with_progress(url: str, dest_path: Path):
+def download_file_with_progress(url: str, dest_path: Path, expected_size: int = 0):
     """Download a file with progress tracking."""
     response = requests.get(url, stream=True)
     response.raise_for_status()
     total_size = int(response.headers.get("content-length", 0))
+    if total_size == 0:
+        total_size = expected_size
 
     downloaded = 0
     with open(dest_path, "wb") as f:
@@ -807,7 +819,9 @@ def download_esc50() -> Path:
 
     if not zip_path.exists():
         update_progress("downloading", "Starting download...", 0, 0)
-        download_file_with_progress(ESC50_URL, zip_path)
+        download_file_with_progress(
+            ESC50_URL, zip_path, ESC50_DOWNLOAD_SIZE_MB * 1024 * 1024
+        )
 
     extract_dir = DATA_DIR / "ESC-50-master"
     if not extract_dir.exists():
@@ -853,7 +867,9 @@ def download_cifar10() -> Path:
 
     if not tar_path.exists():
         update_progress("downloading", "Starting CIFAR-10 download...", 0, 0)
-        download_file_with_progress(CIFAR10_URL, tar_path)
+        download_file_with_progress(
+            CIFAR10_URL, tar_path, CIFAR10_DOWNLOAD_SIZE_MB * 1024 * 1024
+        )
 
     extract_dir = DATA_DIR / "cifar-10-batches-py"
     if not extract_dir.exists():
@@ -964,9 +980,7 @@ def load_image_metadata_from_folders(image_dir: Path, categories: list[str]) -> 
     return metadata
 
 
-def load_paragraph_metadata_from_folders(
-    text_dir: Path, categories: list[str]
-) -> dict:
+def load_paragraph_metadata_from_folders(text_dir: Path, categories: list[str]) -> dict:
     """Load paragraph/text file metadata from category folders."""
     metadata = {}
 
@@ -1075,9 +1089,7 @@ def load_demo_dataset(dataset_name: str):
             images, labels, label_names = load_cifar10_batch(batch_file)
 
             # Filter to requested categories
-            category_indices = {
-                label_names[i]: i for i in range(len(label_names))
-            }
+            category_indices = {label_names[i]: i for i in range(len(label_names))}
             requested_categories = dataset_info["categories"]
 
             # Collect images for requested categories
@@ -1101,7 +1113,9 @@ def load_demo_dataset(dataset_name: str):
                 "embedding", f"Starting embedding for {total} images...", 0, total
             )
 
-            for i, (image_array, category) in enumerate(zip(selected_images, selected_labels)):
+            for i, (image_array, category) in enumerate(
+                zip(selected_images, selected_labels)
+            ):
                 update_progress(
                     "embedding",
                     f"Embedding {category}: image {i + 1}/{total}",
@@ -1110,11 +1124,11 @@ def load_demo_dataset(dataset_name: str):
                 )
 
                 # Convert numpy array to PIL Image
-                img = Image.fromarray(image_array.astype('uint8'), 'RGB')
+                img = Image.fromarray(image_array.astype("uint8"), "RGB")
 
                 # Convert to bytes
                 img_buffer = io.BytesIO()
-                img.save(img_buffer, format='PNG')
+                img.save(img_buffer, format="PNG")
                 image_bytes = img_buffer.getvalue()
 
                 # Get embedding
@@ -1468,10 +1482,30 @@ def export_dataset_to_file() -> bytes:
 # Routes
 # ---------------------------------------------------------------------------
 
+@app.before_request
+def log_request_info():
+    """Log incoming requests to debug connection issues."""
+    if "/api/dataset/progress" not in request.path:
+        print(f"DEBUG: Incoming {request.method} {request.path}", flush=True)
+
+@app.after_request
+def log_response_info(response):
+    if "/api/dataset/progress" not in request.path:
+        print(f"DEBUG: Outgoing {response.status_code}", flush=True)
+    return response
+
 
 @app.route("/")
 def index():
     return app.send_static_file("index.html")
+
+
+@app.route("/favicon.ico")
+def favicon():
+    # Return empty response if file doesn't exist to stop 404 logs
+    if not (Path(app.root_path) / "static" / "favicon.ico").exists():
+        return "", 204
+    return app.send_static_file("favicon.ico")
 
 
 @app.route("/api/clips")
@@ -1580,13 +1614,21 @@ def clip_paragraph(clip_id):
 @app.route("/api/clips/<int:clip_id>/vote", methods=["POST"])
 def vote_clip(clip_id):
     if clip_id not in clips:
+        print(f"DEBUG: Vote failed - Clip {clip_id} not found", flush=True)
         return jsonify({"error": "not found"}), 404
-    data = request.get_json(force=True)
+
+    try:
+        data = request.get_json(force=True)
+    except Exception as e:
+        print(f"DEBUG: Vote failed - JSON error: {e}", flush=True)
+        return jsonify({"error": "Invalid request body"}), 400
+
     if data is None:
         return jsonify({"error": "Invalid request body"}), 400
 
     vote = data.get("vote")
     if vote not in ("good", "bad"):
+        print(f"DEBUG: Vote failed - Invalid vote '{vote}'", flush=True)
         return jsonify({"error": "vote must be 'good' or 'bad'"}), 400
 
     if vote == "good":
@@ -1602,6 +1644,7 @@ def vote_clip(clip_id):
             good_votes.pop(clip_id, None)
             bad_votes[clip_id] = None
 
+    print(f"DEBUG: Vote '{vote}' recorded for clip {clip_id}", flush=True)
     return jsonify({"ok": True})
 
 
@@ -1642,16 +1685,24 @@ def calculate_gmm_threshold(scores):
 @app.route("/api/sort", methods=["POST"])
 def sort_clips():
     """Return clips sorted by cosine similarity to a text query."""
-    data = request.get_json(force=True)
+    try:
+        data = request.get_json(force=True)
+    except Exception as e:
+        print(f"DEBUG: Sort failed - JSON error: {e}", flush=True)
+        return jsonify({"error": "Invalid request body"}), 400
+
     if data is None:
         return jsonify({"error": "Invalid request body"}), 400
 
     text = data.get("text", "").strip()
+    print(f"DEBUG: Sort request for '{text}'", flush=True)
+
     if not text:
         return jsonify({"error": "text is required"}), 400
 
     # Determine media type from current clips
     if not clips:
+        print("DEBUG: Sort failed - No clips loaded", flush=True)
         return jsonify({"error": "No clips loaded"}), 400
 
     media_type = next(iter(clips.values())).get("type", "audio")
@@ -1661,6 +1712,7 @@ def sort_clips():
     if media_type == "audio":
         # Use CLAP for audio/sounds
         if clap_model is None or clap_processor is None:
+            print("DEBUG: Sort failed - CLAP model not loaded", flush=True)
             return jsonify({"error": "CLAP model not loaded"}), 500
         inputs = clap_processor(text=[text], return_tensors="pt")  # type: ignore
         with torch.no_grad():
@@ -1675,6 +1727,7 @@ def sort_clips():
     elif media_type == "video":
         # Use X-CLIP for videos
         if xclip_model is None or xclip_processor is None:
+            print("DEBUG: Sort failed - X-CLIP model not loaded", flush=True)
             return jsonify({"error": "X-CLIP model not loaded"}), 500
         inputs = xclip_processor(text=[text], return_tensors="pt")  # type: ignore
         with torch.no_grad():
@@ -1683,6 +1736,7 @@ def sort_clips():
     elif media_type == "image":
         # Use CLIP for images
         if clip_model is None or clip_processor is None:
+            print("DEBUG: Sort failed - CLIP model not loaded", flush=True)
             return jsonify({"error": "CLIP model not loaded"}), 500
         inputs = clip_processor(text=[text], return_tensors="pt")  # type: ignore
         with torch.no_grad():
@@ -1691,6 +1745,7 @@ def sort_clips():
     elif media_type == "paragraph":
         # Use E5-LARGE-V2 for paragraphs with "query:" prefix
         if e5_model is None:
+            print("DEBUG: Sort failed - E5 model not loaded", flush=True)
             return jsonify({"error": "E5 model not loaded"}), 500
         text_vec = e5_model.encode(f"query: {text}", normalize_embeddings=True)
 

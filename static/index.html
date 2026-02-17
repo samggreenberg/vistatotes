@@ -13,7 +13,7 @@
   .layout { display: flex; flex: 1; overflow: hidden; }
 
   /* Burger menu */
-  .burger-menu { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); }
+  .burger-menu { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); z-index: 2000; }
   .burger-btn { width: 32px; height: 32px; background: transparent; border: 1px solid #2a2d3a; border-radius: 4px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 0; transition: all 0.2s; }
   .burger-btn:hover { background: #252940; border-color: #7c8aff; }
   .burger-btn span { display: block; width: 18px; height: 2px; background: #aaa; transition: all 0.2s; }
@@ -57,9 +57,11 @@
   .stripe-dot { position: absolute; left: 50%; width: 6px; height: 6px; border-radius: 50%; }
   .stripe-dot.good { background: #4caf50; transform: translateX(-25%); }
   .stripe-dot.bad { background: #f44336; transform: translateX(-75%); }
+  .stripe-dot.selected { background: #e0e0e0; transform: translateX(-50%); z-index: 5; width: 8px; height: 8px; border: 1px solid #1a1d27; }
   .stripe-threshold { position: absolute; left: 0; right: 0; height: 2px; background: #7c8aff; }
   .stripe-threshold::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-top: 4px solid transparent; border-bottom: 4px solid transparent; border-left: 6px solid #7c8aff; }
   .stripe-threshold::after { content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-top: 4px solid transparent; border-bottom: 4px solid transparent; border-right: 6px solid #7c8aff; }
+  .stripe-highlight { position: absolute; left: 0; right: 0; background: rgba(124, 138, 255, 0.2); border-top: 1px solid rgba(124, 138, 255, 0.5); border-bottom: 1px solid rgba(124, 138, 255, 0.5); pointer-events: none; transition: top 0.05s, height 0.05s; z-index: 0; }
 
   /* Center panel – player */
   .panel-center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 32px; }
@@ -343,6 +345,7 @@
   const menuDetectorImport = document.getElementById("menu-detector-import");
   const menuDetectorExport = document.getElementById("menu-detector-export");
   const menuDetectorStatus = document.getElementById("menu-detector-status");
+  const importFile = document.getElementById("import-file");
 
   // ---- Dataset Management ----
 
@@ -745,7 +748,12 @@
 
   document.querySelectorAll('input[name="select-mode"]').forEach(radio => {
     radio.addEventListener("change", () => {
+      if (!radio.checked) return;
       selectMode = radio.value;
+      const nextClip = findNextClip();
+      if (nextClip && nextClip.id !== selected) {
+        selectClip(nextClip.id);
+      }
     });
   });
 
@@ -1055,6 +1063,11 @@
     selected = id;
     renderClipList();
     renderCenter();
+
+    const activeItem = clipList.querySelector(".clip-item.active");
+    if (activeItem) {
+      activeItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
   }
 
   function renderCenter() {
@@ -1312,10 +1325,16 @@
     stripeOverview.style.display = "block";
     const totalClips = sortOrder.length;
 
+    // Add highlight element
+    const highlight = document.createElement("div");
+    highlight.className = "stripe-highlight";
+    stripeContainer.appendChild(highlight);
+
     // Render dots for each labeled clip
     sortOrder.forEach((item, index) => {
       const isGood = votes.good.includes(item.id);
       const isBad = votes.bad.includes(item.id);
+      const isSelected = item.id === selected;
 
       if (isGood || isBad) {
         const dot = document.createElement("div");
@@ -1323,6 +1342,13 @@
         dot.style.top = `${(index / totalClips) * 100}%`;
         dot.setAttribute("data-clip-id", item.id);
         dot.setAttribute("data-index", index);
+        stripeContainer.appendChild(dot);
+      }
+
+      if (isSelected) {
+        const dot = document.createElement("div");
+        dot.className = "stripe-dot selected";
+        dot.style.top = `${(index / totalClips) * 100}%`;
         stripeContainer.appendChild(dot);
       }
     });
@@ -1343,6 +1369,8 @@
       thresholdLine.style.top = `${(thresholdIndex / totalClips) * 100}%`;
       stripeContainer.appendChild(thresholdLine);
     }
+
+    updateStripeHighlight();
   }
 
   // ---- Stripe click handler ----
@@ -1368,9 +1396,27 @@
     }
   });
 
-  // ---- Label import handler ----
+  // ---- Stripe highlight update ----
 
-  const importFile = document.getElementById("import-file");
+  function updateStripeHighlight() {
+    const highlight = stripeContainer.querySelector(".stripe-highlight");
+    if (!highlight) return;
+
+    const scrollHeight = clipList.scrollHeight;
+    const clientHeight = clipList.clientHeight;
+    const scrollTop = clipList.scrollTop;
+
+    const topPercent = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+    const heightPercent = scrollHeight > 0 ? (clientHeight / scrollHeight) * 100 : 100;
+
+    highlight.style.top = `${topPercent}%`;
+    highlight.style.height = `${heightPercent}%`;
+  }
+
+  clipList.addEventListener("scroll", updateStripeHighlight);
+  window.addEventListener("resize", updateStripeHighlight);
+
+  // ---- Label import handler ----
 
   importFile.addEventListener("change", async () => {
     const file = importFile.files[0];

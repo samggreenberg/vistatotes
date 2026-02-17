@@ -349,11 +349,8 @@ def label_file_sort():
     try:
         # Parse the label file
         text = file.read().decode("utf-8")
-        label_data = None
         try:
-            label_data = eval(text) if text.strip().startswith("{") else None
-            if label_data is None:
-                label_data = json.loads(text)
+            label_data = json.loads(text)
         except Exception:
             return jsonify({"error": "Invalid label file format"}), 400
 

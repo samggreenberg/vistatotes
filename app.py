@@ -16,9 +16,9 @@ from flask import Flask
 from tqdm import tqdm
 
 # Import refactored modules
-from config import NUM_CLIPS
+from config import DATA_DIR, NUM_CLIPS
 from vectorytones.audio import generate_wav
-from vectorytones.models import initialize_models
+from vectorytones.models import embed_audio_file, initialize_models
 from vectorytones.routes import clips_bp, datasets_bp, main_bp, sorting_bp
 from vectorytones.utils import clips
 
@@ -31,10 +31,18 @@ app = Flask(__name__)
 
 def init_clips():
     print("DEBUG: Generating synthetic waveforms...", flush=True)
+    DATA_DIR.mkdir(exist_ok=True)
+    temp_path = DATA_DIR / "temp_embed.wav"
+
     for i in range(1, NUM_CLIPS + 1):
         freq = 200 + (i - 1) * 50  # 200 Hz .. 1150 Hz
         duration = round(1.0 + (i % 5) * 0.5, 1)  # 1.0 – 3.0 s
         wav_bytes = generate_wav(freq, duration)
+
+        # Generate embedding by saving to temp file
+        temp_path.write_bytes(wav_bytes)
+        embedding = embed_audio_file(temp_path)
+
         clips[i] = {
             "id": i,
             "type": "audio",
@@ -42,9 +50,13 @@ def init_clips():
             "duration": duration,
             "file_size": len(wav_bytes),
             "md5": hashlib.md5(wav_bytes).hexdigest(),
-            "embedding": None,
+            "embedding": embedding,
             "wav_bytes": wav_bytes,
         }
+
+    # Clean up temp file
+    if temp_path.exists():
+        temp_path.unlink()
 
 
 # Model initialization is now handled by vectorytones.models.initialize_models()

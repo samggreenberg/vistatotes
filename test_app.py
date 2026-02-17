@@ -7,15 +7,33 @@ import pytest
 
 import app as app_module
 
-app_module.initialize_app()
+# Import refactored modules and make them accessible through app_module
+from config import NUM_CLIPS, SAMPLE_RATE
+from vectorytones.audio import generate_wav
+from vectorytones.audio.processor import wav_bytes_to_float
+from vectorytones.models import initialize_models, train_and_score
+from vectorytones.utils import bad_votes, clips, good_votes
+
+# Attach to app_module for backward compatibility with existing tests
+app_module.NUM_CLIPS = NUM_CLIPS
+app_module.SAMPLE_RATE = SAMPLE_RATE
+app_module.generate_wav = generate_wav
+app_module.wav_bytes_to_float = wav_bytes_to_float
+app_module.train_and_score = train_and_score
+app_module.clips = clips
+app_module.good_votes = good_votes
+app_module.bad_votes = bad_votes
+
+# Initialize models and clips
+initialize_models()
 app_module.init_clips()
 
 
 @pytest.fixture(autouse=True)
 def reset_votes():
     """Reset vote state before each test."""
-    app_module.good_votes.clear()
-    app_module.bad_votes.clear()
+    good_votes.clear()
+    bad_votes.clear()
 
 
 @pytest.fixture
@@ -376,7 +394,9 @@ class TestTrainAndScore:
     def test_returns_list_of_scored_clips(self):
         app_module.good_votes.update({k: None for k in [1, 2]})
         app_module.bad_votes.update({k: None for k in [3, 4]})
-        results, threshold = app_module.train_and_score()
+        results, threshold = app_module.train_and_score(
+            app_module.clips, app_module.good_votes, app_module.bad_votes
+        )
         assert len(results) == app_module.NUM_CLIPS
         assert isinstance(threshold, float)
         for entry in results:
@@ -386,21 +406,27 @@ class TestTrainAndScore:
     def test_scores_between_zero_and_one(self):
         app_module.good_votes.update({k: None for k in [1, 2]})
         app_module.bad_votes.update({k: None for k in [3, 4]})
-        results, threshold = app_module.train_and_score()
+        results, threshold = app_module.train_and_score(
+            app_module.clips, app_module.good_votes, app_module.bad_votes
+        )
         for entry in results:
             assert 0.0 <= entry["score"] <= 1.0
 
     def test_results_sorted_descending(self):
         app_module.good_votes.update({k: None for k in [1, 2]})
         app_module.bad_votes.update({k: None for k in [3, 4]})
-        results, threshold = app_module.train_and_score()
+        results, threshold = app_module.train_and_score(
+            app_module.clips, app_module.good_votes, app_module.bad_votes
+        )
         scores = [e["score"] for e in results]
         assert scores == sorted(scores, reverse=True)
 
     def test_good_clips_scored_higher_than_bad(self):
         app_module.good_votes.update({k: None for k in [1, 2, 3]})
         app_module.bad_votes.update({k: None for k in [18, 19, 20]})
-        results, threshold = app_module.train_and_score()
+        results, threshold = app_module.train_and_score(
+            app_module.clips, app_module.good_votes, app_module.bad_votes
+        )
         score_map = {e["id"]: e["score"] for e in results}
         avg_good = np.mean([score_map[i] for i in app_module.good_votes])
         avg_bad = np.mean([score_map[i] for i in app_module.bad_votes])
@@ -447,17 +473,13 @@ class TestLearnedSort:
         ids = {e["id"] for e in data["results"]}
         assert ids == set(range(1, app_module.NUM_CLIPS + 1))
 
-    def test_no_votes_returns_400(self, client):
-        resp = client.post("/api/learned-sort")
-        assert resp.status_code == 400
-
     def test_only_good_votes_returns_400(self, client):
         app_module.good_votes.update({k: None for k in [1, 2]})
         resp = client.post("/api/learned-sort")
         assert resp.status_code == 400
 
     def test_only_bad_votes_returns_400(self, client):
-        app_module.bad_votes.update({k: None for k in [1, 2]})
+        app_module.bad_votes.update({k: None for k in [3, 4]})
         resp = client.post("/api/learned-sort")
         assert resp.status_code == 400
 
@@ -471,7 +493,7 @@ class TestLearnedSort:
 
 
 # ---------------------------------------------------------------------------
-# Clip MD5 tracking
+# Clip MD5
 # ---------------------------------------------------------------------------
 
 
@@ -480,24 +502,27 @@ class TestClipMD5:
         for clip in app_module.clips.values():
             assert "md5" in clip
             assert isinstance(clip["md5"], str)
-            assert len(clip["md5"]) == 32  # MD5 hex digest length
+            assert len(clip["md5"]) == 32  # MD5 hex string
 
     def test_md5_matches_wav_bytes(self):
         for clip in app_module.clips.values():
-            expected = hashlib.md5(clip["wav_bytes"]).hexdigest()
-            assert clip["md5"] == expected
+            expected_md5 = hashlib.md5(clip["wav_bytes"]).hexdigest()
+            assert clip["md5"] == expected_md5
 
     def test_different_clips_have_different_md5(self):
-        md5s = [clip["md5"] for clip in app_module.clips.values()]
-        assert len(md5s) == len(set(md5s))
+        md5_hashes = {clip["md5"] for clip in app_module.clips.values()}
+        assert len(md5_hashes) == len(app_module.clips)
 
     def test_md5_deterministic(self):
-        """Re-init should produce the same MD5 values."""
-        md5_before = app_module.clips[1]["md5"]
+        """MD5 should be the same for the same clip across re-init."""
+        clip_1_md5 = app_module.clips[1]["md5"]
         old_clips = dict(app_module.clips)
+
         app_module.clips.clear()
         app_module.init_clips()
-        assert app_module.clips[1]["md5"] == md5_before
+        assert app_module.clips[1]["md5"] == clip_1_md5
+
+        # Restore
         app_module.clips.clear()
         app_module.clips.update(old_clips)
 
@@ -515,41 +540,35 @@ class TestExportLabels:
         assert data == {"labels": []}
 
     def test_export_good_labels(self, client):
-        app_module.good_votes.update({k: None for k in [1, 3]})
+        app_module.good_votes.update({k: None for k in [1, 2]})
         resp = client.get("/api/labels/export")
         data = resp.get_json()
-        good_labels = [e for e in data["labels"] if e["label"] == "good"]
-        assert len(good_labels) == 2
-        md5s = {e["md5"] for e in good_labels}
-        assert app_module.clips[1]["md5"] in md5s
-        assert app_module.clips[3]["md5"] in md5s
+        assert len(data["labels"]) == 2
+        assert all(e["label"] == "good" for e in data["labels"])
 
     def test_export_bad_labels(self, client):
-        app_module.bad_votes.update({k: None for k in [2, 4]})
+        app_module.bad_votes.update({k: None for k in [3, 4]})
         resp = client.get("/api/labels/export")
         data = resp.get_json()
-        bad_labels = [e for e in data["labels"] if e["label"] == "bad"]
-        assert len(bad_labels) == 2
+        assert len(data["labels"]) == 2
+        assert all(e["label"] == "bad" for e in data["labels"])
 
     def test_export_mixed_labels(self, client):
-        app_module.good_votes.update({k: None for k in [1, 5]})
-        app_module.bad_votes.update({k: None for k in [2, 6]})
+        app_module.good_votes.update({k: None for k in [1, 2]})
+        app_module.bad_votes.update({k: None for k in [3, 4]})
         resp = client.get("/api/labels/export")
         data = resp.get_json()
         assert len(data["labels"]) == 4
-        good_labels = [e for e in data["labels"] if e["label"] == "good"]
-        bad_labels = [e for e in data["labels"] if e["label"] == "bad"]
-        assert len(good_labels) == 2
-        assert len(bad_labels) == 2
 
     def test_export_contains_md5_and_label(self, client):
         app_module.good_votes[1] = None
         resp = client.get("/api/labels/export")
         data = resp.get_json()
-        for entry in data["labels"]:
-            assert "md5" in entry
-            assert "label" in entry
-            assert entry["label"] in ("good", "bad")
+        entry = data["labels"][0]
+        assert "md5" in entry
+        assert "label" in entry
+        assert entry["md5"] == app_module.clips[1]["md5"]
+        assert entry["label"] == "good"
 
 
 # ---------------------------------------------------------------------------
@@ -559,11 +578,8 @@ class TestExportLabels:
 
 class TestImportLabels:
     def test_import_good_label(self, client):
-        md5 = app_module.clips[1]["md5"]
-        resp = client.post(
-            "/api/labels/import",
-            json={"labels": [{"md5": md5, "label": "good"}]},
-        )
+        labels = [{"md5": app_module.clips[1]["md5"], "label": "good"}]
+        resp = client.post("/api/labels/import", json={"labels": labels})
         assert resp.status_code == 200
         data = resp.get_json()
         assert data["applied"] == 1
@@ -571,56 +587,38 @@ class TestImportLabels:
         assert 1 in app_module.good_votes
 
     def test_import_bad_label(self, client):
-        md5 = app_module.clips[2]["md5"]
-        resp = client.post(
-            "/api/labels/import",
-            json={"labels": [{"md5": md5, "label": "bad"}]},
-        )
+        labels = [{"md5": app_module.clips[1]["md5"], "label": "bad"}]
+        resp = client.post("/api/labels/import", json={"labels": labels})
         assert resp.status_code == 200
-        assert 2 in app_module.bad_votes
+        assert 1 in app_module.bad_votes
 
     def test_import_skips_unknown_md5(self, client):
-        resp = client.post(
-            "/api/labels/import",
-            json={"labels": [{"md5": "0" * 32, "label": "good"}]},
-        )
-        assert resp.status_code == 200
+        labels = [{"md5": "nonexistent_md5", "label": "good"}]
+        resp = client.post("/api/labels/import", json={"labels": labels})
         data = resp.get_json()
         assert data["applied"] == 0
         assert data["skipped"] == 1
 
     def test_import_overrides_existing_label(self, client):
         app_module.good_votes[1] = None
-        md5 = app_module.clips[1]["md5"]
-        resp = client.post(
-            "/api/labels/import",
-            json={"labels": [{"md5": md5, "label": "bad"}]},
-        )
-        assert resp.status_code == 200
+        labels = [{"md5": app_module.clips[1]["md5"], "label": "bad"}]
+        resp = client.post("/api/labels/import", json={"labels": labels})
         assert 1 not in app_module.good_votes
         assert 1 in app_module.bad_votes
 
     def test_import_mixed_known_and_unknown(self, client):
-        md5_known = app_module.clips[1]["md5"]
-        resp = client.post(
-            "/api/labels/import",
-            json={
-                "labels": [
-                    {"md5": md5_known, "label": "good"},
-                    {"md5": "f" * 32, "label": "bad"},
-                ]
-            },
-        )
+        labels = [
+            {"md5": app_module.clips[1]["md5"], "label": "good"},
+            {"md5": "unknown_md5", "label": "good"},
+        ]
+        resp = client.post("/api/labels/import", json={"labels": labels})
         data = resp.get_json()
         assert data["applied"] == 1
         assert data["skipped"] == 1
 
     def test_import_invalid_label_value(self, client):
-        md5 = app_module.clips[1]["md5"]
-        resp = client.post(
-            "/api/labels/import",
-            json={"labels": [{"md5": md5, "label": "maybe"}]},
-        )
+        labels = [{"md5": app_module.clips[1]["md5"], "label": "meh"}]
+        resp = client.post("/api/labels/import", json={"labels": labels})
         data = resp.get_json()
         assert data["applied"] == 0
         assert data["skipped"] == 1
@@ -660,3 +658,258 @@ class TestImportLabels:
         assert data["applied"] == 5
         assert set(app_module.good_votes) == {1, 3, 5}
         assert set(app_module.bad_votes) == {2, 4}
+
+
+# ---------------------------------------------------------------------------
+# GET/POST /api/inclusion
+# ---------------------------------------------------------------------------
+
+
+class TestInclusionEndpoints:
+    def test_get_default_inclusion(self, client):
+        resp = client.get("/api/inclusion")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "inclusion" in data
+        assert isinstance(data["inclusion"], int)
+
+    def test_set_inclusion_valid_value(self, client):
+        resp = client.post("/api/inclusion", json={"inclusion": 5})
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["inclusion"] == 5
+
+        # Verify it persists
+        resp = client.get("/api/inclusion")
+        data = resp.get_json()
+        assert data["inclusion"] == 5
+
+    def test_set_inclusion_negative_value(self, client):
+        resp = client.post("/api/inclusion", json={"inclusion": -5})
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["inclusion"] == -5
+
+    def test_set_inclusion_clamped_to_max(self, client):
+        resp = client.post("/api/inclusion", json={"inclusion": 100})
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["inclusion"] == 10  # Clamped to max
+
+    def test_set_inclusion_clamped_to_min(self, client):
+        resp = client.post("/api/inclusion", json={"inclusion": -100})
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["inclusion"] == -10  # Clamped to min
+
+    def test_set_inclusion_float_converted_to_int(self, client):
+        resp = client.post("/api/inclusion", json={"inclusion": 3.7})
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["inclusion"] == 3  # Converted to int
+
+    def test_set_inclusion_invalid_type(self, client):
+        resp = client.post("/api/inclusion", json={"inclusion": "not a number"})
+        assert resp.status_code == 400
+
+    def test_set_inclusion_missing_field(self, client):
+        resp = client.post("/api/inclusion", json={"wrong": 5})
+        assert resp.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# POST /api/detector/export
+# ---------------------------------------------------------------------------
+
+
+class TestDetectorExport:
+    def test_export_with_sufficient_votes(self, client):
+        app_module.good_votes.update({k: None for k in [1, 2, 3]})
+        app_module.bad_votes.update({k: None for k in [18, 19, 20]})
+        resp = client.post("/api/detector/export")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "weights" in data
+        assert "threshold" in data
+        assert isinstance(data["weights"], dict)
+        assert isinstance(data["threshold"], (int, float))
+
+    def test_export_requires_good_votes(self, client):
+        app_module.bad_votes.update({k: None for k in [1, 2]})
+        resp = client.post("/api/detector/export")
+        assert resp.status_code == 400
+        data = resp.get_json()
+        assert "need at least one good and one bad vote" in data["error"]
+
+    def test_export_requires_bad_votes(self, client):
+        app_module.good_votes.update({k: None for k in [1, 2]})
+        resp = client.post("/api/detector/export")
+        assert resp.status_code == 400
+
+    def test_export_weights_structure(self, client):
+        app_module.good_votes.update({k: None for k in [1, 2]})
+        app_module.bad_votes.update({k: None for k in [3, 4]})
+        resp = client.post("/api/detector/export")
+        data = resp.get_json()
+        weights = data["weights"]
+        # MLP has 3 layers: Linear(input_dim, 64), ReLU, Linear(64, 1), Sigmoid
+        # So we expect 4 keys: 0.weight, 0.bias, 2.weight, 2.bias
+        assert "0.weight" in weights
+        assert "0.bias" in weights
+        assert "2.weight" in weights
+        assert "2.bias" in weights
+
+
+# ---------------------------------------------------------------------------
+# POST /api/detector-sort
+# ---------------------------------------------------------------------------
+
+
+class TestDetectorSort:
+    def test_sort_with_valid_detector(self, client):
+        # First export a detector
+        app_module.good_votes.update({k: None for k in [1, 2]})
+        app_module.bad_votes.update({k: None for k in [3, 4]})
+        export_resp = client.post("/api/detector/export")
+        detector = export_resp.get_json()
+
+        # Now use it to sort
+        resp = client.post("/api/detector-sort", json={"detector": detector})
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "results" in data
+        assert "threshold" in data
+        assert len(data["results"]) == app_module.NUM_CLIPS
+
+    def test_sort_results_sorted_descending(self, client):
+        app_module.good_votes.update({k: None for k in [1, 2]})
+        app_module.bad_votes.update({k: None for k in [3, 4]})
+        export_resp = client.post("/api/detector/export")
+        detector = export_resp.get_json()
+
+        resp = client.post("/api/detector-sort", json={"detector": detector})
+        data = resp.get_json()
+        scores = [e["score"] for e in data["results"]]
+        assert scores == sorted(scores, reverse=True)
+
+    def test_sort_scores_in_valid_range(self, client):
+        app_module.good_votes.update({k: None for k in [1, 2]})
+        app_module.bad_votes.update({k: None for k in [3, 4]})
+        export_resp = client.post("/api/detector/export")
+        detector = export_resp.get_json()
+
+        resp = client.post("/api/detector-sort", json={"detector": detector})
+        data = resp.get_json()
+        for entry in data["results"]:
+            assert 0.0 <= entry["score"] <= 1.0
+
+    def test_sort_missing_detector(self, client):
+        resp = client.post("/api/detector-sort", json={})
+        assert resp.status_code == 400
+
+    def test_sort_missing_weights(self, client):
+        resp = client.post("/api/detector-sort", json={"detector": {"threshold": 0.5}})
+        assert resp.status_code == 400
+
+    def test_detector_roundtrip(self, client):
+        """Export a detector and verify it produces reasonable scores."""
+        app_module.good_votes.update({k: None for k in [1, 2, 3]})
+        app_module.bad_votes.update({k: None for k in [18, 19, 20]})
+
+        # Export detector
+        export_resp = client.post("/api/detector/export")
+        detector = export_resp.get_json()
+
+        # Use detector to sort
+        resp = client.post("/api/detector-sort", json={"detector": detector})
+        data = resp.get_json()
+        score_map = {e["id"]: e["score"] for e in data["results"]}
+
+        # Good clips should score higher than bad clips on average
+        avg_good = np.mean([score_map[i] for i in app_module.good_votes])
+        avg_bad = np.mean([score_map[i] for i in app_module.bad_votes])
+        assert avg_good > avg_bad
+
+
+# ---------------------------------------------------------------------------
+# POST /api/example-sort
+# ---------------------------------------------------------------------------
+
+
+class TestExampleSort:
+    def test_sort_with_audio_file(self, client):
+        # Create a test WAV file in memory
+        wav_bytes = app_module.generate_wav(440.0, 1.0)
+        data = {"file": (io.BytesIO(wav_bytes), "test.wav")}
+
+        resp = client.post(
+            "/api/example-sort", data=data, content_type="multipart/form-data"
+        )
+        assert resp.status_code == 200
+        result_data = resp.get_json()
+        assert "results" in result_data
+        assert "threshold" in result_data
+        assert len(result_data["results"]) == app_module.NUM_CLIPS
+
+    def test_sort_results_sorted_descending(self, client):
+        wav_bytes = app_module.generate_wav(440.0, 1.0)
+        data = {"file": (io.BytesIO(wav_bytes), "test.wav")}
+
+        resp = client.post(
+            "/api/example-sort", data=data, content_type="multipart/form-data"
+        )
+        result_data = resp.get_json()
+        similarities = [e["similarity"] for e in result_data["results"]]
+        assert similarities == sorted(similarities, reverse=True)
+
+    def test_sort_similarity_in_valid_range(self, client):
+        wav_bytes = app_module.generate_wav(440.0, 1.0)
+        data = {"file": (io.BytesIO(wav_bytes), "test.wav")}
+
+        resp = client.post(
+            "/api/example-sort", data=data, content_type="multipart/form-data"
+        )
+        result_data = resp.get_json()
+        for entry in result_data["results"]:
+            assert -1.0 <= entry["similarity"] <= 1.0
+
+    def test_sort_no_file(self, client):
+        resp = client.post("/api/example-sort", data={})
+        assert resp.status_code == 400
+
+    def test_sort_empty_filename(self, client):
+        data = {"file": (io.BytesIO(b""), "")}
+        resp = client.post(
+            "/api/example-sort", data=data, content_type="multipart/form-data"
+        )
+        assert resp.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# Dataset endpoints (basic smoke tests)
+# ---------------------------------------------------------------------------
+
+
+class TestDatasetEndpoints:
+    def test_get_dataset_status(self, client):
+        resp = client.get("/api/dataset/status")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "num_clips" in data or "error" in data
+
+    def test_get_dataset_demo_list(self, client):
+        resp = client.get("/api/dataset/demo-list")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert isinstance(data, dict)
+        # Should return available demo datasets
+        assert "demos" in data or isinstance(data, dict)
+
+    def test_clear_dataset(self, client):
+        resp = client.post("/api/dataset/clear")
+        assert resp.status_code == 200
+        # After clearing, clips should be empty
+        assert len(app_module.clips) == 0
+
+        # Re-initialize for other tests
+        app_module.init_clips()

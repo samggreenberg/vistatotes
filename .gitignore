@@ -3,6 +3,8 @@ __pycache__/
 .pytest_cache/
 .venv/
 .coverage
+coverage.json
+htmlcov/
 
 # Demo dataset files
 data/

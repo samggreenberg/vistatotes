@@ -1175,7 +1175,7 @@
 
     // Auto-advance to next clip
     const nextClip = findNextClip();
-    if (nextClip) {
+    if (nextClip && nextClip.id !== selected) {
       selectClip(nextClip.id);
     }
   }

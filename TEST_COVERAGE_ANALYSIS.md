@@ -120,7 +120,7 @@ The existing tests mostly cover the happy path. Notable missing edge cases:
 
 ### 6. No Frontend Tests (Priority: Low)
 
-There are no JavaScript tests for the two HTML files (`static/index.html` at 51KB, `templates/index.html` at 41KB). These contain significant client-side logic. Adding even basic smoke tests with a headless browser would catch regressions in the UI layer, but this is a larger investment.
+There are no JavaScript tests for the frontend (`static/index.html`). This file contains significant client-side logic. Adding even basic smoke tests with a headless browser would catch regressions in the UI layer, but this is a larger investment.
 
 ---
 

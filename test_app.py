@@ -10,7 +10,6 @@ import app as app_module
 # Import refactored modules and make them accessible through app_module
 from config import NUM_CLIPS, SAMPLE_RATE
 from vistatotes.audio import generate_wav
-from vistatotes.audio.processor import wav_bytes_to_float
 from vistatotes.models import initialize_models, train_and_score
 from vistatotes.utils import bad_votes, clips, good_votes
 
@@ -18,7 +17,6 @@ from vistatotes.utils import bad_votes, clips, good_votes
 app_module.NUM_CLIPS = NUM_CLIPS
 app_module.SAMPLE_RATE = SAMPLE_RATE
 app_module.generate_wav = generate_wav
-app_module.wav_bytes_to_float = wav_bytes_to_float
 app_module.train_and_score = train_and_score
 app_module.clips = clips
 app_module.good_votes = good_votes
@@ -308,30 +306,6 @@ class TestGetVotes:
         data = resp.get_json()
         assert 3 in data["good"]
         assert 5 in data["bad"]
-
-
-# ---------------------------------------------------------------------------
-# wav_bytes_to_float
-# ---------------------------------------------------------------------------
-
-
-class TestWavBytesToFloat:
-    def test_returns_float32_array(self):
-        wav = app_module.generate_wav(440.0, 0.5)
-        arr = app_module.wav_bytes_to_float(wav)
-        assert arr.dtype == np.float32
-
-    def test_values_in_range(self):
-        wav = app_module.generate_wav(440.0, 0.5)
-        arr = app_module.wav_bytes_to_float(wav)
-        assert arr.min() >= -1.0
-        assert arr.max() <= 1.0
-
-    def test_length_matches_sample_count(self):
-        dur = 1.0
-        wav = app_module.generate_wav(440.0, dur)
-        arr = app_module.wav_bytes_to_float(wav)
-        assert len(arr) == int(app_module.SAMPLE_RATE * dur)
 
 
 # ---------------------------------------------------------------------------

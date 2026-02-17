@@ -9,8 +9,7 @@ vistatotes/
 ├── __init__.py           # Package initialization
 ├── audio/                # Audio utilities
 │   ├── __init__.py
-│   ├── generator.py      # WAV generation (generate_wav)
-│   └── processor.py      # Audio processing (wav_bytes_to_float)
+│   └── generator.py      # WAV generation (generate_wav)
 ├── datasets/             # Dataset configuration
 │   ├── __init__.py
 │   └── config.py         # DEMO_DATASETS configuration
@@ -56,7 +55,7 @@ def generate_wav(frequency: float, duration: float) -> bytes:
 
 **After:**
 ```python
-from vistatotes.audio import generate_wav, wav_bytes_to_float
+from vistatotes.audio import generate_wav
 ```
 
 ### Model Loading

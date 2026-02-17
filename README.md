@@ -155,8 +155,6 @@ vistatotes/
 │                            #   dataset management, and demo dataset downloads
 ├── static/
 │   └── index.html           # Single-page frontend (HTML, CSS, vanilla JS)
-├── templates/
-│   └── index.html           # Jinja2 template entry point
 ├── test_app.py              # Test suite (pytest)
 ├── requirements.txt         # Core Python dependencies
 ├── requirements-cpu.txt     # CPU-only dependencies (PyTorch CPU wheel)

@@ -91,6 +91,23 @@ DEMO_DATASETS = {
         "description": "Household and human sounds",
         "media_type": "audio",
     },
+    "actions_video": {
+        "categories": [
+            "ApplyEyeMakeup",
+            "ApplyLipstick",
+            "BrushingTeeth",
+            "CliffDiving",
+            "HandstandWalking",
+            "JumpRope",
+            "PushUps",
+            "TaiChi",
+            "YoYo",
+            "Drumming",
+        ],
+        "description": "Human action recognition clips",
+        "media_type": "video",
+        "source": "ucf101",
+    },
     "objects_images": {
         "categories": [
             "airplane",

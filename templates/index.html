@@ -85,7 +85,10 @@
   .progress-fill { height: 100%; background: linear-gradient(90deg, #7c8aff, #a0aaff); transition: width 0.3s; }
   .progress-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.75rem; color: #fff; font-weight: bold; }
   .progress-message { font-size: 0.85rem; color: #aaa; margin-top: 8px; text-align: center; }
-  .demo-datasets { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; width: 100%; margin-top: 16px; max-height: 400px; overflow-y: auto; }
+  .demo-datasets { width: 100%; margin-top: 16px; max-height: 400px; overflow-y: auto; }
+  .demo-media-group { margin-bottom: 16px; }
+  .demo-media-group h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #2a2d3a; }
+  .demo-media-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
   .demo-dataset { padding: 16px; border: 2px solid #2a2d3a; border-radius: 8px; background: #1a1d27; cursor: pointer; transition: all 0.2s; text-align: center; }
   .demo-dataset:hover { border-color: #7c8aff; background: #1e2030; }
   .demo-dataset.ready { border-color: #4caf50; }
@@ -180,7 +183,7 @@
         </button>
         <button class="dataset-option" id="load-demo-btn">
           <h3>🎯 Load Demo Dataset</h3>
-          <p>Choose from pre-configured ESC-50 datasets</p>
+          <p>Choose from demo datasets that auto-download</p>
         </button>
       </div>
       <div class="dataset-progress" id="dataset-progress" style="display:none">
@@ -445,7 +448,7 @@
   // Load demo dataset
   loadDemoBtn.addEventListener("click", async () => {
     datasetOptions.style.display = "none";
-    demoDatasetsDiv.style.display = "grid";
+    demoDatasetsDiv.style.display = "block";
     backButton.style.display = "block";
 
     // Fetch demo datasets
@@ -453,31 +456,46 @@
     const data = await res.json();
 
     demoDatasetsDiv.innerHTML = "";
+
+    // Group datasets by media type
+    const mediaLabels = { audio: "Audio", image: "Image", paragraph: "Text", video: "Video" };
+    const mediaFileLabels = { audio: "audio files", image: "images", paragraph: "paragraphs", video: "videos" };
+    const groups = {};
     data.datasets.forEach(dataset => {
-      const div = document.createElement("div");
-      div.className = "demo-dataset" + (dataset.ready ? " ready" : "");
-
-      // Determine the media type label
-      let mediaLabel = "files";
-      if (dataset.media_type === "audio") {
-        mediaLabel = "audio files";
-      } else if (dataset.media_type === "video") {
-        mediaLabel = "videos";
-      } else if (dataset.media_type === "image") {
-        mediaLabel = "images";
-      } else if (dataset.media_type === "paragraph") {
-        mediaLabel = "paragraphs";
-      }
-
-      div.innerHTML = `
-        <h4>${dataset.name}</h4>
-        <p>${dataset.description}</p>
-        <p style="font-size:0.7rem;color:#999;margin-top:4px;">${dataset.num_files} ${mediaLabel}</p>
-        ${dataset.ready ? '<span class="ready-badge">Ready</span>' : '<span style="font-size:0.7rem;color:#888;">Needs download</span>'}
-      `;
-      div.onclick = () => loadDemo(dataset.name);
-      demoDatasetsDiv.appendChild(div);
+      const mt = dataset.media_type || "audio";
+      if (!groups[mt]) groups[mt] = [];
+      groups[mt].push(dataset);
     });
+
+    // Render each media group
+    for (const [mediaType, datasets] of Object.entries(groups)) {
+      const groupDiv = document.createElement("div");
+      groupDiv.className = "demo-media-group";
+
+      const heading = document.createElement("h3");
+      heading.textContent = mediaLabels[mediaType] || mediaType;
+      groupDiv.appendChild(heading);
+
+      const grid = document.createElement("div");
+      grid.className = "demo-media-grid";
+
+      datasets.forEach(dataset => {
+        const div = document.createElement("div");
+        div.className = "demo-dataset" + (dataset.ready ? " ready" : "");
+        const fileLabel = mediaFileLabels[mediaType] || "files";
+        div.innerHTML = `
+          <h4>${dataset.name}</h4>
+          <p>${dataset.description}</p>
+          <p style="font-size:0.7rem;color:#999;margin-top:4px;">${dataset.num_files} ${fileLabel}</p>
+          ${dataset.ready ? '<span class="ready-badge">Ready</span>' : '<span style="font-size:0.7rem;color:#888;">Needs download</span>'}
+        `;
+        div.onclick = () => loadDemo(dataset.name);
+        grid.appendChild(div);
+      });
+
+      groupDiv.appendChild(grid);
+      demoDatasetsDiv.appendChild(groupDiv);
+    }
   });
 
   async function loadDemo(name) {

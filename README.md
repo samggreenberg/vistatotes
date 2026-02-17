@@ -1,6 +1,6 @@
 # VectoryTones
 
-A sound clip explorer web app. Browse any set of audio clips, listen to them in the browser, and vote clips as "good" or "bad." Supports text-based semantic sorting (via LAION-CLAP embeddings) and learned sorting (via a small neural network trained on your votes). Ships with 20 synthetic sine-wave clips by default, and can be expanded with real-world datasets using the included setup script. Built with Flask (Python) and vanilla JavaScript.
+A sound clip explorer web app. Browse any set of audio clips, listen to them in the browser, and vote clips as "good" or "bad." Supports text-based semantic sorting (via LAION-CLAP embeddings) and learned sorting (via a small neural network trained on your votes). Ships with 20 synthetic sine-wave clips by default, and includes demo datasets (audio, image, and text) that auto-download when selected from the New Dataset interface. Built with Flask (Python) and vanilla JavaScript.
 
 ## Prerequisites
 
@@ -125,7 +125,6 @@ You should see all 36 tests pass.
 ```
 vectorytones/
 ├── app.py                   # Flask backend — routes, audio generation, voting, sorting
-├── setup_datasets.py        # Downloads and prepares real-world audio datasets (ESC-50)
 ├── static/
 │   └── index.html           # Frontend UI (HTML, CSS, JavaScript)
 ├── templates/
@@ -134,7 +133,6 @@ vectorytones/
 ├── requirements-cpu.txt     # CPU-only Python dependencies
 ├── requirements-gpu.txt     # GPU-enabled Python dependencies
 ├── requirements.txt         # Generic Python dependencies
-├── SETUP_DATASETS.md        # Guide for setting up real-world audio datasets
 ├── .gitignore               # Git ignore rules
 └── README.md                # This file
 ```

@@ -98,7 +98,7 @@ progress_data = {
     "error": None,
 }
 
-# Demo dataset definitions (from setup_datasets.py)
+# Demo dataset definitions
 # ESC-50 has 40 clips per category
 CLIPS_PER_CATEGORY = 40
 ESC50_DOWNLOAD_SIZE_MB = 600  # Approximate download size of full ESC-50 dataset
@@ -193,23 +193,6 @@ DEMO_DATASETS = {
         ],
         "description": "Household and human sounds",
         "media_type": "audio",
-    },
-    "actions_video": {
-        "categories": [
-            "ApplyEyeMakeup",
-            "ApplyLipstick",
-            "BrushingTeeth",
-            "CliffDiving",
-            "HandstandWalking",
-            "JumpRope",
-            "PushUps",
-            "TaiChi",
-            "YoYo",
-            "Drumming",
-        ],
-        "description": "Human action recognition clips",
-        "media_type": "video",
-        "source": "ucf101",
     },
     "objects_images": {
         "categories": [

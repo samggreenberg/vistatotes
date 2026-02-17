@@ -43,234 +43,57 @@ from transformers import (
     XCLIPProcessor,
 )
 
+# Import refactored modules
+from config import (
+    AUDIO_DIR,
+    CIFAR10_DOWNLOAD_SIZE_MB,
+    CIFAR10_URL,
+    CLIPS_PER_CATEGORY,
+    CLIPS_PER_VIDEO_CATEGORY,
+    DATA_DIR,
+    EMBEDDINGS_DIR,
+    ESC50_DOWNLOAD_SIZE_MB,
+    ESC50_URL,
+    IMAGE_DIR,
+    IMAGES_PER_CIFAR10_CATEGORY,
+    NUM_CLIPS,
+    PARAGRAPH_DIR,
+    SAMPLE_RATE,
+    SAMPLE_VIDEOS_DOWNLOAD_SIZE_MB,
+    SAMPLE_VIDEOS_URL,
+    VIDEO_DIR,
+)
+from vectorytones.audio import generate_wav, wav_bytes_to_float
+from vectorytones.datasets import DEMO_DATASETS
+from vectorytones.models import (
+    calculate_gmm_threshold,
+    embed_audio_file,
+    embed_image_file,
+    embed_paragraph_file,
+    embed_text_query,
+    embed_video_file,
+    get_clap_model,
+    get_clip_model,
+    get_e5_model,
+    get_xclip_model,
+    initialize_models,
+    train_and_score,
+)
+from vectorytones.utils import (
+    bad_votes,
+    clips,
+    get_inclusion,
+    get_progress,
+    good_votes,
+    set_inclusion,
+    update_progress,
+)
+
 app = Flask(__name__)
 
 # ---------------------------------------------------------------------------
 # Clip generation
 # ---------------------------------------------------------------------------
-
-SAMPLE_RATE = 48000
-NUM_CLIPS = 20
-
-clips = {}  # id -> {id, type, duration, file_size, embedding, wav_bytes, video_bytes}
-good_votes: dict[int, None] = {}  # OrderedDict behavior via dict (Python 3.7+)
-bad_votes: dict[int, None] = {}  # OrderedDict behavior via dict (Python 3.7+)
-inclusion: int = 0  # Inclusion setting: -10 to +10, default 0
-
-# Load CLAP model for audio/text embeddings (Sounds modality)
-clap_model: Optional[ClapModel] = None
-clap_processor: Optional[ClapProcessor] = None
-
-# Load X-CLIP model for video embeddings (Videos modality)
-xclip_model: Optional[XCLIPModel] = None
-xclip_processor: Optional[XCLIPProcessor] = None
-
-# Load CLIP model for image embeddings (Images modality)
-clip_model: Optional[CLIPModel] = None
-clip_processor: Optional[CLIPProcessor] = None
-
-# Load E5-LARGE-V2 model for text embeddings (Paragraphs modality)
-e5_model: Optional[SentenceTransformer] = None
-
-# Dataset management
-DATA_DIR = Path("data")
-AUDIO_DIR = DATA_DIR / "audio"
-VIDEO_DIR = DATA_DIR / "video"
-EMBEDDINGS_DIR = DATA_DIR / "embeddings"
-ESC50_URL = "https://github.com/karolpiczak/ESC-50/archive/master.zip"
-
-# Video datasets
-# Using a custom small video dataset similar to ESC-50
-# Format: GitHub repo with videos organized by category folders
-SAMPLE_VIDEOS_URL = (
-    "https://github.com/sample-datasets/video-clips/archive/refs/heads/main.zip"
-)
-SAMPLE_VIDEOS_DOWNLOAD_SIZE_MB = 150  # Approximate size
-CLIPS_PER_VIDEO_CATEGORY = 10  # Approximate number of clips per category
-
-# Image datasets
-# CIFAR-10 dataset - 10 classes of 32x32 color images
-CIFAR10_URL = "https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz"
-CIFAR10_DOWNLOAD_SIZE_MB = 170  # Approximate size
-IMAGES_PER_CIFAR10_CATEGORY = 100  # We'll use a subset for demo purposes
-
-# Progress tracking for long-running operations
-progress_lock = threading.Lock()
-progress_data = {
-    "status": "idle",  # idle, loading, downloading, embedding
-    "message": "",
-    "current": 0,
-    "total": 0,
-    "error": None,
-}
-
-# Demo dataset definitions (from setup_datasets.py)
-# ESC-50 has 40 clips per category
-CLIPS_PER_CATEGORY = 40
-ESC50_DOWNLOAD_SIZE_MB = 600  # Approximate download size of full ESC-50 dataset
-
-DEMO_DATASETS = {
-    "animals": {
-        "categories": [
-            "dog",
-            "rooster",
-            "pig",
-            "cow",
-            "frog",
-            "cat",
-            "hen",
-            "insects",
-            "sheep",
-            "crow",
-            "rain",
-            "sea_waves",
-            "crackling_fire",
-            "crickets",
-            "chirping_birds",
-            "water_drops",
-            "wind",
-            "pouring_water",
-            "toilet_flush",
-            "thunderstorm",
-        ],
-        "description": "Animal and nature sounds",
-        "media_type": "audio",
-    },
-    "natural": {
-        "categories": [
-            "rain",
-            "sea_waves",
-            "crackling_fire",
-            "crickets",
-            "chirping_birds",
-            "water_drops",
-            "wind",
-            "pouring_water",
-            "thunderstorm",
-            "frog",
-        ],
-        "description": "Natural environmental sounds",
-        "media_type": "audio",
-    },
-    "urban": {
-        "categories": [
-            "clock_alarm",
-            "clock_tick",
-            "door_wood_knock",
-            "mouse_click",
-            "keyboard_typing",
-            "door_wood_creaks",
-            "can_opening",
-            "washing_machine",
-            "vacuum_cleaner",
-            "helicopter",
-            "chainsaw",
-            "siren",
-            "car_horn",
-            "engine",
-            "train",
-            "church_bells",
-            "airplane",
-            "fireworks",
-            "hand_saw",
-        ],
-        "description": "Urban and mechanical sounds",
-        "media_type": "audio",
-    },
-    "household": {
-        "categories": [
-            "clock_alarm",
-            "clock_tick",
-            "door_wood_knock",
-            "mouse_click",
-            "keyboard_typing",
-            "door_wood_creaks",
-            "can_opening",
-            "washing_machine",
-            "vacuum_cleaner",
-            "sneezing",
-            "coughing",
-            "breathing",
-            "laughing",
-            "brushing_teeth",
-            "snoring",
-            "drinking_sipping",
-            "footsteps",
-        ],
-        "description": "Household and human sounds",
-        "media_type": "audio",
-    },
-    "actions_video": {
-        "categories": [
-            "ApplyEyeMakeup",
-            "ApplyLipstick",
-            "BrushingTeeth",
-            "CliffDiving",
-            "HandstandWalking",
-            "JumpRope",
-            "PushUps",
-            "TaiChi",
-            "YoYo",
-            "Drumming",
-        ],
-        "description": "Human action recognition clips",
-        "media_type": "video",
-        "source": "ucf101",
-    },
-    "objects_images": {
-        "categories": [
-            "airplane",
-            "automobile",
-            "bird",
-            "cat",
-            "deer",
-            "dog",
-            "frog",
-            "horse",
-            "ship",
-            "truck",
-        ],
-        "description": "Common objects and animals (CIFAR-10 style)",
-        "media_type": "image",
-        "source": "cifar10_sample",
-    },
-    "news_paragraphs": {
-        "categories": [
-            "world",
-            "sports",
-            "business",
-            "science",
-        ],
-        "description": "News article paragraphs from different categories",
-        "media_type": "paragraph",
-        "source": "ag_news_sample",
-    },
-}
-
-
-def generate_wav(frequency: float, duration: float) -> bytes:
-    """Return raw WAV bytes for a sine-wave tone."""
-    num_samples = int(SAMPLE_RATE * duration)
-    buf = io.BytesIO()
-    with wave.open(buf, "wb") as wf:
-        wf.setnchannels(1)
-        wf.setsampwidth(2)
-        wf.setframerate(SAMPLE_RATE)
-        samples = []
-        for i in range(num_samples):
-            t = i / SAMPLE_RATE
-            value = int(32767 * 0.5 * math.sin(2 * math.pi * frequency * t))
-            samples.append(struct.pack("<h", value))
-        wf.writeframes(b"".join(samples))
-    return buf.getvalue()
-
-
-def wav_bytes_to_float(wav_bytes: bytes) -> np.ndarray:
-    """Convert WAV bytes to a float32 numpy array normalised to [-1, 1]."""
-    buf = io.BytesIO(wav_bytes)
-    with wave.open(buf, "rb") as wf:
-        frames = wf.readframes(wf.getnframes())
-    return np.frombuffer(frames, dtype=np.int16).astype(np.float32) / 32768.0
 
 
 def init_clips():
@@ -330,76 +153,12 @@ def init_clips():
         clips[i]["embedding"] = embeddings[i - 1]
 
 
-def initialize_app():
-    global \
-        clap_model, \
-        clap_processor, \
-        xclip_model, \
-        xclip_processor, \
-        clip_model, \
-        clip_processor, \
-        e5_model
-    print("DEBUG: initialize_app called", flush=True)
-
-    # Optimize for low-memory environments
-    torch.set_num_threads(1)
-    gc.collect()
-
-    with tqdm(total=4, desc="Loading Models", unit="model") as pbar:
-        # Load CLAP model for Sounds modality
-        if clap_model is None:
-            pbar.set_description("Loading CLAP (Audio)")
-            # Use the unfused model (~600MB) and low_cpu_mem_usage to avoid RAM spikes
-            model_id = "laion/clap-htsat-unfused"
-            clap_model = ClapModel.from_pretrained(model_id, low_cpu_mem_usage=True)
-            clap_processor = ClapProcessor.from_pretrained(model_id, use_fast=False)
-            # print("DEBUG: CLAP model loaded.", flush=True)
-        pbar.update(1)
-
-        # Load X-CLIP model for Videos modality
-        if xclip_model is None:
-            pbar.set_description("Loading X-CLIP (Video)")
-            model_id = "microsoft/xclip-base-patch32"
-            xclip_model = XCLIPModel.from_pretrained(model_id, low_cpu_mem_usage=True)
-            xclip_processor = XCLIPProcessor.from_pretrained(model_id, use_fast=False)
-            # print("DEBUG: X-CLIP model loaded.", flush=True)
-        pbar.update(1)
-
-        # Load CLIP model for Images modality
-        if clip_model is None:
-            pbar.set_description("Loading CLIP (Image)")
-            model_id = "openai/clip-vit-base-patch32"
-            clip_model = CLIPModel.from_pretrained(model_id, low_cpu_mem_usage=True)
-            clip_processor = CLIPProcessor.from_pretrained(model_id, use_fast=False)
-            # print("DEBUG: CLIP model loaded.", flush=True)
-        pbar.update(1)
-
-        # Load E5-LARGE-V2 model for Paragraphs modality
-        if e5_model is None:
-            pbar.set_description("Loading E5 (Text)")
-            e5_model = SentenceTransformer("intfloat/e5-large-v2")
-            # print("DEBUG: E5-LARGE-V2 model loaded.", flush=True)
-        pbar.update(1)
-
-        pbar.set_description("Ready")
-
-    # Don't automatically load clips - user will load dataset via UI
-    print("DEBUG: Ready to load dataset via UI", flush=True)
+# Model initialization is now handled by vectorytones.models.initialize_models()
 
 
 # ---------------------------------------------------------------------------
 # Dataset management functions
 # ---------------------------------------------------------------------------
-
-
-def update_progress(status, message="", current=0, total=0, error=None):
-    """Update the global progress tracker."""
-    with progress_lock:
-        progress_data["status"] = status
-        progress_data["message"] = message
-        progress_data["current"] = current
-        progress_data["total"] = total
-        progress_data["error"] = error
 
 
 def clear_dataset():
@@ -520,116 +279,11 @@ def load_dataset_from_pickle(file_path: Path):
         )
 
 
-def embed_audio_file(audio_path: Path) -> Optional[np.ndarray]:
-    """Generate CLAP embedding for a single audio file."""
-    if clap_model is None or clap_processor is None:
-        return None
-
-    try:
-        # Load audio at 48kHz for CLAP
-        audio_data, sr = librosa.load(audio_path, sr=SAMPLE_RATE, mono=True)
-
-        # Get embedding from CLAP
-        inputs = clap_processor(
-            audio=audio_data,
-            sampling_rate=SAMPLE_RATE,  # type: ignore
-            return_tensors="pt",  # type: ignore
-            padding="max_length",  # type: ignore
-            max_length=480000,  # type: ignore
-            truncation=True,  # type: ignore
-        )  # type: ignore
-        with torch.no_grad():
-            outputs = clap_model.audio_model(**inputs)
-            embedding = (
-                clap_model.audio_projection(outputs.pooler_output)
-                .detach()
-                .cpu()
-                .numpy()
-            )
-
-        return embedding[0]
-    except Exception as e:
-        print(f"Error embedding {audio_path}: {e}")
-        return None
-
-
-def embed_video_file(video_path: Path) -> Optional[np.ndarray]:
-    """Generate X-CLIP embedding for a single video file."""
-    if xclip_model is None or xclip_processor is None:
-        return None
-
-    try:
-        # Load video with OpenCV
-        cap = cv2.VideoCapture(str(video_path))
-        if not cap.isOpened():
-            print(f"Error opening video {video_path}")
-            return None
-
-        frames = []
-        frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-
-        # Sample 8 frames evenly spaced throughout the video (X-CLIP default)
-        num_frames = 8
-        if frame_count < num_frames:
-            num_frames = max(1, frame_count)
-
-        indices = np.linspace(0, frame_count - 1, num_frames, dtype=int)
-
-        for idx in indices:
-            cap.set(cv2.CAP_PROP_POS_FRAMES, idx)
-            ret, frame = cap.read()
-            if ret:
-                # Convert BGR to RGB and then to PIL Image
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                pil_frame = Image.fromarray(frame)
-                frames.append(pil_frame)
-
-        cap.release()
-
-        if len(frames) == 0:
-            print(f"Error: could not extract frames from {video_path}")
-            return None
-
-        # Process frames with X-CLIP processor
-        # X-CLIP expects a list of PIL Images
-        inputs = xclip_processor(videos=list(frames), return_tensors="pt")  # type: ignore
-
-        # Get embedding from X-CLIP
-        with torch.no_grad():
-            outputs = xclip_model.get_video_features(**inputs)
-            embedding = outputs.detach().cpu().numpy()  # type: ignore
-
-        return embedding[0]
-    except Exception as e:
-        print(f"Error embedding {video_path}: {e}")
-        return None
-
-
-def embed_image_file(image_path: Path) -> Optional[np.ndarray]:
-    """Generate CLIP embedding for a single image file."""
-    if clip_model is None or clip_processor is None:
-        return None
-
-    try:
-        # Load image with PIL
-        image = Image.open(image_path).convert("RGB")
-
-        # Process image with CLIP processor
-        inputs = clip_processor(images=image, return_tensors="pt")  # type: ignore
-
-        # Get embedding from CLIP vision model
-        with torch.no_grad():
-            outputs = clip_model.get_image_features(**inputs)
-            embedding = outputs.detach().cpu().numpy()  # type: ignore
-
-        return embedding[0]
-    except Exception as e:
-        print(f"Error embedding {image_path}: {e}")
-        return None
-
+# Embedding functions are now in vectorytones.models.embeddings
 
 def embed_image_file_from_pil(image: Image.Image) -> Optional[np.ndarray]:
     """Generate CLIP embedding for a PIL Image."""
+    clip_model, clip_processor = get_clip_model()
     if clip_model is None or clip_processor is None:
         return None
 
@@ -648,32 +302,6 @@ def embed_image_file_from_pil(image: Image.Image) -> Optional[np.ndarray]:
         return embedding[0]
     except Exception as e:
         print(f"Error embedding image: {e}")
-        return None
-
-
-def embed_paragraph_file(text_path: Path) -> Optional[np.ndarray]:
-    """Generate E5-LARGE-V2 embedding for a text/paragraph file."""
-    if e5_model is None:
-        return None
-
-    try:
-        # Read text file
-        with open(text_path, "r", encoding="utf-8") as f:
-            text_content = f.read().strip()
-
-        if not text_content:
-            print(f"Warning: empty text file {text_path}")
-            return None
-
-        # Embed with E5-LARGE-V2 using "passage:" prefix
-        # This is important for E5 model to distinguish between passages and queries
-        embedding = e5_model.encode(
-            f"passage: {text_content}", normalize_embeddings=True
-        )
-
-        return embedding  # type: ignore
-    except Exception as e:
-        print(f"Error embedding {text_path}: {e}")
         return None
 
 
@@ -1665,39 +1293,7 @@ def vote_clip(clip_id):
     return jsonify({"ok": True})
 
 
-def calculate_gmm_threshold(scores):
-    """
-    Use Gaussian Mixture Model to find threshold between two distributions.
-    Assumes scores come from a bimodal distribution (Bad + Good).
-    """
-    if len(scores) < 2:
-        return 0.5
-
-    # Reshape for sklearn
-    X = np.array(scores).reshape(-1, 1)
-
-    try:
-        # Fit a 2-component GMM
-        gmm: GaussianMixture = GaussianMixture(n_components=2, random_state=42)
-        gmm.fit(X)
-
-        # Get the means of the two components
-        means = np.ravel(gmm.means_)
-        # stds = np.sqrt(gmm.covariances_.flatten())
-
-        # Identify which component is "low" (Bad) and which is "high" (Good)
-        low_idx = 0 if means[0] < means[1] else 1
-        high_idx = 1 - low_idx
-
-        # Threshold is at the intersection of the two Gaussians
-        # For simplicity, use the midpoint between means
-        threshold = (means[low_idx] + means[high_idx]) / 2.0
-
-        return float(threshold)
-    except Exception:
-        # If GMM fails, return median
-        return float(np.median(scores))
-
+# ML training functions are now in vectorytones.models.training
 
 @app.route("/api/sort", methods=["POST"])
 def sort_clips():
@@ -1724,50 +1320,11 @@ def sort_clips():
 
     media_type = next(iter(clips.values())).get("type", "audio")
 
-    # Embed text query based on media type
-    text_vec = None
-    if media_type == "audio":
-        # Use CLAP for audio/sounds
-        if clap_model is None or clap_processor is None:
-            print("DEBUG: Sort failed - CLAP model not loaded", flush=True)
-            return jsonify({"error": "CLAP model not loaded"}), 500
-        inputs = clap_processor(text=[text], return_tensors="pt")  # type: ignore
-        with torch.no_grad():
-            outputs = clap_model.text_model(**inputs)
-            text_vec = (
-                clap_model.text_projection(outputs.pooler_output)
-                .detach()
-                .cpu()
-                .numpy()[0]
-            )
-
-    elif media_type == "video":
-        # Use X-CLIP for videos
-        if xclip_model is None or xclip_processor is None:
-            print("DEBUG: Sort failed - X-CLIP model not loaded", flush=True)
-            return jsonify({"error": "X-CLIP model not loaded"}), 500
-        inputs = xclip_processor(text=[text], return_tensors="pt")  # type: ignore
-        with torch.no_grad():
-            text_vec = xclip_model.get_text_features(**inputs).detach().cpu().numpy()[0]  # type: ignore
-
-    elif media_type == "image":
-        # Use CLIP for images
-        if clip_model is None or clip_processor is None:
-            print("DEBUG: Sort failed - CLIP model not loaded", flush=True)
-            return jsonify({"error": "CLIP model not loaded"}), 500
-        inputs = clip_processor(text=[text], return_tensors="pt")  # type: ignore
-        with torch.no_grad():
-            text_vec = clip_model.get_text_features(**inputs).detach().cpu().numpy()[0]  # type: ignore
-
-    elif media_type == "paragraph":
-        # Use E5-LARGE-V2 for paragraphs with "query:" prefix
-        if e5_model is None:
-            print("DEBUG: Sort failed - E5 model not loaded", flush=True)
-            return jsonify({"error": "E5 model not loaded"}), 500
-        text_vec = e5_model.encode(f"query: {text}", normalize_embeddings=True)
-
-    else:
-        return jsonify({"error": f"Unknown media type: {media_type}"}), 400
+    # Embed text query using refactored module
+    text_vec = embed_text_query(text, media_type)
+    if text_vec is None:
+        print(f"DEBUG: Sort failed - Could not embed text for media type {media_type}", flush=True)
+        return jsonify({"error": f"Could not embed text for media type {media_type}"}), 500
 
     results = []
     scores = []
@@ -1788,214 +1345,12 @@ def sort_clips():
     return jsonify({"results": results, "threshold": round(threshold, 4)})
 
 
-def train_model(X_train, y_train, input_dim, inclusion_value=0):
-    """
-    Train a small MLP and return the trained model.
-
-    Args:
-        X_train: Training data
-        y_train: Training labels (1 for good, 0 for bad)
-        input_dim: Input dimension
-        inclusion_value: Inclusion setting (-10 to +10)
-            - If 0: balance classes equally
-            - If positive: weight True samples more (effectively more Trues)
-            - If negative: weight False samples more (effectively more Falses)
-    """
-    model = nn.Sequential(
-        nn.Linear(input_dim, 64),
-        nn.ReLU(),
-        nn.Linear(64, 1),
-        nn.Sigmoid(),
-    )
-
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
-
-    # Calculate class weights based on inclusion
-    num_true = y_train.sum().item()
-    num_false = len(y_train) - num_true
-
-    # Base weights for balanced classes
-    if num_true > 0 and num_false > 0:
-        weight_true = num_false / num_true
-        weight_false = 1.0
-    else:
-        weight_true = 1.0
-        weight_false = 1.0
-
-    # Adjust weights based on inclusion
-    if inclusion_value >= 0:
-        # Increase weight for True samples
-        weight_true *= 2.0**inclusion_value
-    else:
-        # Increase weight for False samples
-        weight_false *= 2.0 ** (-inclusion_value)
-
-    # Create sample weights
-    weights = torch.where(y_train == 1, weight_true, weight_false).squeeze()
-    loss_fn = nn.BCELoss(reduction="none")
-
-    model.train()
-    for _ in range(200):
-        optimizer.zero_grad()
-        predictions = model(X_train)
-        losses = loss_fn(predictions, y_train)
-        weighted_loss = (losses.squeeze() * weights).mean()
-        weighted_loss.backward()
-        optimizer.step()
-
-    model.eval()
-    return model
-
-
-def find_optimal_threshold(scores, labels, inclusion_value=0):
-    """
-    Find the best threshold that separates good (1) from bad (0).
-
-    Args:
-        scores: List of model scores
-        labels: List of true labels (1 for good, 0 for bad)
-        inclusion_value: Inclusion setting (-10 to +10)
-            - If 0: minimize fpr + fnr
-            - If positive: minimize fpr + 2^inclusion * fnr (include more)
-            - If negative: minimize 2^inclusion * fpr + fnr (exclude more)
-    """
-    sorted_pairs = sorted(zip(scores, labels), reverse=True)
-    best_threshold = 0.5
-    best_cost = float("inf")
-
-    # Calculate weights based on inclusion
-    if inclusion_value >= 0:
-        fpr_weight = 1.0
-        fnr_weight = 2.0**inclusion_value
-    else:
-        fpr_weight = 2.0**inclusion_value
-        fnr_weight = 1.0
-
-    for i in range(len(sorted_pairs)):
-        threshold = sorted_pairs[i][0]
-
-        # Calculate FPR and FNR at this threshold
-        fp = 0  # false positives
-        fn = 0  # false negatives
-        tp = 0  # true positives
-        tn = 0  # true negatives
-
-        for score, label in sorted_pairs:
-            predicted = 1 if score >= threshold else 0
-            if predicted == 1 and label == 0:
-                fp += 1
-            elif predicted == 0 and label == 1:
-                fn += 1
-            elif predicted == 1 and label == 1:
-                tp += 1
-            else:  # predicted == 0 and label == 0
-                tn += 1
-
-        # Calculate rates
-        total_positives = sum(1 for _, label in sorted_pairs if label == 1)
-        total_negatives = len(sorted_pairs) - total_positives
-
-        fpr = fp / total_negatives if total_negatives > 0 else 0
-        fnr = fn / total_positives if total_positives > 0 else 0
-
-        # Calculate weighted cost
-        cost = fpr_weight * fpr + fnr_weight * fnr
-
-        if cost < best_cost:
-            best_cost = cost
-            best_threshold = threshold
-
-    return best_threshold
-
-
-def calculate_cross_calibration_threshold(X_list, y_list, input_dim, inclusion_value=0):
-    """
-    Calculate threshold using cross-calibration:
-    - Split data into two halves D1 and D2
-    - Train M1 on D1, find threshold t1 using M1 on D2
-    - Train M2 on D2, find threshold t2 using M2 on D1
-    - Return mean(t1, t2)
-    """
-    n = len(X_list)
-    if n < 4:
-        # Not enough data for cross-calibration
-        return 0.5
-
-    # Split data in half
-    mid = n // 2
-    indices = np.random.permutation(n)
-    idx1 = indices[:mid]
-    idx2 = indices[mid:]
-
-    X_np = np.array(X_list)
-    y_np = np.array(y_list)
-
-    # Train M1 on D1
-    X1 = torch.tensor(X_np[idx1], dtype=torch.float32)
-    y1 = torch.tensor(y_np[idx1], dtype=torch.float32).unsqueeze(1)
-    M1 = train_model(X1, y1, input_dim, inclusion_value)
-
-    # Train M2 on D2
-    X2 = torch.tensor(X_np[idx2], dtype=torch.float32)
-    y2 = torch.tensor(y_np[idx2], dtype=torch.float32).unsqueeze(1)
-    M2 = train_model(X2, y2, input_dim, inclusion_value)
-
-    # Find t1: use M1 on D2
-    with torch.no_grad():
-        scores1_on_2 = M1(X2).squeeze(1).tolist()
-    t1 = find_optimal_threshold(scores1_on_2, y_np[idx2].tolist(), inclusion_value)
-
-    # Find t2: use M2 on D1
-    with torch.no_grad():
-        scores2_on_1 = M2(X1).squeeze(1).tolist()
-    t2 = find_optimal_threshold(scores2_on_1, y_np[idx1].tolist(), inclusion_value)
-
-    # Return mean
-    return (t1 + t2) / 2.0
-
-
-def train_and_score(inclusion_value=0):
-    """Train a small MLP on voted clip embeddings and score every clip."""
-    X_list = []
-    y_list = []
-    for cid in good_votes:
-        X_list.append(clips[cid]["embedding"])
-        y_list.append(1.0)
-    for cid in bad_votes:
-        X_list.append(clips[cid]["embedding"])
-        y_list.append(0.0)
-
-    X = torch.tensor(np.array(X_list), dtype=torch.float32)
-    y = torch.tensor(y_list, dtype=torch.float32).unsqueeze(1)
-
-    input_dim = X.shape[1]
-
-    # Calculate threshold using cross-calibration
-    threshold = calculate_cross_calibration_threshold(
-        X_list, y_list, input_dim, inclusion_value
-    )
-
-    # Train final model on all data
-    model = train_model(X, y, input_dim, inclusion_value)
-
-    # Score every clip
-    all_ids = sorted(clips.keys())
-    all_embs = np.array([clips[cid]["embedding"] for cid in all_ids])
-    X_all = torch.tensor(all_embs, dtype=torch.float32)
-    with torch.no_grad():
-        scores = model(X_all).squeeze(1).tolist()
-
-    results = [{"id": cid, "score": round(s, 4)} for cid, s in zip(all_ids, scores)]
-    results.sort(key=lambda x: x["score"], reverse=True)
-    return results, threshold
-
-
 @app.route("/api/learned-sort", methods=["POST"])
 def learned_sort():
     """Train MLP on voted clips, return all clips sorted by predicted score."""
     if not good_votes or not bad_votes:
         return jsonify({"error": "need at least one good and one bad vote"}), 400
-    results, threshold = train_and_score(inclusion)
+    results, threshold = train_and_score(clips, good_votes, bad_votes, get_inclusion())
     return jsonify({"results": results, "threshold": round(threshold, 4)})
 
 
@@ -2551,6 +1906,6 @@ def clear_dataset_route():
 
 if __name__ == "__main__":
     # Initialize before server starts to avoid lazy-loading crashes
-    initialize_app()
+    initialize_models()
     # Disable reloader and debug mode to save memory (prevents OOM in Codespaces)
     app.run(debug=False, use_reloader=False, port=5000)

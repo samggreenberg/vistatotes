@@ -2,6 +2,7 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .venv/
+.coverage
 
 # Demo dataset files
 data/

@@ -538,6 +538,8 @@
   }
 
   function showWelcomeScreen() {
+    center.innerHTML = "";
+    center.appendChild(datasetWelcome);
     datasetWelcome.style.display = "flex";
     center.className = "panel-center";
     datasetOptions.style.display = "flex";

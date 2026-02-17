@@ -345,7 +345,7 @@ def initialize_app():
         # Use the unfused model (~600MB) and low_cpu_mem_usage to avoid RAM spikes
         model_id = "laion/clap-htsat-unfused"
         clap_model = ClapModel.from_pretrained(model_id, low_cpu_mem_usage=True)
-        clap_processor = ClapProcessor.from_pretrained(model_id)
+        clap_processor = ClapProcessor.from_pretrained(model_id, use_fast=False)
         print("DEBUG: CLAP model loaded.", flush=True)
 
     # Load X-CLIP model for Videos modality

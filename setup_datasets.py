@@ -171,7 +171,7 @@ def load_clap_model():
     print("🤖 Loading CLAP model (Hugging Face)...")
     model_id = "laion/clap-htsat-unfused"
     model = ClapModel.from_pretrained(model_id)
-    processor = ClapProcessor.from_pretrained(model_id)
+    processor = ClapProcessor.from_pretrained(model_id, use_fast=False)
     print("  ✓ Model loaded")
     return model, processor
 

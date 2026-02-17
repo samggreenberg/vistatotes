@@ -4,6 +4,9 @@ import os
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 
+# Visual feedback for startup
+print("⏳ Initializing VectoryTones...", flush=True)
+
 import csv
 import gc
 import hashlib
@@ -17,6 +20,8 @@ import zipfile
 from pathlib import Path
 from typing import Optional
 
+print("⏳ Importing ML libraries (this may take a few seconds)...", flush=True)
+
 import cv2
 import librosa
 import numpy as np
@@ -28,6 +33,7 @@ from PIL import Image
 from sentence_transformers import SentenceTransformer
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.mixture import GaussianMixture
+from tqdm import tqdm
 from transformers import (
     ClapModel,
     ClapProcessor,
@@ -339,39 +345,43 @@ def initialize_app():
     torch.set_num_threads(1)
     gc.collect()
 
-    # Load CLAP model for Sounds modality
-    if clap_model is None:
-        print("DEBUG: Loading CLAP model for Sounds (Hugging Face)...", flush=True)
-        # Use the unfused model (~600MB) and low_cpu_mem_usage to avoid RAM spikes
-        model_id = "laion/clap-htsat-unfused"
-        clap_model = ClapModel.from_pretrained(model_id, low_cpu_mem_usage=True)
-        clap_processor = ClapProcessor.from_pretrained(model_id, use_fast=False)
-        print("DEBUG: CLAP model loaded.", flush=True)
+    with tqdm(total=4, desc="Loading Models", unit="model") as pbar:
+        # Load CLAP model for Sounds modality
+        if clap_model is None:
+            pbar.set_description("Loading CLAP (Audio)")
+            # Use the unfused model (~600MB) and low_cpu_mem_usage to avoid RAM spikes
+            model_id = "laion/clap-htsat-unfused"
+            clap_model = ClapModel.from_pretrained(model_id, low_cpu_mem_usage=True)
+            clap_processor = ClapProcessor.from_pretrained(model_id, use_fast=False)
+            # print("DEBUG: CLAP model loaded.", flush=True)
+        pbar.update(1)
 
-    # Load X-CLIP model for Videos modality
-    if xclip_model is None:
-        print("DEBUG: Loading X-CLIP model for Videos (Hugging Face)...", flush=True)
-        model_id = "microsoft/xclip-base-patch32"
-        xclip_model = XCLIPModel.from_pretrained(model_id, low_cpu_mem_usage=True)
-        xclip_processor = XCLIPProcessor.from_pretrained(model_id, use_fast=False)
-        print("DEBUG: X-CLIP model loaded.", flush=True)
+        # Load X-CLIP model for Videos modality
+        if xclip_model is None:
+            pbar.set_description("Loading X-CLIP (Video)")
+            model_id = "microsoft/xclip-base-patch32"
+            xclip_model = XCLIPModel.from_pretrained(model_id, low_cpu_mem_usage=True)
+            xclip_processor = XCLIPProcessor.from_pretrained(model_id, use_fast=False)
+            # print("DEBUG: X-CLIP model loaded.", flush=True)
+        pbar.update(1)
 
-    # Load CLIP model for Images modality
-    if clip_model is None:
-        print("DEBUG: Loading CLIP model for Images (Hugging Face)...", flush=True)
-        model_id = "openai/clip-vit-base-patch32"
-        clip_model = CLIPModel.from_pretrained(model_id, low_cpu_mem_usage=True)
-        clip_processor = CLIPProcessor.from_pretrained(model_id, use_fast=False)
-        print("DEBUG: CLIP model loaded.", flush=True)
+        # Load CLIP model for Images modality
+        if clip_model is None:
+            pbar.set_description("Loading CLIP (Image)")
+            model_id = "openai/clip-vit-base-patch32"
+            clip_model = CLIPModel.from_pretrained(model_id, low_cpu_mem_usage=True)
+            clip_processor = CLIPProcessor.from_pretrained(model_id, use_fast=False)
+            # print("DEBUG: CLIP model loaded.", flush=True)
+        pbar.update(1)
 
-    # Load E5-LARGE-V2 model for Paragraphs modality
-    if e5_model is None:
-        print(
-            "DEBUG: Loading E5-LARGE-V2 model for Paragraphs (SentenceTransformers)...",
-            flush=True,
-        )
-        e5_model = SentenceTransformer("intfloat/e5-large-v2")
-        print("DEBUG: E5-LARGE-V2 model loaded.", flush=True)
+        # Load E5-LARGE-V2 model for Paragraphs modality
+        if e5_model is None:
+            pbar.set_description("Loading E5 (Text)")
+            e5_model = SentenceTransformer("intfloat/e5-large-v2")
+            # print("DEBUG: E5-LARGE-V2 model loaded.", flush=True)
+        pbar.update(1)
+
+        pbar.set_description("Ready")
 
     # Don't automatically load clips - user will load dataset via UI
     print("DEBUG: Ready to load dataset via UI", flush=True)
@@ -801,11 +811,13 @@ def load_dataset_from_folder(folder_path: Path, media_type: str = "sounds"):
     update_progress("idle", f"Loaded {len(clips)} {media_type} clips from folder")
 
 
-def download_file_with_progress(url: str, dest_path: Path):
+def download_file_with_progress(url: str, dest_path: Path, expected_size: int = 0):
     """Download a file with progress tracking."""
     response = requests.get(url, stream=True)
     response.raise_for_status()
     total_size = int(response.headers.get("content-length", 0))
+    if total_size == 0:
+        total_size = expected_size
 
     downloaded = 0
     with open(dest_path, "wb") as f:
@@ -824,7 +836,9 @@ def download_esc50() -> Path:
 
     if not zip_path.exists():
         update_progress("downloading", "Starting download...", 0, 0)
-        download_file_with_progress(ESC50_URL, zip_path)
+        download_file_with_progress(
+            ESC50_URL, zip_path, ESC50_DOWNLOAD_SIZE_MB * 1024 * 1024
+        )
 
     extract_dir = DATA_DIR / "ESC-50-master"
     if not extract_dir.exists():
@@ -870,7 +884,9 @@ def download_cifar10() -> Path:
 
     if not tar_path.exists():
         update_progress("downloading", "Starting CIFAR-10 download...", 0, 0)
-        download_file_with_progress(CIFAR10_URL, tar_path)
+        download_file_with_progress(
+            CIFAR10_URL, tar_path, CIFAR10_DOWNLOAD_SIZE_MB * 1024 * 1024
+        )
 
     extract_dir = DATA_DIR / "cifar-10-batches-py"
     if not extract_dir.exists():

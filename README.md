@@ -1,6 +1,6 @@
 # VectoryTones
 
-A sound clip explorer web app. Browse any set of audio clips, listen to them in the browser, and vote clips as "good" or "bad." Supports text-based semantic sorting (via LAION-CLAP embeddings) and learned sorting (via a small neural network trained on your votes). Ships with 20 synthetic sine-wave clips by default, and can be expanded with real-world datasets using the included setup script. Built with Flask (Python) and vanilla JavaScript.
+A media explorer web app. Browse collections of audio clips, video clips, images, or text paragraphs — listen/view them in the browser and vote items as "good" or "bad." Supports text-based semantic sorting (via LAION-CLAP, X-CLIP, CLIP, or E5-large-v2 embeddings depending on media type) and learned sorting (via a small neural network trained on your votes). Several demo datasets can be loaded directly from the UI. Built with Flask (Python) and vanilla JavaScript.
 
 ## Prerequisites
 
@@ -10,13 +10,17 @@ You need **Python 3.9+** installed. Check by running:
 python3 --version
 ```
 
-If you see something like `Python 3.11.4`, you're good. If the command isn't found, install Python from [python.org/downloads](https://www.python.org/downloads/) or with your system package manager:
+If you see something like `Python 3.11.4`, you're good. If the command isn't found, install Python from [python.org/downloads](https://www.python.org/downloads/) or with your system package manager.
+
+Ubuntu / Debian:
 
 ```bash
-# Ubuntu / Debian
 sudo apt update && sudo apt install python3 python3-pip python3-venv
+```
 
-# macOS (with Homebrew)
+macOS (with Homebrew):
+
+```bash
 brew install python
 ```
 
@@ -28,24 +32,24 @@ git --version
 
 If it's not installed:
 
-```bash
-# Ubuntu / Debian
-sudo apt install git
+Ubuntu / Debian:
 
-# macOS (with Homebrew)
+```bash
+sudo apt install git
+```
+
+macOS (with Homebrew):
+
+```bash
 brew install git
 ```
 
 ## Getting the code
 
-Open a terminal and run:
-
 ```bash
 git clone https://github.com/samggreenberg/vectorytones.git
 cd vectorytones
 ```
-
-This downloads the project and moves you into its folder.
 
 ## Setting up a virtual environment
 
@@ -57,14 +61,21 @@ python3 -m venv venv
 
 Then activate it:
 
+Linux / macOS:
+
 ```bash
-# Linux / macOS
 source venv/bin/activate
+```
 
-# Windows (Command Prompt)
+Windows (Command Prompt):
+
+```bat
 venv\Scripts\activate.bat
+```
 
-# Windows (PowerShell)
+Windows (PowerShell):
+
+```powershell
 venv\Scripts\Activate.ps1
 ```
 
@@ -86,7 +97,7 @@ pip install -r requirements-cpu.txt
 pip install -r requirements-gpu.txt
 ```
 
-This installs Flask, NumPy, PyTorch, and other audio processing dependencies.
+This installs Flask, NumPy, PyTorch, and other ML / media processing dependencies.
 
 ## Running the app
 
@@ -100,16 +111,34 @@ You should see output like:
  * Running on http://127.0.0.1:5000
 ```
 
-Open that URL in your browser. You'll see the VectoryTones interface with a list of clips on the left. Click a clip to play it and use the Good/Bad buttons to vote.
+Open that URL in your browser. The app starts with no clips loaded — use the menu to load a demo dataset (see below).
 
 Press **Ctrl+C** in the terminal to stop the server.
 
+## Loading a demo dataset
+
+When the app is running, click the hamburger menu in the top-left corner to open the dataset panel. From there you can browse the available demo datasets and load one. Each demo is downloaded and embedded on first use, then cached for instant loading afterward.
+
+Available demos:
+
+| Demo | Media type | Description |
+|------|-----------|-------------|
+| **animals** | Audio | Animal and nature sounds (ESC-50) |
+| **natural** | Audio | Natural environmental sounds (ESC-50) |
+| **urban** | Audio | Urban and mechanical sounds (ESC-50) |
+| **household** | Audio | Household and human sounds (ESC-50) |
+| **actions_video** | Video | Human action recognition clips (UCF-101) |
+| **objects_images** | Image | Common objects and animals (CIFAR-10) |
+| **news_paragraphs** | Text | News article paragraphs (20 Newsgroups) |
+
+You can also load your own data from pickle files or folders via the same menu.
+
 ## Running the tests
 
-First, install pytest (if you haven't already):
+Install dev dependencies (includes pytest):
 
 ```bash
-pip install pytest
+pip install -r requirements-dev.txt
 ```
 
 Then run:
@@ -118,23 +147,26 @@ Then run:
 python -m pytest test_app.py -v
 ```
 
-You should see all 36 tests pass.
-
 ## Project structure
 
 ```
 vectorytones/
-├── app.py                   # Flask backend — routes, audio generation, voting, sorting
-├── setup_datasets.py        # Downloads and prepares real-world audio datasets (ESC-50)
+├── app.py                   # Flask backend — routes, embedding models, voting,
+│                            #   sorting (text, learned, detector, example, label-file),
+│                            #   dataset management, and demo dataset downloads
+├── setup_datasets.py        # Standalone script to download ESC-50 and generate
+│                            #   LAION-CLAP embeddings for themed audio datasets
 ├── static/
-│   └── index.html           # Frontend UI (HTML, CSS, JavaScript)
+│   └── index.html           # Single-page frontend (HTML, CSS, vanilla JS)
 ├── templates/
 │   └── index.html           # Jinja2 template entry point
 ├── test_app.py              # Test suite (pytest)
-├── requirements-cpu.txt     # CPU-only Python dependencies
-├── requirements-gpu.txt     # GPU-enabled Python dependencies
-├── requirements.txt         # Generic Python dependencies
-├── SETUP_DATASETS.md        # Guide for setting up real-world audio datasets
-├── .gitignore               # Git ignore rules
-└── README.md                # This file
+├── requirements.txt         # Core Python dependencies
+├── requirements-cpu.txt     # CPU-only dependencies (PyTorch CPU wheel)
+├── requirements-gpu.txt     # GPU-enabled dependencies (PyTorch with CUDA)
+├── requirements-dev.txt     # Dev dependencies (requirements.txt + pytest)
+├── SETUP_DATASETS.md        # Guide for the standalone dataset setup script
+├── TEST_COVERAGE_ANALYSIS.md
+├── .gitignore
+└── README.md
 ```

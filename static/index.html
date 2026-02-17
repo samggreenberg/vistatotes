@@ -788,16 +788,24 @@
 
   async function fetchTextSort(text) {
     sortStatus.textContent = "Searching and sorting...";
-    const res = await fetch("/api/sort", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
-    });
-    const data = await res.json();
-    sortOrder = data.results.map(e => ({ id: e.id, score: e.similarity }));
-    threshold = data.threshold;
-    sortStatus.textContent = `Threshold: ${(threshold * 100).toFixed(1)}%`;
-    renderClipList();
+    try {
+      const res = await fetch("/api/sort", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      const data = await res.json();
+      sortOrder = data.results.map(e => ({ id: e.id, score: e.similarity }));
+      threshold = data.threshold;
+      sortStatus.textContent = `Threshold: ${(threshold * 100).toFixed(1)}%`;
+      renderClipList();
+    } catch (error) {
+      sortStatus.textContent = `Error: ${error.message}`;
+      console.error("Sort error:", error);
+    }
   }
 
   function onTextSortInput() {
@@ -818,22 +826,27 @@
 
   async function fetchLearnedSort() {
     sortStatus.textContent = "Training\u2026";
-    const res = await fetch("/api/learned-sort", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-    });
-    if (!res.ok) {
-      sortOrder = null;
-      threshold = null;
-      sortStatus.textContent = "Vote good & bad first";
+    try {
+      const res = await fetch("/api/learned-sort", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!res.ok) {
+        sortOrder = null;
+        threshold = null;
+        sortStatus.textContent = "Vote good & bad first";
+        renderClipList();
+        return;
+      }
+      const data = await res.json();
+      sortOrder = data.results;  // [{id, score}, ...]
+      threshold = data.threshold;
+      sortStatus.textContent = `Threshold: ${(threshold * 100).toFixed(1)}%`;
       renderClipList();
-      return;
+    } catch (error) {
+      sortStatus.textContent = `Error: ${error.message}`;
+      console.error("Learned sort error:", error);
     }
-    const data = await res.json();
-    sortOrder = data.results;  // [{id, score}, ...]
-    threshold = data.threshold;
-    sortStatus.textContent = `Threshold: ${(threshold * 100).toFixed(1)}%`;
-    renderClipList();
   }
 
   // ---- Load detector sort ----
@@ -844,23 +857,28 @@
       return;
     }
     sortStatus.textContent = "Scoring with loaded detector\u2026";
-    const res = await fetch("/api/detector-sort", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ detector: loadedDetector }),
-    });
-    if (!res.ok) {
-      sortOrder = null;
-      threshold = null;
-      sortStatus.textContent = "Failed to score with detector";
+    try {
+      const res = await fetch("/api/detector-sort", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ detector: loadedDetector }),
+      });
+      if (!res.ok) {
+        sortOrder = null;
+        threshold = null;
+        sortStatus.textContent = "Failed to score with detector";
+        renderClipList();
+        return;
+      }
+      const data = await res.json();
+      sortOrder = data.results;  // [{id, score}, ...]
+      threshold = data.threshold;
+      sortStatus.textContent = `Threshold: ${(threshold * 100).toFixed(1)}%`;
       renderClipList();
-      return;
+    } catch (error) {
+      sortStatus.textContent = `Error: ${error.message}`;
+      console.error("Detector sort error:", error);
     }
-    const data = await res.json();
-    sortOrder = data.results;  // [{id, score}, ...]
-    threshold = data.threshold;
-    sortStatus.textContent = `Threshold: ${(threshold * 100).toFixed(1)}%`;
-    renderClipList();
   }
 
   // ---- Load detector file ----

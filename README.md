@@ -1,4 +1,4 @@
-# VectoryTones
+# VistaTotes
 
 A media explorer web app. Browse collections of audio clips, images, or text paragraphs — listen/view them in the browser and vote items as "good" or "bad." Supports text-based semantic sorting (via LAION-CLAP, CLIP, or E5-large-v2 embeddings depending on media type) and learned sorting (via a small neural network trained on your votes). Several demo datasets can be loaded directly from the UI. Built with Flask (Python) and vanilla JavaScript.
 
@@ -47,8 +47,8 @@ brew install git
 ## Getting the code
 
 ```bash
-git clone https://github.com/samggreenberg/vectorytones.git
-cd vectorytones
+git clone https://github.com/samggreenberg/vistatotes.git
+cd vistatotes
 ```
 
 ## Setting up a virtual environment
@@ -149,7 +149,7 @@ python -m pytest test_app.py -v
 ## Project structure
 
 ```
-vectorytones/
+vistatotes/
 ├── app.py                   # Flask backend — routes, embedding models, voting,
 │                            #   sorting (text, learned, detector, example, label-file),
 │                            #   dataset management, and demo dataset downloads

@@ -1,7 +1,7 @@
 """Utility modules for progress tracking and state management."""
 
-from vectorytones.utils.progress import get_progress, update_progress
-from vectorytones.utils.state import (
+from vistatotes.utils.progress import get_progress, update_progress
+from vistatotes.utils.state import (
     bad_votes,
     clear_all,
     clear_clips,

@@ -3,7 +3,7 @@
 import numpy as np
 import torch
 
-from vectorytones.models.training import find_optimal_threshold, train_model
+from vistatotes.models.training import find_optimal_threshold, train_model
 
 
 def recreate_model_at_time(clips_dict, label_history, time_index, inclusion_value=0):

@@ -13,7 +13,7 @@ from config import (
     ESC50_URL,
     VIDEO_DIR,
 )
-from vectorytones.utils import update_progress
+from vistatotes.utils import update_progress
 
 
 def download_file_with_progress(url: str, dest_path: Path, expected_size: int = 0):

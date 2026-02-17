@@ -16,15 +16,15 @@ from config import (
     SAMPLE_VIDEOS_DOWNLOAD_SIZE_MB,
     VIDEO_DIR,
 )
-from vectorytones.datasets import (
+from vistatotes.datasets import (
     DEMO_DATASETS,
     export_dataset_to_file,
     load_dataset_from_folder,
     load_dataset_from_pickle,
     load_demo_dataset,
 )
-from vectorytones.models import get_e5_model
-from vectorytones.utils import bad_votes, clips, good_votes, get_progress, update_progress
+from vistatotes.models import get_e5_model
+from vistatotes.utils import bad_votes, clips, good_votes, get_progress, update_progress
 
 datasets_bp = Blueprint("datasets", __name__)
 

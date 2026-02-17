@@ -9,10 +9,10 @@ import app as app_module
 
 # Import refactored modules and make them accessible through app_module
 from config import NUM_CLIPS, SAMPLE_RATE
-from vectorytones.audio import generate_wav
-from vectorytones.audio.processor import wav_bytes_to_float
-from vectorytones.models import initialize_models, train_and_score
-from vectorytones.utils import bad_votes, clips, good_votes
+from vistatotes.audio import generate_wav
+from vistatotes.audio.processor import wav_bytes_to_float
+from vistatotes.models import initialize_models, train_and_score
+from vistatotes.utils import bad_votes, clips, good_votes
 
 # Attach to app_module for backward compatibility with existing tests
 app_module.NUM_CLIPS = NUM_CLIPS

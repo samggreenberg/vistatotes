@@ -20,14 +20,14 @@ from config import (
     IMAGES_PER_CIFAR10_CATEGORY,
     SAMPLE_RATE,
 )
-from vectorytones.datasets import DEMO_DATASETS
-from vectorytones.datasets.downloader import (
+from vistatotes.datasets import DEMO_DATASETS
+from vistatotes.datasets.downloader import (
     download_20newsgroups,
     download_cifar10,
     download_esc50,
     download_ucf101_subset,
 )
-from vectorytones.models import (
+from vistatotes.models import (
     embed_audio_file,
     embed_image_file,
     embed_paragraph_file,
@@ -35,7 +35,7 @@ from vectorytones.models import (
     get_clip_model,
     get_e5_model,
 )
-from vectorytones.utils import update_progress
+from vistatotes.utils import update_progress
 
 
 def load_esc50_metadata(esc50_dir: Path) -> dict:

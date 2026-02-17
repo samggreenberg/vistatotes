@@ -10,7 +10,7 @@ import torch.nn as nn
 from flask import Blueprint, jsonify, request
 
 from config import DATA_DIR, SAMPLE_RATE
-from vectorytones.models import (
+from vistatotes.models import (
     analyze_labeling_progress,
     calculate_cross_calibration_threshold,
     calculate_gmm_threshold,
@@ -20,7 +20,7 @@ from vectorytones.models import (
     train_and_score,
     train_model,
 )
-from vectorytones.utils import (
+from vistatotes.utils import (
     add_label_to_history,
     bad_votes,
     clips,

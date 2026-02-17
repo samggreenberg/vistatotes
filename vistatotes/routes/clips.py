@@ -4,7 +4,7 @@ import io
 
 from flask import Blueprint, jsonify, request, send_file
 
-from vectorytones.utils import add_label_to_history, bad_votes, clips, good_votes
+from vistatotes.utils import add_label_to_history, bad_votes, clips, good_votes
 
 clips_bp = Blueprint("clips", __name__)
 

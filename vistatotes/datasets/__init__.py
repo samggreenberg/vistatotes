@@ -1,14 +1,14 @@
 """Dataset configuration and management."""
 
-from vectorytones.datasets.config import DEMO_DATASETS
-from vectorytones.datasets.downloader import (
+from vistatotes.datasets.config import DEMO_DATASETS
+from vistatotes.datasets.downloader import (
     download_20newsgroups,
     download_cifar10,
     download_esc50,
     download_file_with_progress,
     download_ucf101_subset,
 )
-from vectorytones.datasets.loader import (
+from vistatotes.datasets.loader import (
     export_dataset_to_file,
     load_cifar10_batch,
     load_dataset_from_folder,

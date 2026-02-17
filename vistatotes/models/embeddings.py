@@ -10,7 +10,7 @@ import torch
 from PIL import Image
 
 from config import SAMPLE_RATE
-from vectorytones.models.loader import (
+from vistatotes.models.loader import (
     get_clap_model,
     get_clip_model,
     get_e5_model,

@@ -1,4 +1,4 @@
-"""Configuration and constants for VectoryTones."""
+"""Configuration and constants for VistaTotes."""
 
 from pathlib import Path
 

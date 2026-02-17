@@ -5,7 +5,7 @@ os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 
 # Visual feedback for startup
-print("⏳ Initializing VectoryTones...", flush=True)
+print("⏳ Initializing VistaTotes...", flush=True)
 
 import hashlib
 from pathlib import Path
@@ -17,10 +17,10 @@ from tqdm import tqdm
 
 # Import refactored modules
 from config import DATA_DIR, NUM_CLIPS
-from vectorytones.audio import generate_wav
-from vectorytones.models import embed_audio_file, initialize_models
-from vectorytones.routes import clips_bp, datasets_bp, main_bp, sorting_bp
-from vectorytones.utils import clips
+from vistatotes.audio import generate_wav
+from vistatotes.models import embed_audio_file, initialize_models
+from vistatotes.routes import clips_bp, datasets_bp, main_bp, sorting_bp
+from vistatotes.utils import clips
 
 app = Flask(__name__)
 
@@ -100,7 +100,7 @@ if __name__ == "__main__":
 
             pbar.set_description("Ready")
 
-        print("✅ VectoryTones is ready!", flush=True)
+        print("✅ VistaTotes is ready!", flush=True)
         print("🌐 Open http://localhost:5000 in your browser", flush=True)
 
         app.run(host="0.0.0.0", port=5000, debug=False, threaded=True)

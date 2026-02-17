@@ -21,12 +21,17 @@ from vistatotes.models import (
     train_model,
 )
 from vistatotes.utils import (
+    add_favorite_detector,
     add_label_to_history,
     bad_votes,
     clips,
+    get_favorite_detectors,
+    get_favorite_detectors_by_media,
     get_inclusion,
     good_votes,
     label_history,
+    remove_favorite_detector,
+    rename_favorite_detector,
     set_inclusion,
 )
 
@@ -470,3 +475,298 @@ def labeling_progress():
         return jsonify(analysis)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@sorting_bp.route("/api/favorite-detectors")
+def get_favorite_detectors_route():
+    """Get all favorite detectors."""
+    detectors = get_favorite_detectors()
+    return jsonify({"detectors": list(detectors.values())})
+
+
+@sorting_bp.route("/api/favorite-detectors", methods=["POST"])
+def add_favorite_detector_route():
+    """Add a new favorite detector."""
+    data = request.get_json(force=True)
+    if data is None:
+        return jsonify({"error": "Invalid request body"}), 400
+
+    name = data.get("name", "").strip()
+    media_type = data.get("media_type", "").strip()
+    weights = data.get("weights")
+    threshold = data.get("threshold", 0.5)
+
+    if not name:
+        return jsonify({"error": "name is required"}), 400
+    if not media_type:
+        return jsonify({"error": "media_type is required"}), 400
+    if not weights:
+        return jsonify({"error": "weights are required"}), 400
+
+    add_favorite_detector(name, media_type, weights, threshold)
+    return jsonify({"success": True, "name": name})
+
+
+@sorting_bp.route("/api/favorite-detectors/<name>", methods=["DELETE"])
+def delete_favorite_detector_route(name):
+    """Delete a favorite detector."""
+    if remove_favorite_detector(name):
+        return jsonify({"success": True})
+    return jsonify({"error": "Detector not found"}), 404
+
+
+@sorting_bp.route("/api/favorite-detectors/<name>/rename", methods=["PUT"])
+def rename_favorite_detector_route(name):
+    """Rename a favorite detector."""
+    data = request.get_json(force=True)
+    if data is None:
+        return jsonify({"error": "Invalid request body"}), 400
+
+    new_name = data.get("new_name", "").strip()
+    if not new_name:
+        return jsonify({"error": "new_name is required"}), 400
+
+    if rename_favorite_detector(name, new_name):
+        return jsonify({"success": True, "new_name": new_name})
+    return jsonify({"error": "Detector not found or new name already exists"}), 400
+
+
+@sorting_bp.route("/api/favorite-detectors/import-pkl", methods=["POST"])
+def import_detector_pkl():
+    """Import a favorite detector from a PKL file."""
+    if "file" not in request.files:
+        return jsonify({"error": "No file provided"}), 400
+
+    file = request.files["file"]
+    if not file.filename:
+        return jsonify({"error": "No file selected"}), 400
+
+    name = request.form.get("name", "").strip()
+    if not name:
+        # Use filename without extension as default name
+        name = Path(file.filename).stem
+
+    try:
+        # Read the JSON detector file
+        text = file.read().decode("utf-8")
+        detector_data = json.loads(text)
+
+        weights = detector_data.get("weights")
+        threshold = detector_data.get("threshold", 0.5)
+
+        if not weights:
+            return jsonify({"error": "Invalid detector file format"}), 400
+
+        # Determine media type from current clips
+        media_type = "audio"  # Default
+        if clips:
+            media_type = next(iter(clips.values())).get("type", "audio")
+
+        add_favorite_detector(name, media_type, weights, threshold)
+        return jsonify({"success": True, "name": name, "media_type": media_type})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@sorting_bp.route("/api/favorite-detectors/import-labels", methods=["POST"])
+def import_detector_labels():
+    """Import a favorite detector by training on a label file."""
+    if "file" not in request.files:
+        return jsonify({"error": "No file provided"}), 400
+
+    file = request.files["file"]
+    if not file.filename:
+        return jsonify({"error": "No file selected"}), 400
+
+    name = request.form.get("name", "").strip()
+    if not name:
+        # Use filename without extension as default name
+        name = Path(file.filename).stem
+
+    clap_model, clap_processor = get_clap_model()
+    if clap_model is None or clap_processor is None:
+        return jsonify({"error": "CLAP model not loaded"}), 500
+
+    try:
+        # Parse the label file
+        text = file.read().decode("utf-8")
+        try:
+            label_data = json.loads(text)
+        except Exception:
+            return jsonify({"error": "Invalid label file format"}), 400
+
+        # Extract labels list
+        labels = label_data.get("labels", [])
+        if not labels:
+            return jsonify({"error": "No labels found in file"}), 400
+
+        # Load and embed each labeled audio file
+        X_list = []
+        y_list = []
+        loaded_count = 0
+        skipped_count = 0
+
+        for entry in labels:
+            label = entry.get("label")
+            if label not in ("good", "bad"):
+                skipped_count += 1
+                continue
+
+            # Try to get audio file path
+            audio_path = (
+                entry.get("path") or entry.get("file") or entry.get("filename")
+            )
+            if not audio_path:
+                skipped_count += 1
+                continue
+
+            audio_path = Path(audio_path)
+            if not audio_path.exists():
+                skipped_count += 1
+                continue
+
+            # Embed the audio file
+            embedding = embed_audio_file(audio_path)
+            if embedding is None:
+                skipped_count += 1
+                continue
+
+            X_list.append(embedding)
+            y_list.append(1.0 if label == "good" else 0.0)
+            loaded_count += 1
+
+        if loaded_count < 2:
+            return (
+                jsonify(
+                    {
+                        "error": f"Need at least 2 valid labeled files (loaded {loaded_count}, skipped {skipped_count})"
+                    }
+                ),
+                400,
+            )
+
+        # Check if we have both good and bad examples
+        num_good = sum(1 for y in y_list if y == 1.0)
+        num_bad = len(y_list) - num_good
+        if num_good == 0 or num_bad == 0:
+            return (
+                jsonify(
+                    {"error": "Need at least one good and one bad labeled example"}
+                ),
+                400,
+            )
+
+        # Train MLP
+        X = torch.tensor(np.array(X_list), dtype=torch.float32)
+        y = torch.tensor(y_list, dtype=torch.float32).unsqueeze(1)
+
+        input_dim = X.shape[1]
+
+        # Calculate threshold using cross-calibration
+        threshold = calculate_cross_calibration_threshold(
+            X_list, y_list, input_dim, get_inclusion()
+        )
+
+        # Train final model on all data
+        model = train_model(X, y, input_dim, get_inclusion())
+
+        # Extract model weights
+        state_dict = model.state_dict()
+        weights = {}
+        for key, value in state_dict.items():
+            weights[key] = value.tolist()
+
+        # Determine media type (default to audio for label file imports)
+        media_type = "audio"
+
+        add_favorite_detector(name, media_type, weights, threshold)
+        return jsonify(
+            {
+                "success": True,
+                "name": name,
+                "media_type": media_type,
+                "loaded": loaded_count,
+                "skipped": skipped_count,
+            }
+        )
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@sorting_bp.route("/api/auto-detect", methods=["POST"])
+def auto_detect():
+    """Run all favorite detectors for the current media type and return positive hits."""
+    if not clips:
+        return jsonify({"error": "No clips loaded"}), 400
+
+    # Determine media type from current clips
+    media_type = next(iter(clips.values())).get("type", "audio")
+
+    # Get favorite detectors for this media type
+    detectors = get_favorite_detectors_by_media(media_type)
+
+    if not detectors:
+        return jsonify({"error": f"No favorite detectors found for media type: {media_type}"}), 400
+
+    # Run each detector and collect positive hits
+    results = {}
+    all_ids = sorted(clips.keys())
+    all_embs = np.array([clips[cid]["embedding"] for cid in all_ids])
+    X_all = torch.tensor(all_embs, dtype=torch.float32)
+
+    for detector_name, detector_data in detectors.items():
+        weights = detector_data["weights"]
+        threshold = detector_data["threshold"]
+
+        # Reconstruct the model from weights
+        input_dim = len(weights["0.weight"][0])
+
+        model = nn.Sequential(
+            nn.Linear(input_dim, 64),
+            nn.ReLU(),
+            nn.Linear(64, 1),
+            nn.Sigmoid(),
+        )
+
+        # Load weights
+        state_dict = {}
+        for key, value in weights.items():
+            state_dict[key] = torch.tensor(value, dtype=torch.float32)
+        model.load_state_dict(state_dict)
+        model.eval()
+
+        # Score all clips
+        with torch.no_grad():
+            scores = model(X_all).squeeze(1).tolist()
+
+        # Collect positive hits (score >= threshold)
+        positive_hits = []
+        for cid, score in zip(all_ids, scores):
+            if score >= threshold:
+                clip_info = clips[cid].copy()
+                # Don't include embedding in response (too large)
+                clip_info.pop("embedding", None)
+                clip_info.pop("wav_bytes", None)
+                clip_info.pop("video_bytes", None)
+                clip_info["score"] = round(score, 4)
+                positive_hits.append(clip_info)
+
+        # Sort by score descending
+        positive_hits.sort(key=lambda x: x["score"], reverse=True)
+
+        results[detector_name] = {
+            "detector_name": detector_name,
+            "threshold": round(threshold, 4),
+            "total_hits": len(positive_hits),
+            "hits": positive_hits,
+        }
+
+    return jsonify(
+        {
+            "media_type": media_type,
+            "detectors_run": len(detectors),
+            "results": results,
+        }
+    )

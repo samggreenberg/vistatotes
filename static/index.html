@@ -207,6 +207,12 @@
         <div class="burger-item" id="menu-detector-export">Export Detector</div>
         <div class="burger-status" id="menu-detector-status"></div>
       </div>
+      <div class="burger-section">
+        <div class="burger-section-title">Favorite Detectors</div>
+        <div class="burger-item" id="menu-favorites-manage">Manage Favorites</div>
+        <div class="burger-item" id="menu-favorites-save">Save Current Detector</div>
+        <div class="burger-item" id="menu-favorites-autodetect">Run Auto-Detect</div>
+      </div>
     </div>
   </div>
   <h1>VistaTotes</h1>
@@ -281,6 +287,13 @@
           <h3>🎯 Load Demo Dataset</h3>
           <p>Choose from pre-configured ESC-50 datasets</p>
         </button>
+        <div style="margin-top: 16px; padding: 12px; background: #2a2d3a; border-radius: 4px;">
+          <label style="display: flex; align-items: center; color: #e0e0e0; cursor: pointer;">
+            <input type="checkbox" id="autodetect-mode-checkbox" style="margin-right: 8px;">
+            <span>Run auto-detect after loading (skip manual labeling)</span>
+          </label>
+          <p style="font-size: 0.85rem; color: #aaa; margin: 8px 0 0 0;">When checked, automatically runs all favorite detectors and shows positive hits.</p>
+        </div>
       </div>
       <div class="dataset-progress" id="dataset-progress" style="display:none">
         <div class="progress-bar">
@@ -365,6 +378,53 @@
   </div>
 </div>
 
+<!-- Favorite Detectors Management Modal -->
+<div id="favorites-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Manage Favorite Detectors</h2>
+      <button class="modal-close" id="favorites-modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="favorites-list" style="margin-top: 16px;">
+        <p style="color: #888;">No favorite detectors saved yet.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Auto-Detect Results Modal -->
+<div id="autodetect-modal" class="modal">
+  <div class="modal-content" style="max-width: 1000px;">
+    <div class="modal-header">
+      <h2>Auto-Detect Results</h2>
+      <button class="modal-close" id="autodetect-modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="autodetect-summary" style="margin-bottom: 16px;"></div>
+      <div id="autodetect-results"></div>
+      <div style="margin-top: 16px;">
+        <button id="copy-results-btn" style="padding: 8px 16px; background: #7c8aff; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Copy Results to Clipboard</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Auto-Detect Progress Modal -->
+<div id="autodetect-progress-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Running Auto-Detect</h2>
+    </div>
+    <div class="modal-body">
+      <div id="autodetect-progress-text" style="margin-bottom: 16px; color: #e0e0e0;">Initializing...</div>
+      <div style="background: #2a2d3a; border-radius: 8px; overflow: hidden; height: 24px;">
+        <div id="autodetect-progress-bar" style="background: #7c8aff; height: 100%; width: 0%; transition: width 0.3s;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 (function() {
   let clips = [];
@@ -376,6 +436,7 @@
   let threshold = null;    // threshold for Good/Bad boundary
   let sortTimer = null;
   let inclusion = 0;       // Inclusion setting: -10 to +10
+  let favoriteDetectors = [];  // List of favorite detectors
   let loadedDetector = null; // Stores loaded detector model weights
   let datasetLoaded = false;
   let progressTimer = null;
@@ -444,6 +505,20 @@
   const menuDetectorExport = document.getElementById("menu-detector-export");
   const menuDetectorStatus = document.getElementById("menu-detector-status");
   const importFile = document.getElementById("import-file");
+  const menuFavoritesManage = document.getElementById("menu-favorites-manage");
+  const menuFavoritesSave = document.getElementById("menu-favorites-save");
+  const menuFavoritesAutodetect = document.getElementById("menu-favorites-autodetect");
+  const favoritesModal = document.getElementById("favorites-modal");
+  const favoritesModalClose = document.getElementById("favorites-modal-close");
+  const favoritesList = document.getElementById("favorites-list");
+  const autodetectModal = document.getElementById("autodetect-modal");
+  const autodetectModalClose = document.getElementById("autodetect-modal-close");
+  const autodetectSummary = document.getElementById("autodetect-summary");
+  const autodetectResults = document.getElementById("autodetect-results");
+  const copyResultsBtn = document.getElementById("copy-results-btn");
+  const autodetectProgressModal = document.getElementById("autodetect-progress-modal");
+  const autodetectProgressText = document.getElementById("autodetect-progress-text");
+  const autodetectProgressBar = document.getElementById("autodetect-progress-bar");
 
   // ---- Dataset Management ----
 
@@ -517,6 +592,15 @@
       if (datasetLoaded) {
         await fetchClips();
         await fetchVotes();
+
+        // Check if auto-detect mode is enabled
+        const autodetectCheckbox = document.getElementById("autodetect-mode-checkbox");
+        if (autodetectCheckbox && autodetectCheckbox.checked) {
+          // Wait a moment for UI to settle
+          setTimeout(async () => {
+            await runAutoDetectAfterLoad();
+          }, 500);
+        }
       }
       return;
     }
@@ -802,6 +886,291 @@
       menuDetectorStatus.textContent = "Detector exported";
       setTimeout(() => { menuDetectorStatus.textContent = ""; }, 3000);
       burgerDropdown.classList.remove("show");
+    });
+  }
+
+  // ---- Favorite Detectors ----
+
+  async function loadFavoriteDetectors() {
+    const res = await fetch("/api/favorite-detectors");
+    const data = await res.json();
+    favoriteDetectors = data.detectors || [];
+    updateFavoritesList();
+  }
+
+  function updateFavoritesList() {
+    if (favoriteDetectors.length === 0) {
+      favoritesList.innerHTML = '<p style="color: #888;">No favorite detectors saved yet.</p>';
+      return;
+    }
+
+    favoritesList.innerHTML = favoriteDetectors.map(detector => `
+      <div style="background: #2a2d3a; padding: 12px; margin-bottom: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-weight: bold; color: #7c8aff;">${escapeHtml(detector.name)}</div>
+          <div style="font-size: 0.85rem; color: #aaa;">Media: ${detector.media_type} | Threshold: ${detector.threshold.toFixed(2)}</div>
+        </div>
+        <div>
+          <button onclick="renameDetector('${escapeHtml(detector.name)}')" style="padding: 4px 8px; margin-right: 4px; background: #555; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Rename</button>
+          <button onclick="deleteDetector('${escapeHtml(detector.name)}')" style="padding: 4px 8px; background: #f44336; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Delete</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  window.renameDetector = async function(oldName) {
+    const newName = prompt(`Rename detector "${oldName}" to:`, oldName);
+    if (!newName || newName === oldName) return;
+
+    const res = await fetch(`/api/favorite-detectors/${encodeURIComponent(oldName)}/rename`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ new_name: newName }),
+    });
+
+    if (res.ok) {
+      await loadFavoriteDetectors();
+    } else {
+      alert("Failed to rename detector. Name may already exist.");
+    }
+  };
+
+  window.deleteDetector = async function(name) {
+    if (!confirm(`Are you sure you want to delete detector "${name}"?`)) return;
+
+    const res = await fetch(`/api/favorite-detectors/${encodeURIComponent(name)}`, {
+      method: "DELETE",
+    });
+
+    if (res.ok) {
+      await loadFavoriteDetectors();
+    } else {
+      alert("Failed to delete detector.");
+    }
+  };
+
+  if (menuFavoritesManage) {
+    menuFavoritesManage.addEventListener("click", async () => {
+      await loadFavoriteDetectors();
+      favoritesModal.classList.add("show");
+      burgerDropdown.classList.remove("show");
+    });
+  }
+
+  if (favoritesModalClose) {
+    favoritesModalClose.addEventListener("click", () => {
+      favoritesModal.classList.remove("show");
+    });
+  }
+
+  if (menuFavoritesSave) {
+    menuFavoritesSave.addEventListener("click", async () => {
+      if (votes.good.length === 0 || votes.bad.length === 0) {
+        alert("You need to vote on at least one good and one bad clip before saving a detector.");
+        return;
+      }
+
+      const name = prompt("Enter a name for this detector:");
+      if (!name) return;
+
+      // Export the detector first
+      const res = await fetch("/api/detector/export", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!res.ok) {
+        alert("Failed to export detector.");
+        return;
+      }
+
+      const detectorData = await res.json();
+
+      // Determine media type from current clips
+      const mediaType = clips.length > 0 ? clips[0].type : "audio";
+
+      // Save as favorite
+      const saveRes = await fetch("/api/favorite-detectors", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name,
+          media_type: mediaType,
+          weights: detectorData.weights,
+          threshold: detectorData.threshold,
+        }),
+      });
+
+      if (saveRes.ok) {
+        alert(`Detector "${name}" saved successfully!`);
+        await loadFavoriteDetectors();
+      } else {
+        alert("Failed to save detector.");
+      }
+
+      burgerDropdown.classList.remove("show");
+    });
+  }
+
+  if (menuFavoritesAutodetect) {
+    menuFavoritesAutodetect.addEventListener("click", async () => {
+      if (clips.length === 0) {
+        alert("No dataset loaded. Please load a dataset first.");
+        return;
+      }
+
+      burgerDropdown.classList.remove("show");
+
+      // Show progress modal
+      autodetectProgressModal.classList.add("show");
+      autodetectProgressText.textContent = "Running auto-detect...";
+      autodetectProgressBar.style.width = "0%";
+
+      // Simulate progress (since we don't have real-time progress from backend)
+      let progress = 0;
+      const progressInterval = setInterval(() => {
+        progress += 5;
+        if (progress > 90) progress = 90;
+        autodetectProgressBar.style.width = `${progress}%`;
+      }, 200);
+
+      // Run auto-detect
+      const res = await fetch("/api/auto-detect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      clearInterval(progressInterval);
+      autodetectProgressBar.style.width = "100%";
+
+      setTimeout(() => {
+        autodetectProgressModal.classList.remove("show");
+
+        if (!res.ok) {
+          alert("Auto-detect failed. Make sure you have saved some favorite detectors for this media type.");
+          return;
+        }
+
+        res.json().then(data => {
+          displayAutodetectResults(data);
+        });
+      }, 500);
+    });
+  }
+
+  async function runAutoDetectAfterLoad() {
+    if (clips.length === 0) {
+      return;
+    }
+
+    // Show progress modal
+    autodetectProgressModal.classList.add("show");
+    autodetectProgressText.textContent = "Running auto-detect...";
+    autodetectProgressBar.style.width = "0%";
+
+    // Simulate progress (since we don't have real-time progress from backend)
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+      progress += 5;
+      if (progress > 90) progress = 90;
+      autodetectProgressBar.style.width = `${progress}%`;
+    }, 200);
+
+    // Run auto-detect
+    const res = await fetch("/api/auto-detect", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    clearInterval(progressInterval);
+    autodetectProgressBar.style.width = "100%";
+
+    setTimeout(() => {
+      autodetectProgressModal.classList.remove("show");
+
+      if (!res.ok) {
+        alert("Auto-detect failed. Make sure you have saved some favorite detectors for this media type.");
+        return;
+      }
+
+      res.json().then(data => {
+        displayAutodetectResults(data);
+      });
+    }, 500);
+  }
+
+  function displayAutodetectResults(data) {
+    // Display summary
+    autodetectSummary.innerHTML = `
+      <p style="color: #e0e0e0;">
+        <strong>Media Type:</strong> ${data.media_type}<br>
+        <strong>Detectors Run:</strong> ${data.detectors_run}<br>
+        <strong>Total Positive Hits:</strong> ${Object.values(data.results).reduce((sum, r) => sum + r.total_hits, 0)}
+      </p>
+    `;
+
+    // Display results by detector
+    autodetectResults.innerHTML = Object.values(data.results).map(result => `
+      <div style="background: #2a2d3a; padding: 16px; margin-bottom: 16px; border-radius: 4px;">
+        <h3 style="color: #7c8aff; margin-top: 0;">${escapeHtml(result.detector_name)}</h3>
+        <p style="color: #aaa; font-size: 0.9rem;">Threshold: ${result.threshold} | Positive Hits: ${result.total_hits}</p>
+        ${result.hits.length === 0 ? '<p style="color: #888;">No positive hits found.</p>' : ''}
+        ${result.hits.slice(0, 10).map(hit => `
+          <div style="background: #1a1d27; padding: 8px; margin-bottom: 4px; border-radius: 4px; display: flex; justify-content: space-between;">
+            <span style="color: #e0e0e0;">Clip #${hit.id}: ${hit.filename || 'N/A'}</span>
+            <span style="color: #7c8aff; font-weight: bold;">Score: ${hit.score}</span>
+          </div>
+        `).join('')}
+        ${result.hits.length > 10 ? `<p style="color: #888; font-size: 0.85rem;">...and ${result.hits.length - 10} more</p>` : ''}
+      </div>
+    `).join('');
+
+    // Store results for copying
+    window.autodetectResultsData = data;
+
+    // Show modal
+    autodetectModal.classList.add("show");
+  }
+
+  if (autodetectModalClose) {
+    autodetectModalClose.addEventListener("click", () => {
+      autodetectModal.classList.remove("show");
+    });
+  }
+
+  if (copyResultsBtn) {
+    copyResultsBtn.addEventListener("click", () => {
+      if (!window.autodetectResultsData) return;
+
+      const data = window.autodetectResultsData;
+      let text = `Auto-Detect Results\n`;
+      text += `Media Type: ${data.media_type}\n`;
+      text += `Detectors Run: ${data.detectors_run}\n\n`;
+
+      for (const [detectorName, result] of Object.entries(data.results)) {
+        text += `\n=== ${detectorName} ===\n`;
+        text += `Threshold: ${result.threshold} | Positive Hits: ${result.total_hits}\n`;
+        if (result.hits.length > 0) {
+          result.hits.forEach(hit => {
+            text += `  Clip #${hit.id}: ${hit.filename || 'N/A'} (Score: ${hit.score})\n`;
+          });
+        } else {
+          text += `  No positive hits found.\n`;
+        }
+      }
+
+      navigator.clipboard.writeText(text).then(() => {
+        copyResultsBtn.textContent = "Copied!";
+        setTimeout(() => {
+          copyResultsBtn.textContent = "Copy Results to Clipboard";
+        }, 2000);
+      });
     });
   }
 
@@ -1886,6 +2255,7 @@
   checkDatasetStatus();
   fetchInclusion();
   updateLabelCounts();
+  loadFavoriteDetectors();
 })();
 </script>
 </body>

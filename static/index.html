@@ -56,6 +56,9 @@
   .clip-item.labeled-bad.active { background: #252940; border-left-color: #f44336; }
   .clip-item .sub { font-size: 0.75rem; color: #666; margin-top: 2px; }
   .clip-item .sim { font-size: 0.7rem; color: #7c8aff; float: right; margin-top: 2px; }
+  .clip-threshold-line { height: 2px; background: #7c8aff; position: relative; pointer-events: none; flex-shrink: 0; }
+  .clip-threshold-line::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-top: 4px solid transparent; border-bottom: 4px solid transparent; border-left: 6px solid #7c8aff; }
+  .clip-threshold-line::after { content: ''; position: absolute; right: 20px; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-top: 4px solid transparent; border-bottom: 4px solid transparent; border-right: 6px solid #7c8aff; }
 
   /* Stripe overview */
   .stripe-overview { position: absolute; right: 0; top: 0; bottom: 0; width: 20px; background: #1a1d27; border-left: 1px solid #2a2d3a; cursor: pointer; }
@@ -1522,7 +1525,16 @@
       ordered = clips;
     }
 
+    let thresholdLineInserted = false;
     ordered.forEach(c => {
+      // Insert threshold line before first clip whose score falls below threshold
+      if (threshold !== null && !thresholdLineInserted && scoreMap[c.id] !== undefined && scoreMap[c.id] < threshold) {
+        const line = document.createElement("div");
+        line.className = "clip-threshold-line";
+        clipList.appendChild(line);
+        thresholdLineInserted = true;
+      }
+
       const div = document.createElement("div");
       const isGood = votes.good.includes(c.id);
       const isBad = votes.bad.includes(c.id);

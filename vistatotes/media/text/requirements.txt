@@ -1,0 +1,3 @@
+# Text (paragraph) media type dependencies
+# These packages are required to load the E5 sentence embedding model.
+sentence-transformers

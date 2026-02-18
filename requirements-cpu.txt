@@ -1,13 +1,28 @@
 --extra-index-url https://download.pytorch.org/whl/cpu
+
+# Core packages
 flask
 numpy<2
 torch>=2.0.0
-laion_clap
-librosa
 requests
 tqdm
-opencv-python-headless<4.10
 scikit-learn
 transformers
-sentence-transformers
+
+# Per-media-type packages — listed inline here (instead of via -r includes)
+# because this file uses version pins for CPU compatibility.
+# When adding a new media type, add its packages to this file alongside its
+# vistatotes/media/<yourtype>/requirements.txt.
+
+# Audio (vistatotes/media/audio/requirements.txt)
+laion_clap
+librosa
+
+# Video (vistatotes/media/video/requirements.txt)
+opencv-python-headless<4.10
+
+# Image (vistatotes/media/image/requirements.txt)
 Pillow
+
+# Text (vistatotes/media/text/requirements.txt)
+sentence-transformers

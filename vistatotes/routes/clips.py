@@ -172,6 +172,36 @@ def clip_paragraph(clip_id: int) -> tuple[Response, int] | Response:
     )
 
 
+@clips_bp.route("/api/clips/<int:clip_id>/media")
+def clip_media(clip_id: int) -> tuple[Response, int] | Response:
+    """Serve the media content for any clip type via a single generic endpoint.
+
+    Determines the media type from the clip's ``"type"`` field and delegates
+    to the registered :class:`~vistatotes.media.base.MediaType`'s
+    :meth:`~vistatotes.media.base.MediaType.clip_response` method.  This
+    endpoint works for all current and future media types without modification.
+
+    Args:
+        clip_id: Integer clip ID from the URL path.
+
+    Returns:
+        The media content with the appropriate MIME type on success (HTTP 200),
+        or a JSON error response for HTTP 404 (clip not found) or HTTP 400
+        (unrecognised media type).
+    """
+    c = clips.get(clip_id)
+    if not c:
+        return jsonify({"error": "not found"}), 404
+
+    from vistatotes.media import get as media_get
+    try:
+        mt = media_get(c.get("type", ""))
+    except KeyError:
+        return jsonify({"error": f"unsupported media type: {c.get('type')}"}), 400
+
+    return mt.clip_response(c)
+
+
 @clips_bp.route("/api/clips/<int:clip_id>/vote", methods=["POST"])
 def vote_clip(clip_id: int) -> tuple[Response, int] | Response:
     """Record or toggle a good/bad vote for a single clip.

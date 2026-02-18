@@ -320,6 +320,162 @@ def calculate_prediction_stability_over_time(
     return results
 
 
+def compute_labeling_status(
+    clips_dict: dict[int, dict[str, Any]],
+    label_history: list[tuple[int, str, float]],
+    current_good_votes: dict[int, None],
+    current_bad_votes: dict[int, None],
+    inclusion_value: int = 0,
+) -> dict[str, Any]:
+    """Compute a lightweight red/yellow/green labeling status from the last 10 steps.
+
+    Evaluates only the most recent 10 labeling steps (instead of the full history)
+    to quickly determine whether continuing to label is worthwhile.
+
+    Status meanings:
+
+    - ``"red"``: Fewer than 20 total labels, or fewer than 5 good or 5 bad labels.
+      The metric is not yet reliable.
+    - ``"yellow"``: Minimum counts met, but error cost over the last 10 steps is
+      still sloping downward, meaning labeling is still improving the model.
+    - ``"green"``: Minimum counts met and error cost is flat over the last 10 steps.
+      You can likely stop labeling.
+
+    Args:
+        clips_dict: Mapping of clip ID to clip data dict (must include ``"embedding"``).
+        label_history: Ordered list of ``(clip_id, label, timestamp)`` tuples.
+        current_good_votes: Dict whose keys are clip IDs labelled good.
+        current_bad_votes: Dict whose keys are clip IDs labelled bad.
+        inclusion_value: Integer in ``[-10, 10]`` controlling the FPR/FNR trade-off.
+
+    Returns:
+        A dict with keys ``"status"`` (``"red"``, ``"yellow"``, or ``"green"``),
+        ``"reason"`` (human-readable explanation), ``"good_count"``, ``"bad_count"``,
+        and ``"total_count"``. Yellow/green results also include a ``"slope"`` value
+        (relative slope of error cost over the last 10 steps).
+    """
+    good = len(current_good_votes)
+    bad = len(current_bad_votes)
+    total = good + bad
+
+    base = {"good_count": good, "bad_count": bad, "total_count": total}
+
+    # Red: not enough data for a reliable metric
+    if total < 20 or good < 5 or bad < 5:
+        return {
+            **base,
+            "status": "red",
+            "reason": (
+                f"Need at least 20 labels with 5 good and 5 bad. "
+                f"Currently {total} total ({good} good, {bad} bad)."
+            ),
+        }
+
+    n = len(label_history)
+    if n < 3:
+        return {
+            **base,
+            "status": "yellow",
+            "reason": "Not enough label history steps to assess trend.",
+        }
+
+    # Determine FPR/FNR weights from inclusion
+    if inclusion_value >= 0:
+        fpr_weight = 1.0
+        fnr_weight = 2.0**inclusion_value
+    else:
+        fpr_weight = 2.0 ** (-inclusion_value)
+        fnr_weight = 1.0
+
+    # Build the current evaluation set (all labeled clips)
+    current_labels: dict[int, float] = {}
+    for cid in current_good_votes:
+        current_labels[cid] = 1.0
+    for cid in current_bad_votes:
+        current_labels[cid] = 0.0
+
+    eval_pairs = [(cid, lbl) for cid, lbl in current_labels.items() if cid in clips_dict]
+    if not eval_pairs:
+        return {**base, "status": "red", "reason": "No clip embeddings available."}
+
+    eval_ids, eval_labels_list = zip(*eval_pairs)
+    eval_embs = [clips_dict[cid]["embedding"] for cid in eval_ids]
+    X_eval = torch.tensor(np.array(eval_embs), dtype=torch.float32)
+
+    total_positives = sum(1 for lbl in eval_labels_list if lbl == 1.0)
+    total_negatives = len(eval_labels_list) - total_positives
+
+    # Evaluate only the last 10 time steps
+    start_idx = max(0, n - 10)
+    recent_error_costs: list[float] = []
+
+    for t in range(start_idx, n):
+        model, threshold, _, _ = recreate_model_at_time(
+            clips_dict, label_history, t, inclusion_value
+        )
+        if model is None:
+            continue
+
+        with torch.no_grad():
+            scores = model(X_eval).squeeze(1).tolist()
+
+        fp = fn = 0
+        for score, true_label in zip(scores, eval_labels_list):
+            predicted = 1 if score >= threshold else 0
+            if predicted == 1 and true_label == 0.0:
+                fp += 1
+            elif predicted == 0 and true_label == 1.0:
+                fn += 1
+
+        fpr = fp / total_negatives if total_negatives > 0 else 0.0
+        fnr = fn / total_positives if total_positives > 0 else 0.0
+        recent_error_costs.append(fpr_weight * fpr + fnr_weight * fnr)
+
+    if len(recent_error_costs) < 3:
+        return {
+            **base,
+            "status": "yellow",
+            "reason": "Not enough valid model steps in recent history to assess trend.",
+        }
+
+    # Linear regression slope over the last 10 error-cost values
+    n_pts = len(recent_error_costs)
+    x_vals = list(range(n_pts))
+    x_mean = sum(x_vals) / n_pts
+    y_mean = sum(recent_error_costs) / n_pts
+
+    numer = sum((x_vals[i] - x_mean) * (recent_error_costs[i] - y_mean) for i in range(n_pts))
+    denom = sum((x_vals[i] - x_mean) ** 2 for i in range(n_pts))
+    slope = numer / denom if denom != 0 else 0.0
+
+    # Relative slope: normalise by mean error cost so the threshold is scale-independent
+    relative_slope = slope / y_mean if y_mean > 0 else slope
+
+    # If still dropping by more than 1.5 % of mean per step, labeling is still helping
+    FLAT_THRESHOLD = -0.015
+
+    if relative_slope < FLAT_THRESHOLD:
+        return {
+            **base,
+            "status": "yellow",
+            "reason": (
+                "Error cost is still declining over the last 10 labels. "
+                "Keep labeling to improve the model."
+            ),
+            "slope": round(relative_slope, 4),
+        }
+    else:
+        return {
+            **base,
+            "status": "green",
+            "reason": (
+                "Error cost has leveled off over the last 10 labels. "
+                "You can likely stop labeling."
+            ),
+            "slope": round(relative_slope, 4),
+        }
+
+
 def analyze_labeling_progress(
     clips_dict: dict[int, dict[str, Any]],
     label_history: list[tuple[int, str, float]],

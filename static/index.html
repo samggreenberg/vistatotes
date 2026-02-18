@@ -157,11 +157,39 @@
   .dataset-bar button { padding: 6px 16px; border: 1px solid #2a2d3a; border-radius: 4px; background: #1a1d27; color: #aaa; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; }
   .dataset-bar button:hover { background: #252940; color: #e0e0e0; }
 
-  /* Progress tracking button */
-  .progress-check-bar { padding: 12px 16px; border-bottom: 1px solid #2a2d3a; }
-  .progress-check-bar button { width: 100%; padding: 8px 0; border: 1px solid #7c8aff; border-radius: 4px; background: transparent; color: #7c8aff; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
-  .progress-check-bar button:hover { background: #7c8aff; color: #fff; }
-  .progress-check-bar button:disabled { opacity: 0.5; cursor: not-allowed; }
+  /* Progress indicator button */
+  .progress-check-bar { padding: 10px 16px; border-bottom: 1px solid #2a2d3a; }
+  .labeling-indicator {
+    width: 100%; padding: 7px 10px; border-radius: 4px; background: transparent;
+    font-size: 0.8rem; cursor: pointer; transition: border-color 0.4s, opacity 0.2s;
+    display: flex; align-items: center; gap: 8px; border: 1px solid #444; text-align: left;
+  }
+  .labeling-indicator:hover { opacity: 0.82; }
+  .labeling-indicator:disabled { opacity: 0.5; cursor: not-allowed; }
+  .indicator-dot {
+    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    background: #555; transition: background 0.4s, box-shadow 0.4s;
+  }
+  .indicator-label { flex: 1; color: #aaa; font-size: 0.8rem; transition: color 0.4s; }
+  .indicator-subtext { font-size: 0.68rem; color: #666; white-space: nowrap; transition: color 0.4s; }
+
+  /* Red – too few labels */
+  .labeling-indicator[data-status="red"] { border-color: #c0392b; }
+  .labeling-indicator[data-status="red"] .indicator-dot { background: #e74c3c; box-shadow: 0 0 5px #e74c3c88; }
+  .labeling-indicator[data-status="red"] .indicator-label { color: #e88; }
+  .labeling-indicator[data-status="red"] .indicator-subtext { color: #a55; }
+
+  /* Yellow – still improving */
+  .labeling-indicator[data-status="yellow"] { border-color: #b8860b; }
+  .labeling-indicator[data-status="yellow"] .indicator-dot { background: #f0c040; box-shadow: 0 0 5px #f0c04088; }
+  .labeling-indicator[data-status="yellow"] .indicator-label { color: #f0d070; }
+  .labeling-indicator[data-status="yellow"] .indicator-subtext { color: #a08830; }
+
+  /* Green – ready to stop */
+  .labeling-indicator[data-status="green"] { border-color: #27ae60; }
+  .labeling-indicator[data-status="green"] .indicator-dot { background: #2ecc71; box-shadow: 0 0 5px #2ecc7188; }
+  .labeling-indicator[data-status="green"] .indicator-label { color: #7deba0; }
+  .labeling-indicator[data-status="green"] .indicator-subtext { color: #3a8a55; }
 
   /* Progress popup modal */
   .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); }
@@ -319,7 +347,11 @@
   <div class="panel-right">
     <input type="file" id="import-file" accept=".json" style="display:none">
     <div class="progress-check-bar">
-      <button id="check-progress-btn">Labeling Progress</button>
+      <button id="check-progress-btn" class="labeling-indicator" data-status="">
+        <span class="indicator-dot"></span>
+        <span class="indicator-label">Labeling Progress</span>
+        <span class="indicator-subtext" id="indicator-subtext"></span>
+      </button>
     </div>
     <div class="vote-section">
       <h3 class="good">Good <span class="label-count" id="good-count">(0)</span></h3>
@@ -2000,10 +2032,47 @@
   const labelingAnalysisText = document.getElementById("labeling-analysis-text");
   const labelingAnalysisPct = document.getElementById("labeling-analysis-pct");
 
-  // Update label counts
+  // Update label counts and schedule an indicator refresh
   function updateLabelCounts() {
     goodCountSpan.textContent = `(${votes.good.length})`;
     badCountSpan.textContent = `(${votes.bad.length})`;
+    scheduleLabelingStatusUpdate();
+  }
+
+  // ---- Labeling status indicator ----
+
+  let _statusTimer = null;
+
+  function scheduleLabelingStatusUpdate() {
+    clearTimeout(_statusTimer);
+    _statusTimer = setTimeout(fetchLabelingStatus, 1200);
+  }
+
+  async function fetchLabelingStatus() {
+    try {
+      const res = await fetch("/api/labeling-status");
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.error) return;
+      applyLabelingStatus(data);
+    } catch (_) {
+      // Silently ignore — the indicator will just stay in its last state
+    }
+  }
+
+  function applyLabelingStatus(data) {
+    const btn = checkProgressBtn;
+    const subtext = document.getElementById("indicator-subtext");
+    btn.dataset.status = data.status;
+    if (data.status === "red") {
+      subtext.textContent = `${data.good_count}g / ${data.bad_count}b`;
+    } else if (data.status === "yellow") {
+      subtext.textContent = "keep labeling";
+    } else if (data.status === "green") {
+      subtext.textContent = "ready to stop";
+    } else {
+      subtext.textContent = "";
+    }
   }
 
   checkProgressBtn.addEventListener("click", async () => {
@@ -2031,7 +2100,7 @@
     }, 250);
 
     checkProgressBtn.disabled = true;
-    checkProgressBtn.textContent = "Analyzing...";
+    checkProgressBtn.querySelector(".indicator-label").textContent = "Analyzing…";
 
     try {
       const res = await fetch("/api/labeling-progress", {
@@ -2062,7 +2131,8 @@
       alert("Error analyzing progress: " + e.message);
     } finally {
       checkProgressBtn.disabled = false;
-      checkProgressBtn.textContent = "Check Labeling Progress";
+      checkProgressBtn.querySelector(".indicator-label").textContent = "Labeling Progress";
+      fetchLabelingStatus();
       // If the progress modal didn't open (error path), resume media now
       if (!progressModal.classList.contains("show")) {
         resumeActiveMedia();
@@ -2348,6 +2418,7 @@
   fetchInclusion();
   updateLabelCounts();
   loadFavoriteDetectors();
+  fetchLabelingStatus();
 })();
 </script>
 </body>

@@ -10,6 +10,7 @@ from flask import Blueprint, jsonify, request
 
 from config import DATA_DIR
 from vistatotes.models import (analyze_labeling_progress,
+                               compute_labeling_status,
                                calculate_cross_calibration_threshold,
                                calculate_gmm_threshold, embed_audio_file,
                                embed_text_query, get_clap_model,
@@ -459,6 +460,23 @@ def labeling_progress():
             clips, label_history, good_votes, bad_votes, get_inclusion()
         )
         return jsonify(analysis)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@sorting_bp.route("/api/labeling-status", methods=["GET"])
+def labeling_status_indicator():
+    """Return a lightweight red/yellow/green labeling status based on the last 10 steps.
+
+    Red  – fewer than 20 labels, or fewer than 5 good or 5 bad.
+    Yellow – minimum counts met but error cost is still declining (keep labeling).
+    Green  – minimum counts met and error cost has leveled off (safe to stop).
+    """
+    try:
+        status = compute_labeling_status(
+            clips, label_history, good_votes, bad_votes, get_inclusion()
+        )
+        return jsonify(status)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

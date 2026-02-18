@@ -813,17 +813,43 @@
 
   // ---- Burger Menu ----
 
+  // Pause/resume looping media when focus leaves the labeling interface
+  function pauseActiveMedia() {
+    const audio = document.getElementById("clip-audio");
+    const video = document.getElementById("clip-video");
+    window._mediaPausedForUI = false;
+    if (audio && !audio.paused) { audio.pause(); window._mediaPausedForUI = true; }
+    if (video && !video.paused) { video.pause(); window._mediaPausedForUI = true; }
+  }
+
+  function resumeActiveMedia() {
+    if (!window._mediaPausedForUI) return;
+    const audio = document.getElementById("clip-audio");
+    const video = document.getElementById("clip-video");
+    if (audio) audio.play().catch(() => {});
+    if (video) video.play().catch(() => {});
+    window._mediaPausedForUI = false;
+  }
+
   // Toggle burger menu
   if (burgerBtn && burgerDropdown) {
     burgerBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       burgerDropdown.classList.toggle("show");
+      if (burgerDropdown.classList.contains("show")) {
+        pauseActiveMedia();
+      } else {
+        resumeActiveMedia();
+      }
     });
 
     // Close burger menu when clicking outside
     document.addEventListener("click", (e) => {
       if (!burgerDropdown.contains(e.target) && !burgerBtn.contains(e.target)) {
-        burgerDropdown.classList.remove("show");
+        if (burgerDropdown.classList.contains("show")) {
+          burgerDropdown.classList.remove("show");
+          resumeActiveMedia();
+        }
       }
     });
   }
@@ -1967,10 +1993,7 @@
     }
 
     // Pause any active audio or video playback
-    const activeAudio = document.getElementById("clip-audio");
-    const activeVideo = document.getElementById("clip-video");
-    if (activeAudio && !activeAudio.paused) activeAudio.pause();
-    if (activeVideo && !activeVideo.paused) activeVideo.pause();
+    pauseActiveMedia();
 
     // Show loading progress modal
     labelingAnalysisBar.style.width = "0%";
@@ -2020,16 +2043,22 @@
     } finally {
       checkProgressBtn.disabled = false;
       checkProgressBtn.textContent = "Check Labeling Progress";
+      // If the progress modal didn't open (error path), resume media now
+      if (!progressModal.classList.contains("show")) {
+        resumeActiveMedia();
+      }
     }
   });
 
   modalClose.addEventListener("click", () => {
     progressModal.classList.remove("show");
+    resumeActiveMedia();
   });
 
   progressModal.addEventListener("click", (e) => {
     if (e.target === progressModal) {
       progressModal.classList.remove("show");
+      resumeActiveMedia();
     }
   });
 

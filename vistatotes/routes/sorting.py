@@ -13,8 +13,9 @@ from vistatotes.models import (analyze_labeling_progress,
                                compute_labeling_status,
                                calculate_cross_calibration_threshold,
                                calculate_gmm_threshold, embed_audio_file,
-                               embed_text_query, get_clap_model,
-                               train_and_score, train_model)
+                               embed_image_file, embed_paragraph_file,
+                               embed_video_file, embed_text_query,
+                               get_clap_model, train_and_score, train_model)
 from vistatotes.utils import (add_favorite_detector, add_label_to_history,
                               bad_votes, clips, get_favorite_detectors,
                               get_favorite_detectors_by_media, get_inclusion,
@@ -561,10 +562,13 @@ def import_detector_pkl():
         if not weights:
             return jsonify({"error": "Invalid detector file format"}), 400
 
-        # Determine media type from current clips
-        media_type = "audio"  # Default
-        if clips:
-            media_type = next(iter(clips.values())).get("type", "audio")
+        # Prefer media_type stored in the file; fall back to current clips, then "audio"
+        media_type = detector_data.get("media_type", "")
+        if not media_type:
+            if clips:
+                media_type = next(iter(clips.values())).get("type", "audio")
+            else:
+                media_type = "audio"
 
         add_favorite_detector(name, media_type, weights, threshold)
         return jsonify({"success": True, "name": name, "media_type": media_type})
@@ -575,7 +579,13 @@ def import_detector_pkl():
 
 @sorting_bp.route("/api/favorite-detectors/import-labels", methods=["POST"])
 def import_detector_labels():
-    """Import a favorite detector by training on a label file."""
+    """Import a favorite detector by training on a label file.
+
+    The label file is a JSON object with a ``"labels"`` list. Each entry has
+    ``"path"`` (or ``"file"``/``"filename"``) and ``"label"`` (``"good"`` or
+    ``"bad"``). Media type is inferred from file extensions; you may also pass
+    ``media_type`` as a form field to force a specific type.
+    """
     if "file" not in request.files:
         return jsonify({"error": "No file provided"}), 400
 
@@ -585,31 +595,56 @@ def import_detector_labels():
 
     name = request.form.get("name", "").strip()
     if not name:
-        # Use filename without extension as default name
         name = Path(file.filename).stem
 
-    clap_model, clap_processor = get_clap_model()
-    if clap_model is None or clap_processor is None:
-        return jsonify({"error": "CLAP model not loaded"}), 500
+    # Optional explicit media type override
+    media_type_hint = request.form.get("media_type", "").strip()
+
+    # Extension → media-type lookup tables
+    _AUDIO_EXTS = {".wav", ".mp3", ".flac", ".ogg", ".m4a"}
+    _IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"}
+    _VIDEO_EXTS = {".mp4", ".avi", ".mov", ".webm", ".mkv"}
+    _TEXT_EXTS  = {".txt", ".md"}
+
+    def _media_type_for_path(p: Path) -> str | None:
+        ext = p.suffix.lower()
+        if ext in _AUDIO_EXTS:
+            return "audio"
+        if ext in _IMAGE_EXTS:
+            return "image"
+        if ext in _VIDEO_EXTS:
+            return "video"
+        if ext in _TEXT_EXTS:
+            return "paragraph"
+        return None
+
+    def _embed(media_type: str, p: Path):
+        if media_type == "audio":
+            return embed_audio_file(p)
+        if media_type == "image":
+            return embed_image_file(p)
+        if media_type == "video":
+            return embed_video_file(p)
+        if media_type == "paragraph":
+            return embed_paragraph_file(p)
+        return None
 
     try:
-        # Parse the label file
         text = file.read().decode("utf-8")
         try:
             label_data = json.loads(text)
         except Exception:
             return jsonify({"error": "Invalid label file format"}), 400
 
-        # Extract labels list
         labels = label_data.get("labels", [])
         if not labels:
             return jsonify({"error": "No labels found in file"}), 400
 
-        # Load and embed each labeled audio file
-        X_list = []
-        y_list = []
+        X_list: list = []
+        y_list: list = []
         loaded_count = 0
         skipped_count = 0
+        detected_media_type: str | None = media_type_hint or None
 
         for entry in labels:
             label = entry.get("label")
@@ -617,21 +652,32 @@ def import_detector_labels():
                 skipped_count += 1
                 continue
 
-            # Try to get audio file path
-            audio_path = (
+            file_path_str = (
                 entry.get("path") or entry.get("file") or entry.get("filename")
             )
-            if not audio_path:
+            if not file_path_str:
                 skipped_count += 1
                 continue
 
-            audio_path = Path(audio_path)
-            if not audio_path.exists():
+            file_path = Path(file_path_str)
+            if not file_path.exists():
                 skipped_count += 1
                 continue
 
-            # Embed the audio file
-            embedding = embed_audio_file(audio_path)
+            # Resolve media type for this entry
+            mt = media_type_hint or _media_type_for_path(file_path)
+            if mt is None:
+                skipped_count += 1
+                continue
+
+            # Enforce a single media type across all entries
+            if detected_media_type is None:
+                detected_media_type = mt
+            elif detected_media_type != mt:
+                skipped_count += 1
+                continue
+
+            embedding = _embed(mt, file_path)
             if embedding is None:
                 skipped_count += 1
                 continue
@@ -644,13 +690,15 @@ def import_detector_labels():
             return (
                 jsonify(
                     {
-                        "error": f"Need at least 2 valid labeled files (loaded {loaded_count}, skipped {skipped_count})"
+                        "error": (
+                            f"Need at least 2 valid labeled files "
+                            f"(loaded {loaded_count}, skipped {skipped_count})"
+                        )
                     }
                 ),
                 400,
             )
 
-        # Check if we have both good and bad examples
         num_good = sum(1 for y in y_list if y == 1.0)
         num_bad = len(y_list) - num_good
         if num_good == 0 or num_bad == 0:
@@ -661,35 +709,27 @@ def import_detector_labels():
                 400,
             )
 
-        # Train MLP
         X = torch.tensor(np.array(X_list), dtype=torch.float32)
         y = torch.tensor(y_list, dtype=torch.float32).unsqueeze(1)
-
         input_dim = X.shape[1]
 
-        # Calculate threshold using cross-calibration
         threshold = calculate_cross_calibration_threshold(
             X_list, y_list, input_dim, get_inclusion()
         )
-
-        # Train final model on all data
         model = train_model(X, y, input_dim, get_inclusion())
 
-        # Extract model weights
         state_dict = model.state_dict()
         weights = {}
         for key, value in state_dict.items():
             weights[key] = value.tolist()
 
-        # Determine media type (default to audio for label file imports)
-        media_type = "audio"
-
-        add_favorite_detector(name, media_type, weights, threshold)
+        final_media_type = detected_media_type or "audio"
+        add_favorite_detector(name, final_media_type, weights, threshold)
         return jsonify(
             {
                 "success": True,
                 "name": name,
-                "media_type": media_type,
+                "media_type": final_media_type,
                 "loaded": loaded_count,
                 "skipped": skipped_count,
             }

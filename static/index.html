@@ -407,18 +407,37 @@
 
 <!-- Favorite Detectors Management Modal -->
 <div id="favorites-modal" class="modal">
-  <div class="modal-content">
+  <div class="modal-content" style="max-width: 700px;">
     <div class="modal-header">
       <h2>Manage Favorite Detectors</h2>
       <button class="modal-close" id="favorites-modal-close">&times;</button>
     </div>
     <div class="modal-body">
-      <div id="favorites-list" style="margin-top: 16px;">
+      <!-- Add Detector Section -->
+      <div style="background: #14161e; border: 1px solid #2a2d3a; border-radius: 6px; padding: 16px; margin-bottom: 20px;">
+        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #666; margin-bottom: 10px;">Add Detector</div>
+        <div style="margin-bottom: 10px;">
+          <label style="font-size: 0.78rem; color: #888; display: block; margin-bottom: 4px;">Name (optional — defaults to filename)</label>
+          <input type="text" id="fav-add-name" placeholder="e.g. Dog Barks" style="width: 100%; padding: 6px 8px; border: 1px solid #2a2d3a; border-radius: 4px; background: #1a1d27; color: #e0e0e0; font-size: 0.85rem; outline: none;">
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button id="fav-add-from-votes-btn" style="flex: 1; padding: 8px 12px; background: #7c8aff; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">From Current Labels</button>
+          <button id="fav-add-from-detector-btn" style="flex: 1; padding: 8px 12px; background: #3a3d50; color: #ccc; border: 1px solid #4a4d60; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">From Detector File (.json)</button>
+          <button id="fav-add-from-labels-btn" style="flex: 1; padding: 8px 12px; background: #3a3d50; color: #ccc; border: 1px solid #4a4d60; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">From Label File (.json)</button>
+        </div>
+        <div id="fav-add-status" style="font-size: 0.78rem; color: #888; margin-top: 8px; min-height: 1.2em;"></div>
+      </div>
+      <!-- Saved Detectors List -->
+      <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #666; margin-bottom: 8px;">Saved Detectors</div>
+      <div id="favorites-list">
         <p style="color: #888;">No favorite detectors saved yet.</p>
       </div>
     </div>
   </div>
 </div>
+<!-- Hidden file inputs for favorites modal -->
+<input type="file" id="fav-detector-file-input" accept=".json" style="display:none">
+<input type="file" id="fav-labels-file-input" accept=".json" style="display:none">
 
 <!-- Auto-Detect Results Modal -->
 <div id="autodetect-modal" class="modal">
@@ -551,6 +570,13 @@
   const favoritesModal = document.getElementById("favorites-modal");
   const favoritesModalClose = document.getElementById("favorites-modal-close");
   const favoritesList = document.getElementById("favorites-list");
+  const favAddName = document.getElementById("fav-add-name");
+  const favAddStatus = document.getElementById("fav-add-status");
+  const favAddFromVotesBtn = document.getElementById("fav-add-from-votes-btn");
+  const favAddFromDetectorBtn = document.getElementById("fav-add-from-detector-btn");
+  const favAddFromLabelsBtn = document.getElementById("fav-add-from-labels-btn");
+  const favDetectorFileInput = document.getElementById("fav-detector-file-input");
+  const favLabelsFileInput = document.getElementById("fav-labels-file-input");
   const autodetectModal = document.getElementById("autodetect-modal");
   const autodetectModalClose = document.getElementById("autodetect-modal-close");
   const autodetectSummary = document.getElementById("autodetect-summary");
@@ -1091,18 +1117,28 @@
       return;
     }
 
-    favoritesList.innerHTML = favoriteDetectors.map(detector => `
-      <div style="background: #2a2d3a; padding: 12px; margin-bottom: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
-        <div>
-          <div style="font-weight: bold; color: #7c8aff;">${escapeHtml(detector.name)}</div>
-          <div style="font-size: 0.85rem; color: #aaa;">Media: ${detector.media_type} | Threshold: ${detector.threshold.toFixed(2)}</div>
+    const mediaIcons = { audio: "🔊", image: "🖼️", video: "🎬", paragraph: "📄" };
+    favoritesList.innerHTML = favoriteDetectors.map(detector => {
+      const icon = mediaIcons[detector.media_type] || "🔍";
+      const created = detector.created_at
+        ? new Date(detector.created_at * 1000).toLocaleDateString()
+        : "";
+      return `
+      <div style="background: #2a2d3a; padding: 12px; margin-bottom: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-weight: bold; color: #7c8aff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(detector.name)}</div>
+          <div style="font-size: 0.8rem; color: #888; margin-top: 3px; display: flex; align-items: center; gap: 10px;">
+            <span style="background: #1a1d27; border: 1px solid #3a3d50; border-radius: 3px; padding: 1px 6px; white-space: nowrap;">${icon} ${detector.media_type}</span>
+            <span>threshold&nbsp;${detector.threshold.toFixed(2)}</span>
+            ${created ? `<span>${created}</span>` : ""}
+          </div>
         </div>
-        <div>
-          <button onclick="renameDetector('${escapeHtml(detector.name)}')" style="padding: 4px 8px; margin-right: 4px; background: #555; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Rename</button>
-          <button onclick="deleteDetector('${escapeHtml(detector.name)}')" style="padding: 4px 8px; background: #f44336; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Delete</button>
+        <div style="display: flex; gap: 6px; flex-shrink: 0;">
+          <button onclick="renameDetector('${escapeHtml(detector.name)}')" style="padding: 4px 10px; background: #3a3d50; color: #ccc; border: 1px solid #4a4d60; border-radius: 4px; cursor: pointer; font-size: 0.78rem;">Rename</button>
+          <button onclick="deleteDetector('${escapeHtml(detector.name)}')" style="padding: 4px 10px; background: #c0392b; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 0.78rem;">Delete</button>
         </div>
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
   }
 
   function escapeHtml(text) {
@@ -1202,6 +1238,137 @@
       }
 
       burgerDropdown.classList.remove("show");
+    });
+  }
+
+  // ---- Add Detector panel inside Manage Favorites modal ----
+
+  function setFavAddStatus(msg, color) {
+    if (favAddStatus) {
+      favAddStatus.textContent = msg;
+      favAddStatus.style.color = color || "#aaa";
+    }
+  }
+
+  // Add from current votes (train a new detector from labelled clips)
+  if (favAddFromVotesBtn) {
+    favAddFromVotesBtn.addEventListener("click", async () => {
+      if (votes.good.length === 0 || votes.bad.length === 0) {
+        setFavAddStatus("Need at least one good and one bad vote first.", "#f44336");
+        return;
+      }
+      const name = favAddName ? favAddName.value.trim() : "";
+      if (!name) {
+        setFavAddStatus("Enter a name first.", "#f44336");
+        return;
+      }
+      setFavAddStatus("Training detector\u2026", "#aaa");
+
+      const exportRes = await fetch("/api/detector/export", { method: "POST" });
+      if (!exportRes.ok) {
+        setFavAddStatus("Failed to train detector.", "#f44336");
+        return;
+      }
+      const detectorData = await exportRes.json();
+      const mediaType = clips.length > 0 ? clips[0].type : "audio";
+
+      const saveRes = await fetch("/api/favorite-detectors", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          media_type: mediaType,
+          weights: detectorData.weights,
+          threshold: detectorData.threshold,
+        }),
+      });
+
+      if (saveRes.ok) {
+        setFavAddStatus(`Detector \u201c${name}\u201d saved (${mediaType}).`, "#4caf50");
+        if (favAddName) favAddName.value = "";
+        await loadFavoriteDetectors();
+      } else {
+        setFavAddStatus("Failed to save detector.", "#f44336");
+      }
+    });
+  }
+
+  // Add from a detector JSON file (same format as Load Sort / detector export)
+  if (favAddFromDetectorBtn) {
+    favAddFromDetectorBtn.addEventListener("click", () => {
+      if (favDetectorFileInput) favDetectorFileInput.click();
+    });
+  }
+
+  if (favDetectorFileInput) {
+    favDetectorFileInput.addEventListener("change", async () => {
+      const file = favDetectorFileInput.files[0];
+      if (!file) return;
+      const defaultName = file.name.replace(/\.[^/.]+$/, "");
+      const detectorName = (favAddName && favAddName.value.trim()) || defaultName;
+
+      setFavAddStatus("Importing detector\u2026", "#aaa");
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("name", detectorName);
+
+      const res = await fetch("/api/favorite-detectors/import-pkl", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setFavAddStatus(`Imported \u201c${data.name}\u201d (${data.media_type}).`, "#4caf50");
+        if (favAddName) favAddName.value = "";
+        await loadFavoriteDetectors();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setFavAddStatus(`Error: ${err.error || "Import failed"}`, "#f44336");
+      }
+      favDetectorFileInput.value = "";
+    });
+  }
+
+  // Add from a label file (JSON with paths + labels; trains a new detector)
+  if (favAddFromLabelsBtn) {
+    favAddFromLabelsBtn.addEventListener("click", () => {
+      if (favLabelsFileInput) favLabelsFileInput.click();
+    });
+  }
+
+  if (favLabelsFileInput) {
+    favLabelsFileInput.addEventListener("change", async () => {
+      const file = favLabelsFileInput.files[0];
+      if (!file) return;
+      const defaultName = file.name.replace(/\.[^/.]+$/, "");
+      const detectorName = (favAddName && favAddName.value.trim()) || defaultName;
+
+      setFavAddStatus("Training from label file\u2026", "#aaa");
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("name", detectorName);
+
+      const res = await fetch("/api/favorite-detectors/import-labels", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setFavAddStatus(
+          `Trained \u201c${data.name}\u201d (${data.media_type}, ${data.loaded} files).`,
+          "#4caf50"
+        );
+        if (favAddName) favAddName.value = "";
+        await loadFavoriteDetectors();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setFavAddStatus(`Error: ${err.error || "Training failed"}`, "#f44336");
+      }
+      favLabelsFileInput.value = "";
     });
   }
 

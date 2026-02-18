@@ -428,6 +428,22 @@
   </div>
 </div>
 
+<!-- Labeling Progress Analysis Loading Modal -->
+<div id="labeling-analysis-modal" class="modal">
+  <div class="modal-content" style="min-width: 360px;">
+    <div class="modal-header">
+      <h2>Analyzing Labeling Progress</h2>
+    </div>
+    <div class="modal-body">
+      <div id="labeling-analysis-text" style="margin-bottom: 16px; color: #aaa; font-size: 0.9rem;">Training models over label history…</div>
+      <div style="background: #2a2d3a; border-radius: 8px; overflow: hidden; height: 24px; position: relative;">
+        <div id="labeling-analysis-bar" style="background: linear-gradient(90deg, #7c8aff, #a0aaff); height: 100%; width: 0%; transition: width 0.3s;"></div>
+        <div id="labeling-analysis-pct" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.75rem; color: #fff; font-weight: bold;">0%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 (function() {
   let clips = [];
@@ -1967,6 +1983,10 @@
   const modalClose = document.getElementById("modal-close");
   const goodCountSpan = document.getElementById("good-count");
   const badCountSpan = document.getElementById("bad-count");
+  const labelingAnalysisModal = document.getElementById("labeling-analysis-modal");
+  const labelingAnalysisBar = document.getElementById("labeling-analysis-bar");
+  const labelingAnalysisText = document.getElementById("labeling-analysis-text");
+  const labelingAnalysisPct = document.getElementById("labeling-analysis-pct");
 
   // Update label counts
   function updateLabelCounts() {
@@ -1980,6 +2000,27 @@
       return;
     }
 
+    // Pause any active audio or video playback
+    const activeAudio = document.getElementById("clip-audio");
+    const activeVideo = document.getElementById("clip-video");
+    if (activeAudio && !activeAudio.paused) activeAudio.pause();
+    if (activeVideo && !activeVideo.paused) activeVideo.pause();
+
+    // Show loading progress modal
+    labelingAnalysisBar.style.width = "0%";
+    labelingAnalysisPct.textContent = "0%";
+    labelingAnalysisText.textContent = "Training models over label history…";
+    labelingAnalysisModal.classList.add("show");
+
+    // Simulate progress while waiting for the backend
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+      progress += 3;
+      if (progress > 90) progress = 90;
+      labelingAnalysisBar.style.width = `${progress}%`;
+      labelingAnalysisPct.textContent = `${progress}%`;
+    }, 250);
+
     checkProgressBtn.disabled = true;
     checkProgressBtn.textContent = "Analyzing...";
 
@@ -1988,6 +2029,14 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
+
+      clearInterval(progressInterval);
+      labelingAnalysisBar.style.width = "100%";
+      labelingAnalysisPct.textContent = "100%";
+      labelingAnalysisText.textContent = "Done!";
+
+      await new Promise(r => setTimeout(r, 350));
+      labelingAnalysisModal.classList.remove("show");
 
       if (!res.ok) {
         const error = await res.json();
@@ -1999,6 +2048,8 @@
       displayProgressResults(data);
       progressModal.classList.add("show");
     } catch (e) {
+      clearInterval(progressInterval);
+      labelingAnalysisModal.classList.remove("show");
       alert("Error analyzing progress: " + e.message);
     } finally {
       checkProgressBtn.disabled = false;

@@ -1,3 +1,4 @@
+# Core application dependencies
 flask
 numpy
 torch
@@ -5,8 +6,14 @@ torchvision
 transformers
 accelerate
 scikit-learn
-librosa
 requests
-opencv-python-headless
 tqdm
-sentence-transformers
+
+# Per-media-type dependencies.
+# Each media type declares its own requirements in its subdirectory.
+# To add a new media type, create vistatotes/media/<yourtype>/requirements.txt
+# and add a -r line below pointing to it.
+-r vistatotes/media/audio/requirements.txt
+-r vistatotes/media/video/requirements.txt
+-r vistatotes/media/image/requirements.txt
+-r vistatotes/media/text/requirements.txt

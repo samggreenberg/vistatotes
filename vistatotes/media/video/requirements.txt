@@ -1,0 +1,3 @@
+# Video media type dependencies
+# These packages are required to decode video files and extract frames.
+opencv-python-headless

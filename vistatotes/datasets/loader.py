@@ -7,20 +7,14 @@ import pickle
 from pathlib import Path
 from typing import Any, Optional
 
-import cv2
-import librosa
 import numpy as np
-import torch
 from PIL import Image
 
-from config import (EMBEDDINGS_DIR, IMAGES_PER_CIFAR10_CATEGORY, SAMPLE_RATE)
-from vistatotes.datasets import DEMO_DATASETS
+from config import (EMBEDDINGS_DIR, IMAGES_PER_CIFAR10_CATEGORY)
+from vistatotes.datasets.config import DEMO_DATASETS
 from vistatotes.datasets.downloader import (download_20newsgroups,
                                             download_cifar10, download_esc50,
                                             download_ucf101_subset)
-from vistatotes.models import (embed_audio_file, embed_image_file,
-                               embed_paragraph_file, embed_video_file,
-                               get_clip_model)
 from vistatotes.utils import update_progress
 
 
@@ -240,59 +234,34 @@ def load_dataset_from_folder(
 
     The ``clips`` dict is cleared before loading begins.
 
+    ``media_type`` is looked up in the media type registry by
+    :attr:`~vistatotes.media.base.MediaType.folder_import_name` (e.g.
+    ``"sounds"``, ``"videos"``, ``"images"``, ``"paragraphs"``).  Adding a
+    new media type to the registry automatically makes it available here
+    without any changes to this function.
+
     Args:
-        folder_path: Path to a flat directory containing media files. All
-            matching files in the directory are loaded (non-recursive).
-        media_type: The type of media to load. Must be one of:
-
-            - ``"sounds"``     – WAV/MP3/FLAC/OGG/M4A files; embedded with CLAP.
-            - ``"videos"``     – MP4/AVI/MOV/WEBM/MKV files; embedded with X-CLIP.
-            - ``"images"``     – JPEG/PNG/GIF/BMP/WEBP files; embedded with CLIP.
-            - ``"paragraphs"`` – TXT/MD files; embedded with E5-large-v2.
-
+        folder_path: Path to a flat directory containing media files.
+        media_type: Folder-import alias for the media type (e.g. ``"sounds"``).
         clips: Dict to populate in-place. Existing entries are removed before
             loading. Keys are sequential integer clip IDs starting from 1.
-            Each value is a clip data dict containing at minimum: ``id``,
-            ``type``, ``file_size``, ``md5``, ``embedding``, ``filename``,
-            ``category``, and media-type-specific fields (``wav_bytes``,
-            ``video_bytes``, ``image_bytes``, or ``text_content``).
 
     Raises:
-        ValueError: If ``media_type`` is not one of the four supported values,
-            or if no matching files are found in ``folder_path``.
+        ValueError: If ``media_type`` is not recognised, or if no matching
+            files are found in ``folder_path``.
     """
+    from vistatotes.media import get_by_folder_name
+
     update_progress("embedding", "Scanning media files...", 0, 0)
 
-    # Define file extensions for each media type
-    media_extensions = {
-        "sounds": ["*.wav", "*.mp3", "*.flac", "*.ogg", "*.m4a"],
-        "videos": ["*.mp4", "*.avi", "*.mov", "*.webm", "*.mkv"],
-        "images": ["*.jpg", "*.jpeg", "*.png", "*.gif", "*.bmp", "*.webp"],
-        "paragraphs": ["*.txt", "*.md"],
-    }
-
-    # Define embedding functions for each media type
-    embed_functions = {
-        "sounds": embed_audio_file,
-        "videos": embed_video_file,
-        "images": embed_image_file,
-        "paragraphs": embed_paragraph_file,
-    }
-
-    # Map modality names to internal type strings
-    type_mapping = {
-        "sounds": "audio",
-        "videos": "video",
-        "images": "image",
-        "paragraphs": "paragraph",
-    }
-
-    if media_type not in media_extensions:
+    try:
+        mt = get_by_folder_name(media_type)
+    except KeyError:
         raise ValueError(f"Invalid media type: {media_type}")
 
     # Find all files of the specified media type
     media_files = []
-    for ext in media_extensions[media_type]:
+    for ext in mt.file_extensions:
         media_files.extend(folder_path.glob(ext))
 
     if not media_files:
@@ -300,10 +269,7 @@ def load_dataset_from_folder(
 
     clips.clear()
     clip_id = 1
-
-    # Process all media files
     total_files = len(media_files)
-    embed_func = embed_functions[media_type]
 
     for i, file_path in enumerate(media_files):
         update_progress(
@@ -313,23 +279,24 @@ def load_dataset_from_folder(
             total_files,
         )
 
-        embedding = embed_func(file_path)
+        embedding = mt.embed_media(file_path)
         if embedding is None:
             continue
 
-        # Load file to get bytes
         with open(file_path, "rb") as f:
             file_bytes = f.read()
 
-        # Initialize clip data
-        clip_data = {
+        # Build the base clip dict
+        clip_data: dict[str, Any] = {
             "id": clip_id,
-            "type": type_mapping[media_type],
+            "type": mt.type_id,
             "file_size": len(file_bytes),
             "md5": hashlib.md5(file_bytes).hexdigest(),
             "embedding": embedding,
             "filename": file_path.name,
             "category": "custom",
+            # Null-out all optional media fields so clips from different types
+            # stored in the same dict have consistent keys.
             "wav_bytes": None,
             "video_bytes": None,
             "image_bytes": None,
@@ -337,48 +304,8 @@ def load_dataset_from_folder(
             "duration": 0,
         }
 
-        # Set media-specific fields
-        if media_type == "sounds":
-            clip_data["wav_bytes"] = file_bytes
-            # Get duration
-            try:
-                audio_data, sr = librosa.load(file_path, sr=SAMPLE_RATE, mono=True)
-                clip_data["duration"] = len(audio_data) / sr
-            except Exception:
-                pass
-
-        elif media_type == "videos":
-            clip_data["video_bytes"] = file_bytes
-            # Get duration using OpenCV
-            try:
-                cap = cv2.VideoCapture(str(file_path))
-                fps = cap.get(cv2.CAP_PROP_FPS)
-                frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
-                clip_data["duration"] = frame_count / fps if fps > 0 else 0
-                cap.release()
-            except Exception:
-                pass
-
-        elif media_type == "images":
-            clip_data["image_bytes"] = file_bytes
-            # Get image dimensions
-            try:
-                img = Image.open(file_path)
-                clip_data["width"] = img.width
-                clip_data["height"] = img.height
-            except Exception:
-                pass
-
-        elif media_type == "paragraphs":
-            # Store text content directly (not as bytes)
-            try:
-                with open(file_path, "r", encoding="utf-8") as f:
-                    text_content = f.read().strip()
-                clip_data["text_content"] = text_content
-                clip_data["word_count"] = len(text_content.split())
-                clip_data["character_count"] = len(text_content)
-            except Exception:
-                pass
+        # Merge in media-specific fields from the media type
+        clip_data.update(mt.load_clip_data(file_path))
 
         clips[clip_id] = clip_data
         clip_id += 1
@@ -523,44 +450,26 @@ def load_dataset_from_pickle(
 def embed_image_file_from_pil(image: Image.Image) -> Optional[np.ndarray]:
     """Generate a CLIP embedding vector for a PIL Image object.
 
-    A convenience wrapper around the CLIP vision model for cases where the
-    image is already in memory as a PIL Image (e.g. reconstructed from a
-    NumPy array) rather than a file path.
+    A convenience wrapper for cases where the image is already in memory
+    (e.g. reconstructed from a NumPy array during CIFAR-10 loading).
+
+    Delegates to :meth:`~vistatotes.media.image.media_type.ImageMediaType.embed_pil_image`.
 
     Args:
-        image: A PIL Image in any mode; will be converted to RGB internally.
+        image: A PIL Image in any mode.
 
     Returns:
-        A 1-D ``numpy.ndarray`` of shape ``(embedding_dim,)`` representing the
-        CLIP image embedding, or ``None`` if the CLIP model is not loaded or if
-        an exception occurs during processing.
+        A 1-D ``numpy.ndarray`` of shape ``(embedding_dim,)``, or ``None`` if
+        the CLIP model is not loaded or an exception occurs.
     """
-    clip_model, clip_processor = get_clip_model()
-    if clip_model is None or clip_processor is None:
-        return None
-
-    try:
-        # Ensure RGB mode
-        image = image.convert("RGB")
-
-        # Process image with CLIP processor
-        inputs = clip_processor(images=image, return_tensors="pt")
-
-        # Get embedding from CLIP vision model
-        with torch.no_grad():
-            outputs = clip_model.get_image_features(**inputs)
-            embedding = outputs.numpy()
-
-        return embedding[0]
-    except Exception as e:
-        print(f"Error embedding image: {e}")
-        return None
+    from vistatotes.media import get as media_get
+    return media_get("image").embed_pil_image(image)
 
 
 def load_demo_dataset(
     dataset_name: str,
     clips: dict[int, dict[str, Any]],
-    e5_model: Any,
+    e5_model: Any = None,
 ) -> None:
     """Load a named demo dataset into the clips dict, downloading and embedding as needed.
 
@@ -575,21 +484,20 @@ def load_demo_dataset(
     - Image datasets (CIFAR-10 subsets): downloaded from ``CIFAR10_URL``,
       embedded with CLIP.
     - Paragraph datasets (20 Newsgroups subsets): downloaded via
-      ``sklearn.datasets.fetch_20newsgroups``, embedded with E5-large-v2.
+      ``sklearn.datasets.fetch_20newsgroups``, embedded with E5-base-v2.
     - Video datasets (UCF-101): must be manually placed at
       ``VIDEO_DIR/ucf101/``; embedded with X-CLIP.
 
     Progress throughout the operation is reported via :func:`update_progress`.
 
     Args:
-        dataset_name: Key into ``DEMO_DATASETS`` identifying which demo dataset to
-            load. Raises ``ValueError`` if the key is not found.
+        dataset_name: Key into ``DEMO_DATASETS`` identifying which demo dataset
+            to load.  Raises ``ValueError`` if the key is not found.
         clips: Dict to populate in-place. Existing entries are removed before
             loading. Keys are integer clip IDs; values are clip data dicts.
-        e5_model: A loaded ``sentence_transformers.SentenceTransformer`` instance
-            (E5-large-v2) used for embedding paragraph datasets. May be ``None``
-            if no paragraph datasets are being loaded (a ``None`` check is
-            performed internally).
+        e5_model: Deprecated — kept for backward compatibility but no longer
+            used.  The text embedding model is obtained from the media type
+            registry.
 
     Raises:
         ValueError: If ``dataset_name`` is not in ``DEMO_DATASETS``, or if the
@@ -674,7 +582,7 @@ def load_demo_dataset(
                 img.save(img_buffer, format="PNG")
                 image_bytes = img_buffer.getvalue()
 
-                # Get embedding
+                # Get embedding via registry
                 embedding = embed_image_file_from_pil(img)
                 if embedding is None:
                     continue
@@ -718,7 +626,10 @@ def load_demo_dataset(
             return
 
     elif media_type == "paragraph":
-        # Handle paragraph datasets
+        # Handle paragraph datasets — use text media type from registry
+        from vistatotes.media import get as media_get
+        text_mt = media_get("paragraph")
+
         paragraph_source = dataset_info.get("source", "ag_news_sample")
 
         if paragraph_source == "ag_news_sample":
@@ -769,16 +680,14 @@ def load_demo_dataset(
                 if not text_content:
                     continue
 
-                # Embed with E5-LARGE-V2 using "passage:" prefix
-                if e5_model is None:
-                    continue
-
+                # Embed via text media type
                 try:
-                    embedding = e5_model.encode(
-                        f"passage: {text_content}", normalize_embeddings=True
-                    )
+                    embedding = text_mt.embed_text_passage(text_content)
                 except Exception as e:
                     print(f"Error embedding paragraph: {e}")
+                    continue
+
+                if embedding is None:
                     continue
 
                 word_count = len(text_content.split())
@@ -829,6 +738,9 @@ def load_demo_dataset(
         video_source = dataset_info.get("source", "ucf101")
 
         if video_source == "ucf101":
+            from vistatotes.media import get as media_get
+            video_mt = media_get("video")
+
             try:
                 video_dir = download_ucf101_subset()
             except ValueError as e:
@@ -857,27 +769,19 @@ def load_demo_dataset(
                     total,
                 )
 
-                embedding = embed_video_file(video_path)
+                embedding = video_mt.embed_media(video_path)
                 if embedding is None:
                     continue
 
                 with open(video_path, "rb") as f:
                     video_bytes = f.read()
 
-                # Get duration using OpenCV
-                try:
-                    cap = cv2.VideoCapture(str(video_path))
-                    fps = cap.get(cv2.CAP_PROP_FPS)
-                    frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
-                    duration = frame_count / fps if fps > 0 else 0
-                    cap.release()
-                except Exception:
-                    duration = 0
+                media_fields = video_mt.load_clip_data(video_path)
 
                 clips[clip_id] = {
                     "id": clip_id,
                     "type": "video",
-                    "duration": duration,
+                    "duration": media_fields["duration"],
                     "file_size": len(video_bytes),
                     "md5": hashlib.md5(video_bytes).hexdigest(),
                     "embedding": embedding,
@@ -910,7 +814,10 @@ def load_demo_dataset(
             update_progress("idle", f"Loaded {dataset_name} dataset")
             return
 
-    # Handle audio datasets (existing ESC-50 logic)
+    # Handle audio datasets (ESC-50 logic)
+    from vistatotes.media import get as media_get
+    audio_mt = media_get("audio")
+
     audio_dir = download_esc50()
     metadata = load_esc50_metadata(audio_dir.parent)
 
@@ -938,23 +845,19 @@ def load_demo_dataset(
             total,
         )
 
-        embedding = embed_audio_file(audio_path)
+        embedding = audio_mt.embed_media(audio_path)
         if embedding is None:
             continue
 
         with open(audio_path, "rb") as f:
             wav_bytes = f.read()
 
-        try:
-            audio_data, sr = librosa.load(audio_path, sr=SAMPLE_RATE, mono=True)
-            duration = len(audio_data) / sr
-        except Exception:
-            duration = 0
+        media_fields = audio_mt.load_clip_data(audio_path)
 
         clips[clip_id] = {
             "id": clip_id,
             "type": "audio",
-            "duration": duration,
+            "duration": media_fields["duration"],
             "file_size": len(wav_bytes),
             "md5": hashlib.md5(wav_bytes).hexdigest(),
             "embedding": embedding,
@@ -997,17 +900,10 @@ def export_dataset_to_file(clips: dict[int, dict[str, Any]]) -> bytes:
     The resulting bytes can be reloaded with :func:`load_dataset_from_pickle`.
 
     Args:
-        clips: Mapping of clip ID to clip data dict. Each value may contain
-            any combination of the standard clip fields (``id``, ``type``,
-            ``duration``, ``file_size``, ``md5``, ``embedding``, ``filename``,
-            ``category``, ``wav_bytes``, ``video_bytes``, ``image_bytes``,
-            ``text_content``, ``word_count``, ``character_count``, ``width``,
-            ``height``). ``embedding`` values that are ``numpy.ndarray`` objects
-            are converted to lists for pickle compatibility.
+        clips: Mapping of clip ID to clip data dict.
 
     Returns:
-        Raw bytes of the pickled dataset dict, ready to be written to disk or
-        returned as a file download.
+        Raw bytes of the pickled dataset dict.
     """
     data = {
         "clips": {

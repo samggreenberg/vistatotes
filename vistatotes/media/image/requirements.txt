@@ -1,0 +1,3 @@
+# Image media type dependencies
+# These packages are required to open and process image files.
+Pillow

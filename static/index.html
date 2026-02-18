@@ -449,6 +449,7 @@
   let favoriteDetectors = [];  // List of favorite detectors
   let loadedDetector = null; // Stores loaded detector model weights
   let datasetLoaded = false;
+  let audioVolume = 1.0; // Persisted volume across clip loads
   let progressTimer = null;
   const clipList = document.getElementById("clip-list");
   const center = document.getElementById("center");
@@ -1688,6 +1689,13 @@
     // Draw waveform only for audio clips
     if (mediaType === "audio") {
       drawWaveform(c.id);
+      const audioEl = document.getElementById("clip-audio");
+      if (audioEl) {
+        audioEl.volume = audioVolume;
+        audioEl.addEventListener("volumechange", () => {
+          audioVolume = audioEl.volume;
+        });
+      }
     }
 
     // Load paragraph text content

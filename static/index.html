@@ -123,6 +123,7 @@
 
   /* Dataset management */
   .dataset-welcome { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 48px; max-width: 600px; margin: 0 auto; text-align: center; }
+  .dataset-welcome.wide { max-width: min(1040px, 95vw); }
   .dataset-welcome h2 { font-size: 1.8rem; color: #7c8aff; margin-bottom: 8px; }
   .dataset-welcome p { font-size: 1rem; color: #aaa; margin-bottom: 16px; }
   .dataset-options { display: flex; flex-direction: column; gap: 12px; width: 100%; }
@@ -137,7 +138,7 @@
   @keyframes indeterminate { 0% { margin-left: 0%; } 50% { margin-left: 70%; } 100% { margin-left: 0%; } }
   .progress-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.75rem; color: #fff; font-weight: bold; }
   .progress-message { font-size: 0.85rem; color: #aaa; margin-top: 8px; text-align: center; }
-  .demo-datasets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; width: 100%; margin-top: 16px; }
+  .demo-datasets { display: grid; grid-template-columns: repeat(4, minmax(180px, 1fr)); gap: 16px; width: 100%; margin-top: 16px; }
   .demo-column { display: flex; flex-direction: column; gap: 8px; }
   .demo-column-header { font-size: 0.7rem; font-weight: 700; color: #7c8aff; text-transform: uppercase; letter-spacing: 0.08em; padding-bottom: 6px; border-bottom: 1px solid #2a2d3a; margin-bottom: 2px; }
   .demo-dataset { padding: 14px; border: 2px solid #2a2d3a; border-radius: 8px; background: #1a1d27; cursor: pointer; transition: all 0.2s; text-align: left; }
@@ -542,6 +543,7 @@
   function showWelcomeScreen() {
     center.innerHTML = "";
     center.appendChild(datasetWelcome);
+    datasetWelcome.classList.remove("wide");
     datasetWelcome.style.display = "flex";
     center.className = "panel-center";
     datasetOptions.style.display = "flex";
@@ -714,6 +716,7 @@
     datasetOptions.style.display = "none";
     demoDatasetsDiv.style.display = "grid";
     backButton.style.display = "block";
+    datasetWelcome.classList.add("wide");
 
     // Fetch demo datasets
     try {

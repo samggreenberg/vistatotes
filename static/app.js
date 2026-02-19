@@ -4,7 +4,7 @@
   let selected = null;
   let sortOrder = null;   // null = default, or [{id, score}, ...]
   let sortMode = "text";  // "text" | "learned" | "load"
-  let selectMode = "good"; // "good" | "hard"
+  let selectMode = "top"; // "top" | "hard"
   let threshold = null;    // threshold for Good/Bad boundary
   let sortTimer = null;
   let inclusion = 0;       // Inclusion setting: -10 to +10
@@ -1299,7 +1299,7 @@
     }
 
     let nextClip;
-    if (selectMode === "good") {
+    if (selectMode === "top") {
       // Select highest scoring unlabeled clip
       nextClip = unlabeled[0];
     } else {

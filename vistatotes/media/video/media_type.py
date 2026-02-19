@@ -134,6 +134,8 @@ class VideoMediaType(MediaType):
         print("DEBUG: X-CLIP model loaded.", flush=True)
 
     def embed_media(self, file_path: Path) -> Optional[np.ndarray]:
+        if self._model is None:
+            self.load_models()
         if self._model is None or self._processor is None:
             return None
         try:
@@ -169,6 +171,8 @@ class VideoMediaType(MediaType):
             return None
 
     def embed_text(self, text: str) -> Optional[np.ndarray]:
+        if self._model is None:
+            self.load_models()
         if self._model is None or self._processor is None:
             return None
         try:

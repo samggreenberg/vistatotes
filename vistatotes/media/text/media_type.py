@@ -109,6 +109,8 @@ class TextMediaType(MediaType):
 
     def embed_media(self, file_path: Path) -> Optional[np.ndarray]:
         if self._model is None:
+            self.load_models()
+        if self._model is None:
             return None
         try:
             with open(file_path, "r", encoding="utf-8") as f:
@@ -126,6 +128,8 @@ class TextMediaType(MediaType):
     def embed_text_passage(self, text: str) -> Optional[np.ndarray]:
         """Embed *text* as a passage (used when loading demo datasets in-memory)."""
         if self._model is None:
+            self.load_models()
+        if self._model is None:
             return None
         try:
             return self._model.encode(f"passage: {text}", normalize_embeddings=True)
@@ -134,6 +138,8 @@ class TextMediaType(MediaType):
             return None
 
     def embed_text(self, text: str) -> Optional[np.ndarray]:
+        if self._model is None:
+            self.load_models()
         if self._model is None:
             return None
         try:

@@ -123,6 +123,8 @@ class ImageMediaType(MediaType):
         print("DEBUG: CLIP model loaded.", flush=True)
 
     def embed_media(self, file_path: Path) -> Optional[np.ndarray]:
+        if self._model is None:
+            self.load_models()
         if self._model is None or self._processor is None:
             return None
         try:
@@ -134,6 +136,8 @@ class ImageMediaType(MediaType):
 
     def embed_pil_image(self, image: Image.Image) -> Optional[np.ndarray]:
         """Embed a PIL Image that is already in memory (e.g. from CIFAR-10)."""
+        if self._model is None:
+            self.load_models()
         if self._model is None or self._processor is None:
             return None
         try:
@@ -148,6 +152,8 @@ class ImageMediaType(MediaType):
             return None
 
     def embed_text(self, text: str) -> Optional[np.ndarray]:
+        if self._model is None:
+            self.load_models()
         if self._model is None or self._processor is None:
             return None
         try:

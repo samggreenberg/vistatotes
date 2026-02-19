@@ -22,7 +22,7 @@ datasets_bp = Blueprint("datasets", __name__)
 # Names of importers that have dedicated, hand-crafted UI sections in the
 # frontend.  They are excluded from the generic /api/dataset/importers list
 # so the frontend doesn't render a duplicate panel for them.
-_BUILTIN_IMPORTER_NAMES = {"pickle", "folder"}
+_BUILTIN_IMPORTER_NAMES = {"pickle"}
 
 
 def clear_dataset():

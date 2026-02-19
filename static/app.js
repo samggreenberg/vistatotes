@@ -27,15 +27,55 @@
   const sortStatus = document.getElementById("sort-status");
   const sortProgress = document.getElementById("sort-progress");
   const sortProgressLabel = document.getElementById("sort-progress-label");
+  const sortProgressFill = document.querySelector(".sort-progress-fill");
+  let sortProgressTimer = null;
 
   function showSortProgress(label) {
     sortStatus.textContent = "";
     sortProgressLabel.textContent = label;
+    sortProgressFill.style.width = "";
+    sortProgressFill.classList.remove("determinate");
     sortProgress.classList.add("active");
   }
 
+  function showSortProgressWithPolling(label) {
+    showSortProgress(label);
+    startSortProgressPolling();
+  }
+
   function hideSortProgress() {
+    stopSortProgressPolling();
     sortProgress.classList.remove("active");
+  }
+
+  async function pollSortProgress() {
+    try {
+      const res = await fetch("/api/sort/progress");
+      const progress = await res.json();
+      if (progress.status === "idle") return;
+      if (progress.total > 0) {
+        const pct = Math.round((progress.current / progress.total) * 100);
+        sortProgressFill.classList.add("determinate");
+        sortProgressFill.style.width = `${pct}%`;
+      }
+      if (progress.message) {
+        sortProgressLabel.textContent = progress.message;
+      }
+    } catch (_) {
+      // ignore polling errors
+    }
+  }
+
+  function startSortProgressPolling() {
+    if (sortProgressTimer) return;
+    sortProgressTimer = setInterval(pollSortProgress, 200);
+  }
+
+  function stopSortProgressPolling() {
+    if (sortProgressTimer) {
+      clearInterval(sortProgressTimer);
+      sortProgressTimer = null;
+    }
   }
   const stripeOverview = document.getElementById("stripe-overview");
   const stripeContainer = document.getElementById("stripe-container");
@@ -1121,7 +1161,7 @@
   // ---- Text sort ----
 
   async function fetchTextSort(text) {
-    showSortProgress("Searching and sorting\u2026");
+    showSortProgressWithPolling("Searching and sorting\u2026");
     try {
       const res = await fetch("/api/sort", {
         method: "POST",

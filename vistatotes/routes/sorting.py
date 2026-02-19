@@ -19,11 +19,18 @@ from vistatotes.models import (analyze_labeling_progress,
 from vistatotes.utils import (add_favorite_detector, add_label_to_history,
                               bad_votes, clips, get_favorite_detectors,
                               get_favorite_detectors_by_media, get_inclusion,
-                              good_votes, label_history,
+                              get_sort_progress, good_votes, label_history,
                               remove_favorite_detector,
-                              rename_favorite_detector, set_inclusion)
+                              rename_favorite_detector, set_inclusion,
+                              update_sort_progress)
 
 sorting_bp = Blueprint("sorting", __name__)
+
+
+@sorting_bp.route("/api/sort/progress")
+def sort_progress():
+    """Return the current progress of a text sort operation."""
+    return jsonify(get_sort_progress())
 
 
 @sorting_bp.route("/api/sort", methods=["POST"])
@@ -33,23 +40,31 @@ def sort_clips():
         data = request.get_json(force=True)
     except Exception as e:
         print(f"DEBUG: Sort failed - JSON error: {e}", flush=True)
+        update_sort_progress("idle")
         return jsonify({"error": "Invalid request body"}), 400
 
     if data is None:
+        update_sort_progress("idle")
         return jsonify({"error": "Invalid request body"}), 400
 
     text = data.get("text", "").strip()
     print(f"DEBUG: Sort request for '{text}'", flush=True)
 
     if not text:
+        update_sort_progress("idle")
         return jsonify({"error": "text is required"}), 400
 
     # Determine media type from current clips
     if not clips:
         print("DEBUG: Sort failed - No clips loaded", flush=True)
+        update_sort_progress("idle")
         return jsonify({"error": "No clips loaded"}), 400
 
     media_type = next(iter(clips.values())).get("type", "audio")
+
+    # Total steps: 1 (embed) + len(clips) (similarities) + 1 (threshold)
+    total_steps = 1 + len(clips) + 1
+    update_sort_progress("sorting", "Embedding text query…", 0, total_steps)
 
     # Embed text query using refactored module
     text_vec = embed_text_query(text, media_type)
@@ -58,6 +73,7 @@ def sort_clips():
             f"DEBUG: Sort failed - Could not embed text for media type {media_type}",
             flush=True,
         )
+        update_sort_progress("idle")
         return (
             jsonify(
                 {"error": f"Could not embed text for media type {media_type}"}
@@ -65,9 +81,11 @@ def sort_clips():
             500,
         )
 
+    update_sort_progress("sorting", "Computing similarities…", 1, total_steps)
+
     results = []
     scores = []
-    for clip_id, clip in clips.items():
+    for i, (clip_id, clip) in enumerate(clips.items()):
         media_vec = clip["embedding"]
         norm_product = np.linalg.norm(media_vec) * np.linalg.norm(text_vec)
         if norm_product == 0:
@@ -76,11 +94,15 @@ def sort_clips():
             similarity = float(np.dot(media_vec, text_vec) / norm_product)
         results.append({"id": clip_id, "similarity": round(similarity, 4)})
         scores.append(similarity)
+        if (i + 1) % 50 == 0 or i + 1 == len(clips):
+            update_sort_progress("sorting", "Computing similarities…", 1 + i + 1, total_steps)
 
     # Calculate GMM-based threshold
+    update_sort_progress("sorting", "Calculating threshold…", total_steps - 1, total_steps)
     threshold = calculate_gmm_threshold(scores)
 
     results.sort(key=lambda x: x["similarity"], reverse=True)
+    update_sort_progress("idle")
     return jsonify({"results": results, "threshold": round(threshold, 4)})
 
 

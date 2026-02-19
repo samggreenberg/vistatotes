@@ -97,6 +97,8 @@ class DatasetImporter:
     display_name: str
     #: One-sentence description shown as a subtitle in the UI.
     description: str
+    #: Emoji or icon string shown next to the display name in the UI.
+    icon: str = "🔌"
     #: Ordered list of fields the user must fill before importing.
     fields: list[ImporterField]
 
@@ -124,5 +126,6 @@ class DatasetImporter:
             "name": self.name,
             "display_name": self.display_name,
             "description": self.description,
+            "icon": self.icon,
             "fields": [f.to_dict() for f in self.fields],
         }

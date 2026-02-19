@@ -313,21 +313,10 @@
           <h3>📁 Load from File</h3>
           <p>Load a previously saved dataset file (.pkl)</p>
         </button>
-        <button class="dataset-option" id="load-folder-btn">
-          <h3>📂 Generate from Folder</h3>
-          <p>Process media files (sounds/videos/images/paragraphs) from a folder</p>
-        </button>
         <button class="dataset-option" id="load-demo-btn">
-          <h3>🎯 Load Demo Dataset</h3>
-          <p>Choose from pre-configured ESC-50 datasets</p>
+          <h3>🏆 Load Demo Dataset</h3>
+          <p>Choose from a selection of pre-configured demo datasets</p>
         </button>
-        <div style="margin-top: 16px; padding: 12px; background: #2a2d3a; border-radius: 4px;">
-          <label style="display: flex; align-items: center; color: #e0e0e0; cursor: pointer;">
-            <input type="checkbox" id="autodetect-mode-checkbox" style="margin-right: 8px;">
-            <span>Run auto-detect after loading (skip manual labeling)</span>
-          </label>
-          <p style="font-size: 0.85rem; color: #aaa; margin: 8px 0 0 0;">When checked, automatically runs all favorite detectors and shows positive hits.</p>
-        </div>
       </div>
       <div class="dataset-progress" id="dataset-progress" style="display:none">
         <div class="progress-bar">
@@ -342,7 +331,6 @@
     </div>
   </div>
   <input type="file" id="file-input" accept=".pkl" style="display:none">
-  <input type="file" id="folder-input" webkitdirectory directory multiple style="display:none">
 
   <!-- Right panel -->
   <div class="panel-right">
@@ -543,10 +531,8 @@
   const extendedImporterForm = document.getElementById("extended-importer-form");
   const backButton = document.getElementById("back-button");
   const loadFileBtn = document.getElementById("load-file-btn");
-  const loadFolderBtn = document.getElementById("load-folder-btn");
   const loadDemoBtn = document.getElementById("load-demo-btn");
   const fileInput = document.getElementById("file-input");
-  const folderInput = document.getElementById("folder-input");
   const datasetBar = document.getElementById("dataset-bar");
   const datasetInfo = document.getElementById("dataset-info");
   const leftPanel = document.getElementById("left-panel");
@@ -749,42 +735,6 @@
     fileInput.value = "";
   });
 
-  // Load from folder (Note: folder selection requires server-side path input)
-  loadFolderBtn.addEventListener("click", () => {
-    const path = prompt("Enter the full path to the folder containing media files:");
-    if (!path) return;
-
-    // Ask user to select media type via radio buttons in a modal-like prompt
-    const mediaType = prompt(
-      "Enter media type (sounds/videos/images/paragraphs):",
-      "sounds"
-    );
-    if (!mediaType || !["sounds", "videos", "images", "paragraphs"].includes(mediaType.toLowerCase())) {
-      alert("Invalid media type. Please choose: sounds, videos, images, or paragraphs");
-      return;
-    }
-
-    startProgressPolling();
-
-    fetch("/api/dataset/load-folder", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ path, media_type: mediaType.toLowerCase() }),
-    }).then(res => {
-      if (!res.ok) {
-        res.json().then(error => {
-          progressMessage.textContent = `Error: ${error.error}`;
-          progressMessage.style.color = "#f44336";
-          stopProgressPolling();
-        });
-      }
-    }).catch(e => {
-      progressMessage.textContent = `Error: ${e.message}`;
-      progressMessage.style.color = "#f44336";
-      stopProgressPolling();
-    });
-  });
-
   // Load demo dataset
   loadDemoBtn.addEventListener("click", async () => {
     datasetOptions.style.display = "none";
@@ -883,13 +833,25 @@
       for (const importer of data.importers) {
         const btn = document.createElement("button");
         btn.className = "dataset-option";
-        btn.innerHTML = `<h3>🔌 ${importer.display_name}</h3><p>${importer.description}</p>`;
+        btn.innerHTML = `<h3>${importer.icon || "🔌"} ${importer.display_name}</h3><p>${importer.description}</p>`;
         btn.addEventListener("click", () => showExtendedImporterForm(importer));
         datasetOptions.appendChild(btn);
       }
     } catch (_) {
       // Extended importers are optional – silently ignore failures.
     }
+    // Always render the autodetect toggle last, after all import options
+    const autodetectDiv = document.createElement("div");
+    autodetectDiv.id = "autodetect-toggle";
+    autodetectDiv.style = "margin-top: 16px; padding: 12px; background: #2a2d3a; border-radius: 4px;";
+    autodetectDiv.innerHTML = `
+      <label style="display: flex; align-items: center; color: #e0e0e0; cursor: pointer;">
+        <input type="checkbox" id="autodetect-mode-checkbox" style="margin-right: 8px;">
+        <span>Run auto-detect after loading (skip manual labeling)</span>
+      </label>
+      <p style="font-size: 0.85rem; color: #aaa; margin: 8px 0 0 0;">When checked, automatically runs all favorite detectors and shows positive hits.</p>
+    `;
+    datasetOptions.appendChild(autodetectDiv);
   }
 
   function showExtendedImporterForm(importer) {
@@ -911,6 +873,12 @@
           html += `<option value="${opt}"${opt === field.default ? " selected" : ""}>${opt}</option>`;
         }
         html += `</select>`;
+      } else if (field.field_type === "folder") {
+        html += `<div style="display:flex;gap:8px;align-items:center;">`;
+        html += `<input type="text" name="${field.key}" placeholder="${field.description}" style="${inputStyle}flex:1;" data-folder-input="true" ${field.required ? "required" : ""}>`;
+        html += `<button type="button" data-browse-btn="true" style="padding:8px 14px;background:#252940;border:1px solid #2a2d3a;border-radius:4px;color:#aaa;cursor:pointer;white-space:nowrap;">Browse…</button>`;
+        html += `</div>`;
+        html += `<input type="file" data-folder-picker="true" webkitdirectory style="display:none;">`;
       } else {
         const itype = field.field_type === "url" ? "url" : "text";
         html += `<input type="${itype}" name="${field.key}" value="${field.default}" placeholder="${field.description}" style="${inputStyle}" ${field.required ? "required" : ""}>`;
@@ -920,11 +888,28 @@
       }
       html += `</div>`;
     }
-    html += `<button type="submit" style="width:100%;padding:10px;background:#7c8aff;border:none;border-radius:4px;color:#fff;cursor:pointer;font-size:0.9rem;">Start Import</button>`;
+    html += `<button type="submit" style="width:100%;padding:10px;background:#7c8aff;border:none;border-radius:4px;color:#fff;cursor:pointer;font-size:0.9rem;">Import</button>`;
     html += `</form></div>`;
 
     extendedImporterForm.innerHTML = html;
     extendedImporterForm.style.display = "block";
+
+    // Wire up folder browse buttons
+    const browseBtn = extendedImporterForm.querySelector("[data-browse-btn]");
+    const folderPicker = extendedImporterForm.querySelector("[data-folder-picker]");
+    const folderTextInput = extendedImporterForm.querySelector("[data-folder-input]");
+    if (browseBtn && folderPicker && folderTextInput) {
+      browseBtn.addEventListener("click", () => folderPicker.click());
+      folderPicker.addEventListener("change", () => {
+        if (folderPicker.files.length > 0) {
+          // webkitRelativePath is "folderName/sub/file" — top segment is the folder name
+          const topFolder = folderPicker.files[0].webkitRelativePath.split("/")[0];
+          if (!folderTextInput.value) {
+            folderTextInput.placeholder = `Selected: ${topFolder} — enter full path below`;
+          }
+        }
+      });
+    }
 
     document.getElementById("ext-imp-form").addEventListener("submit", async (e) => {
       e.preventDefault();

@@ -20,15 +20,10 @@ class FolderImporter(DatasetImporter):
     """
 
     name = "folder"
-    display_name = "Local Folder"
-    description = "Scan a local directory of media files and embed them."
+    display_name = "Generate from Folder"
+    description = "Import media files from a folder."
+    icon = "📂"
     fields = [
-        ImporterField(
-            key="path",
-            label="Folder Path",
-            field_type="folder",
-            description="Absolute path to the directory containing media files.",
-        ),
         ImporterField(
             key="media_type",
             label="Media Type",
@@ -36,6 +31,12 @@ class FolderImporter(DatasetImporter):
             description="Type of media files to scan for in the folder.",
             options=["sounds", "videos", "images", "paragraphs"],
             default="sounds",
+        ),
+        ImporterField(
+            key="path",
+            label="Folder",
+            field_type="folder",
+            description="Absolute path to the directory containing media files.",
         ),
     ]
 

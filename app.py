@@ -84,15 +84,11 @@ if __name__ == "__main__":
         print("🚀 Running in LOCAL mode (accessible from other devices)", flush=True)
         app.run(host="0.0.0.0", port=5000, debug=False, threaded=True)
     else:
-        # Production mode - load models and synthetic clips on startup
+        # Production mode - load models on startup; dataset is chosen by the user
         print("🚀 Running in PRODUCTION mode", flush=True)
 
         # Use tqdm for loading feedback
-        with tqdm(total=2, desc="Initializing", unit="step") as pbar:
-            pbar.set_description("Initializing clips")
-            init_clips()
-            pbar.update(1)
-
+        with tqdm(total=1, desc="Initializing", unit="step") as pbar:
             pbar.set_description("Loading models")
             initialize_models()
             pbar.update(1)

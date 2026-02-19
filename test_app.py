@@ -142,7 +142,7 @@ class TestIndex:
     def test_serves_index_html(self, client):
         resp = client.get("/")
         assert resp.status_code == 200
-        assert b"VectoryTones" in resp.data
+        assert b"VistaTotes" in resp.data
 
 
 # ---------------------------------------------------------------------------

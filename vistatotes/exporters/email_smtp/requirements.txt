@@ -1,0 +1,1 @@
+# No additional packages required – uses only Python stdlib (smtplib, email).

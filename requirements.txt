@@ -23,3 +23,9 @@ tqdm
 # To add a new importer, create vistatotes/datasets/importers/<name>/requirements.txt,
 # then add a -r line to requirements-importers.txt.
 -r requirements-importers.txt
+
+# Per-exporter dependencies.
+# Each exporter declares its own requirements in its subdirectory.
+# To add a new exporter, create vistatotes/exporters/<name>/requirements.txt,
+# then add a -r line to requirements-exporters.txt.
+-r requirements-exporters.txt

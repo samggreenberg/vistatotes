@@ -440,6 +440,23 @@
       <div style="margin-top: 16px;">
         <button id="copy-results-btn" style="padding: 8px 16px; background: #7c8aff; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Copy Results to Clipboard</button>
       </div>
+
+      <!-- ── Export Results ─────────────────────────────────────── -->
+      <hr style="border-color: #3a3d4a; margin: 20px 0;">
+      <div id="exporter-section">
+        <h3 style="color: #e0e0e0; margin: 0 0 12px 0; font-size: 1rem;">Export Results</h3>
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px;">
+          <label style="color: #aaa; white-space: nowrap;">Export via:</label>
+          <select id="exporter-select" style="background: #2a2d3a; color: #e0e0e0; border: 1px solid #555; border-radius: 4px; padding: 6px 10px; min-width: 180px;">
+            <option value="">Loading exporters…</option>
+          </select>
+        </div>
+        <div id="exporter-fields" style="margin-bottom: 12px;"></div>
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <button id="export-btn" style="padding: 8px 20px; background: #4caf50; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">Export</button>
+          <span id="export-status" style="color: #aaa; font-size: 0.85rem;"></span>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -571,6 +588,10 @@
   const autodetectProgressModal = document.getElementById("autodetect-progress-modal");
   const autodetectProgressText = document.getElementById("autodetect-progress-text");
   const autodetectProgressBar = document.getElementById("autodetect-progress-bar");
+  const exporterSelect = document.getElementById("exporter-select");
+  const exporterFields = document.getElementById("exporter-fields");
+  const exportBtn = document.getElementById("export-btn");
+  const exportStatus = document.getElementById("export-status");
 
   // ---- Dataset Management ----
 
@@ -1470,8 +1491,11 @@
       </div>
     `).join('');
 
-    // Store results for copying
+    // Store results for copying / exporting
     window.autodetectResultsData = data;
+
+    // Reset exporter status
+    if (exportStatus) { exportStatus.textContent = ""; }
 
     // Show modal
     autodetectModal.classList.add("show");
@@ -1512,6 +1536,119 @@
       });
     });
   }
+
+  // ---- Results Exporters ----
+
+  let availableExporters = [];
+
+  async function loadExporters() {
+    try {
+      const res = await fetch("/api/exporters");
+      if (!res.ok) return;
+      availableExporters = await res.json();
+      if (exporterSelect) {
+        exporterSelect.innerHTML = availableExporters.map(exp =>
+          `<option value="${exp.name}">${exp.icon} ${exp.display_name}</option>`
+        ).join('');
+        renderExporterFields();
+      }
+    } catch (_) { /* silently ignore – exporters are optional */ }
+  }
+
+  function renderExporterFields() {
+    if (!exporterSelect || !exporterFields) return;
+    const selected = availableExporters.find(e => e.name === exporterSelect.value);
+    if (!selected || selected.fields.length === 0) {
+      exporterFields.innerHTML = "";
+      return;
+    }
+    exporterFields.innerHTML = selected.fields.map(f => {
+      const inputType = f.field_type === "password" ? "password"
+                      : f.field_type === "email"    ? "email"
+                      : "text";
+      if (f.field_type === "select") {
+        return `
+          <div style="margin-bottom: 10px;">
+            <label style="display:block; color:#aaa; font-size:0.85rem; margin-bottom:4px;">${f.label}${f.required ? ' *' : ''}</label>
+            <select data-key="${f.key}" style="background:#1a1d27; color:#e0e0e0; border:1px solid #555; border-radius:4px; padding:6px 10px; width:100%;">
+              ${f.options.map(o => `<option value="${o}"${o === f.default ? ' selected' : ''}>${o}</option>`).join('')}
+            </select>
+            ${f.description ? `<div style="color:#777; font-size:0.78rem; margin-top:3px;">${f.description}</div>` : ''}
+          </div>`;
+      }
+      return `
+        <div style="margin-bottom: 10px;">
+          <label style="display:block; color:#aaa; font-size:0.85rem; margin-bottom:4px;">${f.label}${f.required ? ' *' : ''}</label>
+          <input type="${inputType}" data-key="${f.key}"
+            value="${f.default || ''}"
+            placeholder="${f.placeholder || ''}"
+            style="background:#1a1d27; color:#e0e0e0; border:1px solid #555; border-radius:4px; padding:6px 10px; width:100%; box-sizing:border-box;">
+          ${f.description ? `<div style="color:#777; font-size:0.78rem; margin-top:3px;">${f.description}</div>` : ''}
+        </div>`;
+    }).join('');
+  }
+
+  if (exporterSelect) {
+    exporterSelect.addEventListener("change", renderExporterFields);
+  }
+
+  if (exportBtn) {
+    exportBtn.addEventListener("click", async () => {
+      if (!window.autodetectResultsData) {
+        exportStatus.textContent = "No results to export yet.";
+        exportStatus.style.color = "#f44336";
+        return;
+      }
+      const exporterName = exporterSelect ? exporterSelect.value : "";
+      if (!exporterName) {
+        exportStatus.textContent = "Select an exporter first.";
+        exportStatus.style.color = "#f44336";
+        return;
+      }
+
+      // Collect field values from rendered inputs/selects
+      const fieldValues = {};
+      exporterFields.querySelectorAll("[data-key]").forEach(el => {
+        fieldValues[el.dataset.key] = el.value;
+      });
+
+      exportBtn.disabled = true;
+      exportStatus.textContent = "Exporting…";
+      exportStatus.style.color = "#aaa";
+
+      try {
+        const res = await fetch("/api/exporters/export", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            exporter_name: exporterName,
+            field_values: fieldValues,
+            results: window.autodetectResultsData,
+          }),
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          exportStatus.textContent = data.message || "Export complete.";
+          exportStatus.style.color = "#4caf50";
+          // If the GUI exporter returned display_results, re-show results
+          if (data.display_results) {
+            window.autodetectResultsData = data.display_results;
+          }
+        } else {
+          exportStatus.textContent = `Error: ${data.error || "Export failed."}`;
+          exportStatus.style.color = "#f44336";
+        }
+      } catch (err) {
+        exportStatus.textContent = `Network error: ${err.message}`;
+        exportStatus.style.color = "#f44336";
+      } finally {
+        exportBtn.disabled = false;
+      }
+    });
+  }
+
+  // Load exporters immediately so the dropdown is ready when the modal opens
+  loadExporters();
 
   // ---- Sort mode switching ----
 

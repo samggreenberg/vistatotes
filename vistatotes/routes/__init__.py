@@ -2,6 +2,7 @@
 
 from vistatotes.routes.clips import clips_bp
 from vistatotes.routes.datasets import datasets_bp
+from vistatotes.routes.exporters import exporters_bp
 from vistatotes.routes.main import main_bp
 from vistatotes.routes.sorting import sorting_bp
 
@@ -10,4 +11,5 @@ __all__ = [
     "clips_bp",
     "sorting_bp",
     "datasets_bp",
+    "exporters_bp",
 ]

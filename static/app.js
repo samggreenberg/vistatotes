@@ -1303,15 +1303,31 @@
       // Select highest scoring unlabeled clip
       nextClip = unlabeled[0];
     } else {
-      // Select clip closest to threshold
+      // Select clip closest to threshold, breaking ties by index
+      // proximity to the threshold position in sortOrder
       if (threshold === null) {
         return null;
       }
+      // Find threshold index: first position where score drops below threshold
+      let thresholdIdx = sortOrder.length;
+      for (let i = 0; i < sortOrder.length; i++) {
+        if (sortOrder[i].score < threshold) {
+          thresholdIdx = i;
+          break;
+        }
+      }
+      // Map clip id to its sortOrder index
+      const idToIdx = {};
+      sortOrder.forEach((item, idx) => { idToIdx[item.id] = idx; });
+
       let minDist = Infinity;
+      let minIdxDist = Infinity;
       for (const item of unlabeled) {
         const dist = Math.abs(item.score - threshold);
-        if (dist < minDist) {
+        const idxDist = Math.abs(idToIdx[item.id] - thresholdIdx);
+        if (dist < minDist || (dist === minDist && idxDist < minIdxDist)) {
           minDist = dist;
+          minIdxDist = idxDist;
           nextClip = item;
         }
       }

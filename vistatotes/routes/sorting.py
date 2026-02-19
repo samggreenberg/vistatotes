@@ -812,10 +812,12 @@ def auto_detect():
         for cid, score in zip(all_ids, scores):
             if score >= threshold:
                 clip_info = clips[cid].copy()
-                # Don't include embedding in response (too large)
+                # Don't include embedding or raw media in response
                 clip_info.pop("embedding", None)
                 clip_info.pop("wav_bytes", None)
                 clip_info.pop("video_bytes", None)
+                clip_info.pop("image_bytes", None)
+                clip_info.pop("text_content", None)
                 clip_info["score"] = round(score, 4)
                 positive_hits.append(clip_info)
 

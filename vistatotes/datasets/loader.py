@@ -597,6 +597,7 @@ def load_demo_dataset(
                     "wav_bytes": None,
                     "video_bytes": None,
                     "image_bytes": image_bytes,
+                    "text_content": None,
                     "filename": f"{category}_{clip_id}.png",
                     "category": category,
                     "width": img.width,

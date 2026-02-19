@@ -2116,9 +2116,7 @@
     goodList.innerHTML = "";
     badList.innerHTML = "";
 
-    const sortedGood = [...votes.good].sort((a, b) => a - b);
-
-    sortedGood.forEach(id => {
+    votes.good.forEach(id => {
       const div = document.createElement("div");
       div.className = "vote-entry";
       div.textContent = `Clip #${id}`;
@@ -2126,9 +2124,7 @@
       goodList.appendChild(div);
     });
 
-    const sortedBad = [...votes.bad].sort((a, b) => a - b);
-
-    sortedBad.forEach(id => {
+    votes.bad.forEach(id => {
       const div = document.createElement("div");
       div.className = "vote-entry";
       div.textContent = `Clip #${id}`;

@@ -12,7 +12,7 @@ import torch
 from flask import Response, send_file
 from transformers import ClapModel, ClapProcessor
 
-from config import CLAP_MODEL_ID, MODELS_CACHE_DIR, SAMPLE_RATE
+from config import CLAP_MODEL_ID, DATA_DIR, MODELS_CACHE_DIR, SAMPLE_RATE
 from vistatotes.media.base import DemoDataset, MediaType
 
 
@@ -91,6 +91,7 @@ class AudioMediaType(MediaType):
                     "water_drops",
                     "crickets",
                 ],
+                required_folder=DATA_DIR / "ESC-50-master" / "audio",
             ),
             DemoDataset(
                 id="city_sounds",
@@ -111,6 +112,7 @@ class AudioMediaType(MediaType):
                     "keyboard_typing",
                     "door_wood_knock",
                 ],
+                required_folder=DATA_DIR / "ESC-50-master" / "audio",
             ),
         ]
 

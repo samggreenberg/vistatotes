@@ -57,8 +57,8 @@ def all_demo_datasets() -> dict:
     registered media type's :attr:`~MediaType.demo_datasets` list.
 
     Each value is a dict with the keys expected by the datasets route:
-    ``label``, ``description``, ``categories``, ``media_type``, and
-    optionally ``source``.
+    ``label``, ``description``, ``categories``, ``media_type``,
+    optionally ``source``, and optionally ``required_folder``.
     """
     result: dict = {}
     for mt in _registry.values():
@@ -71,6 +71,8 @@ def all_demo_datasets() -> dict:
             }
             if ds.source:
                 entry["source"] = ds.source
+            if ds.required_folder is not None:
+                entry["required_folder"] = ds.required_folder
             result[ds.id] = entry
     return result
 

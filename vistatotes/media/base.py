@@ -46,6 +46,16 @@ class DemoDataset:
     """Identifier for the raw data source (e.g. ``"cifar10_sample"``, ``"ucf101"``).
     Leave empty for sources that don't require an explicit identifier."""
 
+    required_folder: Optional[Path] = None
+    """Local directory that must exist for a cached ``.pkl`` to be usable.
+
+    Audio and video datasets store references to external media files rather
+    than inlining the bytes, so a stale ``.pkl`` left behind after the source
+    directory was removed would incorrectly appear ready.  Set this to the
+    directory that the importer places the source files into (e.g.
+    ``DATA_DIR / "ESC-50-master" / "audio"``).  Leave ``None`` for datasets
+    whose ``.pkl`` is entirely self-contained (images, text)."""
+
 
 class MediaType(ABC):
     """Abstract base class that every media type must implement.

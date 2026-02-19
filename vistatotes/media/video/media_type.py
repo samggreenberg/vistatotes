@@ -12,7 +12,7 @@ from flask import Response, send_file
 from PIL import Image
 from transformers import XCLIPModel, XCLIPProcessor
 
-from config import MODELS_CACHE_DIR, XCLIP_MODEL_ID
+from config import MODELS_CACHE_DIR, VIDEO_DIR, XCLIP_MODEL_ID
 from vistatotes.media.base import DemoDataset, MediaType
 
 def _extract_tensor(output: object) -> torch.Tensor:
@@ -110,6 +110,7 @@ class VideoMediaType(MediaType):
                     "YoYo",
                 ],
                 source="ucf101",
+                required_folder=VIDEO_DIR / "ucf101",
             ),
             DemoDataset(
                 id="sports_video",
@@ -126,6 +127,7 @@ class VideoMediaType(MediaType):
                     "TaiChi",
                 ],
                 source="ucf101",
+                required_folder=VIDEO_DIR / "ucf101",
             ),
         ]
 

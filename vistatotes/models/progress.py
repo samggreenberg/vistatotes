@@ -71,7 +71,10 @@ def _ensure_cache(
         clip_id, label, _ = label_history[t]
 
         # Incrementally update running label sets
-        if label == "good":
+        if label == "unlabel":
+            _cache_good_ids.discard(clip_id)
+            _cache_bad_ids.discard(clip_id)
+        elif label == "good":
             _cache_bad_ids.discard(clip_id)
             _cache_good_ids.add(clip_id)
         else:

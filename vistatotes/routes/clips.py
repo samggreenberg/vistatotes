@@ -249,6 +249,7 @@ def vote_clip(clip_id: int) -> tuple[Response, int] | Response:
     if vote == "good":
         if clip_id in good_votes:
             good_votes.pop(clip_id, None)
+            add_label_to_history(clip_id, "unlabel")
         else:
             bad_votes.pop(clip_id, None)
             good_votes[clip_id] = None
@@ -256,6 +257,7 @@ def vote_clip(clip_id: int) -> tuple[Response, int] | Response:
     else:
         if clip_id in bad_votes:
             bad_votes.pop(clip_id, None)
+            add_label_to_history(clip_id, "unlabel")
         else:
             good_votes.pop(clip_id, None)
             bad_votes[clip_id] = None

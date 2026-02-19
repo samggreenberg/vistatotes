@@ -15,6 +15,23 @@ from transformers import CLIPModel, CLIPProcessor
 from config import CLIP_MODEL_ID, MODELS_CACHE_DIR
 from vistatotes.media.base import DemoDataset, MediaType
 
+def _extract_tensor(output: object) -> torch.Tensor:
+    """Extract a plain tensor from model output.
+
+    Depending on the transformers version, get_image_features() / get_text_features()
+    may return either a raw tensor or a BaseModelOutputWithPooling dataclass.
+    This helper handles both cases.
+    """
+    if isinstance(output, torch.Tensor):
+        return output
+    for attr in ("image_embeds", "text_embeds", "pooler_output"):
+        val = getattr(output, attr, None)
+        if isinstance(val, torch.Tensor):
+            return val
+    # Final fallback: treat as tuple-like and return first element
+    return output[0]  # type: ignore[index]
+
+
 _IMAGE_MIME_TYPES: dict[str, str] = {
     ".png": "image/png",
     ".gif": "image/gif",
@@ -145,7 +162,7 @@ class ImageMediaType(MediaType):
             inputs = self._processor(images=image, return_tensors="pt")
             with torch.no_grad():
                 outputs = self._model.get_image_features(**inputs)
-                embedding = outputs.detach().cpu().numpy()
+                embedding = _extract_tensor(outputs).detach().cpu().numpy()
             return embedding[0]
         except Exception as e:
             print(f"Error embedding PIL image: {e}")
@@ -160,7 +177,7 @@ class ImageMediaType(MediaType):
             inputs = self._processor(text=[text], return_tensors="pt")
             with torch.no_grad():
                 text_vec = (
-                    self._model.get_text_features(**inputs).detach().cpu().numpy()[0]
+                    _extract_tensor(self._model.get_text_features(**inputs)).detach().cpu().numpy()[0]
                 )
             return text_vec
         except Exception as e:

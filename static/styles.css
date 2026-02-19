@@ -36,7 +36,8 @@ header h1 { margin-left: 48px; }
 .sort-progress { display: none; margin-top: 6px; }
 .sort-progress.active { display: block; }
 .sort-progress-bar { width: 100%; height: 6px; background: #1a1d27; border: 1px solid #2a2d3a; border-radius: 3px; overflow: hidden; position: relative; }
-.sort-progress-fill { height: 100%; width: 30%; background: linear-gradient(90deg, #7c8aff, #a0aaff); border-radius: 3px; position: absolute; animation: sort-progress-slide 1.2s ease-in-out infinite; }
+.sort-progress-fill { height: 100%; width: 30%; background: linear-gradient(90deg, #7c8aff, #a0aaff); border-radius: 3px; position: absolute; animation: sort-progress-slide 1.2s ease-in-out infinite; transition: width 0.2s; }
+.sort-progress-fill.determinate { animation: none; left: 0; }
 @keyframes sort-progress-slide { 0% { left: -30%; } 100% { left: 100%; } }
 .sort-progress-label { font-size: 0.7rem; color: #888; margin-top: 3px; text-align: center; }
 #clip-list { overflow-y: auto; flex: 1; }

@@ -66,3 +66,36 @@ def get_progress() -> dict[str, Any]:
     """
     with progress_lock:
         return dict(progress_data)
+
+
+# ---------------------------------------------------------------------------
+# Sort-specific progress tracking
+# ---------------------------------------------------------------------------
+
+sort_progress_lock = threading.Lock()
+sort_progress_data: dict[str, Any] = {
+    "status": "idle",  # idle, sorting
+    "message": "",
+    "current": 0,
+    "total": 0,
+}
+
+
+def update_sort_progress(
+    status: str,
+    message: str = "",
+    current: int = 0,
+    total: int = 0,
+) -> None:
+    """Update the sort progress tracker in a thread-safe manner."""
+    with sort_progress_lock:
+        sort_progress_data["status"] = status
+        sort_progress_data["message"] = message
+        sort_progress_data["current"] = current
+        sort_progress_data["total"] = total
+
+
+def get_sort_progress() -> dict[str, Any]:
+    """Return a snapshot of the current sort progress data."""
+    with sort_progress_lock:
+        return dict(sort_progress_data)

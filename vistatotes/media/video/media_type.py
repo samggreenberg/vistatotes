@@ -128,7 +128,7 @@ class VideoMediaType(MediaType):
             XCLIP_MODEL_ID, low_cpu_mem_usage=True, cache_dir=cache_dir
         )
         self._processor = XCLIPProcessor.from_pretrained(
-            XCLIP_MODEL_ID, cache_dir=cache_dir
+            XCLIP_MODEL_ID, cache_dir=cache_dir, use_fast=False
         )
         print("DEBUG: X-CLIP model loaded.", flush=True)
 

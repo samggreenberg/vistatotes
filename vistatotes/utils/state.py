@@ -19,6 +19,9 @@ inclusion: int = 0
 # Favorite detectors: name -> {name, media_type, weights, threshold, created_at}
 favorite_detectors: dict[str, dict[str, Any]] = {}
 
+# Favorite extractors: name -> {name, extractor_type, media_type, config, created_at}
+favorite_extractors: dict[str, dict[str, Any]] = {}
+
 
 def clear_votes() -> None:
     """Clear all votes and the full label history.
@@ -188,3 +191,64 @@ def get_favorite_detectors_by_media(media_type: str) -> dict[str, dict[str, Any]
         global store.
     """
     return {name: det for name, det in favorite_detectors.items() if det["media_type"] == media_type}
+
+
+# ---------------------------------------------------------------------------
+# Favorite Extractors
+# ---------------------------------------------------------------------------
+
+
+def add_favorite_extractor(name: str, extractor_type: str, media_type: str, config: dict[str, Any]) -> None:
+    """Add or overwrite a named favorite extractor in the global store.
+
+    Args:
+        name: Unique human-readable name for the extractor (e.g. ``"license plates"``).
+        extractor_type: The extractor class identifier (e.g. ``"image_class"``).
+        media_type: The media type the extractor operates on (``"image"``, etc.).
+        config: Extractor-specific configuration dict (class name, threshold, etc.).
+    """
+    import time
+
+    favorite_extractors[name] = {
+        "name": name,
+        "extractor_type": extractor_type,
+        "media_type": media_type,
+        "config": config,
+        "created_at": time.time(),
+    }
+
+
+def remove_favorite_extractor(name: str) -> bool:
+    """Remove a named favorite extractor from the global store.
+
+    Returns:
+        ``True`` if the extractor was found and removed; ``False`` otherwise.
+    """
+    if name in favorite_extractors:
+        del favorite_extractors[name]
+        return True
+    return False
+
+
+def rename_favorite_extractor(old_name: str, new_name: str) -> bool:
+    """Rename a favorite extractor.
+
+    Returns:
+        ``True`` if the rename succeeded; ``False`` otherwise.
+    """
+    if old_name in favorite_extractors and new_name not in favorite_extractors:
+        favorite_extractors[new_name] = favorite_extractors[old_name].copy()
+        favorite_extractors[new_name]["name"] = new_name
+        del favorite_extractors[old_name]
+        return True
+    return False
+
+
+def get_favorite_extractors() -> dict[str, dict[str, Any]]:
+    """Return a shallow copy of all favorite extractors."""
+    return favorite_extractors.copy()
+
+
+def get_favorite_extractors_by_media(media_type: str) -> dict[str, dict[str, Any]]:
+    """Return all favorite extractors matching a given media type."""
+    return {name: ext for name, ext in favorite_extractors.items() if ext["media_type"] == media_type}

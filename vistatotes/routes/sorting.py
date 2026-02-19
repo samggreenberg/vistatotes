@@ -9,20 +9,41 @@ import torch.nn as nn
 from flask import Blueprint, jsonify, request
 
 from config import DATA_DIR
-from vistatotes.models import (analyze_labeling_progress,
-                               compute_labeling_status,
-                               calculate_cross_calibration_threshold,
-                               calculate_gmm_threshold, embed_audio_file,
-                               embed_image_file, embed_paragraph_file,
-                               embed_video_file, embed_text_query,
-                               get_clap_model, train_and_score, train_model)
-from vistatotes.utils import (add_favorite_detector, add_label_to_history,
-                              bad_votes, clips, get_favorite_detectors,
-                              get_favorite_detectors_by_media, get_inclusion,
-                              get_sort_progress, good_votes, label_history,
-                              remove_favorite_detector,
-                              rename_favorite_detector, set_inclusion,
-                              update_sort_progress)
+from vistatotes.models import (
+    analyze_labeling_progress,
+    compute_labeling_status,
+    calculate_cross_calibration_threshold,
+    calculate_gmm_threshold,
+    embed_audio_file,
+    embed_image_file,
+    embed_paragraph_file,
+    embed_video_file,
+    embed_text_query,
+    get_clap_model,
+    train_and_score,
+    train_model,
+)
+from vistatotes.utils import (
+    add_favorite_detector,
+    add_favorite_extractor,
+    add_label_to_history,
+    bad_votes,
+    clips,
+    get_favorite_detectors,
+    get_favorite_detectors_by_media,
+    get_favorite_extractors,
+    get_favorite_extractors_by_media,
+    get_inclusion,
+    get_sort_progress,
+    good_votes,
+    label_history,
+    remove_favorite_detector,
+    remove_favorite_extractor,
+    rename_favorite_detector,
+    rename_favorite_extractor,
+    set_inclusion,
+    update_sort_progress,
+)
 
 sorting_bp = Blueprint("sorting", __name__)
 
@@ -75,9 +96,7 @@ def sort_clips():
         )
         update_sort_progress("idle")
         return (
-            jsonify(
-                {"error": f"Could not embed text for media type {media_type}"}
-            ),
+            jsonify({"error": f"Could not embed text for media type {media_type}"}),
             500,
         )
 
@@ -228,9 +247,7 @@ def export_detector():
     input_dim = X.shape[1]
 
     # Calculate threshold using cross-calibration with inclusion
-    threshold = calculate_cross_calibration_threshold(
-        X_list, y_list, input_dim, get_inclusion()
-    )
+    threshold = calculate_cross_calibration_threshold(X_list, y_list, input_dim, get_inclusion())
 
     # Train final model on all data with inclusion
     model = train_model(X, y, input_dim, get_inclusion())
@@ -325,15 +342,11 @@ def example_sort():
         scores = []
         for clip_id, clip in clips.items():
             audio_vec = clip["embedding"]
-            norm_product = np.linalg.norm(audio_vec) * np.linalg.norm(
-                example_embedding
-            )
+            norm_product = np.linalg.norm(audio_vec) * np.linalg.norm(example_embedding)
             if norm_product == 0:
                 similarity = 0.0
             else:
-                similarity = float(
-                    np.dot(audio_vec, example_embedding) / norm_product
-                )
+                similarity = float(np.dot(audio_vec, example_embedding) / norm_product)
             results.append({"id": clip_id, "similarity": round(similarity, 4)})
             scores.append(similarity)
 
@@ -387,9 +400,7 @@ def label_file_sort():
                 continue
 
             # Try to get audio file path
-            audio_path = (
-                entry.get("path") or entry.get("file") or entry.get("filename")
-            )
+            audio_path = entry.get("path") or entry.get("file") or entry.get("filename")
             if not audio_path:
                 skipped_count += 1
                 continue
@@ -412,9 +423,7 @@ def label_file_sort():
         if loaded_count < 2:
             return (
                 jsonify(
-                    {
-                        "error": f"Need at least 2 valid labeled files (loaded {loaded_count}, skipped {skipped_count})"
-                    }
+                    {"error": f"Need at least 2 valid labeled files (loaded {loaded_count}, skipped {skipped_count})"}
                 ),
                 400,
             )
@@ -424,9 +433,7 @@ def label_file_sort():
         num_bad = len(y_list) - num_good
         if num_good == 0 or num_bad == 0:
             return (
-                jsonify(
-                    {"error": "Need at least one good and one bad labeled example"}
-                ),
+                jsonify({"error": "Need at least one good and one bad labeled example"}),
                 400,
             )
 
@@ -437,9 +444,7 @@ def label_file_sort():
         input_dim = X.shape[1]
 
         # Calculate threshold using cross-calibration
-        threshold = calculate_cross_calibration_threshold(
-            X_list, y_list, input_dim, get_inclusion()
-        )
+        threshold = calculate_cross_calibration_threshold(X_list, y_list, input_dim, get_inclusion())
 
         # Train final model on all data
         model = train_model(X, y, input_dim, get_inclusion())
@@ -451,9 +456,7 @@ def label_file_sort():
         with torch.no_grad():
             scores = model(X_all).squeeze(1).tolist()
 
-        results = [
-            {"id": cid, "score": round(s, 4)} for cid, s in zip(all_ids, scores)
-        ]
+        results = [{"id": cid, "score": round(s, 4)} for cid, s in zip(all_ids, scores)]
         results.sort(key=lambda x: x["score"], reverse=True)
 
         return jsonify(
@@ -479,9 +482,7 @@ def labeling_progress():
         return jsonify({"error": "no label history available"}), 400
 
     try:
-        analysis = analyze_labeling_progress(
-            clips, label_history, good_votes, bad_votes, get_inclusion()
-        )
+        analysis = analyze_labeling_progress(clips, label_history, good_votes, bad_votes, get_inclusion())
         return jsonify(analysis)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -496,9 +497,7 @@ def labeling_status_indicator():
     Green  – minimum counts met and error cost has leveled off (safe to stop).
     """
     try:
-        status = compute_labeling_status(
-            clips, label_history, good_votes, bad_votes, get_inclusion()
-        )
+        status = compute_labeling_status(clips, label_history, good_votes, bad_votes, get_inclusion())
         return jsonify(status)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -626,7 +625,7 @@ def import_detector_labels():
     _AUDIO_EXTS = {".wav", ".mp3", ".flac", ".ogg", ".m4a"}
     _IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"}
     _VIDEO_EXTS = {".mp4", ".avi", ".mov", ".webm", ".mkv"}
-    _TEXT_EXTS  = {".txt", ".md"}
+    _TEXT_EXTS = {".txt", ".md"}
 
     def _media_type_for_path(p: Path) -> str | None:
         ext = p.suffix.lower()
@@ -674,9 +673,7 @@ def import_detector_labels():
                 skipped_count += 1
                 continue
 
-            file_path_str = (
-                entry.get("path") or entry.get("file") or entry.get("filename")
-            )
+            file_path_str = entry.get("path") or entry.get("file") or entry.get("filename")
             if not file_path_str:
                 skipped_count += 1
                 continue
@@ -711,12 +708,7 @@ def import_detector_labels():
         if loaded_count < 2:
             return (
                 jsonify(
-                    {
-                        "error": (
-                            f"Need at least 2 valid labeled files "
-                            f"(loaded {loaded_count}, skipped {skipped_count})"
-                        )
-                    }
+                    {"error": (f"Need at least 2 valid labeled files (loaded {loaded_count}, skipped {skipped_count})")}
                 ),
                 400,
             )
@@ -725,9 +717,7 @@ def import_detector_labels():
         num_bad = len(y_list) - num_good
         if num_good == 0 or num_bad == 0:
             return (
-                jsonify(
-                    {"error": "Need at least one good and one bad labeled example"}
-                ),
+                jsonify({"error": "Need at least one good and one bad labeled example"}),
                 400,
             )
 
@@ -735,9 +725,7 @@ def import_detector_labels():
         y = torch.tensor(y_list, dtype=torch.float32).unsqueeze(1)
         input_dim = X.shape[1]
 
-        threshold = calculate_cross_calibration_threshold(
-            X_list, y_list, input_dim, get_inclusion()
-        )
+        threshold = calculate_cross_calibration_threshold(X_list, y_list, input_dim, get_inclusion())
         model = train_model(X, y, input_dim, get_inclusion())
 
         state_dict = model.state_dict()
@@ -835,6 +823,196 @@ def auto_detect():
         {
             "media_type": media_type,
             "detectors_run": len(detectors),
+            "results": results,
+        }
+    )
+
+
+# ---------------------------------------------------------------------------
+# Extractor routes
+# ---------------------------------------------------------------------------
+
+# Registry of extractor type constructors.
+# Each entry maps an extractor_type string to a callable(name, config) -> Extractor.
+_EXTRACTOR_FACTORIES: dict = {}
+
+
+def _ensure_extractor_factories():
+    """Populate the factory registry on first use (lazy to avoid import cycles)."""
+    if _EXTRACTOR_FACTORIES:
+        return
+    from vistatotes.media.image.extractor import ImageClassExtractor
+
+    _EXTRACTOR_FACTORIES["image_class"] = ImageClassExtractor.from_config
+
+
+def _build_extractor(name: str, extractor_type: str, config: dict):
+    """Instantiate an Extractor from its serialised form."""
+    _ensure_extractor_factories()
+    factory = _EXTRACTOR_FACTORIES.get(extractor_type)
+    if factory is None:
+        raise ValueError(f"Unknown extractor_type: {extractor_type!r}")
+    return factory(name, config)
+
+
+@sorting_bp.route("/api/favorite-extractors")
+def get_favorite_extractors_route():
+    """Get all favorite extractors."""
+    extractors = get_favorite_extractors()
+    return jsonify({"extractors": list(extractors.values())})
+
+
+@sorting_bp.route("/api/favorite-extractors", methods=["POST"])
+def add_favorite_extractor_route():
+    """Add a new favorite extractor."""
+    data = request.get_json(force=True)
+    if data is None:
+        return jsonify({"error": "Invalid request body"}), 400
+
+    name = data.get("name", "").strip()
+    extractor_type = data.get("extractor_type", "").strip()
+    media_type = data.get("media_type", "").strip()
+    config = data.get("config")
+
+    if not name:
+        return jsonify({"error": "name is required"}), 400
+    if not extractor_type:
+        return jsonify({"error": "extractor_type is required"}), 400
+    if not media_type:
+        return jsonify({"error": "media_type is required"}), 400
+    if not config or not isinstance(config, dict):
+        return jsonify({"error": "config is required"}), 400
+
+    # Validate that the extractor can be built from this config
+    try:
+        _build_extractor(name, extractor_type, config)
+    except Exception as e:
+        return jsonify({"error": f"Invalid extractor config: {e}"}), 400
+
+    add_favorite_extractor(name, extractor_type, media_type, config)
+    return jsonify({"success": True, "name": name})
+
+
+@sorting_bp.route("/api/favorite-extractors/<name>", methods=["DELETE"])
+def delete_favorite_extractor_route(name):
+    """Delete a favorite extractor."""
+    if remove_favorite_extractor(name):
+        return jsonify({"success": True})
+    return jsonify({"error": "Extractor not found"}), 404
+
+
+@sorting_bp.route("/api/favorite-extractors/<name>/rename", methods=["PUT"])
+def rename_favorite_extractor_route(name):
+    """Rename a favorite extractor."""
+    data = request.get_json(force=True)
+    if data is None:
+        return jsonify({"error": "Invalid request body"}), 400
+
+    new_name = data.get("new_name", "").strip()
+    if not new_name:
+        return jsonify({"error": "new_name is required"}), 400
+
+    if rename_favorite_extractor(name, new_name):
+        return jsonify({"success": True, "new_name": new_name})
+    return jsonify({"error": "Extractor not found or new name already exists"}), 400
+
+
+@sorting_bp.route("/api/extract", methods=["POST"])
+def run_extract():
+    """Run a single extractor on all clips and return per-clip extraction results."""
+    data = request.get_json(force=True)
+    if data is None:
+        return jsonify({"error": "Invalid request body"}), 400
+
+    extractor_name = data.get("name", "").strip()
+    extractor_type = data.get("extractor_type", "").strip()
+    config = data.get("config")
+
+    if not extractor_type:
+        return jsonify({"error": "extractor_type is required"}), 400
+    if not config or not isinstance(config, dict):
+        return jsonify({"error": "config is required"}), 400
+
+    if not clips:
+        return jsonify({"error": "No clips loaded"}), 400
+
+    try:
+        extractor = _build_extractor(extractor_name or "adhoc", extractor_type, config)
+    except Exception as e:
+        return jsonify({"error": f"Invalid extractor config: {e}"}), 400
+
+    media_type = next(iter(clips.values())).get("type", "")
+    if extractor.media_type != media_type:
+        return (
+            jsonify({"error": f"Extractor media type '{extractor.media_type}' does not match clips '{media_type}'"}),
+            400,
+        )
+
+    results = []
+    for clip_id in sorted(clips.keys()):
+        clip = clips[clip_id]
+        extractions = extractor.extract(clip)
+        if extractions:
+            clip_info = {
+                k: v
+                for k, v in clip.items()
+                if k not in ("embedding", "wav_bytes", "video_bytes", "image_bytes", "text_content")
+            }
+            clip_info["extractions"] = extractions
+            results.append(clip_info)
+
+    return jsonify(
+        {
+            "extractor_name": extractor.name,
+            "media_type": media_type,
+            "total_clips_with_hits": len(results),
+            "results": results,
+        }
+    )
+
+
+@sorting_bp.route("/api/auto-extract", methods=["POST"])
+def auto_extract():
+    """Run all favorite extractors for the current media type and return extraction results."""
+    if not clips:
+        return jsonify({"error": "No clips loaded"}), 400
+
+    media_type = next(iter(clips.values())).get("type", "")
+    extractors = get_favorite_extractors_by_media(media_type)
+
+    if not extractors:
+        return jsonify({"error": f"No favorite extractors found for media type: {media_type}"}), 400
+
+    results = {}
+    for ext_name, ext_data in extractors.items():
+        try:
+            extractor = _build_extractor(ext_name, ext_data["extractor_type"], ext_data["config"])
+        except Exception:
+            continue
+
+        ext_results = []
+        for clip_id in sorted(clips.keys()):
+            clip = clips[clip_id]
+            extractions = extractor.extract(clip)
+            if extractions:
+                clip_info = {
+                    k: v
+                    for k, v in clip.items()
+                    if k not in ("embedding", "wav_bytes", "video_bytes", "image_bytes", "text_content")
+                }
+                clip_info["extractions"] = extractions
+                ext_results.append(clip_info)
+
+        results[ext_name] = {
+            "extractor_name": ext_name,
+            "total_clips_with_hits": len(ext_results),
+            "results": ext_results,
+        }
+
+    return jsonify(
+        {
+            "media_type": media_type,
+            "extractors_run": len(results),
             "results": results,
         }
     )

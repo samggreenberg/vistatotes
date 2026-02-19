@@ -23,6 +23,7 @@ opencv-python-headless<4.10
 
 # Image (vistatotes/media/image/requirements.txt)
 Pillow
+ultralytics
 
 # Text (vistatotes/media/text/requirements.txt)
 sentence-transformers

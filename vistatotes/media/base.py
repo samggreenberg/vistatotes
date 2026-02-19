@@ -20,7 +20,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import numpy as np
 from flask import Response
@@ -187,3 +187,96 @@ class MediaType(ABC):
         Use ``flask.send_file`` for binary media or ``flask.jsonify`` for
         text/structured data.
         """
+
+
+class Extractor(ABC):
+    """Abstract base class for extractors.
+
+    While a *Detector* answers "is this clip Good?" (True/False), an
+    *Extractor* answers "what Good things are inside this clip, and where?"
+    by returning structured details for each occurrence found.
+
+    For example an image extractor might return bounding boxes and class
+    labels; a video extractor might return start/stop timestamps of events.
+
+    Each concrete ``Extractor`` operates on exactly **one** media type
+    (declared via :attr:`media_type`), just like Detectors.
+
+    Subclasses must implement:
+
+    * :attr:`name` — unique identifier for this extractor.
+    * :attr:`media_type` — which media type it works on.
+    * :meth:`extract` — run extraction on a single clip dict and return a
+      list of result dicts.
+
+    Subclasses *may* override:
+
+    * :meth:`load_model` — called once before first use to load heavy
+      resources (model weights, etc.).  Default is a no-op.
+    """
+
+    # ------------------------------------------------------------------
+    # Identity
+    # ------------------------------------------------------------------
+
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """Unique identifier for this extractor, e.g. ``"yolo_person"``."""
+
+    @property
+    @abstractmethod
+    def media_type(self) -> str:
+        """The media ``type_id`` this extractor operates on (e.g. ``"image"``)."""
+
+    # ------------------------------------------------------------------
+    # Lifecycle
+    # ------------------------------------------------------------------
+
+    def load_model(self) -> None:
+        """Load any heavyweight resources (model weights, etc.).
+
+        Called lazily before the first :meth:`extract` call.  The default
+        implementation is a no-op — override in subclasses that need
+        one-time model loading.
+        """
+
+    # ------------------------------------------------------------------
+    # Extraction
+    # ------------------------------------------------------------------
+
+    @abstractmethod
+    def extract(self, clip: dict[str, Any]) -> list[dict[str, Any]]:
+        """Run extraction on *clip* and return a list of result dicts.
+
+        Each dict in the returned list describes **one occurrence** of the
+        thing the extractor is looking for.  The schema of these dicts is
+        extractor-specific, but every dict **must** include a ``"confidence"``
+        key with a float in ``[0, 1]``.
+
+        Returns an empty list when nothing is found.
+
+        Example return value for an image bounding-box extractor::
+
+            [
+                {"confidence": 0.92, "bbox": [x1, y1, x2, y2], "label": "car"},
+                {"confidence": 0.87, "bbox": [x1, y1, x2, y2], "label": "car"},
+            ]
+
+        Example return value for a video timestamp extractor::
+
+            [
+                {"confidence": 0.85, "start": 1.2, "end": 3.4, "label": "explosion"},
+            ]
+        """
+
+    # ------------------------------------------------------------------
+    # Serialisation
+    # ------------------------------------------------------------------
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return a JSON-serialisable summary of this extractor's metadata."""
+        return {
+            "name": self.name,
+            "media_type": self.media_type,
+        }

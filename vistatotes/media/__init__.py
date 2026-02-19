@@ -15,7 +15,7 @@ dataset loading, HTTP routing, and the demo-dataset listing.
 
 from __future__ import annotations
 
-from vistatotes.media.base import DemoDataset, MediaType
+from vistatotes.media.base import DemoDataset, Extractor, MediaType
 
 _registry: dict[str, "MediaType"] = {}
 
@@ -83,7 +83,7 @@ def all_demo_datasets() -> dict:
 
 from vistatotes.media.audio.media_type import AudioMediaType  # noqa: E402
 from vistatotes.media.image.media_type import ImageMediaType  # noqa: E402
-from vistatotes.media.text.media_type import TextMediaType    # noqa: E402
+from vistatotes.media.text.media_type import TextMediaType  # noqa: E402
 from vistatotes.media.video.media_type import VideoMediaType  # noqa: E402
 
 register(AudioMediaType())
@@ -94,6 +94,7 @@ register(TextMediaType())
 __all__ = [
     "MediaType",
     "DemoDataset",
+    "Extractor",
     "register",
     "get",
     "get_by_folder_name",

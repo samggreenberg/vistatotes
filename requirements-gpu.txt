@@ -6,3 +6,4 @@ laion_clap
 librosa
 requests
 tqdm
+ultralytics

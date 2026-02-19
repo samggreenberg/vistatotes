@@ -6,7 +6,6 @@ import io
 from pathlib import Path
 from typing import Optional
 
-import cv2
 import numpy as np
 import torch
 from flask import Response, send_file
@@ -139,6 +138,7 @@ class VideoMediaType(MediaType):
         if self._model is None or self._processor is None:
             return None
         try:
+            import cv2  # noqa: PLC0415  (lazy import — cv2 is optional)
             cap = cv2.VideoCapture(str(file_path))
             if not cap.isOpened():
                 print(f"Error opening video {file_path}")
@@ -198,6 +198,7 @@ class VideoMediaType(MediaType):
         with open(file_path, "rb") as f:
             video_bytes = f.read()
         try:
+            import cv2  # noqa: PLC0415
             cap = cv2.VideoCapture(str(file_path))
             fps = cap.get(cv2.CAP_PROP_FPS)
             frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)

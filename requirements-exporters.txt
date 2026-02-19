@@ -1,0 +1,12 @@
+# Aggregated requirements for all results exporters.
+#
+# Each exporter lives in vistatotes/exporters/<name>/ and has its own
+# requirements.txt listing any packages it needs beyond the core deps.
+#
+# To add a new exporter's dependencies, append a line here:
+#   -r vistatotes/exporters/<name>/requirements.txt
+#
+# ── Built-in exporters ──────────────────────────────────────────────────────
+-r vistatotes/exporters/gui/requirements.txt
+-r vistatotes/exporters/file/requirements.txt
+-r vistatotes/exporters/email_smtp/requirements.txt

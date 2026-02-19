@@ -25,19 +25,27 @@ def clear_votes() -> None:
 
     Removes all entries from ``good_votes``, ``bad_votes``, and
     ``label_history`` in place. Does not affect the ``clips`` dict.
+    Also clears the progress model cache.
     """
+    from vistatotes.models.progress import clear_progress_cache
+
     good_votes.clear()
     bad_votes.clear()
     label_history.clear()
+    clear_progress_cache()
 
 
 def clear_clips() -> None:
     """Clear all loaded clips from memory.
 
     Removes all entries from the ``clips`` dict in place. Does not affect
-    votes or label history.
+    votes or label history. Also clears the progress model cache since
+    cached models reference clip embeddings.
     """
+    from vistatotes.models.progress import clear_progress_cache
+
     clips.clear()
+    clear_progress_cache()
 
 
 def clear_all() -> None:
@@ -64,12 +72,19 @@ def get_inclusion() -> int:
 def set_inclusion(value: int) -> None:
     """Set the global inclusion value.
 
+    Also clears the progress model cache since cached models were trained
+    with the old inclusion value.
+
     Args:
         value: New inclusion setting. Should be an integer in ``[-10, 10]``.
             Values outside this range are accepted but may produce unexpected
             results in model training weight calculations.
     """
     global inclusion
+    if value != inclusion:
+        from vistatotes.models.progress import clear_progress_cache
+
+        clear_progress_cache()
     inclusion = value
 
 
@@ -85,9 +100,7 @@ def add_label_to_history(clip_id: int, label: str) -> None:
     label_history.append((clip_id, label, time.time()))
 
 
-def add_favorite_detector(
-    name: str, media_type: str, weights: dict[str, Any], threshold: float
-) -> None:
+def add_favorite_detector(name: str, media_type: str, weights: dict[str, Any], threshold: float) -> None:
     """Add or overwrite a named favorite detector in the global store.
 
     If a detector with the same ``name`` already exists it is replaced.

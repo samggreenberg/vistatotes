@@ -14,6 +14,7 @@ from vistatotes.datasets import (DEMO_DATASETS, export_dataset_to_file,
                                  get_importer, list_importers,
                                  load_demo_dataset)
 from vistatotes.models import get_e5_model
+from vistatotes.models.progress import clear_progress_cache
 from vistatotes.utils import (bad_votes, clips, get_progress, good_votes,
                               label_history, update_progress)
 
@@ -31,6 +32,7 @@ def clear_dataset():
     good_votes.clear()
     bad_votes.clear()
     label_history.clear()
+    clear_progress_cache()
 
 
 def _run_importer_in_background(importer, field_values: dict) -> None:

@@ -3,10 +3,10 @@
 Media explorer web app for browsing/voting on audio, images, or text. Semantic sorting (LAION-CLAP, CLIP, E5 embeddings) and learned sorting (neural net trained on votes). Flask + vanilla JS + PyTorch.
 
 ## Commands
-- **Run tests**: `python -m pytest tests/ -v`
-- **Start app**: `python app.py` (or `python app.py --local` for dev)
-- **CLI autodetect**: `python app.py --autodetect --dataset <file.pkl> --detector <file.json>`
-- **CLI autodetect + exporter**: `python app.py --autodetect --dataset <file.pkl> --detector <file.json> --exporter file --filepath results.json`
+- **Run tests**: `bash .claude/hooks/ensure-test-deps.sh && python -m pytest tests/ -v`
+- **Start app**: `bash .claude/hooks/ensure-test-deps.sh && python app.py` (or `python app.py --local` for dev)
+- **CLI autodetect**: `bash .claude/hooks/ensure-test-deps.sh && python app.py --autodetect --dataset <file.pkl> --detector <file.json>`
+- **CLI autodetect + exporter**: `bash .claude/hooks/ensure-test-deps.sh && python app.py --autodetect --dataset <file.pkl> --detector <file.json> --exporter file --filepath results.json`
 - **Install deps**: `pip install -r requirements-cpu.txt` (or `requirements-gpu.txt`)
 - **Lint**: `ruff check .`
 - **Format**: `ruff format .`

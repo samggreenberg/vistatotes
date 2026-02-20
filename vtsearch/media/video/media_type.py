@@ -146,10 +146,8 @@ class VideoMediaType(MediaType):
         gc.collect()
         cache_dir = str(MODELS_CACHE_DIR)
         update_progress("loading", "Loading video embedder (X-CLIP model)...", 0, 0)
-        print("DEBUG: Loading X-CLIP model for Video...", flush=True)
         self._model = XCLIPModel.from_pretrained(XCLIP_MODEL_ID, low_cpu_mem_usage=True, cache_dir=cache_dir)
         self._processor = XCLIPProcessor.from_pretrained(XCLIP_MODEL_ID, cache_dir=cache_dir, use_fast=False)
-        print("DEBUG: X-CLIP model loaded.", flush=True)
 
     def embed_media(self, file_path: Path) -> Optional[np.ndarray]:
         if self._model is None:

@@ -10,7 +10,13 @@ import numpy as np
 import pytest
 
 import app as app_module
-from vistatotes.cli import run_autodetect, run_autodetect_with_importer
+from vistatotes.cli import (
+    _build_results_dict,
+    _detect_media_type,
+    _run_exporter,
+    run_autodetect,
+    run_autodetect_with_importer,
+)
 from vistatotes.datasets.loader import export_dataset_to_file
 
 
@@ -576,3 +582,521 @@ class TestAutodetectImporterCLI:
         )
         assert result.returncode == 1
         assert "Error" in result.stderr
+
+
+# ---------------------------------------------------------------------------
+# Tests for exporter CLI argument generation
+# ---------------------------------------------------------------------------
+
+
+class TestExporterCLIArguments:
+    """Tests for add_cli_arguments and validate_cli_field_values on exporters."""
+
+    def test_file_exporter_adds_filepath_arg(self):
+        from vistatotes.exporters.file import FileExporter
+
+        exp = FileExporter()
+        parser = argparse.ArgumentParser()
+        exp.add_cli_arguments(parser)
+
+        args = parser.parse_args(["--filepath", "/tmp/results.json"])
+        assert args.filepath == "/tmp/results.json"
+
+    def test_file_exporter_filepath_default(self):
+        from vistatotes.exporters.file import FileExporter
+
+        exp = FileExporter()
+        parser = argparse.ArgumentParser()
+        exp.add_cli_arguments(parser)
+
+        args = parser.parse_args([])
+        assert args.filepath == "autodetect_results.json"
+
+    def test_email_smtp_exporter_adds_expected_args(self):
+        from vistatotes.exporters.email_smtp import EmailSmtpExporter
+
+        exp = EmailSmtpExporter()
+        parser = argparse.ArgumentParser()
+        exp.add_cli_arguments(parser)
+
+        args = parser.parse_args(
+            [
+                "--to",
+                "recipient@example.com",
+                "--from-email",
+                "sender@example.com",
+                "--smtp-password",
+                "secret",
+            ]
+        )
+        assert args.to == "recipient@example.com"
+        assert args.from_email == "sender@example.com"
+        assert args.smtp_password == "secret"
+        assert args.smtp_host == "smtp.gmail.com"
+        assert args.smtp_port == "587"
+
+    def test_email_smtp_exporter_custom_host_and_port(self):
+        from vistatotes.exporters.email_smtp import EmailSmtpExporter
+
+        exp = EmailSmtpExporter()
+        parser = argparse.ArgumentParser()
+        exp.add_cli_arguments(parser)
+
+        args = parser.parse_args(
+            [
+                "--to",
+                "a@b.com",
+                "--from-email",
+                "c@d.com",
+                "--smtp-password",
+                "pw",
+                "--smtp-host",
+                "mail.example.com",
+                "--smtp-port",
+                "465",
+            ]
+        )
+        assert args.smtp_host == "mail.example.com"
+        assert args.smtp_port == "465"
+
+    def test_gui_exporter_adds_no_args(self):
+        from vistatotes.exporters.gui import GuiExporter
+
+        exp = GuiExporter()
+        parser = argparse.ArgumentParser()
+        exp.add_cli_arguments(parser)
+
+        # Should parse successfully with no extra args
+        args = parser.parse_args([])
+        assert not hasattr(args, "filepath")
+
+    def test_validate_catches_missing_required_field(self):
+        from vistatotes.exporters.email_smtp import EmailSmtpExporter
+
+        exp = EmailSmtpExporter()
+        with pytest.raises(ValueError, match="Missing required argument: --to"):
+            exp.validate_cli_field_values({})
+
+    def test_validate_passes_with_all_fields(self):
+        from vistatotes.exporters.email_smtp import EmailSmtpExporter
+
+        exp = EmailSmtpExporter()
+        # Should not raise
+        exp.validate_cli_field_values(
+            {
+                "to": "a@b.com",
+                "from_email": "c@d.com",
+                "smtp_password": "pw",
+                "smtp_host": "smtp.gmail.com",
+                "smtp_port": "587",
+            }
+        )
+
+    def test_file_exporter_validate_passes(self):
+        from vistatotes.exporters.file import FileExporter
+
+        exp = FileExporter()
+        exp.validate_cli_field_values({"filepath": "/tmp/out.json"})
+
+    def test_gui_exporter_validate_passes_empty(self):
+        from vistatotes.exporters.gui import GuiExporter
+
+        exp = GuiExporter()
+        # No required fields — empty dict is fine
+        exp.validate_cli_field_values({})
+
+
+# ---------------------------------------------------------------------------
+# Tests for _build_results_dict and _detect_media_type
+# ---------------------------------------------------------------------------
+
+
+class TestBuildResultsDict:
+    """Tests for the _build_results_dict helper."""
+
+    def test_basic_structure(self, client, tmp_path):
+        dataset_path = _make_dataset_file(tmp_path, app_module.clips)
+        detector_path, _ = _make_detector_file(tmp_path, client, [1, 2, 3], [18, 19, 20])
+
+        hits = run_autodetect(str(dataset_path), str(detector_path))
+        results = _build_results_dict(hits, str(detector_path), "audio")
+
+        assert results["media_type"] == "audio"
+        assert results["detectors_run"] == 1
+        assert isinstance(results["results"], dict)
+        assert len(results["results"]) == 1
+
+    def test_detector_name_from_json(self, client, tmp_path):
+        detector_path, detector = _make_detector_file(tmp_path, client, [1, 2], [3, 4])
+
+        # Write a detector with an explicit name field
+        detector["name"] = "my_detector"
+        named_path = tmp_path / "named_detector.json"
+        named_path.write_text(json.dumps(detector))
+
+        results = _build_results_dict([], str(named_path))
+        assert "my_detector" in results["results"]
+
+    def test_detector_name_falls_back_to_stem(self, client, tmp_path):
+        detector_path, detector = _make_detector_file(tmp_path, client, [1, 2], [3, 4], name="bark_detector.json")
+
+        # Remove name field if present
+        detector.pop("name", None)
+        detector_path.write_text(json.dumps(detector))
+
+        results = _build_results_dict([], str(detector_path))
+        det_names = list(results["results"].keys())
+        assert len(det_names) == 1
+        assert det_names[0] == "bark_detector"
+
+    def test_hits_included_in_results(self, client, tmp_path):
+        dataset_path = _make_dataset_file(tmp_path, app_module.clips)
+        detector_path, _ = _make_detector_file(tmp_path, client, [1, 2, 3], [18, 19, 20])
+
+        hits = run_autodetect(str(dataset_path), str(detector_path))
+        results = _build_results_dict(hits, str(detector_path))
+
+        det_result = list(results["results"].values())[0]
+        assert det_result["total_hits"] == len(hits)
+        assert det_result["hits"] == hits
+
+    def test_threshold_from_detector(self, client, tmp_path):
+        detector_path, detector = _make_detector_file(tmp_path, client, [1, 2], [3, 4])
+
+        results = _build_results_dict([], str(detector_path))
+        det_result = list(results["results"].values())[0]
+        assert det_result["threshold"] == detector["threshold"]
+
+    def test_default_media_type_is_unknown(self, client, tmp_path):
+        detector_path, _ = _make_detector_file(tmp_path, client, [1, 2], [3, 4])
+        results = _build_results_dict([], str(detector_path))
+        assert results["media_type"] == "unknown"
+
+
+class TestDetectMediaType:
+    """Tests for the _detect_media_type helper."""
+
+    def test_returns_type_from_clips(self):
+        clips_dict = {1: {"type": "audio"}, 2: {"type": "audio"}}
+        assert _detect_media_type(clips_dict) == "audio"
+
+    def test_returns_unknown_for_empty_clips(self):
+        assert _detect_media_type({}) == "unknown"
+
+    def test_returns_unknown_when_type_missing(self):
+        clips_dict = {1: {"filename": "test.wav"}}
+        assert _detect_media_type(clips_dict) == "unknown"
+
+
+# ---------------------------------------------------------------------------
+# Tests for _run_exporter
+# ---------------------------------------------------------------------------
+
+
+class TestRunExporter:
+    """Tests for the _run_exporter function."""
+
+    def test_file_exporter_creates_file(self, client, tmp_path):
+        dataset_path = _make_dataset_file(tmp_path, app_module.clips)
+        detector_path, _ = _make_detector_file(tmp_path, client, [1, 2, 3], [18, 19, 20])
+
+        hits = run_autodetect(str(dataset_path), str(detector_path))
+        results = _build_results_dict(hits, str(detector_path), "audio")
+
+        output_file = tmp_path / "export_output.json"
+        _run_exporter("file", {"filepath": str(output_file)}, results)
+
+        assert output_file.exists()
+        saved = json.loads(output_file.read_text())
+        assert saved["media_type"] == "audio"
+        assert saved["detectors_run"] == 1
+
+    def test_gui_exporter_prints_results(self, client, tmp_path, capsys):
+        dataset_path = _make_dataset_file(tmp_path, app_module.clips)
+        detector_path, detector = _make_detector_file(tmp_path, client, [1, 2, 3], [18, 19, 20])
+
+        # Use threshold 0 to ensure hits
+        detector["threshold"] = 0.0
+        zero_path = tmp_path / "zero_threshold.json"
+        zero_path.write_text(json.dumps(detector))
+
+        hits = run_autodetect(str(dataset_path), str(zero_path))
+        results = _build_results_dict(hits, str(zero_path), "audio")
+
+        _run_exporter("gui", {}, results)
+        captured = capsys.readouterr()
+        assert "Predicted Good" in captured.out or "Printed" in captured.out
+
+    def test_unknown_exporter_raises_error(self):
+        with pytest.raises(ValueError, match="Unknown exporter"):
+            _run_exporter("nonexistent_exporter", {}, {})
+
+    def test_missing_required_field_raises_error(self):
+        with pytest.raises(ValueError, match="Missing required argument"):
+            _run_exporter("email_smtp", {}, {})
+
+
+# ---------------------------------------------------------------------------
+# Tests for autodetect_main with --exporter
+# ---------------------------------------------------------------------------
+
+
+class TestAutodetectMainWithExporter:
+    """Tests for the autodetect_main function with exporter support."""
+
+    def test_file_exporter_via_function(self, client, tmp_path):
+        dataset_path = _make_dataset_file(tmp_path, app_module.clips)
+        detector_path, _ = _make_detector_file(tmp_path, client, [1, 2, 3], [18, 19, 20])
+
+        output_file = tmp_path / "fn_export.json"
+        from vistatotes.cli import autodetect_main
+
+        autodetect_main(
+            str(dataset_path),
+            str(detector_path),
+            exporter_name="file",
+            exporter_field_values={"filepath": str(output_file)},
+        )
+
+        assert output_file.exists()
+        saved = json.loads(output_file.read_text())
+        assert "results" in saved
+
+    def test_no_exporter_prints_hits(self, client, tmp_path, capsys):
+        dataset_path = _make_dataset_file(tmp_path, app_module.clips)
+        detector_path, _ = _make_detector_file(tmp_path, client, [1, 2, 3], [18, 19, 20])
+
+        from vistatotes.cli import autodetect_main
+
+        autodetect_main(str(dataset_path), str(detector_path))
+
+        captured = capsys.readouterr()
+        assert "Predicted Good" in captured.out or "No items predicted as Good" in captured.out
+
+
+class TestAutodetectImporterMainWithExporter:
+    """Tests for the autodetect_importer_main function with exporter support."""
+
+    def test_pickle_importer_file_exporter(self, client, tmp_path):
+        dataset_path = _make_dataset_file(tmp_path, app_module.clips)
+        detector_path, _ = _make_detector_file(tmp_path, client, [1, 2, 3], [18, 19, 20])
+
+        output_file = tmp_path / "importer_export.json"
+        from vistatotes.cli import autodetect_importer_main
+
+        autodetect_importer_main(
+            "pickle",
+            {"file": str(dataset_path)},
+            str(detector_path),
+            exporter_name="file",
+            exporter_field_values={"filepath": str(output_file)},
+        )
+
+        assert output_file.exists()
+        saved = json.loads(output_file.read_text())
+        assert "results" in saved
+        assert saved["media_type"] == "audio"
+
+
+# ---------------------------------------------------------------------------
+# Tests for CLI --exporter flag via subprocess
+# ---------------------------------------------------------------------------
+
+
+class TestAutodetectExporterCLI:
+    """Tests for the --autodetect --exporter path via subprocess."""
+
+    def test_file_exporter_via_cli(self, client, tmp_path):
+        dataset_path = _make_dataset_file(tmp_path, app_module.clips)
+        detector_path, _ = _make_detector_file(tmp_path, client, [1, 2, 3], [18, 19, 20])
+
+        output_file = tmp_path / "cli_export.json"
+        result = subprocess.run(
+            [
+                sys.executable,
+                "app.py",
+                "--autodetect",
+                "--dataset",
+                str(dataset_path),
+                "--detector",
+                str(detector_path),
+                "--exporter",
+                "file",
+                "--filepath",
+                str(output_file),
+            ],
+            capture_output=True,
+            text=True,
+            cwd=_PROJECT_ROOT,
+            timeout=120,
+        )
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert output_file.exists()
+        saved = json.loads(output_file.read_text())
+        assert "results" in saved
+
+    def test_file_exporter_with_importer_via_cli(self, client, tmp_path):
+        dataset_path = _make_dataset_file(tmp_path, app_module.clips)
+        detector_path, _ = _make_detector_file(tmp_path, client, [1, 2, 3], [18, 19, 20])
+
+        output_file = tmp_path / "cli_imp_export.json"
+        result = subprocess.run(
+            [
+                sys.executable,
+                "app.py",
+                "--autodetect",
+                "--importer",
+                "pickle",
+                "--file",
+                str(dataset_path),
+                "--detector",
+                str(detector_path),
+                "--exporter",
+                "file",
+                "--filepath",
+                str(output_file),
+            ],
+            capture_output=True,
+            text=True,
+            cwd=_PROJECT_ROOT,
+            timeout=120,
+        )
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert output_file.exists()
+        saved = json.loads(output_file.read_text())
+        assert "results" in saved
+
+    def test_gui_exporter_via_cli(self, client, tmp_path):
+        dataset_path = _make_dataset_file(tmp_path, app_module.clips)
+        detector_path, _ = _make_detector_file(tmp_path, client, [1, 2, 3], [18, 19, 20])
+
+        result = subprocess.run(
+            [
+                sys.executable,
+                "app.py",
+                "--autodetect",
+                "--dataset",
+                str(dataset_path),
+                "--detector",
+                str(detector_path),
+                "--exporter",
+                "gui",
+            ],
+            capture_output=True,
+            text=True,
+            cwd=_PROJECT_ROOT,
+            timeout=120,
+        )
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        assert (
+            "Predicted Good" in result.stdout
+            or "No items predicted as Good" in result.stdout
+            or "Printed" in result.stdout
+        )
+
+    def test_unknown_exporter_fails(self, client, tmp_path):
+        dataset_path = _make_dataset_file(tmp_path, app_module.clips)
+        detector_path, _ = _make_detector_file(tmp_path, client, [1, 2, 3], [18, 19, 20])
+
+        result = subprocess.run(
+            [
+                sys.executable,
+                "app.py",
+                "--autodetect",
+                "--dataset",
+                str(dataset_path),
+                "--detector",
+                str(detector_path),
+                "--exporter",
+                "nonexistent_exporter",
+            ],
+            capture_output=True,
+            text=True,
+            cwd=_PROJECT_ROOT,
+            timeout=120,
+        )
+        assert result.returncode != 0
+        assert "Unknown exporter" in result.stderr
+
+    def test_missing_exporter_required_field_fails(self, client, tmp_path):
+        """Omitting required email_smtp fields should produce an error."""
+        dataset_path = _make_dataset_file(tmp_path, app_module.clips)
+        detector_path, _ = _make_detector_file(tmp_path, client, [1, 2, 3], [18, 19, 20])
+
+        result = subprocess.run(
+            [
+                sys.executable,
+                "app.py",
+                "--autodetect",
+                "--dataset",
+                str(dataset_path),
+                "--detector",
+                str(detector_path),
+                "--exporter",
+                "email_smtp",
+                # --to and other required fields intentionally omitted
+            ],
+            capture_output=True,
+            text=True,
+            cwd=_PROJECT_ROOT,
+            timeout=120,
+        )
+        assert result.returncode == 1
+        assert "Error" in result.stderr
+
+    def test_file_exporter_output_contains_media_type(self, client, tmp_path):
+        """File exporter output should include the media_type from the dataset."""
+        dataset_path = _make_dataset_file(tmp_path, app_module.clips)
+        detector_path, _ = _make_detector_file(tmp_path, client, [1, 2, 3], [18, 19, 20])
+
+        output_file = tmp_path / "media_type_test.json"
+        result = subprocess.run(
+            [
+                sys.executable,
+                "app.py",
+                "--autodetect",
+                "--dataset",
+                str(dataset_path),
+                "--detector",
+                str(detector_path),
+                "--exporter",
+                "file",
+                "--filepath",
+                str(output_file),
+            ],
+            capture_output=True,
+            text=True,
+            cwd=_PROJECT_ROOT,
+            timeout=120,
+        )
+        assert result.returncode == 0, f"stderr: {result.stderr}"
+        saved = json.loads(output_file.read_text())
+        assert saved["media_type"] == "audio"
+
+    def test_file_exporter_stdout_shows_confirmation(self, client, tmp_path):
+        """The CLI should print the exporter's confirmation message."""
+        dataset_path = _make_dataset_file(tmp_path, app_module.clips)
+        detector_path, _ = _make_detector_file(tmp_path, client, [1, 2, 3], [18, 19, 20])
+
+        output_file = tmp_path / "confirm_test.json"
+        result = subprocess.run(
+            [
+                sys.executable,
+                "app.py",
+                "--autodetect",
+                "--dataset",
+                str(dataset_path),
+                "--detector",
+                str(detector_path),
+                "--exporter",
+                "file",
+                "--filepath",
+                str(output_file),
+            ],
+            capture_output=True,
+            text=True,
+            cwd=_PROJECT_ROOT,
+            timeout=120,
+        )
+        assert result.returncode == 0
+        assert "Saved" in result.stdout

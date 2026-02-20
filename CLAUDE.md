@@ -6,13 +6,14 @@ Media explorer web app for browsing/voting on audio, images, or text. Semantic s
 - **Run tests**: `python -m pytest tests/ -v`
 - **Start app**: `python app.py` (or `python app.py --local` for dev)
 - **CLI autodetect**: `python app.py --autodetect --dataset <file.pkl> --detector <file.json>`
+- **CLI autodetect + exporter**: `python app.py --autodetect --dataset <file.pkl> --detector <file.json> --exporter file --filepath results.json`
 - **Install deps**: `pip install -r requirements-cpu.txt` (or `requirements-gpu.txt`)
 - **Lint**: `ruff check .`
 - **Format**: `ruff format .`
 
 ## Architecture
 - `app.py` — Flask entry point, registers blueprints, startup logic, CLI argument parsing
-- `vistatotes/cli.py` — CLI autodetect: load dataset + detector, run inference, print results
+- `vistatotes/cli.py` — CLI autodetect: load dataset + detector, run inference, export results
 - `config.py` — Constants (SAMPLE_RATE, NUM_CLIPS, paths, model IDs)
 - `vistatotes/routes/` — Flask blueprints: `main.py`, `clips.py`, `sorting.py`, `datasets.py`
 - `vistatotes/models/` — Embeddings, training, model loading, progress tracking
@@ -31,7 +32,7 @@ Media explorer web app for browsing/voting on audio, images, or text. Semantic s
   - `test_labels.py` — Label export/import
   - `test_inclusion.py` — Inclusion GET/POST
   - `test_detectors.py` — Detector export, detector sort, favorites, auto-detect
-  - `test_cli_autodetect.py` — CLI autodetect: run_autodetect function and --autodetect flag
+  - `test_cli_autodetect.py` — CLI autodetect: run_autodetect function, --autodetect flag, --exporter flag
   - `test_datasets.py` — Dataset endpoints, startup state, importers, archive extraction
 
 ## Key Details

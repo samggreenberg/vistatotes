@@ -26,15 +26,30 @@ class GuiExporter(ResultsExporter):
     fields = []  # no questions to ask
 
     def export(self, results: dict[str, Any], field_values: dict[str, Any]) -> dict[str, Any]:
-        total_hits = sum(
-            r.get("total_hits", 0) for r in results.get("results", {}).values()
-        )
+        total_hits = sum(r.get("total_hits", 0) for r in results.get("results", {}).values())
         return {
-            "message": (
-                f"Showing {total_hits} hit(s) across "
-                f"{results.get('detectors_run', 0)} detector(s)."
-            ),
+            "message": (f"Showing {total_hits} hit(s) across {results.get('detectors_run', 0)} detector(s)."),
             "display_results": results,
+        }
+
+    def export_cli(self, results: dict[str, Any], field_values: dict[str, Any]) -> dict[str, Any]:
+        """Print results to stdout (there is no browser in CLI mode)."""
+        lines: list[str] = []
+        for det_result in results.get("results", {}).values():
+            hits = det_result.get("hits", [])
+            if not hits:
+                lines.append("No items predicted as Good.")
+                continue
+            lines.append(f"Predicted Good ({len(hits)} items):\n")
+            for hit in hits:
+                lines.append(
+                    f"  {hit['filename']}  (score: {hit['score']}, category: {hit.get('category', 'unknown')})"
+                )
+        output = "\n".join(lines) if lines else "No results."
+        print(output)
+        total_hits = sum(r.get("total_hits", 0) for r in results.get("results", {}).values())
+        return {
+            "message": (f"Printed {total_hits} hit(s) across {results.get('detectors_run', 0)} detector(s) to stdout."),
         }
 
 

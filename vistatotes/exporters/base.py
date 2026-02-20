@@ -5,6 +5,13 @@ attributes and :meth:`~ResultsExporter.export`, then expose a module-level
 ``EXPORTER`` instance from a package under this directory.  The registry will
 discover it automatically.
 
+Each exporter also supports CLI usage via :meth:`~ResultsExporter.add_cli_arguments`
+and :meth:`~ResultsExporter.export_cli`.  The base class provides default
+implementations that derive CLI arguments from the :attr:`fields` list, so most
+exporters work on the command line without any extra code.  Exporters whose
+:meth:`export` expects non-string values should override :meth:`export_cli` to
+handle the CLI-appropriate types.
+
 Example – a minimal SFTP exporter skeleton::
 
     # vistatotes/exporters/sftp/__init__.py
@@ -40,6 +47,7 @@ to ``requirements-exporters.txt``.
 
 from __future__ import annotations
 
+import argparse
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
@@ -145,6 +153,48 @@ class ResultsExporter:
                 returns it as a 500 JSON error.
         """
         raise NotImplementedError(f"{type(self).__name__}.export() is not implemented")
+
+    # ------------------------------------------------------------------
+    # CLI support
+    # ------------------------------------------------------------------
+
+    def add_cli_arguments(self, parser: argparse.ArgumentParser) -> None:
+        """Register this exporter's fields as ``argparse`` arguments.
+
+        The default implementation converts each :class:`ExporterField` into a
+        CLI flag (e.g. a field with ``key="smtp_host"`` becomes
+        ``--smtp-host``).  ``"select"`` fields gain a ``choices`` constraint.
+
+        Override this method if you need custom argument handling.
+        """
+        for f in self.fields:
+            arg_name = f"--{f.key.replace('_', '-')}"
+            kwargs: dict[str, Any] = {
+                "dest": f.key,
+                "help": f.description or f.label,
+            }
+            if f.default:
+                kwargs["default"] = f.default
+            if f.field_type == "select" and f.options:
+                kwargs["choices"] = f.options
+            parser.add_argument(arg_name, **kwargs)
+
+    def export_cli(self, results: dict[str, Any], field_values: dict[str, Any]) -> dict[str, Any]:
+        """Export results from CLI-provided *field_values*.
+
+        The default implementation simply delegates to :meth:`export`, which
+        works for exporters whose ``export()`` only expects plain string values.
+        Exporters that need different behaviour on the command line (e.g. the
+        GUI exporter, which has no browser) should override this method.
+        """
+        return self.export(results, field_values)
+
+    def validate_cli_field_values(self, field_values: dict[str, Any]) -> None:
+        """Raise ``ValueError`` if any required field is missing or empty."""
+        for f in self.fields:
+            if f.required and not field_values.get(f.key):
+                cli_flag = f"--{f.key.replace('_', '-')}"
+                raise ValueError(f"Missing required argument: {cli_flag}")
 
     def to_dict(self) -> dict[str, Any]:
         """Serialise exporter metadata for the ``/api/exporters`` endpoint."""

@@ -92,10 +92,18 @@ if __name__ == "__main__":
         type=str,
         help="Name of the data importer to use (e.g. folder, pickle, http_archive). Used with --autodetect.",
     )
+    parser.add_argument(
+        "--exporter",
+        type=str,
+        help="Name of the results exporter to use (e.g. file, email_smtp, gui). Used with --autodetect.",
+    )
 
-    # Two-pass parsing: first pass gets --importer name, second pass adds
-    # that importer's arguments and re-parses.
+    # Two-pass parsing: first pass gets --importer and --exporter names,
+    # second pass adds their arguments and re-parses.
     args, remaining = parser.parse_known_args()
+
+    importer = None
+    exporter = None
 
     if args.autodetect and args.importer:
         from vistatotes.datasets.importers import get_importer, list_importers
@@ -106,13 +114,30 @@ if __name__ == "__main__":
             parser.error(f"Unknown importer: {args.importer}. Available: {available}")
 
         importer.add_cli_arguments(parser)
+
+    if args.autodetect and args.exporter:
+        from vistatotes.exporters import get_exporter, list_exporters
+
+        exporter = get_exporter(args.exporter)
+        if exporter is None:
+            available = ", ".join(exp.name for exp in list_exporters())
+            parser.error(f"Unknown exporter: {args.exporter}. Available: {available}")
+
+        exporter.add_cli_arguments(parser)
+
+    if importer or exporter:
         args = parser.parse_args()
     elif remaining:
-        # No importer specified but there are unknown args; let argparse
-        # report the error.
+        # No importer/exporter specified but there are unknown args; let
+        # argparse report the error.
         parser.parse_args()
 
     if args.autodetect:
+        # Collect exporter field values if an exporter was specified
+        exporter_field_values = None
+        if exporter:
+            exporter_field_values = {f.key: getattr(args, f.key, f.default or None) for f in exporter.fields}
+
         if args.importer:
             # New importer-based path
             if not args.detector:
@@ -121,7 +146,7 @@ if __name__ == "__main__":
             from vistatotes.cli import autodetect_importer_main
 
             field_values = {f.key: getattr(args, f.key, f.default or None) for f in importer.fields}
-            autodetect_importer_main(args.importer, field_values, args.detector)
+            autodetect_importer_main(args.importer, field_values, args.detector, args.exporter, exporter_field_values)
 
         elif args.dataset:
             # Legacy pickle-file path
@@ -130,21 +155,21 @@ if __name__ == "__main__":
 
             from vistatotes.cli import autodetect_main
 
-            autodetect_main(args.dataset, args.detector)
+            autodetect_main(args.dataset, args.detector, args.exporter, exporter_field_values)
 
         else:
             parser.error("--autodetect requires either --dataset <file.pkl> or --importer <name>")
 
     elif args.local:
         # Local development mode
-        print("🚀 Running in LOCAL mode (accessible from other devices)", flush=True)
+        print("\U0001f680 Running in LOCAL mode (accessible from other devices)", flush=True)
         app.run(host="0.0.0.0", port=5000, debug=False, threaded=True)
     else:
-        # Production mode — models load lazily when the first dataset is loaded
-        print("🚀 Running in PRODUCTION mode", flush=True)
+        # Production mode \u2014 models load lazily when the first dataset is loaded
+        print("\U0001f680 Running in PRODUCTION mode", flush=True)
         initialize_models()
 
-        print("✅ VistaTotes is ready!", flush=True)
-        print("🌐 Open http://localhost:5000 in your browser", flush=True)
+        print("\u2705 VistaTotes is ready!", flush=True)
+        print("\U0001f310 Open http://localhost:5000 in your browser", flush=True)
 
         app.run(host="0.0.0.0", port=5000, debug=False, threaded=True)

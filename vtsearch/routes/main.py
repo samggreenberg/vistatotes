@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from flask import Blueprint, Response, current_app
+from flask import Blueprint, Response, current_app, send_from_directory
 
 main_bp = Blueprint("main", __name__)
 
@@ -17,18 +17,34 @@ def index() -> Response:
     return current_app.send_static_file("index.html")
 
 
+def _project_root() -> Path:
+    """Return the project root directory (parent of the ``vtsearch`` package)."""
+    return Path(current_app.root_path).parent
+
+
 @main_bp.route("/favicon.ico")
 def favicon() -> tuple[str, int] | Response:
-    """Serve the site favicon, or return a 204 No Content if it does not exist.
-
-    Returning 204 instead of 404 suppresses repetitive browser error logs when
-    no favicon has been configured.
+    """Serve the site favicon from the project root.
 
     Returns:
-        The ``static/favicon.ico`` file as a response if it exists on disk,
+        The ``favicon.ico`` file from the project root if it exists,
         otherwise an empty ``(str, int)`` tuple with HTTP status 204.
     """
-    # Return empty response if file doesn't exist to stop 404 logs
-    if not (Path(current_app.root_path) / "static" / "favicon.ico").exists():
+    root = _project_root()
+    if not (root / "favicon.ico").exists():
         return "", 204
-    return current_app.send_static_file("favicon.ico")
+    return send_from_directory(str(root), "favicon.ico", mimetype="image/x-icon")
+
+
+@main_bp.route("/logo.svg")
+def logo() -> tuple[str, int] | Response:
+    """Serve the site logo from the project root.
+
+    Returns:
+        The ``logo.svg`` file from the project root if it exists,
+        otherwise an empty ``(str, int)`` tuple with HTTP status 204.
+    """
+    root = _project_root()
+    if not (root / "logo.svg").exists():
+        return "", 204
+    return send_from_directory(str(root), "logo.svg", mimetype="image/svg+xml")

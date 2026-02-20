@@ -40,6 +40,7 @@ pip install --extra-index-url https://download.pytorch.org/whl/cpu \
   Pillow \
   ultralytics \
   sentence-transformers \
+  pandas \
   --ignore-installed blinker \
   -q
 

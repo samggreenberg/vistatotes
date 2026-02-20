@@ -8,6 +8,7 @@ requests
 tqdm
 scikit-learn
 transformers
+pandas
 
 # Per-media-type packages — listed inline here (instead of via -r includes)
 # because this file uses version pins for CPU compatibility.

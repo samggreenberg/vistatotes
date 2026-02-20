@@ -2,6 +2,7 @@
 flask
 numpy
 torch
+pandas
 laion_clap
 librosa
 requests

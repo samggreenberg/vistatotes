@@ -28,6 +28,27 @@ datasets_bp = Blueprint("datasets", __name__)
 _BUILTIN_IMPORTER_NAMES = {"pickle"}
 
 
+def _load_embedder_for_clips() -> None:
+    """Eagerly load the embedder for the current dataset's media type.
+
+    Called right after a dataset finishes loading so the first text sort
+    doesn't have to wait for the model download.  ``load_models()`` is
+    idempotent, so this is a no-op when the model is already warm (e.g.
+    after a folder import that already called ``embed_media()``).
+    """
+    if not clips:
+        return
+    media_type = next(iter(clips.values())).get("type", "audio")
+    from vtsearch.media import get as media_get
+
+    try:
+        mt = media_get(media_type)
+    except KeyError:
+        return
+    mt.load_models()
+    update_progress("idle", "Ready")
+
+
 def clear_dataset():
     """Clear the current dataset."""
     clips.clear()
@@ -44,6 +65,7 @@ def _run_importer_in_background(importer, field_values: dict) -> None:
         try:
             clear_dataset()
             importer.run(field_values, clips)
+            _load_embedder_for_clips()
         except Exception as e:
             update_progress("idle", "", 0, 0, str(e))
 
@@ -176,9 +198,7 @@ def demo_dataset_list():
         # this check stays generic as new demo datasets are added.
         if is_ready:
             required_folder = dataset_info.get("required_folder")
-            if required_folder is not None and (
-                not required_folder.exists() or not any(required_folder.iterdir())
-            ):
+            if required_folder is not None and (not required_folder.exists() or not any(required_folder.iterdir())):
                 is_ready = False
 
         # Calculate number of files
@@ -254,6 +274,7 @@ def load_demo_dataset_route():
         try:
             clear_dataset()
             load_demo_dataset(dataset_name, clips)
+            _load_embedder_for_clips()
         except Exception as e:
             update_progress("idle", "", 0, 0, str(e))
 

@@ -1918,7 +1918,7 @@
     if (data.status === "red") {
       subtext.textContent = `${data.good_count}g / ${data.bad_count}b`;
     } else if (data.status === "yellow") {
-      subtext.textContent = "keep labeling";
+      subtext.textContent = "Continue";
     } else if (data.status === "green") {
       subtext.textContent = "ready to stop";
     } else {

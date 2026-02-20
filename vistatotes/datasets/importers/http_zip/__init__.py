@@ -1,4 +1,4 @@
-"""HTTP-Archive importer – downloads a public archive of media files and loads them.
+"""HTTP-Archive importer \u2013 downloads a public archive of media files and loads them.
 
 Supports .zip, .tar, .tar.gz, .tar.bz2, .tar.xz archives.
 RAR support requires the optional ``rarfile`` package.
@@ -11,6 +11,7 @@ from __future__ import annotations
 import tarfile
 import zipfile
 from pathlib import Path
+from typing import Any
 
 from config import DATA_DIR
 from vistatotes.datasets.downloader import download_file_with_progress
@@ -54,8 +55,7 @@ def _extract_archive(archive_path: Path, extract_dir: Path) -> None:
             import rarfile  # optional dependency
         except ImportError as exc:
             raise RuntimeError(
-                "RAR extraction requires the 'rarfile' package. "
-                "Install it with: pip install rarfile"
+                "RAR extraction requires the 'rarfile' package. Install it with: pip install rarfile"
             ) from exc
         with rarfile.RarFile(archive_path, "r") as rf:
             members = rf.namelist()
@@ -91,13 +91,13 @@ class HttpArchiveImporter(DatasetImporter):
     name = "http_archive"
     display_name = "Generate from HTTP Archive"
     description = "Download a .zip, .tar, or .rar archive from a URL and load the media files inside."
-    icon = "🌐"
+    icon = "\U0001f310"
     fields = [
         ImporterField(
             key="url",
             label="Archive URL",
             field_type="url",
-            description="URL to a publicly accessible archive (.zip, .tar.gz, .rar, …) of media files.",
+            description="URL to a publicly accessible archive (.zip, .tar.gz, .rar, \u2026) of media files.",
         ),
         ImporterField(
             key="media_type",
@@ -130,6 +130,12 @@ class HttpArchiveImporter(DatasetImporter):
         archive_path.unlink(missing_ok=True)
 
         load_dataset_from_folder(extract_dir, media_type, clips)
+
+    def run_cli(self, field_values: dict[str, Any], clips: dict) -> None:
+        url = field_values.get("url", "")
+        if not url.startswith(("http://", "https://")):
+            raise ValueError(f"Invalid URL (must start with http:// or https://): {url}")
+        self.run(field_values, clips)
 
 
 IMPORTER = HttpArchiveImporter()

@@ -1,5 +1,6 @@
 """Tests for the CLI autodetect feature (vistatotes/cli.py)."""
 
+import argparse
 import json
 import subprocess
 import sys
@@ -9,7 +10,7 @@ import numpy as np
 import pytest
 
 import app as app_module
-from vistatotes.cli import run_autodetect
+from vistatotes.cli import run_autodetect, run_autodetect_with_importer
 from vistatotes.datasets.loader import export_dataset_to_file
 
 
@@ -39,6 +40,9 @@ def _make_detector_file(tmp_path, client, good_ids, bad_ids, name="detector.json
     detector_path = tmp_path / name
     detector_path.write_text(json.dumps(detector))
     return detector_path, detector
+
+
+_PROJECT_ROOT = str(Path(__file__).resolve().parent.parent)
 
 
 # ---------------------------------------------------------------------------
@@ -196,6 +200,148 @@ class TestRunAutodetect:
 
 
 # ---------------------------------------------------------------------------
+# Tests for run_autodetect_with_importer()
+# ---------------------------------------------------------------------------
+
+
+class TestRunAutodetectWithImporter:
+    """Tests for the importer-aware autodetect path."""
+
+    def test_pickle_importer_returns_same_as_legacy(self, client, tmp_path):
+        """Using --importer pickle should produce the same results as --dataset."""
+        dataset_path = _make_dataset_file(tmp_path, app_module.clips)
+        detector_path, _ = _make_detector_file(tmp_path, client, [1, 2, 3], [18, 19, 20])
+
+        legacy_hits = run_autodetect(str(dataset_path), str(detector_path))
+        importer_hits = run_autodetect_with_importer("pickle", {"file": str(dataset_path)}, str(detector_path))
+
+        assert len(legacy_hits) == len(importer_hits)
+        for lh, ih in zip(legacy_hits, importer_hits):
+            assert lh["id"] == ih["id"]
+            assert lh["score"] == ih["score"]
+
+    def test_pickle_importer_file_not_found(self, client, tmp_path):
+        detector_path, _ = _make_detector_file(tmp_path, client, [1, 2], [3, 4])
+        with pytest.raises(FileNotFoundError, match="Dataset file not found"):
+            run_autodetect_with_importer("pickle", {"file": "/nonexistent.pkl"}, str(detector_path))
+
+    def test_unknown_importer_raises_error(self, client, tmp_path):
+        detector_path, _ = _make_detector_file(tmp_path, client, [1, 2], [3, 4])
+        with pytest.raises(ValueError, match="Unknown importer"):
+            run_autodetect_with_importer("nonexistent_importer", {}, str(detector_path))
+
+    def test_missing_required_field_raises_error(self, client, tmp_path):
+        detector_path, _ = _make_detector_file(tmp_path, client, [1, 2], [3, 4])
+        with pytest.raises(ValueError, match="Missing required argument"):
+            run_autodetect_with_importer("pickle", {}, str(detector_path))
+
+    def test_folder_importer_nonexistent_path_raises(self, client, tmp_path):
+        detector_path, _ = _make_detector_file(tmp_path, client, [1, 2], [3, 4])
+        with pytest.raises(FileNotFoundError, match="Folder not found"):
+            run_autodetect_with_importer(
+                "folder",
+                {"path": "/nonexistent/folder", "media_type": "sounds"},
+                str(detector_path),
+            )
+
+    def test_folder_importer_file_instead_of_dir_raises(self, client, tmp_path):
+        detector_path, _ = _make_detector_file(tmp_path, client, [1, 2], [3, 4])
+        # Create a file (not a directory)
+        fake_file = tmp_path / "not_a_dir.txt"
+        fake_file.write_text("not a directory")
+        with pytest.raises(NotADirectoryError, match="Not a directory"):
+            run_autodetect_with_importer(
+                "folder",
+                {"path": str(fake_file), "media_type": "sounds"},
+                str(detector_path),
+            )
+
+    def test_http_archive_invalid_url_raises(self, client, tmp_path):
+        detector_path, _ = _make_detector_file(tmp_path, client, [1, 2], [3, 4])
+        with pytest.raises(ValueError, match="Invalid URL"):
+            run_autodetect_with_importer(
+                "http_archive",
+                {"url": "not-a-url", "media_type": "sounds"},
+                str(detector_path),
+            )
+
+
+# ---------------------------------------------------------------------------
+# Tests for importer CLI argument generation
+# ---------------------------------------------------------------------------
+
+
+class TestImporterCLIArguments:
+    """Tests for add_cli_arguments and validate_cli_field_values."""
+
+    def test_folder_importer_adds_expected_args(self):
+        from vistatotes.datasets.importers.folder import FolderImporter
+
+        imp = FolderImporter()
+        parser = argparse.ArgumentParser()
+        imp.add_cli_arguments(parser)
+
+        args = parser.parse_args(["--path", "/tmp/data", "--media-type", "images"])
+        assert args.path == "/tmp/data"
+        assert args.media_type == "images"
+
+    def test_folder_importer_media_type_default(self):
+        from vistatotes.datasets.importers.folder import FolderImporter
+
+        imp = FolderImporter()
+        parser = argparse.ArgumentParser()
+        imp.add_cli_arguments(parser)
+
+        args = parser.parse_args(["--path", "/tmp/data"])
+        assert args.media_type == "sounds"
+
+    def test_folder_importer_rejects_invalid_media_type(self):
+        from vistatotes.datasets.importers.folder import FolderImporter
+
+        imp = FolderImporter()
+        parser = argparse.ArgumentParser()
+        imp.add_cli_arguments(parser)
+
+        with pytest.raises(SystemExit):
+            parser.parse_args(["--path", "/tmp/data", "--media-type", "invalid"])
+
+    def test_pickle_importer_adds_file_arg(self):
+        from vistatotes.datasets.importers.pickle import PickleImporter
+
+        imp = PickleImporter()
+        parser = argparse.ArgumentParser()
+        imp.add_cli_arguments(parser)
+
+        args = parser.parse_args(["--file", "/tmp/dataset.pkl"])
+        assert args.file == "/tmp/dataset.pkl"
+
+    def test_http_archive_importer_adds_expected_args(self):
+        from vistatotes.datasets.importers.http_zip import HttpArchiveImporter
+
+        imp = HttpArchiveImporter()
+        parser = argparse.ArgumentParser()
+        imp.add_cli_arguments(parser)
+
+        args = parser.parse_args(["--url", "https://example.com/archive.zip", "--media-type", "images"])
+        assert args.url == "https://example.com/archive.zip"
+        assert args.media_type == "images"
+
+    def test_validate_catches_missing_required_field(self):
+        from vistatotes.datasets.importers.folder import FolderImporter
+
+        imp = FolderImporter()
+        with pytest.raises(ValueError, match="Missing required argument: --path"):
+            imp.validate_cli_field_values({"media_type": "sounds"})
+
+    def test_validate_passes_with_all_fields(self):
+        from vistatotes.datasets.importers.folder import FolderImporter
+
+        imp = FolderImporter()
+        # Should not raise
+        imp.validate_cli_field_values({"media_type": "sounds", "path": "/tmp/data"})
+
+
+# ---------------------------------------------------------------------------
 # Tests for CLI entry point (app.py --autodetect)
 # ---------------------------------------------------------------------------
 
@@ -208,10 +354,18 @@ class TestAutodetectCLI:
         detector_path, _ = _make_detector_file(tmp_path, client, [1, 2, 3], [18, 19, 20])
 
         result = subprocess.run(
-            [sys.executable, "app.py", "--autodetect", "--dataset", str(dataset_path), "--detector", str(detector_path)],
+            [
+                sys.executable,
+                "app.py",
+                "--autodetect",
+                "--dataset",
+                str(dataset_path),
+                "--detector",
+                str(detector_path),
+            ],
             capture_output=True,
             text=True,
-            cwd=str(Path(__file__).resolve().parent.parent),
+            cwd=_PROJECT_ROOT,
             timeout=120,
         )
         assert result.returncode == 0
@@ -224,7 +378,7 @@ class TestAutodetectCLI:
             [sys.executable, "app.py", "--autodetect", "--detector", str(detector_path)],
             capture_output=True,
             text=True,
-            cwd=str(Path(__file__).resolve().parent.parent),
+            cwd=_PROJECT_ROOT,
             timeout=120,
         )
         assert result.returncode != 0
@@ -236,7 +390,7 @@ class TestAutodetectCLI:
             [sys.executable, "app.py", "--autodetect", "--dataset", str(dataset_path)],
             capture_output=True,
             text=True,
-            cwd=str(Path(__file__).resolve().parent.parent),
+            cwd=_PROJECT_ROOT,
             timeout=120,
         )
         assert result.returncode != 0
@@ -245,10 +399,18 @@ class TestAutodetectCLI:
         detector_path, _ = _make_detector_file(tmp_path, client, [1, 2], [3, 4])
 
         result = subprocess.run(
-            [sys.executable, "app.py", "--autodetect", "--dataset", "/tmp/nonexistent.pkl", "--detector", str(detector_path)],
+            [
+                sys.executable,
+                "app.py",
+                "--autodetect",
+                "--dataset",
+                "/tmp/nonexistent.pkl",
+                "--detector",
+                str(detector_path),
+            ],
             capture_output=True,
             text=True,
-            cwd=str(Path(__file__).resolve().parent.parent),
+            cwd=_PROJECT_ROOT,
             timeout=120,
         )
         assert result.returncode == 1
@@ -267,7 +429,7 @@ class TestAutodetectCLI:
             [sys.executable, "app.py", "--autodetect", "--dataset", str(dataset_path), "--detector", str(zero_path)],
             capture_output=True,
             text=True,
-            cwd=str(Path(__file__).resolve().parent.parent),
+            cwd=_PROJECT_ROOT,
             timeout=120,
         )
         assert result.returncode == 0
@@ -286,8 +448,131 @@ class TestAutodetectCLI:
             [sys.executable, "app.py", "--autodetect", "--dataset", str(dataset_path), "--detector", str(high_path)],
             capture_output=True,
             text=True,
-            cwd=str(Path(__file__).resolve().parent.parent),
+            cwd=_PROJECT_ROOT,
             timeout=120,
         )
         assert result.returncode == 0
         assert "No items predicted as Good" in result.stdout
+
+
+# ---------------------------------------------------------------------------
+# Tests for CLI --importer flag via subprocess
+# ---------------------------------------------------------------------------
+
+
+class TestAutodetectImporterCLI:
+    """Tests for the --autodetect --importer path via subprocess."""
+
+    def test_importer_pickle_via_cli(self, client, tmp_path):
+        """--importer pickle --file <path> should work like --dataset <path>."""
+        dataset_path = _make_dataset_file(tmp_path, app_module.clips)
+        detector_path, _ = _make_detector_file(tmp_path, client, [1, 2, 3], [18, 19, 20])
+
+        result = subprocess.run(
+            [
+                sys.executable,
+                "app.py",
+                "--autodetect",
+                "--importer",
+                "pickle",
+                "--file",
+                str(dataset_path),
+                "--detector",
+                str(detector_path),
+            ],
+            capture_output=True,
+            text=True,
+            cwd=_PROJECT_ROOT,
+            timeout=120,
+        )
+        assert result.returncode == 0
+        assert "Predicted Good" in result.stdout or "No items predicted as Good" in result.stdout
+
+    def test_importer_unknown_name_fails(self, client, tmp_path):
+        detector_path, _ = _make_detector_file(tmp_path, client, [1, 2], [3, 4])
+
+        result = subprocess.run(
+            [
+                sys.executable,
+                "app.py",
+                "--autodetect",
+                "--importer",
+                "nonexistent_importer",
+                "--detector",
+                str(detector_path),
+            ],
+            capture_output=True,
+            text=True,
+            cwd=_PROJECT_ROOT,
+            timeout=120,
+        )
+        assert result.returncode != 0
+        assert "Unknown importer" in result.stderr
+
+    def test_importer_missing_detector_fails(self, tmp_path):
+        dataset_path = _make_dataset_file(tmp_path, app_module.clips)
+
+        result = subprocess.run(
+            [
+                sys.executable,
+                "app.py",
+                "--autodetect",
+                "--importer",
+                "pickle",
+                "--file",
+                str(dataset_path),
+            ],
+            capture_output=True,
+            text=True,
+            cwd=_PROJECT_ROOT,
+            timeout=120,
+        )
+        assert result.returncode != 0
+
+    def test_importer_missing_required_field_fails(self, client, tmp_path):
+        """Omitting a required importer field should produce an error."""
+        detector_path, _ = _make_detector_file(tmp_path, client, [1, 2], [3, 4])
+
+        result = subprocess.run(
+            [
+                sys.executable,
+                "app.py",
+                "--autodetect",
+                "--importer",
+                "pickle",
+                "--detector",
+                str(detector_path),
+                # --file intentionally omitted
+            ],
+            capture_output=True,
+            text=True,
+            cwd=_PROJECT_ROOT,
+            timeout=120,
+        )
+        assert result.returncode == 1
+        assert "Error" in result.stderr
+
+    def test_importer_folder_nonexistent_path_fails(self, client, tmp_path):
+        detector_path, _ = _make_detector_file(tmp_path, client, [1, 2], [3, 4])
+
+        result = subprocess.run(
+            [
+                sys.executable,
+                "app.py",
+                "--autodetect",
+                "--importer",
+                "folder",
+                "--path",
+                "/nonexistent/folder",
+                "--media-type",
+                "sounds",
+                "--detector",
+                str(detector_path),
+            ],
+            capture_output=True,
+            text=True,
+            cwd=_PROJECT_ROOT,
+            timeout=120,
+        )
+        assert result.returncode == 1
+        assert "Error" in result.stderr

@@ -79,7 +79,7 @@ app.register_blueprint(exporters_bp)
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="VistaTotes — media explorer web app")
+    parser = argparse.ArgumentParser(description="VistaTotes \u2014 media explorer web app")
     parser.add_argument("--local", action="store_true", help="Run in local development mode")
     parser.add_argument(
         "--autodetect",
@@ -88,15 +88,53 @@ if __name__ == "__main__":
     )
     parser.add_argument("--dataset", type=str, help="Path to a dataset pickle file (used with --autodetect)")
     parser.add_argument("--detector", type=str, help="Path to a detector JSON file (used with --autodetect)")
-    args = parser.parse_args()
+    parser.add_argument(
+        "--importer",
+        type=str,
+        help="Name of the data importer to use (e.g. folder, pickle, http_archive). Used with --autodetect.",
+    )
+
+    # Two-pass parsing: first pass gets --importer name, second pass adds
+    # that importer's arguments and re-parses.
+    args, remaining = parser.parse_known_args()
+
+    if args.autodetect and args.importer:
+        from vistatotes.datasets.importers import get_importer, list_importers
+
+        importer = get_importer(args.importer)
+        if importer is None:
+            available = ", ".join(imp.name for imp in list_importers())
+            parser.error(f"Unknown importer: {args.importer}. Available: {available}")
+
+        importer.add_cli_arguments(parser)
+        args = parser.parse_args()
+    elif remaining:
+        # No importer specified but there are unknown args; let argparse
+        # report the error.
+        parser.parse_args()
 
     if args.autodetect:
-        if not args.dataset or not args.detector:
-            parser.error("--autodetect requires both --dataset and --detector")
+        if args.importer:
+            # New importer-based path
+            if not args.detector:
+                parser.error("--autodetect with --importer requires --detector")
 
-        from vistatotes.cli import autodetect_main
+            from vistatotes.cli import autodetect_importer_main
 
-        autodetect_main(args.dataset, args.detector)
+            field_values = {f.key: getattr(args, f.key, f.default or None) for f in importer.fields}
+            autodetect_importer_main(args.importer, field_values, args.detector)
+
+        elif args.dataset:
+            # Legacy pickle-file path
+            if not args.detector:
+                parser.error("--autodetect requires --detector")
+
+            from vistatotes.cli import autodetect_main
+
+            autodetect_main(args.dataset, args.detector)
+
+        else:
+            parser.error("--autodetect requires either --dataset <file.pkl> or --importer <name>")
 
     elif args.local:
         # Local development mode

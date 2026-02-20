@@ -1,10 +1,13 @@
-"""Pickle-file importer – loads a previously exported ``.pkl`` dataset.
+"""Pickle-file importer \u2013 loads a previously exported ``.pkl`` dataset.
 
 No additional pip packages are required; everything needed is already in
 the core requirements.
 """
 
 from __future__ import annotations
+
+from pathlib import Path
+from typing import Any
 
 from config import DATA_DIR
 from vistatotes.datasets.importers.base import DatasetImporter, ImporterField
@@ -44,6 +47,13 @@ class PickleImporter(DatasetImporter):
         finally:
             temp_path.unlink(missing_ok=True)
         update_progress("idle", f"Loaded {len(clips)} clips from file")
+
+    def run_cli(self, field_values: dict[str, Any], clips: dict) -> None:
+        """Load from a pickle file path (string) instead of FileStorage."""
+        file_path = Path(field_values["file"])
+        if not file_path.exists():
+            raise FileNotFoundError(f"Dataset file not found: {file_path}")
+        load_dataset_from_pickle(file_path, clips)
 
 
 IMPORTER = PickleImporter()

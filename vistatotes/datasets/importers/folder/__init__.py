@@ -1,4 +1,4 @@
-"""Local-folder importer – scans a directory of media files and embeds them.
+"""Local-folder importer \u2013 scans a directory of media files and embeds them.
 
 No additional pip packages are required; librosa, opencv, and Pillow are
 already in the core requirements.
@@ -7,6 +7,7 @@ already in the core requirements.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from vistatotes.datasets.importers.base import DatasetImporter, ImporterField
 from vistatotes.datasets.loader import load_dataset_from_folder
@@ -22,7 +23,7 @@ class FolderImporter(DatasetImporter):
     name = "folder"
     display_name = "Generate from Folder"
     description = "Import media files from a folder."
-    icon = "📂"
+    icon = "\U0001f4c2"
     fields = [
         ImporterField(
             key="media_type",
@@ -44,6 +45,14 @@ class FolderImporter(DatasetImporter):
         folder = Path(field_values["path"])
         media_type = field_values.get("media_type", "sounds")
         load_dataset_from_folder(folder, media_type, clips)
+
+    def run_cli(self, field_values: dict[str, Any], clips: dict) -> None:
+        folder = Path(field_values["path"])
+        if not folder.exists():
+            raise FileNotFoundError(f"Folder not found: {folder}")
+        if not folder.is_dir():
+            raise NotADirectoryError(f"Not a directory: {folder}")
+        self.run(field_values, clips)
 
 
 IMPORTER = FolderImporter()

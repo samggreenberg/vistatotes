@@ -1962,7 +1962,7 @@
       alert("Error analyzing progress: " + e.message);
     } finally {
       checkProgressBtn.disabled = false;
-      checkProgressBtn.querySelector(".indicator-label").textContent = "Labeling Progress";
+      checkProgressBtn.querySelector(".indicator-label").textContent = "Progress";
       fetchLabelingStatus();
       // If the progress modal didn't open (error path), resume media now
       if (!progressModal.classList.contains("show")) {

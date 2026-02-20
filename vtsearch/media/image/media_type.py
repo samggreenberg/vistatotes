@@ -176,7 +176,7 @@ class ImageMediaType(MediaType):
         # versions compute on-the-fly.  Tell the loader to silently ignore them.
         CLIPModel._keys_to_ignore_on_load_unexpected = [r".*position_ids.*"]
         self._model = CLIPModel.from_pretrained(CLIP_MODEL_ID, low_cpu_mem_usage=True, cache_dir=cache_dir)
-        self._processor = CLIPProcessor.from_pretrained(CLIP_MODEL_ID, cache_dir=cache_dir)
+        self._processor = CLIPProcessor.from_pretrained(CLIP_MODEL_ID, cache_dir=cache_dir, use_fast=True)
 
     def embed_media(self, file_path: Path) -> Optional[np.ndarray]:
         if self._model is None:

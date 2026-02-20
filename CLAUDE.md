@@ -17,7 +17,8 @@ Media explorer web app for browsing/voting on audio, images, or text. Semantic s
 - `config.py` — Constants (SAMPLE_RATE, NUM_CLIPS, paths, model IDs)
 - `vistatotes/routes/` — Flask blueprints: `main.py`, `clips.py`, `sorting.py`, `datasets.py`
 - `vistatotes/models/` — Embeddings, training, model loading, progress tracking
-- `vistatotes/datasets/` — Dataset loading, downloading, importers (folder/pickle/http_zip)
+- `vistatotes/datasets/` — Dataset loading, downloading, importers (folder/pickle/http_zip/rss_feed/youtube_playlist)
+- `vistatotes/exporters/` — Results exporters (file/gui/email_smtp/csv_file/webhook)
 - `vistatotes/media/` — Media type plugins: audio, image, text, video
 - `vistatotes/utils/` — Global state (`clips` dict, votes), progress utilities
 - `static/index.html` — HTML structure (270 lines)
@@ -34,6 +35,8 @@ Media explorer web app for browsing/voting on audio, images, or text. Semantic s
   - `test_detectors.py` — Detector export, detector sort, favorites, auto-detect
   - `test_cli_autodetect.py` — CLI autodetect: run_autodetect function, --autodetect flag, --exporter flag
   - `test_datasets.py` — Dataset endpoints, startup state, importers, archive extraction
+  - `test_rss_youtube_importers.py` — RSS feed and YouTube playlist importer metadata, CLI args, run logic
+  - `test_csv_webhook_exporters.py` — CSV and Webhook exporter metadata, CLI args, export logic
 
 ## Key Details
 - Global state lives in `vistatotes/utils/state.py`: `clips`, `good_votes`, `bad_votes` are module-level dicts

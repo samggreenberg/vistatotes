@@ -35,9 +35,9 @@ class RssFeedImporter(DatasetImporter):
     """
 
     name = "rss_feed"
-    display_name = "RSS / Podcast Feed"
+    display_name = "Generate from RSS Podcast Feed"
     description = "Import media files from an RSS or podcast feed URL."
-    icon = "\U0001f4e1"
+    icon = "\U0001f3b5"
     fields = [
         ImporterField(
             key="url",

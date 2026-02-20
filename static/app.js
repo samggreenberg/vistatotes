@@ -93,7 +93,6 @@
   const extendedImporterForm = document.getElementById("extended-importer-form");
   const backButton = document.getElementById("back-button");
   const loadFileBtn = document.getElementById("load-file-btn");
-  const loadDemoBtn = document.getElementById("load-demo-btn");
   const fileInput = document.getElementById("file-input");
   const datasetBar = document.getElementById("dataset-bar");
   const datasetInfo = document.getElementById("dataset-info");
@@ -297,71 +296,6 @@
     fileInput.value = "";
   });
 
-  // Load demo dataset
-  loadDemoBtn.addEventListener("click", async () => {
-    datasetOptions.style.display = "none";
-    demoDatasetsDiv.style.display = "grid";
-    backButton.style.display = "block";
-    datasetWelcome.classList.add("wide");
-
-    // Fetch demo datasets
-    try {
-      const res = await fetch("/api/dataset/demo-list");
-      if (!res.ok) {
-        throw new Error(`Server returned ${res.status}`);
-      }
-      const data = await res.json();
-
-      demoDatasetsDiv.innerHTML = "";
-
-      // Group datasets by media type and display in fixed column order
-      const mediaOrder = ["video", "image", "audio", "paragraph"];
-      const mediaConfig = {
-        video:     { title: "Videos",  icon: "🎬", fileLabel: "video clips" },
-        image:     { title: "Images",  icon: "🖼",  fileLabel: "images" },
-        audio:     { title: "Sounds",  icon: "🔊", fileLabel: "sound files" },
-        paragraph: { title: "Texts",   icon: "📄", fileLabel: "text snippets" },
-      };
-
-      const grouped = {};
-      data.datasets.forEach(ds => {
-        const mt = ds.media_type || "audio";
-        if (!grouped[mt]) grouped[mt] = [];
-        grouped[mt].push(ds);
-      });
-
-      mediaOrder.forEach(mt => {
-        const items = grouped[mt] || [];
-        if (!items.length) return;
-        const cfg = mediaConfig[mt];
-
-        const col = document.createElement("div");
-        col.className = "demo-column";
-        col.innerHTML = `<div class="demo-column-header">${cfg.title}</div>`;
-
-        items.forEach(dataset => {
-          const div = document.createElement("div");
-          div.className = "demo-dataset" + (dataset.ready ? " ready" : "");
-          const sizeText = dataset.ready
-            ? `${dataset.download_size_mb} MB (cached)`
-            : `${dataset.download_size_mb} MB to download`;
-          div.innerHTML = `
-            <h4>${dataset.label}</h4>
-            <p style="margin: 4px 0 8px; font-size: 0.75rem; color: #999; line-height: 1.45;">${dataset.description}</p>
-            <p style="margin: 0; font-size: 0.72rem; color: #666;">${cfg.icon} ${dataset.num_files} ${cfg.fileLabel} &middot; ${sizeText}</p>
-            ${dataset.ready ? '<span class="ready-badge">Ready</span>' : '<span style="font-size:0.7rem;color:#666;display:inline-block;margin-top:6px;">Needs download</span>'}
-          `;
-          div.onclick = () => loadDemo(dataset.name);
-          col.appendChild(div);
-        });
-
-        demoDatasetsDiv.appendChild(col);
-      });
-    } catch (e) {
-      demoDatasetsDiv.innerHTML = `<div style="color:#f44336; text-align:center;">Error loading demo datasets: ${e.message}</div>`;
-    }
-  });
-
   async function loadDemo(name) {
     startProgressPolling();
 
@@ -402,6 +336,77 @@
     } catch (_) {
       // Extended importers are optional – silently ignore failures.
     }
+
+    // Append the Load Demo Dataset button after all dynamic importers
+    const demoBtnEl = document.createElement("button");
+    demoBtnEl.className = "dataset-option";
+    demoBtnEl.id = "load-demo-btn";
+    demoBtnEl.innerHTML = `<h3>🏆 Load Demo Dataset</h3><p>Choose from a selection of pre-configured demo datasets</p>`;
+    demoBtnEl.addEventListener("click", async () => {
+      datasetOptions.style.display = "none";
+      demoDatasetsDiv.style.display = "grid";
+      backButton.style.display = "block";
+      datasetWelcome.classList.add("wide");
+
+      // Fetch demo datasets
+      try {
+        const res = await fetch("/api/dataset/demo-list");
+        if (!res.ok) {
+          throw new Error(`Server returned ${res.status}`);
+        }
+        const data = await res.json();
+
+        demoDatasetsDiv.innerHTML = "";
+
+        // Group datasets by media type and display in fixed column order
+        const mediaOrder = ["video", "image", "audio", "paragraph"];
+        const mediaConfig = {
+          video:     { title: "Videos",  icon: "🎬", fileLabel: "video clips" },
+          image:     { title: "Images",  icon: "🖼",  fileLabel: "images" },
+          audio:     { title: "Sounds",  icon: "🔊", fileLabel: "sound files" },
+          paragraph: { title: "Texts",   icon: "📄", fileLabel: "text snippets" },
+        };
+
+        const grouped = {};
+        data.datasets.forEach(ds => {
+          const mt = ds.media_type || "audio";
+          if (!grouped[mt]) grouped[mt] = [];
+          grouped[mt].push(ds);
+        });
+
+        mediaOrder.forEach(mt => {
+          const items = grouped[mt] || [];
+          if (!items.length) return;
+          const cfg = mediaConfig[mt];
+
+          const col = document.createElement("div");
+          col.className = "demo-column";
+          col.innerHTML = `<div class="demo-column-header">${cfg.title}</div>`;
+
+          items.forEach(dataset => {
+            const div = document.createElement("div");
+            div.className = "demo-dataset" + (dataset.ready ? " ready" : "");
+            const sizeText = dataset.ready
+              ? `${dataset.download_size_mb} MB (cached)`
+              : `${dataset.download_size_mb} MB to download`;
+            div.innerHTML = `
+              <h4>${dataset.label}</h4>
+              <p style="margin: 4px 0 8px; font-size: 0.75rem; color: #999; line-height: 1.45;">${dataset.description}</p>
+              <p style="margin: 0; font-size: 0.72rem; color: #666;">${cfg.icon} ${dataset.num_files} ${cfg.fileLabel} &middot; ${sizeText}</p>
+              ${dataset.ready ? '<span class="ready-badge">Ready</span>' : '<span style="font-size:0.7rem;color:#666;display:inline-block;margin-top:6px;">Needs download</span>'}
+            `;
+            div.onclick = () => loadDemo(dataset.name);
+            col.appendChild(div);
+          });
+
+          demoDatasetsDiv.appendChild(col);
+        });
+      } catch (e) {
+        demoDatasetsDiv.innerHTML = `<div style="color:#f44336; text-align:center;">Error loading demo datasets: ${e.message}</div>`;
+      }
+    });
+    datasetOptions.appendChild(demoBtnEl);
+
     // Always render the autodetect toggle last, after all import options
     const autodetectDiv = document.createElement("div");
     autodetectDiv.id = "autodetect-toggle";

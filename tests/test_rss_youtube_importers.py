@@ -25,14 +25,14 @@ class TestRssFeedImporterMetadata:
         data = resp.get_json()
         imp = next((i for i in data["importers"] if i["name"] == "rss_feed"), None)
         assert imp is not None
-        assert imp["display_name"] == "RSS / Podcast Feed"
+        assert imp["display_name"] == "Generate from RSS Podcast Feed"
 
     def test_rss_feed_icon(self, client):
         resp = client.get("/api/dataset/importers")
         data = resp.get_json()
         imp = next((i for i in data["importers"] if i["name"] == "rss_feed"), None)
         assert imp is not None
-        assert imp["icon"] == "\U0001f4e1"
+        assert imp["icon"] == "\U0001f3b5"
 
     def test_rss_feed_has_url_field(self, client):
         resp = client.get("/api/dataset/importers")
@@ -184,7 +184,7 @@ class TestYouTubePlaylistImporterMetadata:
         data = resp.get_json()
         imp = next((i for i in data["importers"] if i["name"] == "youtube_playlist"), None)
         assert imp is not None
-        assert imp["display_name"] == "YouTube Playlist"
+        assert imp["display_name"] == "Generate from YouTube Playlist"
 
     def test_youtube_icon(self, client):
         resp = client.get("/api/dataset/importers")

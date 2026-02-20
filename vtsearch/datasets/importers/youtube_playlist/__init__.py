@@ -22,7 +22,7 @@ class YouTubePlaylistImporter(DatasetImporter):
     """
 
     name = "youtube_playlist"
-    display_name = "YouTube Playlist"
+    display_name = "Generate from YouTube Playlist"
     description = "Download videos from a YouTube playlist or channel URL via yt-dlp."
     icon = "\U0001f3ac"
     fields = [

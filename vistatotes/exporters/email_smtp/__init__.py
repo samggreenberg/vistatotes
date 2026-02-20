@@ -29,16 +29,10 @@ def _build_plain_text(results: dict[str, Any]) -> str:
     ]
     for det_result in results.get("results", {}).values():
         lines.append(f"--- {det_result['detector_name']} ---")
-        lines.append(
-            f"Threshold: {det_result['threshold']}  |  "
-            f"Total Hits: {det_result['total_hits']}"
-        )
+        lines.append(f"Threshold: {det_result['threshold']}  |  Total Hits: {det_result['total_hits']}")
         if det_result["hits"]:
             for hit in det_result["hits"]:
-                lines.append(
-                    f"  Clip #{hit['id']}: {hit.get('filename', 'N/A')} "
-                    f"(score: {hit['score']})"
-                )
+                lines.append(f"  Clip #{hit['id']}: {hit.get('filename', 'N/A')} (score: {hit['score']})")
         else:
             lines.append("  No positive hits found.")
         lines.append("")
@@ -52,9 +46,7 @@ def _build_html(results: dict[str, Any]) -> str:
         hits_html = ""
         for hit in det_result["hits"]:
             hits_html += (
-                f"<tr><td>Clip #{hit['id']}</td>"
-                f"<td>{hit.get('filename', 'N/A')}</td>"
-                f"<td>{hit['score']}</td></tr>"
+                f"<tr><td>Clip #{hit['id']}</td><td>{hit.get('filename', 'N/A')}</td><td>{hit['score']}</td></tr>"
             )
         if not hits_html:
             hits_html = '<tr><td colspan="3"><em>No positive hits found.</em></td></tr>'
@@ -108,8 +100,7 @@ class EmailSmtpExporter(ResultsExporter):
             label="SMTP Password / App Password",
             field_type="password",
             description=(
-                "Your SMTP password. For Gmail, use an App Password "
-                "(see https://myaccount.google.com/apppasswords)."
+                "Your SMTP password. For Gmail, use an App Password (see https://myaccount.google.com/apppasswords)."
             ),
         ),
         ExporterField(
@@ -145,12 +136,8 @@ class EmailSmtpExporter(ResultsExporter):
             raise ValueError("SMTP password is required.")
 
         media_type = results.get("media_type", "unknown")
-        total_hits = sum(
-            r.get("total_hits", 0) for r in results.get("results", {}).values()
-        )
-        subject = (
-            f"VistaTotes Auto-Detect: {total_hits} hit(s) on {media_type} dataset"
-        )
+        total_hits = sum(r.get("total_hits", 0) for r in results.get("results", {}).values())
+        subject = f"VistaTotes Auto-Detect: {total_hits} hit(s) on {media_type} dataset"
 
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
@@ -169,10 +156,7 @@ class EmailSmtpExporter(ResultsExporter):
             server.sendmail(from_addr, [to_addr], msg.as_string())
 
         return {
-            "message": (
-                f"Email with {total_hits} hit(s) sent to {to_addr} "
-                f"via {smtp_host}:{smtp_port}."
-            ),
+            "message": (f"Email with {total_hits} hit(s) sent to {to_addr} via {smtp_host}:{smtp_port}."),
             "to": to_addr,
         }
 

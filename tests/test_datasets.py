@@ -77,9 +77,7 @@ class TestStartupState:
         else_start = main_body.rfind("else:")
         assert else_start != -1, "Could not find else branch in __main__ block"
         else_body = main_body[else_start:]
-        assert "init_clips()" not in else_body, (
-            "init_clips() must not be called automatically in production startup"
-        )
+        assert "init_clips()" not in else_body, "init_clips() must not be called automatically in production startup"
 
 
 class TestDemoDatasetReadiness:
@@ -151,18 +149,14 @@ class TestImporterMetadata:
     def test_http_archive_icon_is_globe(self, client):
         resp = client.get("/api/dataset/importers")
         data = resp.get_json()
-        http_imp = next(
-            (i for i in data["importers"] if i["name"] == "http_archive"), None
-        )
+        http_imp = next((i for i in data["importers"] if i["name"] == "http_archive"), None)
         assert http_imp is not None, "http_archive importer not found"
         assert http_imp["icon"] == "\U0001f310"
 
     def test_http_archive_supports_tar_and_rar_in_description(self, client):
         resp = client.get("/api/dataset/importers")
         data = resp.get_json()
-        http_imp = next(
-            (i for i in data["importers"] if i["name"] == "http_archive"), None
-        )
+        http_imp = next((i for i in data["importers"] if i["name"] == "http_archive"), None)
         assert http_imp is not None
         desc = http_imp["description"].lower()
         assert "tar" in desc
@@ -178,18 +172,14 @@ class TestImporterMetadata:
     def test_folder_importer_icon(self, client):
         resp = client.get("/api/dataset/importers")
         data = resp.get_json()
-        folder_imp = next(
-            (i for i in data["importers"] if i["name"] == "folder"), None
-        )
+        folder_imp = next((i for i in data["importers"] if i["name"] == "folder"), None)
         assert folder_imp is not None
         assert folder_imp["icon"] == "\U0001f4c2"
 
     def test_folder_importer_description(self, client):
         resp = client.get("/api/dataset/importers")
         data = resp.get_json()
-        folder_imp = next(
-            (i for i in data["importers"] if i["name"] == "folder"), None
-        )
+        folder_imp = next((i for i in data["importers"] if i["name"] == "folder"), None)
         assert folder_imp is not None
         # Description must not mention specific media-type names
         desc = folder_imp["description"]
@@ -213,9 +203,7 @@ class TestImporterMetadata:
         """Media-type dropdown should come before the path field."""
         resp = client.get("/api/dataset/importers")
         data = resp.get_json()
-        folder_imp = next(
-            (i for i in data["importers"] if i["name"] == "folder"), None
-        )
+        folder_imp = next((i for i in data["importers"] if i["name"] == "folder"), None)
         assert folder_imp is not None
         keys = [f["key"] for f in folder_imp["fields"]]
         assert keys.index("media_type") < keys.index("path")

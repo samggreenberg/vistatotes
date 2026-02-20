@@ -17,7 +17,7 @@ from flask import Flask
 from config import DATA_DIR, NUM_CLIPS
 from vistatotes.audio import generate_wav
 from vistatotes.models import embed_audio_file, initialize_models
-from vistatotes.routes import clips_bp, datasets_bp, exporters_bp, main_bp, sorting_bp
+from vistatotes.routes import clips_bp, datasets_bp, detectors_bp, exporters_bp, main_bp, sorting_bp
 from vistatotes.utils import clips
 
 app = Flask(__name__)
@@ -57,7 +57,7 @@ def init_clips():
         temp_path.unlink()
 
 
-# Model initialization is now handled by vectorytones.models.initialize_models()
+# Model initialization is now handled by vistatotes.models.initialize_models()
 
 
 # ---------------------------------------------------------------------------
@@ -67,6 +67,7 @@ def init_clips():
 app.register_blueprint(main_bp)
 app.register_blueprint(clips_bp)
 app.register_blueprint(sorting_bp)
+app.register_blueprint(detectors_bp)
 app.register_blueprint(datasets_bp)
 app.register_blueprint(exporters_bp)
 

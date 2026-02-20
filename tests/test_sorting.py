@@ -55,9 +55,7 @@ class TestTrainAndScore:
     def test_returns_list_of_scored_clips(self):
         app_module.good_votes.update({k: None for k in [1, 2]})
         app_module.bad_votes.update({k: None for k in [3, 4]})
-        results, threshold = app_module.train_and_score(
-            app_module.clips, app_module.good_votes, app_module.bad_votes
-        )
+        results, threshold = app_module.train_and_score(app_module.clips, app_module.good_votes, app_module.bad_votes)
         assert len(results) == app_module.NUM_CLIPS
         assert isinstance(threshold, float)
         for entry in results:
@@ -67,27 +65,21 @@ class TestTrainAndScore:
     def test_scores_between_zero_and_one(self):
         app_module.good_votes.update({k: None for k in [1, 2]})
         app_module.bad_votes.update({k: None for k in [3, 4]})
-        results, threshold = app_module.train_and_score(
-            app_module.clips, app_module.good_votes, app_module.bad_votes
-        )
+        results, threshold = app_module.train_and_score(app_module.clips, app_module.good_votes, app_module.bad_votes)
         for entry in results:
             assert 0.0 <= entry["score"] <= 1.0
 
     def test_results_sorted_descending(self):
         app_module.good_votes.update({k: None for k in [1, 2]})
         app_module.bad_votes.update({k: None for k in [3, 4]})
-        results, threshold = app_module.train_and_score(
-            app_module.clips, app_module.good_votes, app_module.bad_votes
-        )
+        results, threshold = app_module.train_and_score(app_module.clips, app_module.good_votes, app_module.bad_votes)
         scores = [e["score"] for e in results]
         assert scores == sorted(scores, reverse=True)
 
     def test_good_clips_scored_higher_than_bad(self):
         app_module.good_votes.update({k: None for k in [1, 2, 3]})
         app_module.bad_votes.update({k: None for k in [18, 19, 20]})
-        results, threshold = app_module.train_and_score(
-            app_module.clips, app_module.good_votes, app_module.bad_votes
-        )
+        results, threshold = app_module.train_and_score(app_module.clips, app_module.good_votes, app_module.bad_votes)
         score_map = {e["id"]: e["score"] for e in results}
         avg_good = np.mean([score_map[i] for i in app_module.good_votes])
         avg_bad = np.mean([score_map[i] for i in app_module.bad_votes])
@@ -154,9 +146,7 @@ class TestExampleSort:
         wav_bytes = app_module.generate_wav(440.0, 1.0)
         data = {"file": (io.BytesIO(wav_bytes), "test.wav")}
 
-        resp = client.post(
-            "/api/example-sort", data=data, content_type="multipart/form-data"
-        )
+        resp = client.post("/api/example-sort", data=data, content_type="multipart/form-data")
         assert resp.status_code == 200
         result_data = resp.get_json()
         assert "results" in result_data
@@ -167,9 +157,7 @@ class TestExampleSort:
         wav_bytes = app_module.generate_wav(440.0, 1.0)
         data = {"file": (io.BytesIO(wav_bytes), "test.wav")}
 
-        resp = client.post(
-            "/api/example-sort", data=data, content_type="multipart/form-data"
-        )
+        resp = client.post("/api/example-sort", data=data, content_type="multipart/form-data")
         result_data = resp.get_json()
         similarities = [e["similarity"] for e in result_data["results"]]
         assert similarities == sorted(similarities, reverse=True)
@@ -178,9 +166,7 @@ class TestExampleSort:
         wav_bytes = app_module.generate_wav(440.0, 1.0)
         data = {"file": (io.BytesIO(wav_bytes), "test.wav")}
 
-        resp = client.post(
-            "/api/example-sort", data=data, content_type="multipart/form-data"
-        )
+        resp = client.post("/api/example-sort", data=data, content_type="multipart/form-data")
         result_data = resp.get_json()
         for entry in result_data["results"]:
             assert -1.0 <= entry["similarity"] <= 1.0
@@ -191,7 +177,5 @@ class TestExampleSort:
 
     def test_sort_empty_filename(self, client):
         data = {"file": (io.BytesIO(b""), "")}
-        resp = client.post(
-            "/api/example-sort", data=data, content_type="multipart/form-data"
-        )
+        resp = client.post("/api/example-sort", data=data, content_type="multipart/form-data")
         assert resp.status_code == 400

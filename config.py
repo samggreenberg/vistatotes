@@ -17,9 +17,7 @@ MODELS_CACHE_DIR = DATA_DIR / "models"
 
 # Dataset URLs
 ESC50_URL = "https://github.com/karolpiczak/ESC-50/archive/master.zip"
-SAMPLE_VIDEOS_URL = (
-    "https://github.com/sample-datasets/video-clips/archive/refs/heads/main.zip"
-)
+SAMPLE_VIDEOS_URL = "https://github.com/sample-datasets/video-clips/archive/refs/heads/main.zip"
 CIFAR10_URL = "https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz"
 
 # Dataset size estimates

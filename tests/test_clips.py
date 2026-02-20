@@ -46,9 +46,7 @@ class TestInitClips:
         old_clips = dict(app_module.clips)
         app_module.clips.clear()
         app_module.init_clips()
-        np.testing.assert_array_almost_equal(
-            app_module.clips[1]["embedding"], emb_first
-        )
+        np.testing.assert_array_almost_equal(app_module.clips[1]["embedding"], emb_first)
         # Restore
         app_module.clips.clear()
         app_module.clips.update(old_clips)

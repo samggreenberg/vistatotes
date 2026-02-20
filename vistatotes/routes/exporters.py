@@ -72,12 +72,7 @@ def run_export():
     if exporter is None:
         known = [exp.name for exp in list_exporters()]
         return (
-            jsonify(
-                {
-                    "error": f"Unknown exporter '{exporter_name}'. "
-                    f"Available: {known}"
-                }
-            ),
+            jsonify({"error": f"Unknown exporter '{exporter_name}'. Available: {known}"}),
             404,
         )
 
@@ -85,11 +80,7 @@ def run_export():
     results: dict = data.get("results", {}) or {}
 
     # Validate required fields
-    missing = [
-        f.key
-        for f in exporter.fields
-        if f.required and not field_values.get(f.key, "").strip()
-    ]
+    missing = [f.key for f in exporter.fields if f.required and not field_values.get(f.key, "").strip()]
     if missing:
         return (
             jsonify(

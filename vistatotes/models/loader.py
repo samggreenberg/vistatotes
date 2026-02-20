@@ -39,25 +39,30 @@ def initialize_models() -> None:
 # Existing callers that import these functions directly continue to work.
 # ---------------------------------------------------------------------------
 
+
 def get_clap_model():
     """Return ``(clap_model, clap_processor)`` from the audio media type."""
     from vistatotes.media import get as media_get
+
     return media_get("audio")._get_model_and_processor()
 
 
 def get_xclip_model():
     """Return ``(xclip_model, xclip_processor)`` from the video media type."""
     from vistatotes.media import get as media_get
+
     return media_get("video")._get_model_and_processor()
 
 
 def get_clip_model():
     """Return ``(clip_model, clip_processor)`` from the image media type."""
     from vistatotes.media import get as media_get
+
     return media_get("image")._get_model_and_processor()
 
 
 def get_e5_model():
     """Return the E5 ``SentenceTransformer`` from the text media type."""
     from vistatotes.media import get as media_get
+
     return media_get("paragraph")._get_model()

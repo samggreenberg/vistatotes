@@ -54,9 +54,7 @@ class WebhookExporter(ResultsExporter):
         resp = requests.post(url, json=results, headers=headers, timeout=30)
         resp.raise_for_status()
 
-        total_hits = sum(
-            r.get("total_hits", 0) for r in results.get("results", {}).values()
-        )
+        total_hits = sum(r.get("total_hits", 0) for r in results.get("results", {}).values())
         return {
             "message": (
                 f"Posted {total_hits} hit(s) across "

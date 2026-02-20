@@ -6,16 +6,19 @@ from pathlib import Path
 
 from flask import Blueprint, jsonify, request, send_file
 
-from config import (CIFAR10_DOWNLOAD_SIZE_MB, CLIPS_PER_CATEGORY,
-                    CLIPS_PER_VIDEO_CATEGORY, EMBEDDINGS_DIR,
-                    ESC50_DOWNLOAD_SIZE_MB, IMAGES_PER_CIFAR10_CATEGORY,
-                    SAMPLE_VIDEOS_DOWNLOAD_SIZE_MB, VIDEO_DIR)
-from vistatotes.datasets import (DEMO_DATASETS, export_dataset_to_file,
-                                 get_importer, list_importers,
-                                 load_demo_dataset)
+from config import (
+    CIFAR10_DOWNLOAD_SIZE_MB,
+    CLIPS_PER_CATEGORY,
+    CLIPS_PER_VIDEO_CATEGORY,
+    EMBEDDINGS_DIR,
+    ESC50_DOWNLOAD_SIZE_MB,
+    IMAGES_PER_CIFAR10_CATEGORY,
+    SAMPLE_VIDEOS_DOWNLOAD_SIZE_MB,
+    VIDEO_DIR,
+)
+from vistatotes.datasets import DEMO_DATASETS, export_dataset_to_file, get_importer, list_importers, load_demo_dataset
 from vistatotes.models.progress import clear_progress_cache
-from vistatotes.utils import (bad_votes, clips, get_progress, good_votes,
-                              label_history, update_progress)
+from vistatotes.utils import bad_votes, clips, get_progress, good_votes, label_history, update_progress
 
 datasets_bp = Blueprint("datasets", __name__)
 
@@ -52,6 +55,7 @@ def _run_importer_in_background(importer, field_values: dict) -> None:
 # Status / progress
 # ---------------------------------------------------------------------------
 
+
 @datasets_bp.route("/api/dataset/status")
 def dataset_status():
     """Return the current dataset status."""
@@ -78,6 +82,7 @@ def dataset_progress():
 # Importer discovery
 # ---------------------------------------------------------------------------
 
+
 @datasets_bp.route("/api/dataset/importers")
 def dataset_importers():
     """List all registered importers (excluding those with dedicated UI).
@@ -100,17 +105,14 @@ def dataset_importers():
           ]
         }
     """
-    extended = [
-        imp.to_dict()
-        for imp in list_importers()
-        if imp.name not in _BUILTIN_IMPORTER_NAMES
-    ]
+    extended = [imp.to_dict() for imp in list_importers() if imp.name not in _BUILTIN_IMPORTER_NAMES]
     return jsonify({"importers": extended})
 
 
 # ---------------------------------------------------------------------------
 # Generic import endpoint
 # ---------------------------------------------------------------------------
+
 
 @datasets_bp.route("/api/dataset/import/<importer_name>", methods=["POST"])
 def import_dataset(importer_name: str):
@@ -155,6 +157,7 @@ def import_dataset(importer_name: str):
 # ---------------------------------------------------------------------------
 # Demo datasets  (special-cased: their own discovery + load endpoints)
 # ---------------------------------------------------------------------------
+
 
 @datasets_bp.route("/api/dataset/demo-list")
 def demo_dataset_list():
@@ -263,6 +266,7 @@ def load_demo_dataset_route():
 # These now delegate to the appropriate importer internally.
 # ---------------------------------------------------------------------------
 
+
 @datasets_bp.route("/api/dataset/load-file", methods=["POST"])
 def load_dataset_file():
     """Load a dataset from an uploaded pickle file.
@@ -294,9 +298,7 @@ def load_dataset_folder():
         return jsonify({"error": "Invalid request body"}), 400
 
     folder_path = data.get("path")
-    media_type = data.get(
-        "media_type", "sounds"
-    )  # Default to sounds for backward compatibility
+    media_type = data.get("media_type", "sounds")  # Default to sounds for backward compatibility
 
     if not folder_path:
         return jsonify({"error": "No folder path provided"}), 400
@@ -314,6 +316,7 @@ def load_dataset_folder():
 # Export / clear
 # ---------------------------------------------------------------------------
 
+
 @datasets_bp.route("/api/dataset/export")
 def export_dataset():
     """Export the current dataset to a pickle file."""
@@ -325,7 +328,7 @@ def export_dataset():
         return send_file(
             io.BytesIO(dataset_bytes),
             mimetype="application/octet-stream",
-            download_name="vectorytones_dataset.pkl",
+            download_name="vistatotes_dataset.pkl",
             as_attachment=True,
         )
     except Exception as e:

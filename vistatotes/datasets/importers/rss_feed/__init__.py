@@ -68,8 +68,7 @@ class RssFeedImporter(DatasetImporter):
             import feedparser
         except ImportError as exc:
             raise RuntimeError(
-                "RSS feed import requires the 'feedparser' package. "
-                "Install it with: pip install feedparser"
+                "RSS feed import requires the 'feedparser' package. Install it with: pip install feedparser"
             ) from exc
 
         from vistatotes.datasets.loader import load_dataset_from_folder

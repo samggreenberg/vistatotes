@@ -34,9 +34,7 @@ def _discover() -> None:
         if not is_pkg:
             continue
         try:
-            mod = importlib.import_module(
-                f"vistatotes.exporters.{module_name}"
-            )
+            mod = importlib.import_module(f"vistatotes.exporters.{module_name}")
             exporter = getattr(mod, "EXPORTER", None)
             if exporter is not None:
                 _registry[exporter.name] = exporter

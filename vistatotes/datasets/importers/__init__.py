@@ -34,9 +34,7 @@ def _discover() -> None:
         if not is_pkg:
             continue
         try:
-            mod = importlib.import_module(
-                f"vistatotes.datasets.importers.{module_name}"
-            )
+            mod = importlib.import_module(f"vistatotes.datasets.importers.{module_name}")
             importer = getattr(mod, "IMPORTER", None)
             if importer is not None:
                 _registry[importer.name] = importer

@@ -16,20 +16,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import app as app_module
-
-# ---------------------------------------------------------------------------
-# Fixtures
-# ---------------------------------------------------------------------------
-
-
-@pytest.fixture
-def client():
-    app_module.app.config["TESTING"] = True
-    with app_module.app.test_client() as c:
-        yield c
-
-
 SAMPLE_RESULTS = {
     "media_type": "audio",
     "detectors_run": 2,
@@ -188,9 +174,9 @@ class TestExporterRegistry:
             for f in exp.fields:
                 assert f.key, f"{exp.name} has a field without a key"
                 assert f.label, f"{exp.name} field '{f.key}' has no label"
-                assert f.field_type in (
-                    "text", "password", "email", "file", "folder", "select"
-                ), f"{exp.name} field '{f.key}' has unknown type '{f.field_type}'"
+                assert f.field_type in ("text", "password", "email", "file", "folder", "select"), (
+                    f"{exp.name} field '{f.key}' has unknown type '{f.field_type}'"
+                )
 
 
 # ---------------------------------------------------------------------------
@@ -321,39 +307,48 @@ class TestEmailSmtpExporter:
 
         exp = get_exporter("email_smtp")
         with pytest.raises(ValueError, match="Recipient"):
-            exp.export(SAMPLE_RESULTS, {
-                "to": "",
-                "from_email": "me@example.com",
-                "smtp_password": "secret",
-                "smtp_host": "smtp.example.com",
-                "smtp_port": "587",
-            })
+            exp.export(
+                SAMPLE_RESULTS,
+                {
+                    "to": "",
+                    "from_email": "me@example.com",
+                    "smtp_password": "secret",
+                    "smtp_host": "smtp.example.com",
+                    "smtp_port": "587",
+                },
+            )
 
     def test_export_raises_on_missing_from(self):
         from vistatotes.exporters import get_exporter
 
         exp = get_exporter("email_smtp")
         with pytest.raises(ValueError, match="Sender"):
-            exp.export(SAMPLE_RESULTS, {
-                "to": "you@example.com",
-                "from_email": "",
-                "smtp_password": "secret",
-                "smtp_host": "smtp.example.com",
-                "smtp_port": "587",
-            })
+            exp.export(
+                SAMPLE_RESULTS,
+                {
+                    "to": "you@example.com",
+                    "from_email": "",
+                    "smtp_password": "secret",
+                    "smtp_host": "smtp.example.com",
+                    "smtp_port": "587",
+                },
+            )
 
     def test_export_raises_on_missing_password(self):
         from vistatotes.exporters import get_exporter
 
         exp = get_exporter("email_smtp")
         with pytest.raises(ValueError, match="password"):
-            exp.export(SAMPLE_RESULTS, {
-                "to": "you@example.com",
-                "from_email": "me@example.com",
-                "smtp_password": "",
-                "smtp_host": "smtp.example.com",
-                "smtp_port": "587",
-            })
+            exp.export(
+                SAMPLE_RESULTS,
+                {
+                    "to": "you@example.com",
+                    "from_email": "me@example.com",
+                    "smtp_password": "",
+                    "smtp_host": "smtp.example.com",
+                    "smtp_port": "587",
+                },
+            )
 
     def test_export_calls_smtp(self):
         from vistatotes.exporters import get_exporter
@@ -366,13 +361,16 @@ class TestEmailSmtpExporter:
         mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
 
         with patch("vistatotes.exporters.email_smtp.smtplib.SMTP", mock_smtp_cls):
-            result = exp.export(SAMPLE_RESULTS, {
-                "to": "you@example.com",
-                "from_email": "me@example.com",
-                "smtp_password": "secret",
-                "smtp_host": "smtp.example.com",
-                "smtp_port": "587",
-            })
+            result = exp.export(
+                SAMPLE_RESULTS,
+                {
+                    "to": "you@example.com",
+                    "from_email": "me@example.com",
+                    "smtp_password": "secret",
+                    "smtp_host": "smtp.example.com",
+                    "smtp_port": "587",
+                },
+            )
 
         mock_smtp_cls.assert_called_once_with("smtp.example.com", 587)
         mock_server.starttls.assert_called_once()

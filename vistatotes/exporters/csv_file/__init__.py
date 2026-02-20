@@ -56,13 +56,15 @@ class CsvExporter(ResultsExporter):
                 detector_name = det_result.get("detector_name", "unknown")
                 threshold = det_result.get("threshold", "")
                 for hit in det_result.get("hits", []):
-                    writer.writerow([
-                        detector_name,
-                        threshold,
-                        hit.get("filename", ""),
-                        hit.get("category", ""),
-                        hit.get("score", ""),
-                    ])
+                    writer.writerow(
+                        [
+                            detector_name,
+                            threshold,
+                            hit.get("filename", ""),
+                            hit.get("category", ""),
+                            hit.get("score", ""),
+                        ]
+                    )
                     total_hits += 1
 
         return {

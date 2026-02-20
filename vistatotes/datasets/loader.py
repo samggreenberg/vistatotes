@@ -10,11 +10,14 @@ from typing import Any, Optional
 import numpy as np
 from PIL import Image
 
-from config import (EMBEDDINGS_DIR, IMAGES_PER_CIFAR10_CATEGORY)
+from config import EMBEDDINGS_DIR, IMAGES_PER_CIFAR10_CATEGORY
 from vistatotes.datasets.config import DEMO_DATASETS
-from vistatotes.datasets.downloader import (download_20newsgroups,
-                                            download_cifar10, download_esc50,
-                                            download_ucf101_subset)
+from vistatotes.datasets.downloader import (
+    download_20newsgroups,
+    download_cifar10,
+    download_esc50,
+    download_ucf101_subset,
+)
 from vistatotes.utils import update_progress
 
 
@@ -97,9 +100,7 @@ def load_cifar10_batch(file_path: Path) -> tuple[np.ndarray, list[int], list[str
     return images, labels, label_names
 
 
-def load_video_metadata_from_folders(
-    video_dir: Path, categories: list[str]
-) -> dict[str, dict[str, Any]]:
+def load_video_metadata_from_folders(video_dir: Path, categories: list[str]) -> dict[str, dict[str, Any]]:
     """Scan category subdirectories and collect video file metadata.
 
     Iterates over immediate subdirectories of ``video_dir``, keeping only those
@@ -139,9 +140,7 @@ def load_video_metadata_from_folders(
     return metadata
 
 
-def load_image_metadata_from_folders(
-    image_dir: Path, categories: list[str]
-) -> dict[str, dict[str, Any]]:
+def load_image_metadata_from_folders(image_dir: Path, categories: list[str]) -> dict[str, dict[str, Any]]:
     """Scan category subdirectories and collect image file metadata.
 
     Iterates over immediate subdirectories of ``image_dir``, keeping only those
@@ -181,9 +180,7 @@ def load_image_metadata_from_folders(
     return metadata
 
 
-def load_paragraph_metadata_from_folders(
-    text_dir: Path, categories: list[str]
-) -> dict[str, dict[str, Any]]:
+def load_paragraph_metadata_from_folders(text_dir: Path, categories: list[str]) -> dict[str, dict[str, Any]]:
     """Scan category subdirectories and collect text file metadata.
 
     Iterates over immediate subdirectories of ``text_dir``, keeping only those
@@ -223,9 +220,7 @@ def load_paragraph_metadata_from_folders(
     return metadata
 
 
-def load_dataset_from_folder(
-    folder_path: Path, media_type: str, clips: dict[int, dict[str, Any]]
-) -> None:
+def load_dataset_from_folder(folder_path: Path, media_type: str, clips: dict[int, dict[str, Any]]) -> None:
     """Generate a dataset in-place from a flat folder of media files.
 
     Scans ``folder_path`` for all files matching the extensions for ``media_type``,
@@ -313,9 +308,7 @@ def load_dataset_from_folder(
     update_progress("idle", f"Loaded {len(clips)} {media_type} clips from folder")
 
 
-def load_dataset_from_pickle(
-    file_path: Path, clips: dict[int, dict[str, Any]]
-) -> None:
+def load_dataset_from_pickle(file_path: Path, clips: dict[int, dict[str, Any]]) -> None:
     """Load a dataset from a pickle file into the clips dict in-place.
 
     Supports two pickle formats:
@@ -442,9 +435,7 @@ def load_dataset_from_pickle(
             clips[clip_id] = clip_data
 
     if missing_media > 0:
-        print(
-            f"WARNING: {missing_media} media files missing from {file_path}", flush=True
-        )
+        print(f"WARNING: {missing_media} media files missing from {file_path}", flush=True)
 
 
 def embed_image_file_from_pil(image: Image.Image) -> Optional[np.ndarray]:
@@ -463,6 +454,7 @@ def embed_image_file_from_pil(image: Image.Image) -> Optional[np.ndarray]:
         the CLIP model is not loaded or an exception occurs.
     """
     from vistatotes.media import get as media_get
+
     return media_get("image").embed_pil_image(image)
 
 
@@ -518,9 +510,7 @@ def load_demo_dataset(
         # Check if any clips were actually loaded
         if len(clips) == 0:
             # Pickle file exists but media files are missing, delete and re-embed
-            update_progress(
-                "loading", f"Media files missing, re-embedding {dataset_name}...", 0, 0
-            )
+            update_progress("loading", f"Media files missing, re-embedding {dataset_name}...", 0, 0)
             pkl_file.unlink()
         else:
             update_progress("idle", f"Loaded {dataset_name} dataset")
@@ -560,13 +550,9 @@ def load_demo_dataset(
             clips.clear()
             clip_id = 1
             total = len(selected_images)
-            update_progress(
-                "embedding", f"Starting embedding for {total} images...", 0, total
-            )
+            update_progress("embedding", f"Starting embedding for {total} images...", 0, total)
 
-            for i, (image_array, category) in enumerate(
-                zip(selected_images, selected_labels)
-            ):
+            for i, (image_array, category) in enumerate(zip(selected_images, selected_labels)):
                 update_progress(
                     "embedding",
                     f"Embedding {category}: image {i + 1}/{total}",
@@ -629,15 +615,14 @@ def load_demo_dataset(
     elif media_type == "paragraph":
         # Handle paragraph datasets — use text media type from registry
         from vistatotes.media import get as media_get
+
         text_mt = media_get("paragraph")
 
         paragraph_source = dataset_info.get("source", "ag_news_sample")
 
         if paragraph_source == "ag_news_sample":
             # Use 20 Newsgroups dataset from scikit-learn
-            texts, labels, category_names = download_20newsgroups(
-                dataset_info["categories"]
-            )
+            texts, labels, category_names = download_20newsgroups(dataset_info["categories"])
 
             # Limit number of texts per category for demo
             max_per_category = 50
@@ -647,9 +632,7 @@ def load_demo_dataset(
             for cat_name in dataset_info["categories"]:
                 if cat_name in category_names:
                     cat_idx = category_names.index(cat_name)
-                    cat_texts = [
-                        texts[i] for i, lbl in enumerate(labels) if lbl == cat_idx
-                    ]
+                    cat_texts = [texts[i] for i, lbl in enumerate(labels) if lbl == cat_idx]
                     # Limit to max_per_category
                     for text in cat_texts[:max_per_category]:
                         selected_texts.append(text)
@@ -666,9 +649,7 @@ def load_demo_dataset(
                 total,
             )
 
-            for i, (text_content, category) in enumerate(
-                zip(selected_texts, selected_categories)
-            ):
+            for i, (text_content, category) in enumerate(zip(selected_texts, selected_categories)):
                 update_progress(
                     "embedding",
                     f"Embedding {category}: paragraph {i + 1}/{total}",
@@ -740,6 +721,7 @@ def load_demo_dataset(
 
         if video_source == "ucf101":
             from vistatotes.media import get as media_get
+
             video_mt = media_get("video")
 
             try:
@@ -749,18 +731,14 @@ def load_demo_dataset(
                 update_progress("idle", "")
                 raise e
 
-            metadata = load_video_metadata_from_folders(
-                video_dir, dataset_info["categories"]
-            )
+            metadata = load_video_metadata_from_folders(video_dir, dataset_info["categories"])
             video_files = [(meta["path"], meta) for meta in metadata.values()]
 
             # Generate embeddings for videos
             clips.clear()
             clip_id = 1
             total = len(video_files)
-            update_progress(
-                "embedding", f"Starting embedding for {total} video files...", 0, total
-            )
+            update_progress("embedding", f"Starting embedding for {total} video files...", 0, total)
 
             for i, (video_path, meta) in enumerate(video_files):
                 update_progress(
@@ -817,6 +795,7 @@ def load_demo_dataset(
 
     # Handle audio datasets (ESC-50 logic)
     from vistatotes.media import get as media_get
+
     audio_mt = media_get("audio")
 
     audio_dir = download_esc50()
@@ -834,9 +813,7 @@ def load_demo_dataset(
     clips.clear()
     clip_id = 1
     total = len(audio_files)
-    update_progress(
-        "embedding", f"Starting embedding for {total} audio files...", 0, total
-    )
+    update_progress("embedding", f"Starting embedding for {total} audio files...", 0, total)
 
     for i, (audio_path, meta) in enumerate(audio_files):
         update_progress(
@@ -877,9 +854,7 @@ def load_demo_dataset(
                 "name": dataset_name,
                 "clips": {
                     cid: {
-                        k: v.tolist() if isinstance(v, np.ndarray) else v
-                        for k, v in clip.items()
-                        if k != "wav_bytes"
+                        k: v.tolist() if isinstance(v, np.ndarray) else v for k, v in clip.items() if k != "wav_bytes"
                     }
                     for cid, clip in clips.items()
                 },

@@ -55,8 +55,7 @@ class YouTubePlaylistImporter(DatasetImporter):
             import yt_dlp  # noqa: F401
         except ImportError as exc:
             raise RuntimeError(
-                "YouTube import requires the 'yt-dlp' package. "
-                "Install it with: pip install yt-dlp"
+                "YouTube import requires the 'yt-dlp' package. Install it with: pip install yt-dlp"
             ) from exc
 
         from vistatotes.datasets.loader import load_dataset_from_folder

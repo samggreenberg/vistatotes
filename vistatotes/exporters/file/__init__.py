@@ -47,9 +47,7 @@ class FileExporter(ResultsExporter):
         filepath.parent.mkdir(parents=True, exist_ok=True)
         filepath.write_text(json.dumps(results, indent=2), encoding="utf-8")
 
-        total_hits = sum(
-            r.get("total_hits", 0) for r in results.get("results", {}).values()
-        )
+        total_hits = sum(r.get("total_hits", 0) for r in results.get("results", {}).values())
         return {
             "message": (
                 f"Saved {total_hits} hit(s) across "

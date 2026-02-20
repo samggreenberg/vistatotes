@@ -312,9 +312,7 @@ def train_and_score(
     input_dim = X.shape[1]
 
     # Calculate threshold using cross-calibration
-    threshold = calculate_cross_calibration_threshold(
-        X_list, y_list, input_dim, inclusion_value
-    )
+    threshold = calculate_cross_calibration_threshold(X_list, y_list, input_dim, inclusion_value)
 
     # Train final model on all data
     model = train_model(X, y, input_dim, inclusion_value)

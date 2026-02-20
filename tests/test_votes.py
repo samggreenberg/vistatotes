@@ -131,7 +131,7 @@ class TestLabelHistory:
         """Toggle off then revote should produce 3 history entries."""
         client.post("/api/clips/1/vote", json={"vote": "good"})
         client.post("/api/clips/1/vote", json={"vote": "good"})  # toggle off
-        client.post("/api/clips/1/vote", json={"vote": "bad"})   # revote bad
+        client.post("/api/clips/1/vote", json={"vote": "bad"})  # revote bad
         assert len(label_history) == 3
         assert label_history[0][1] == "good"
         assert label_history[1][1] == "unlabel"
@@ -217,11 +217,11 @@ class TestProgressCacheWithLabelChanges:
         assert resp.status_code == 200
 
         # Now toggle off a good vote and switch a bad vote
-        client.post("/api/clips/1/vote", json={"vote": "good"})   # toggle off
-        client.post("/api/clips/6/vote", json={"vote": "good"})   # switch bad->good
+        client.post("/api/clips/1/vote", json={"vote": "good"})  # toggle off
+        client.post("/api/clips/6/vote", json={"vote": "good"})  # switch bad->good
 
         resp = client.get("/api/labeling-status")
         assert resp.status_code == 200
         data = resp.get_json()
         assert data["good_count"] == 5  # lost 1, gained 1
-        assert data["bad_count"] == 4   # lost 1
+        assert data["bad_count"] == 4  # lost 1

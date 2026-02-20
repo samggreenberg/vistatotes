@@ -15,7 +15,7 @@ Media explorer web app for browsing/voting on audio, images, or text. Semantic s
 - `app.py` — Flask entry point, registers blueprints, startup logic, CLI argument parsing
 - `vistatotes/cli.py` — CLI autodetect: load dataset + detector, run inference, export results
 - `config.py` — Constants (SAMPLE_RATE, NUM_CLIPS, paths, model IDs)
-- `vistatotes/routes/` — Flask blueprints: `main.py`, `clips.py`, `sorting.py`, `datasets.py`
+- `vistatotes/routes/` — Flask blueprints: `main.py`, `clips.py`, `sorting.py`, `detectors.py`, `datasets.py`, `exporters.py`
 - `vistatotes/models/` — Embeddings, training, model loading, progress tracking
 - `vistatotes/datasets/` — Dataset loading, downloading, importers (folder/pickle/http_zip/rss_feed/youtube_playlist)
 - `vistatotes/exporters/` — Results exporters (file/gui/email_smtp/csv_file/webhook)
@@ -37,6 +37,10 @@ Media explorer web app for browsing/voting on audio, images, or text. Semantic s
   - `test_datasets.py` — Dataset endpoints, startup state, importers, archive extraction
   - `test_rss_youtube_importers.py` — RSS feed and YouTube playlist importer metadata, CLI args, run logic
   - `test_csv_webhook_exporters.py` — CSV and Webhook exporter metadata, CLI args, export logic
+  - `test_exporters.py` — Results exporter base classes, registry, built-in exporters, API routes
+  - `test_importers.py` — Importer base class, HTTP archive/folder importer metadata, archive extraction
+  - `test_extractors.py` — Image class extractor
+  - `test_processors.py` — Media processor tests
 
 ## Key Details
 - Global state lives in `vistatotes/utils/state.py`: `clips`, `good_votes`, `bad_votes` are module-level dicts

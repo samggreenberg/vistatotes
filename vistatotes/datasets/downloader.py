@@ -16,9 +16,7 @@ from config import (
 from vistatotes.utils import update_progress
 
 
-def download_file_with_progress(
-    url: str, dest_path: Path, expected_size: int = 0
-) -> None:
+def download_file_with_progress(url: str, dest_path: Path, expected_size: int = 0) -> None:
     """Download a file from a URL to a local path, reporting byte-level progress.
 
     Streams the HTTP response in 8 KB chunks and calls :func:`update_progress`
@@ -45,9 +43,7 @@ def download_file_with_progress(
         for chunk in response.iter_content(chunk_size=8192):
             size = f.write(chunk)
             downloaded += size
-            update_progress(
-                "downloading", "Downloading ESC-50...", downloaded, total_size
-            )
+            update_progress("downloading", "Downloading ESC-50...", downloaded, total_size)
 
 
 def download_esc50() -> Path:
@@ -68,9 +64,7 @@ def download_esc50() -> Path:
     if not extract_dir.exists():
         if not zip_path.exists():
             update_progress("downloading", "Starting download...", 0, 0)
-            download_file_with_progress(
-                ESC50_URL, zip_path, ESC50_DOWNLOAD_SIZE_MB * 1024 * 1024
-            )
+            download_file_with_progress(ESC50_URL, zip_path, ESC50_DOWNLOAD_SIZE_MB * 1024 * 1024)
 
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
             members = zip_ref.namelist()
@@ -110,9 +104,7 @@ def download_cifar10() -> Path:
     if not extract_dir.exists():
         if not tar_path.exists():
             update_progress("downloading", "Starting CIFAR-10 download...", 0, 0)
-            download_file_with_progress(
-                CIFAR10_URL, tar_path, CIFAR10_DOWNLOAD_SIZE_MB * 1024 * 1024
-            )
+            download_file_with_progress(CIFAR10_URL, tar_path, CIFAR10_DOWNLOAD_SIZE_MB * 1024 * 1024)
 
         update_progress("downloading", "Extracting CIFAR-10...", 0, 0)
         with tarfile.open(tar_path, "r:gz") as tar_ref:
@@ -223,9 +215,7 @@ def download_20newsgroups(
     texts = newsgroups.data
     labels = newsgroups.target
     target_names = [
-        list(category_mapping.keys())[
-            list(category_mapping.values()).index(newsgroups.target_names[i])
-        ]
+        list(category_mapping.keys())[list(category_mapping.values()).index(newsgroups.target_names[i])]
         if newsgroups.target_names[i] in category_mapping.values()
         else newsgroups.target_names[i]
         for i in range(len(newsgroups.target_names))

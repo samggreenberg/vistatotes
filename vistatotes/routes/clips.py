@@ -194,6 +194,7 @@ def clip_media(clip_id: int) -> tuple[Response, int] | Response:
         return jsonify({"error": "not found"}), 404
 
     from vistatotes.media import get as media_get
+
     try:
         mt = media_get(c.get("type", ""))
     except KeyError:

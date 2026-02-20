@@ -18,8 +18,8 @@ def index() -> Response:
 
 
 def _project_root() -> Path:
-    """Return the project root directory (parent of the ``vtsearch`` package)."""
-    return Path(current_app.root_path).parent
+    """Return the project root directory."""
+    return Path(current_app.root_path)
 
 
 @main_bp.route("/favicon.ico")

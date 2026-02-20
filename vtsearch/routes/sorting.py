@@ -45,8 +45,7 @@ def sort_clips():
     """Return clips sorted by cosine similarity to a text query."""
     try:
         data = request.get_json(force=True)
-    except Exception as e:
-        print(f"DEBUG: Sort failed - JSON error: {e}", flush=True)
+    except Exception:
         update_sort_progress("idle")
         return jsonify({"error": "Invalid request body"}), 400
 
@@ -55,7 +54,6 @@ def sort_clips():
         return jsonify({"error": "Invalid request body"}), 400
 
     text = data.get("text", "").strip()
-    print(f"DEBUG: Sort request for '{text}'", flush=True)
 
     if not text:
         update_sort_progress("idle")
@@ -63,7 +61,6 @@ def sort_clips():
 
     # Determine media type from current clips
     if not clips:
-        print("DEBUG: Sort failed - No clips loaded", flush=True)
         update_sort_progress("idle")
         return jsonify({"error": "No clips loaded"}), 400
 
@@ -88,10 +85,6 @@ def sort_clips():
     # Embed text query using refactored module
     text_vec = embed_text_query(text, media_type)
     if text_vec is None:
-        print(
-            f"DEBUG: Sort failed - Could not embed text for media type {media_type}",
-            flush=True,
-        )
         update_sort_progress("idle")
         return (
             jsonify({"error": f"Could not embed text for media type {media_type}"}),

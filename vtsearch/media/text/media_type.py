@@ -104,9 +104,7 @@ class TextMediaType(MediaType):
         gc.collect()
         cache_dir = str(MODELS_CACHE_DIR)
         update_progress("loading", "Loading text embedder (E5 model)...", 0, 0)
-        print("DEBUG: Loading E5-base-v2 model for Text...", flush=True)
         self._model = SentenceTransformer(E5_MODEL_ID, cache_folder=cache_dir)
-        print("DEBUG: E5-base-v2 model loaded.", flush=True)
 
     def embed_media(self, file_path: Path) -> Optional[np.ndarray]:
         if self._model is None:

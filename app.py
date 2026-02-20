@@ -1,8 +1,12 @@
+import logging
 import os
 
 # Limit threads to reduce memory overhead in constrained environments
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
+
+# Suppress Werkzeug request logging (GET/POST lines) — only show errors
+logging.getLogger("werkzeug").setLevel(logging.ERROR)
 
 # Visual feedback for startup
 print("⏳ Initializing VTSearch...", flush=True)
@@ -28,7 +32,6 @@ app = Flask(__name__)
 
 
 def init_clips():
-    print("DEBUG: Generating synthetic waveforms...", flush=True)
     DATA_DIR.mkdir(exist_ok=True)
     temp_path = DATA_DIR / "temp_embed.wav"
 

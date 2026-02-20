@@ -230,13 +230,11 @@ def vote_clip(clip_id: int) -> tuple[Response, int] | Response:
           ``"good"`` or ``"bad"``.
     """
     if clip_id not in clips:
-        print(f"DEBUG: Vote failed - Clip {clip_id} not found", flush=True)
         return jsonify({"error": "not found"}), 404
 
     try:
         data = request.get_json(force=True)
-    except Exception as e:
-        print(f"DEBUG: Vote failed - JSON error: {e}", flush=True)
+    except Exception:
         return jsonify({"error": "Invalid request body"}), 400
 
     if data is None:
@@ -244,7 +242,6 @@ def vote_clip(clip_id: int) -> tuple[Response, int] | Response:
 
     vote = data.get("vote")
     if vote not in ("good", "bad"):
-        print(f"DEBUG: Vote failed - Invalid vote '{vote}'", flush=True)
         return jsonify({"error": "vote must be 'good' or 'bad'"}), 400
 
     if vote == "good":
@@ -264,5 +261,4 @@ def vote_clip(clip_id: int) -> tuple[Response, int] | Response:
             bad_votes[clip_id] = None
             add_label_to_history(clip_id, "bad")
 
-    print(f"DEBUG: Vote '{vote}' recorded for clip {clip_id}", flush=True)
     return jsonify({"ok": True})

@@ -21,6 +21,7 @@ from vtsearch.datasets.loader import (
     load_paragraph_metadata_from_folders,
     load_video_metadata_from_folders,
 )
+from vtsearch.datasets.split import split_dataset
 
 __all__ = [
     "DEMO_DATASETS",
@@ -45,4 +46,6 @@ __all__ = [
     "load_dataset_from_pickle",
     "load_demo_dataset",
     "export_dataset_to_file",
+    # Split utilities
+    "split_dataset",
 ]

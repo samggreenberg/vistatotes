@@ -110,7 +110,11 @@
   const menuDetectorImport = document.getElementById("menu-detector-import");
   const menuDetectorExport = document.getElementById("menu-detector-export");
   const menuDetectorStatus = document.getElementById("menu-detector-status");
-  const importFile = document.getElementById("import-file");
+  const labelImporterModal = document.getElementById("label-importer-modal");
+  const labelImporterModalClose = document.getElementById("label-importer-modal-close");
+  const labelImporterList = document.getElementById("label-importer-list");
+  const labelImporterFormDiv = document.getElementById("label-importer-form");
+  const labelImporterBack = document.getElementById("label-importer-back");
   const menuFavoritesManage = document.getElementById("menu-favorites-manage");
   const menuFavoritesSave = document.getElementById("menu-favorites-save");
   const menuFavoritesAutodetect = document.getElementById("menu-favorites-autodetect");
@@ -610,11 +614,11 @@
     });
   }
 
-  // Labels import
-  if (menuLabelsImport && importFile && burgerDropdown) {
-    menuLabelsImport.addEventListener("click", () => {
-      importFile.click();
+  // Labels import – open the label importer picker modal
+  if (menuLabelsImport && burgerDropdown) {
+    menuLabelsImport.addEventListener("click", async () => {
       burgerDropdown.classList.remove("show");
+      await openLabelImporterModal();
     });
   }
 
@@ -1838,38 +1842,144 @@
   clipList.addEventListener("scroll", updateStripeHighlight);
   window.addEventListener("resize", updateStripeHighlight);
 
-  // ---- Label import handler ----
+  // ---- Label importer modal ----
 
-  importFile.addEventListener("change", async () => {
-    const file = importFile.files[0];
-    if (!file) return;
-    menuLabelsStatus.textContent = "Importing\u2026";
-    const text = await file.text();
-    let data;
+  async function openLabelImporterModal() {
+    // Fetch available importers
+    let importers = [];
     try {
-      data = JSON.parse(text);
-    } catch (e) {
-      menuLabelsStatus.textContent = "Invalid JSON file";
-      setTimeout(() => { menuLabelsStatus.textContent = ""; }, 3000);
-      importFile.value = "";
-      return;
-    }
-    const res = await fetch("/api/labels/import", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    const result = await res.json();
-    if (res.ok) {
-      menuLabelsStatus.textContent = `Applied ${result.applied}, skipped ${result.skipped}`;
-      await fetchVotes();
-      setTimeout(() => { menuLabelsStatus.textContent = ""; }, 3000);
+      const res = await fetch("/api/label-importers");
+      if (res.ok) importers = await res.json();
+    } catch (_) { /* ignore */ }
+
+    // Reset to picker view
+    labelImporterFormDiv.style.display = "none";
+    labelImporterFormDiv.innerHTML = "";
+    labelImporterBack.style.display = "none";
+    labelImporterList.style.display = "";
+
+    if (importers.length === 0) {
+      labelImporterList.innerHTML = '<p style="color:#888;">No label importers available.</p>';
     } else {
-      menuLabelsStatus.textContent = result.error || "Import failed";
-      setTimeout(() => { menuLabelsStatus.textContent = ""; }, 3000);
+      labelImporterList.innerHTML = importers.map(imp => `
+        <div class="label-importer-option" data-name="${escapeHtml(imp.name)}" style="
+          background:#2a2d3a; border:1px solid #3a3d50; border-radius:6px;
+          padding:12px 16px; margin-bottom:10px; cursor:pointer;
+          display:flex; align-items:center; gap:12px;">
+          <span style="font-size:1.5rem;">${escapeHtml(imp.icon || '🏷️')}</span>
+          <div>
+            <div style="font-weight:bold; color:#e0e0e0;">${escapeHtml(imp.display_name)}</div>
+            <div style="font-size:0.8rem; color:#888; margin-top:2px;">${escapeHtml(imp.description)}</div>
+          </div>
+        </div>
+      `).join("");
+
+      labelImporterList.querySelectorAll(".label-importer-option").forEach(el => {
+        const name = el.dataset.name;
+        const imp = importers.find(i => i.name === name);
+        el.addEventListener("click", () => showLabelImporterForm(imp));
+      });
     }
-    importFile.value = "";
-  });
+
+    labelImporterModal.classList.add("show");
+  }
+
+  function showLabelImporterForm(importer) {
+    labelImporterList.style.display = "none";
+    labelImporterBack.style.display = "inline-block";
+
+    const inputStyle = "width:100%;padding:8px;background:#252940;border:1px solid #2a2d3a;border-radius:4px;color:#e0e0e0;box-sizing:border-box;";
+    let html = `<h3 style="margin-bottom:14px;color:#e0e0e0;">${escapeHtml(importer.display_name)}</h3>`;
+    html += `<form id="label-imp-form">`;
+    for (const field of importer.fields) {
+      html += `<div style="margin-bottom:14px;">`;
+      html += `<label style="display:block;margin-bottom:5px;color:#aaa;font-size:0.85rem;">${escapeHtml(field.label)}${field.required ? " *" : ""}</label>`;
+      if (field.field_type === "file") {
+        html += `<input type="file" name="${escapeHtml(field.key)}" accept="${escapeHtml(field.accept)}" style="color:#e0e0e0;width:100%;" ${field.required ? "required" : ""}>`;
+      } else if (field.field_type === "select") {
+        html += `<select name="${escapeHtml(field.key)}" style="${inputStyle}">`;
+        for (const opt of field.options) {
+          html += `<option value="${escapeHtml(opt)}"${opt === field.default ? " selected" : ""}>${escapeHtml(opt)}</option>`;
+        }
+        html += `</select>`;
+      } else {
+        const itype = field.field_type === "password" ? "password" : "text";
+        const placeholder = escapeHtml(field.placeholder || field.description);
+        html += `<input type="${itype}" name="${escapeHtml(field.key)}" value="${escapeHtml(field.default)}" placeholder="${placeholder}" style="${inputStyle}" ${field.required ? "required" : ""}>`;
+      }
+      if (field.description) {
+        html += `<div style="margin-top:4px;font-size:0.75rem;color:#666;">${escapeHtml(field.description)}</div>`;
+      }
+      html += `</div>`;
+    }
+    html += `<div id="label-imp-status" style="min-height:1.4em;font-size:0.85rem;color:#888;margin-bottom:10px;"></div>`;
+    html += `<button type="submit" style="width:100%;padding:10px;background:#7c8aff;border:none;border-radius:4px;color:#fff;cursor:pointer;font-size:0.9rem;">Import</button>`;
+    html += `</form>`;
+
+    labelImporterFormDiv.innerHTML = html;
+    labelImporterFormDiv.style.display = "block";
+
+    const statusEl = labelImporterFormDiv.querySelector("#label-imp-status");
+
+    labelImporterFormDiv.querySelector("#label-imp-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      statusEl.textContent = "Importing\u2026";
+      statusEl.style.color = "#888";
+
+      const formEl = e.target;
+      const hasFiles = importer.fields.some(f => f.field_type === "file");
+      let body, headers = {};
+
+      if (hasFiles) {
+        body = new FormData(formEl);
+      } else {
+        const obj = {};
+        for (const field of importer.fields) {
+          obj[field.key] = formEl.elements[field.key].value;
+        }
+        body = JSON.stringify(obj);
+        headers["Content-Type"] = "application/json";
+      }
+
+      try {
+        const res = await fetch(`/api/label-importers/import/${encodeURIComponent(importer.name)}`, {
+          method: "POST", headers, body,
+        });
+        const result = await res.json();
+        if (res.ok) {
+          statusEl.textContent = `Applied ${result.applied}, skipped ${result.skipped}.`;
+          statusEl.style.color = "#4caf50";
+          await fetchVotes();
+          setTimeout(() => {
+            labelImporterModal.classList.remove("show");
+            menuLabelsStatus.textContent = `Applied ${result.applied} label(s)`;
+            setTimeout(() => { menuLabelsStatus.textContent = ""; }, 3000);
+          }, 1500);
+        } else {
+          statusEl.textContent = result.error || "Import failed";
+          statusEl.style.color = "#f44336";
+        }
+      } catch (err) {
+        statusEl.textContent = `Error: ${err.message}`;
+        statusEl.style.color = "#f44336";
+      }
+    });
+  }
+
+  if (labelImporterModalClose) {
+    labelImporterModalClose.addEventListener("click", () => {
+      labelImporterModal.classList.remove("show");
+    });
+  }
+
+  if (labelImporterBack) {
+    labelImporterBack.addEventListener("click", () => {
+      labelImporterFormDiv.style.display = "none";
+      labelImporterFormDiv.innerHTML = "";
+      labelImporterBack.style.display = "none";
+      labelImporterList.style.display = "";
+    });
+  }
 
   // ---- Progress tracking ----
 

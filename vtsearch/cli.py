@@ -293,6 +293,64 @@ def autodetect_main(
         sys.exit(1)
 
 
+def import_labels_main(
+    dataset_path: str,
+    label_importer_name: str,
+    field_values: dict[str, Any],
+) -> None:
+    """CLI entry point: load a dataset and import labels via a named label importer.
+
+    Prints a summary of applied and skipped labels to stdout.
+    Exits with code 0 on success, 1 on error.
+
+    Args:
+        dataset_path: Path to the dataset pickle file.
+        label_importer_name: Registered name of the label importer.
+        field_values: Mapping of label importer field keys to their CLI values.
+    """
+    try:
+        from vtsearch.labels.importers import get_label_importer
+
+        label_importer = get_label_importer(label_importer_name)
+        if label_importer is None:
+            from vtsearch.labels.importers import list_label_importers
+
+            available = ", ".join(imp.name for imp in list_label_importers())
+            raise ValueError(f"Unknown label importer: {label_importer_name}. Available: {available}")
+
+        label_importer.validate_cli_field_values(field_values)
+
+        dataset_file = Path(dataset_path)
+        if not dataset_file.exists():
+            raise FileNotFoundError(f"Dataset file not found: {dataset_path}")
+
+        clips: dict[int, dict[str, Any]] = {}
+        load_dataset_from_pickle(dataset_file, clips)
+        if not clips:
+            raise ValueError(f"No clips loaded from dataset: {dataset_path}")
+
+        label_entries = label_importer.run_cli(field_values)
+        if not isinstance(label_entries, list):
+            raise ValueError("Label importer did not return a list of label dicts.")
+
+        # Apply labels by MD5 matching
+        md5_to_id = {clip["md5"]: clip["id"] for clip in clips.values()}
+        applied = 0
+        skipped = 0
+        for entry in label_entries:
+            md5 = entry.get("md5", "")
+            label = entry.get("label", "")
+            if label not in ("good", "bad") or md5 not in md5_to_id:
+                skipped += 1
+                continue
+            applied += 1
+
+        print(f"Applied {applied} label(s), skipped {skipped}.")
+    except (FileNotFoundError, ValueError) as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
 def autodetect_importer_main(
     importer_name: str,
     field_values: dict[str, Any],

@@ -9,18 +9,21 @@ Media explorer web app for browsing/voting on audio, images, or text. Semantic s
 - **Start app**: `bash .claude/hooks/ensure-test-deps.sh && python app.py` (or `python app.py --local` for dev)
 - **CLI autodetect**: `bash .claude/hooks/ensure-test-deps.sh && python app.py --autodetect --dataset <file.pkl> --detector <file.json>`
 - **CLI autodetect + exporter**: `bash .claude/hooks/ensure-test-deps.sh && python app.py --autodetect --dataset <file.pkl> --detector <file.json> --exporter file --filepath results.json`
+- **CLI label import**: `bash .claude/hooks/ensure-test-deps.sh && python app.py --import-labels --dataset <file.pkl> --label-importer json_file --file labels.json`
+- **CLI label import (CSV)**: `bash .claude/hooks/ensure-test-deps.sh && python app.py --import-labels --dataset <file.pkl> --label-importer csv_file --file labels.csv`
 - **Install deps**: `pip install -r requirements-cpu.txt` (or `requirements-gpu.txt`)
 - **Lint**: `ruff check .`
 - **Format**: `ruff format .`
 
 ## Architecture
 - `app.py` — Flask entry point, registers blueprints, startup logic, CLI argument parsing
-- `vtsearch/cli.py` — CLI autodetect: load dataset + detector, run inference, export results
+- `vtsearch/cli.py` — CLI utilities: autodetect (load dataset + detector, run inference, export results), import_labels_main (load dataset + label importer)
 - `config.py` — Constants (SAMPLE_RATE, NUM_CLIPS, paths, model IDs)
-- `vtsearch/routes/` — Flask blueprints: `main.py`, `clips.py`, `sorting.py`, `detectors.py`, `datasets.py`, `exporters.py`
+- `vtsearch/routes/` — Flask blueprints: `main.py`, `clips.py`, `sorting.py`, `detectors.py`, `datasets.py`, `exporters.py`, `label_importers.py`
 - `vtsearch/models/` — Embeddings, training, model loading, progress tracking
 - `vtsearch/datasets/` — Dataset loading, downloading, importers (folder/pickle/http_zip/rss_feed/youtube_playlist)
 - `vtsearch/exporters/` — Results exporters (file/gui/email_smtp/csv_file/webhook)
+- `vtsearch/labels/importers/` — Label importers (json_file/csv_file); auto-discovered via `LABEL_IMPORTER` sentinel
 - `vtsearch/media/` — Media type plugins: audio, image, text, video
 - `vtsearch/utils/` — Global state (`clips` dict, votes), progress utilities
 - `static/index.html` — HTML structure (270 lines)
@@ -32,7 +35,8 @@ Media explorer web app for browsing/voting on audio, images, or text. Semantic s
   - `test_clips.py` — Clip init, listing, audio endpoint, MD5
   - `test_votes.py` — Voting and vote retrieval
   - `test_sorting.py` — Text sort, learned sort, example sort, train_and_score
-  - `test_labels.py` — Label export/import
+  - `test_labels.py` — Label export/import (via /api/labels/export and /api/labels/import)
+  - `test_label_importers.py` — Label importer base class, registry, json_file/csv_file importers, API routes
   - `test_inclusion.py` — Inclusion GET/POST
   - `test_detectors.py` — Detector export, detector sort, favorites, auto-detect
   - `test_cli_autodetect.py` — CLI autodetect: run_autodetect function, --autodetect flag, --exporter flag

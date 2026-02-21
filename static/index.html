@@ -122,7 +122,7 @@
 
   <!-- Right panel -->
   <div class="panel-right">
-    <input type="file" id="import-file" accept=".json" style="display:none">
+    <!-- import-file removed: label import now uses the label importer modal -->
     <div class="progress-check-bar">
       <button id="check-progress-btn" class="labeling-indicator" data-status="">
         <span class="indicator-dot"></span>
@@ -243,6 +243,21 @@
       <div style="background: #2a2d3a; border-radius: 8px; overflow: hidden; height: 24px;">
         <div id="autodetect-progress-bar" style="background: #7c8aff; height: 100%; width: 0%; transition: width 0.3s;"></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Label Importer Picker Modal -->
+<div id="label-importer-modal" class="modal">
+  <div class="modal-content" style="max-width: 600px;">
+    <div class="modal-header">
+      <h2>Import Labels</h2>
+      <button class="modal-close" id="label-importer-modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="label-importer-list"></div>
+      <div id="label-importer-form" style="display:none"></div>
+      <button id="label-importer-back" style="display:none; margin-top:12px; padding:6px 14px; background:#3a3d50; color:#ccc; border:1px solid #4a4d60; border-radius:4px; cursor:pointer;">&#8592; Back</button>
     </div>
   </div>
 </div>

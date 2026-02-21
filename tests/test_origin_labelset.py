@@ -11,10 +11,6 @@ Covers:
 
 from __future__ import annotations
 
-import json
-
-import pytest
-
 import app as app_module
 from vtsearch.datasets.labelset import LabelSet, LabeledElement
 from vtsearch.datasets.origin import Origin

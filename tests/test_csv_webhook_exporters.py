@@ -180,7 +180,7 @@ class TestCsvExporterExport:
         with open(filepath, newline="", encoding="utf-8") as f:
             reader = csv.reader(f)
             header = next(reader)
-        assert header == ["detector", "threshold", "filename", "category", "score"]
+        assert header == ["detector", "threshold", "filename", "category", "score", "origin", "origin_name"]
 
     def test_csv_has_correct_row_count(self, tmp_path):
         from vtsearch.exporters.csv_file import CsvExporter

@@ -46,6 +46,8 @@ VTSearch/
 │   │   └── loader.py               Model initialisation (delegates to media)
 │   │
 │   ├── datasets/                   Dataset loading & downloading
+│   │   ├── origin.py               Origin dataclass (per-element provenance)
+│   │   ├── labelset.py             LabelSet / LabeledElement (labeled data with origins)
 │   │   ├── loader.py               load_dataset_from_folder/pickle/demo
 │   │   ├── downloader.py           HTTP download + ESC-50/CIFAR-10/etc.
 │   │   ├── config.py               Demo dataset catalogue
@@ -307,3 +309,64 @@ dicts:
 accept state as parameters — they never import it directly.  This means
 you can use the ML code in a script or notebook by passing your own
 dicts.
+
+---
+
+## Element-level origin tracking
+
+Every data element (clip) carries its own provenance so that:
+
+- Data from multiple sources can coexist in the same dataset.
+- Exported label sets can be re-imported and matched back to their
+  original source.
+- Origins are preserved through pickle save/load round-trips.
+
+### Per-clip fields
+
+Each clip dict includes two provenance fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `origin` | `dict \| None` | Serialised `Origin` (e.g. `{"importer": "folder", "params": {"path": "/data"}}`) |
+| `origin_name` | `str` | Unique name within the origin (typically the filename) |
+
+### Origin class (`vtsearch/datasets/origin.py`)
+
+```python
+from vtsearch.datasets.origin import Origin
+
+o = Origin("folder", {"path": "/data/audio", "media_type": "sounds"})
+o.display()   # "folder(/data/audio)"
+o.to_dict()   # {"importer": "folder", "params": {"path": "/data/audio", ...}}
+```
+
+Origins are set automatically when data is loaded:
+
+- **Importers** produce an `Origin` from their field values via
+  `DatasetImporter.build_origin(field_values)`.
+- **Demo datasets** get `Origin("demo", {"name": dataset_name})`.
+- **Pickle loads** preserve the per-element origins stored in the file.
+  Old pickles without origins fall back to the dataset's `creation_info`.
+
+### LabelSet (`vtsearch/datasets/labelset.py`)
+
+A `LabelSet` extends the dataset concept: each element carries its origin,
+its name within that origin, **and** its label (`"good"` / `"bad"`).
+
+```python
+from vtsearch.datasets.labelset import LabelSet
+
+# Build from current state
+ls = LabelSet.from_clips_and_votes(clips, good_votes, bad_votes)
+
+# Build from auto-detect results
+ls = LabelSet.from_results(results_dict, clips=clips)
+
+# Serialise / deserialise (superset of legacy label format)
+data = ls.to_dict()   # {"labels": [{"md5": ..., "label": ..., "origin": ..., ...}]}
+ls2 = LabelSet.from_dict(data)
+```
+
+The `GET /api/labels/export` endpoint returns a `LabelSet` serialised
+as JSON.  The format is backward-compatible: old consumers that only
+read `md5` + `label` continue to work.

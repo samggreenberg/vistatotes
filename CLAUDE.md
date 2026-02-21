@@ -24,7 +24,7 @@ Media explorer web app for browsing/voting on audio, images, or text. Semantic s
 - `config.py` — Constants (SAMPLE_RATE, NUM_CLIPS, paths, model IDs)
 - `vtsearch/routes/` — Flask blueprints: `main.py`, `clips.py`, `sorting.py`, `detectors.py`, `datasets.py`, `exporters.py`, `label_importers.py`, `processor_importers.py`
 - `vtsearch/models/` — Embeddings, training, model loading, progress tracking
-- `vtsearch/datasets/` — Dataset loading, downloading, importers (folder/pickle/http_zip/rss_feed/youtube_playlist)
+- `vtsearch/datasets/` — Dataset loading, downloading, origin tracking, labelsets, importers (folder/pickle/http_zip/rss_feed/youtube_playlist)
 - `vtsearch/exporters/` — Results exporters (file/gui/email_smtp/csv_file/webhook)
 - `vtsearch/labels/importers/` — Label importers (json_file/csv_file); auto-discovered via `LABEL_IMPORTER` sentinel
 - `vtsearch/processors/importers/` — Processor importers (detector_file/label_file); auto-discovered via `PROCESSOR_IMPORTER` sentinel
@@ -52,6 +52,7 @@ Media explorer web app for browsing/voting on audio, images, or text. Semantic s
   - `test_extractors.py` — Image class extractor
   - `test_processors.py` — Media processor tests
   - `test_processor_importers.py` — Processor importer base class, registry, detector_file/label_file importers, API routes, CLI
+  - `test_origin_labelset.py` — Origin class, LabeledElement, LabelSet, build_origin(), label export/import with origins, integration
   - `test_gpu.py` — GPU tests: training, cross-calibration, detectors, embedding models (CLAP/CLIP/X-CLIP/E5), CPU↔GPU equivalence, memory cleanup (skipped without CUDA)
 
 ## Test Markers
@@ -74,6 +75,9 @@ This ensures work is recoverable if the session crashes during a test run.
 ## Key Details
 - Global state lives in `vtsearch/utils/state.py`: `clips`, `good_votes`, `bad_votes` are module-level dicts
 - Votes are `dict[int, None]` (not sets) — use `votes[id] = None` syntax
+- Each clip has `origin` (dict or None) and `origin_name` (str) for per-element provenance tracking
+- `Origin` class in `vtsearch/datasets/origin.py`; `LabelSet`/`LabeledElement` in `vtsearch/datasets/labelset.py`
+- Label export (`/api/labels/export`) returns a `LabelSet` with per-element origin info (superset of legacy format)
 - `data/` dir created at runtime for embeddings, model cache, media files
 - OMP_NUM_THREADS and MKL_NUM_THREADS set to 1 for memory optimization
 - Linter/formatter: ruff (E402 ignored, line-length 120, see pyproject.toml)

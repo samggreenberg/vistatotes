@@ -11,7 +11,6 @@ appended to the in-memory dataset.
 
 from __future__ import annotations
 
-import hashlib
 import json
 from typing import Any, Callable, Optional
 
@@ -131,5 +130,5 @@ def ingest_missing_clips(
                 cid += 1
                 total_ingested += 1
 
-    on_progress("idle", f"Ingested {total_ingested} clip(s) from origins.")
+    on_progress("idle", f"Ingested {total_ingested} clip(s) from origins.", 0, 0)
     return total_ingested

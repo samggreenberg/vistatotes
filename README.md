@@ -22,13 +22,40 @@ Open that URL in your browser. The app starts with no clips loaded — use the m
 
 Press **Ctrl+C** in the terminal to stop the server.
 
-## Running a detector from the command line
+## Command-line interface
 
-If you have a dataset file (`.pkl`) and a detector file (`.json`), you can run the detector against the dataset without starting the web server. This prints which items the detector predicts as "Good."
+VTSearch provides several CLI workflows for running detectors, importing labels, and importing processors — all without starting the web server.
+
+### Auto-detect (run a detector on a dataset)
+
+Score every item in a dataset with a trained detector and output the items predicted as "Good."
+
+**From a pickle file:**
 
 ```bash
 python app.py --autodetect --dataset path/to/dataset.pkl --detector path/to/detector.json
 ```
+
+**From any supported data source** (folder, HTTP archive, RSS feed, YouTube playlist):
+
+```bash
+python app.py --autodetect --importer folder --path /data/sounds --media-type sounds --detector detector.json
+python app.py --autodetect --importer http_archive --url https://example.com/data.zip --detector detector.json
+python app.py --autodetect --importer rss_feed --url https://example.com/feed.xml --detector detector.json
+python app.py --autodetect --importer youtube_playlist --url https://youtube.com/playlist?list=... --detector detector.json
+```
+
+Available importers: `folder`, `pickle`, `http_archive`, `rss_feed`, `youtube_playlist`. Each importer adds its own flags — run `python app.py --autodetect --importer <name> --help` to see them (e.g. `--max-episodes` for RSS, `--max-videos` for YouTube).
+
+**Exporting results** — by default results are printed to the console. Add `--exporter <name>` to send them elsewhere:
+
+```bash
+python app.py --autodetect --dataset data.pkl --detector detector.json --exporter file --filepath results.json
+python app.py --autodetect --dataset data.pkl --detector detector.json --exporter csv --filepath results.csv
+python app.py --autodetect --dataset data.pkl --detector detector.json --exporter webhook --url https://example.com/hook
+```
+
+Available exporters: `file` (JSON), `csv` (CSV), `webhook` (HTTP POST), `email_smtp`, `gui` (default — print to console).
 
 **How to get the files:**
 
@@ -47,7 +74,44 @@ Predicted Good (5 items):
   1-77445-A-1.wav  (score: 0.6204, category: cat)
 ```
 
-Both `--dataset` and `--detector` are required when using `--autodetect`.
+### Import labels
+
+Apply voting labels (good/bad) to items in an existing dataset. Useful for batch-labeling from an external source.
+
+```bash
+python app.py --import-labels --dataset data.pkl --label-importer json_file --file labels.json
+python app.py --import-labels --dataset data.pkl --label-importer csv_file --file labels.csv
+```
+
+Available label importers: `json_file`, `csv_file`.
+
+When the label file references items not present in the dataset, you are prompted whether to import them from their origins. Use `--import-missing yes|no|ask` to control this (default: `ask`).
+
+### Import a processor (detector)
+
+Import or train a detector from the command line and save it as a favorite processor for later use.
+
+**Load a pre-trained detector from JSON:**
+
+```bash
+python app.py --import-processor --processor-importer detector_file --processor-name "my detector" --file detector.json
+```
+
+**Train a new detector from labeled media files:**
+
+```bash
+python app.py --import-processor --processor-importer label_file --processor-name "trained" --file labels.json --media-type audio
+```
+
+Available processor importers: `detector_file`, `label_file`.
+
+### Development mode
+
+Run the server bound to `0.0.0.0` for access from other devices on the network:
+
+```bash
+python app.py --local
+```
 
 ## Loading a demo dataset
 
@@ -89,15 +153,21 @@ python -m pytest tests/ -v
 
 ```
 vtsearch/
-├── app.py                          # Flask entry point, registers blueprints
+├── app.py                          # Flask entry point, registers blueprints, CLI arg parsing
 ├── config.py                       # Constants (SAMPLE_RATE, paths, model IDs)
-├── vtsearch/                     # Main application package
+├── vtsearch/                       # Main application package
+│   ├── cli.py                      # CLI utilities: autodetect, label import, processor import
+│   ├── settings.py                 # Persistent settings & favorite processors
 │   ├── routes/                     # Flask blueprints
 │   │   ├── main.py                 #   Core routes
 │   │   ├── clips.py                #   Clip endpoints
 │   │   ├── sorting.py              #   Sorting & voting endpoints
+│   │   ├── detectors.py            #   Detector endpoints
 │   │   ├── datasets.py             #   Dataset management endpoints
-│   │   └── exporters.py            #   Exporter endpoints
+│   │   ├── exporters.py            #   Exporter endpoints
+│   │   ├── label_importers.py      #   Label importer endpoints
+│   │   ├── processor_importers.py  #   Processor importer endpoints
+│   │   └── settings.py             #   Settings endpoints
 │   ├── models/                     # ML models
 │   │   ├── embeddings.py           #   Embedding model wrappers
 │   │   ├── loader.py               #   Model loading
@@ -108,21 +178,38 @@ vtsearch/
 │   │   ├── audio/                  #   Audio plugin (LAION-CLAP embeddings)
 │   │   ├── image/                  #   Image plugin (CLIP embeddings)
 │   │   ├── text/                   #   Text plugin (E5-large-v2 embeddings)
-│   │   └── video/                  #   Video plugin
+│   │   └── video/                  #   Video plugin (X-CLIP embeddings)
 │   ├── datasets/                   # Dataset loading & importing
 │   │   ├── loader.py               #   Dataset loading logic
 │   │   ├── downloader.py           #   Demo dataset downloads
 │   │   ├── config.py               #   Dataset configuration
+│   │   ├── origin.py               #   Per-element provenance tracking
+│   │   ├── labelset.py             #   LabelSet / LabeledElement classes
+│   │   ├── ingest.py               #   Ingest missing clips from origins
 │   │   └── importers/              #   Data importer plugins
 │   │       ├── base.py             #     Abstract DatasetImporter base class
-│   │       ├── folder/             #     Folder importer
+│   │       ├── folder/             #     Local folder importer
 │   │       ├── pickle/             #     Pickle file importer
-│   │       └── http_zip/           #     HTTP ZIP archive importer
+│   │       ├── http_zip/           #     HTTP archive importer (zip/tar/rar)
+│   │       ├── rss_feed/           #     RSS / podcast feed importer
+│   │       └── youtube_playlist/   #     YouTube playlist importer
 │   ├── exporters/                  # Results exporter plugins
 │   │   ├── base.py                 #   Abstract exporter base class
+│   │   ├── file/                   #   JSON file exporter
+│   │   ├── csv_file/               #   CSV file exporter
+│   │   ├── webhook/                #   Webhook (HTTP POST) exporter
 │   │   ├── email_smtp/             #   Email (SMTP) exporter
-│   │   ├── file/                   #   File exporter
-│   │   └── gui/                    #   GUI exporter
+│   │   └── gui/                    #   Console / GUI exporter (default)
+│   ├── labels/                     # Label management
+│   │   └── importers/              #   Label importer plugins
+│   │       ├── base.py             #     Abstract label importer base class
+│   │       ├── json_file/          #     JSON label importer
+│   │       └── csv_file/           #     CSV label importer
+│   ├── processors/                 # Processor management
+│   │   └── importers/              #   Processor importer plugins
+│   │       ├── base.py             #     Abstract processor importer base class
+│   │       ├── detector_file/      #     Load detector from JSON file
+│   │       └── label_file/         #     Train detector from labeled media
 │   ├── audio/                      # Audio utilities
 │   │   └── generator.py            #   Audio generation
 │   └── utils/                      # Shared utilities

@@ -22,6 +22,10 @@ favorite_detectors: dict[str, dict[str, Any]] = {}
 # Favorite extractors: name -> {name, extractor_type, media_type, config, created_at}
 favorite_extractors: dict[str, dict[str, Any]] = {}
 
+# Dataset creation info: records how the current dataset was created
+# (importer name, field values, CLI args).  ``None`` when no dataset is loaded.
+dataset_creation_info: dict[str, Any] | None = None
+
 
 def clear_votes() -> None:
     """Clear all votes and the full label history.
@@ -43,11 +47,14 @@ def clear_clips() -> None:
 
     Removes all entries from the ``clips`` dict in place. Does not affect
     votes or label history. Also clears the progress model cache since
-    cached models reference clip embeddings.
+    cached models reference clip embeddings.  Also clears
+    :data:`dataset_creation_info`.
     """
+    global dataset_creation_info
     from vtsearch.models.progress import clear_progress_cache
 
     clips.clear()
+    dataset_creation_info = None
     clear_progress_cache()
 
 
@@ -252,3 +259,24 @@ def get_favorite_extractors() -> dict[str, dict[str, Any]]:
 def get_favorite_extractors_by_media(media_type: str) -> dict[str, dict[str, Any]]:
     """Return all favorite extractors matching a given media type."""
     return {name: ext for name, ext in favorite_extractors.items() if ext["media_type"] == media_type}
+
+
+# ---------------------------------------------------------------------------
+# Dataset Creation Info
+# ---------------------------------------------------------------------------
+
+
+def set_dataset_creation_info(info: dict[str, Any] | None) -> None:
+    """Set the creation info for the currently loaded dataset.
+
+    Args:
+        info: A dict with keys ``"importer"``, ``"display_name"``,
+            ``"field_values"``, and ``"cli_args"``, or ``None`` to clear.
+    """
+    global dataset_creation_info
+    dataset_creation_info = info
+
+
+def get_dataset_creation_info() -> dict[str, Any] | None:
+    """Return the creation info for the currently loaded dataset, or ``None``."""
+    return dataset_creation_info

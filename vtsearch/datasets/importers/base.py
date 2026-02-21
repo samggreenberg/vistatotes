@@ -201,6 +201,62 @@ class DatasetImporter:
                 cli_flag = f"--{f.key.replace('_', '-')}"
                 raise ValueError(f"Missing required argument: {cli_flag}")
 
+    def build_cli_args(self, field_values: dict[str, Any]) -> str:
+        """Build a CLI argument string that would recreate this import.
+
+        The returned string contains only the importer-specific portion, e.g.
+        ``"--importer folder --media-type sounds --path /data/audio"``.  The
+        caller can prepend ``python app.py --autodetect`` and append
+        ``--detector <file>`` as needed.
+
+        Fields with ``field_type="file"`` are skipped because they correspond
+        to browser uploads that don't translate directly to a CLI flag.
+
+        Args:
+            field_values: The same mapping passed to :meth:`run` /
+                :meth:`run_cli`.
+
+        Returns:
+            A space-separated CLI argument string.
+        """
+        parts = [f"--importer {self.name}"]
+        for f in self.fields:
+            if f.field_type == "file":
+                continue
+            value = field_values.get(f.key, "")
+            if value:
+                arg_name = f"--{f.key.replace('_', '-')}"
+                parts.append(f"{arg_name} {value}")
+        return " ".join(parts)
+
+    def build_creation_info(self, field_values: dict[str, Any]) -> dict[str, Any]:
+        """Build a creation-info dict describing how a dataset was imported.
+
+        The returned dict is stored alongside the dataset so its provenance
+        can be reconstructed later.
+
+        Args:
+            field_values: The field values used for the import.
+
+        Returns:
+            A dict with keys ``"importer"``, ``"display_name"``,
+            ``"field_values"`` (serialisable subset), and ``"cli_args"``.
+        """
+        # Only keep string-serialisable field values (skip file objects, etc.)
+        safe_values = {}
+        for f in self.fields:
+            val = field_values.get(f.key, "")
+            if f.field_type == "file":
+                continue
+            if val:
+                safe_values[f.key] = str(val)
+        return {
+            "importer": self.name,
+            "display_name": self.display_name,
+            "field_values": safe_values,
+            "cli_args": self.build_cli_args(field_values),
+        }
+
     def to_dict(self) -> dict[str, Any]:
         """Serialise importer metadata for the ``/api/dataset/importers`` endpoint."""
         return {

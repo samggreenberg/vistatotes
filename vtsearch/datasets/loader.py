@@ -325,7 +325,10 @@ def load_dataset_from_folder(
     update_progress("idle", f"Loaded {len(clips)} {media_type} clips from folder")
 
 
-def load_dataset_from_pickle(file_path: Path, clips: dict[int, dict[str, Any]]) -> None:
+def load_dataset_from_pickle(
+    file_path: Path,
+    clips: dict[int, dict[str, Any]],
+) -> dict[str, Any] | None:
     """Load a dataset from a pickle file into the clips dict in-place.
 
     Supports two pickle formats:
@@ -349,6 +352,9 @@ def load_dataset_from_pickle(file_path: Path, clips: dict[int, dict[str, Any]]) 
             :func:`export_dataset_to_file` or :func:`load_demo_dataset`.
         clips: Dict to populate in-place. Existing entries are removed before
             loading. Keys are clip IDs (int); values are clip data dicts.
+
+    Returns:
+        The ``creation_info`` dict stored in the pickle (if any), or ``None``.
     """
     with open(file_path, "rb") as f:
         data = pickle.load(f)
@@ -356,8 +362,10 @@ def load_dataset_from_pickle(file_path: Path, clips: dict[int, dict[str, Any]]) 
     clips.clear()
 
     # Handle both old format (just clips dict) and new format (with metadata)
+    creation_info = None
     if isinstance(data, dict) and "clips" in data:
         clips_data = data["clips"]
+        creation_info = data.get("creation_info")
     else:
         clips_data = data
 
@@ -453,6 +461,8 @@ def load_dataset_from_pickle(file_path: Path, clips: dict[int, dict[str, Any]]) 
 
     if missing_media > 0:
         print(f"WARNING: {missing_media} media files missing from {file_path}", flush=True)
+
+    return creation_info
 
 
 def embed_image_file_from_pil(image: Image.Image) -> Optional[np.ndarray]:
@@ -969,7 +979,10 @@ def load_demo_dataset(
     update_progress("idle", f"Loaded {dataset_name} dataset")
 
 
-def export_dataset_to_file(clips: dict[int, dict[str, Any]]) -> bytes:
+def export_dataset_to_file(
+    clips: dict[int, dict[str, Any]],
+    creation_info: dict[str, Any] | None = None,
+) -> bytes:
     """Serialise the current clip dataset to a pickle-formatted byte string.
 
     Converts the in-memory ``clips`` dict to a portable format (converting any
@@ -980,11 +993,15 @@ def export_dataset_to_file(clips: dict[int, dict[str, Any]]) -> bytes:
 
     Args:
         clips: Mapping of clip ID to clip data dict.
+        creation_info: Optional provenance dict describing how the dataset was
+            created (importer name, field values, CLI args).  When present it
+            is stored under the ``"creation_info"`` key in the pickle so that
+            downstream consumers can reconstruct the dataset source.
 
     Returns:
         Raw bytes of the pickled dataset dict.
     """
-    data = {
+    data: dict[str, Any] = {
         "clips": {
             cid: {
                 "id": clip["id"],
@@ -1009,6 +1026,9 @@ def export_dataset_to_file(clips: dict[int, dict[str, Any]]) -> bytes:
             for cid, clip in clips.items()
         }
     }
+
+    if creation_info is not None:
+        data["creation_info"] = creation_info
 
     buf = io.BytesIO()
     pickle.dump(data, buf)

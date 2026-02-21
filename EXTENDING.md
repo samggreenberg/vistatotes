@@ -138,6 +138,25 @@ class S3Importer(DatasetImporter):
 IMPORTER = S3Importer()
 ```
 
+### Element-level origin tracking
+
+Every clip produced by an importer is automatically tagged with an
+**origin** — a dict identifying the importer and its parameters.  This
+happens in `_run_importer_in_background()` after `run()` completes:
+
+```python
+clip["origin"]      = {"importer": "s3", "params": {"bucket": "my-data"}}
+clip["origin_name"] = "clip_001.wav"  # defaults to clip["filename"]
+```
+
+If your importer pre-populates `clip["origin"]` in `run()`, those values
+are preserved.  Otherwise the system calls `build_origin(field_values)` on
+your importer class (inherited from `DatasetImporter`) and applies the
+result to all clips that lack an origin.
+
+Origins enable per-element provenance in label exports, results exports,
+and pickle round-trips.
+
 ### Class attributes reference
 
 | Attribute      | Type                | Required | Description                                          |
@@ -214,8 +233,32 @@ a new route to the appropriate blueprint.
 | Endpoint                  | Method | What it exports                              | Format          | Blueprint    |
 |---------------------------|--------|----------------------------------------------|-----------------|--------------|
 | `/api/dataset/export`     | GET    | Full dataset (clips + embeddings + media)    | Pickle (`.pkl`) | `datasets_bp`|
-| `/api/labels/export`      | GET    | Good/bad vote labels keyed by clip MD5       | JSON            | `sorting_bp` |
+| `/api/labels/export`      | GET    | LabelSet — labels with per-element origin    | JSON            | `sorting_bp` |
 | `/api/detector/export`    | POST   | Trained MLP weights + threshold              | JSON            | `sorting_bp` |
+
+### Label export format (LabelSet)
+
+The label export endpoint (`GET /api/labels/export`) returns a
+`LabelSet` — each entry includes the element's origin and name in
+addition to its MD5 and label.  This is a superset of the legacy format:
+
+```json
+{
+  "labels": [
+    {
+      "md5": "d41d8cd98f...",
+      "label": "good",
+      "origin": {"importer": "folder", "params": {"path": "/data/audio"}},
+      "origin_name": "bark_001.wav",
+      "filename": "bark_001.wav",
+      "category": "dogs"
+    }
+  ],
+  "dataset_creation_info": { ... }
+}
+```
+
+Old consumers that only read `md5` and `label` continue to work unchanged.
 
 ### Where to put a new exporter
 
@@ -276,8 +319,9 @@ from vtsearch.utils import clips, good_votes, bad_votes, label_history
 | `label_history`  | `list[tuple[int, str, float]]`   | `(clip_id, "good"/"bad", timestamp)`|
 
 Each clip dict contains at minimum: `id`, `type`, `duration`, `file_size`,
-`md5`, `embedding` (numpy array), `filename`, `category`, plus media-specific
-fields (see [Media Type clip data](#what-to-implement-1) below).
+`md5`, `embedding` (numpy array), `filename`, `category`, `origin` (dict or
+None), `origin_name` (str), plus media-specific fields (see
+[Media Type clip data](#what-to-implement-1) below).
 
 ### Frontend integration
 

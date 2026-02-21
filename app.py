@@ -103,6 +103,7 @@ def init_clips():
             embedding = embed_audio_file(temp_path)
             new_embeddings[i] = embedding
 
+        fname = f"test_clip_{i}.wav"
         clips[i] = {
             "id": i,
             "type": "audio",
@@ -112,6 +113,10 @@ def init_clips():
             "md5": hashlib.md5(wav_bytes).hexdigest(),
             "embedding": embedding,
             "wav_bytes": wav_bytes,
+            "filename": fname,
+            "category": "test",
+            "origin": {"importer": "test", "params": {}},
+            "origin_name": fname,
         }
 
     # Clean up temp file

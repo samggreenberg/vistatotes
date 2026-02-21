@@ -22,12 +22,14 @@ from vtsearch.models import (
 from vtsearch.utils import (
     add_label_to_history,
     bad_votes,
+    build_clip_lookup,
     clips,
     get_dataset_creation_info,
     get_inclusion,
     get_sort_progress,
     good_votes,
     label_history,
+    resolve_clip_ids,
     set_inclusion,
     update_sort_progress,
 )
@@ -159,7 +161,7 @@ def export_labels():
 
 @sorting_bp.route("/api/labels/import", methods=["POST"])
 def import_labels():
-    """Import labels from JSON, matching clips by MD5 hash."""
+    """Import labels from JSON, matching clips by origin+origin_name (MD5 fallback)."""
     data = request.get_json(force=True)
     if data is None:
         return jsonify({"error": "Invalid request body"}), 400
@@ -168,31 +170,29 @@ def import_labels():
     if not isinstance(labels, list):
         return jsonify({"error": "labels must be a list"}), 400
 
-    # Build MD5 -> clip ID lookup
-    md5_to_id = {clip["md5"]: clip["id"] for clip in clips.values()}
+    origin_lookup, md5_lookup = build_clip_lookup(clips)
 
     applied = 0
     skipped = 0
     for entry in labels:
-        md5 = entry.get("md5")
         label = entry.get("label")
         if label not in ("good", "bad"):
             skipped += 1
             continue
-        cid = md5_to_id.get(md5)
-        if cid is None:
+        cids = resolve_clip_ids(entry, origin_lookup, md5_lookup)
+        if not cids:
             skipped += 1
             continue
 
-        # Apply the label, overriding any existing vote
-        if label == "good":
-            bad_votes.pop(cid, None)
-            good_votes[cid] = None
-            add_label_to_history(cid, "good")
-        else:
-            good_votes.pop(cid, None)
-            bad_votes[cid] = None
-            add_label_to_history(cid, "bad")
+        for cid in cids:
+            if label == "good":
+                bad_votes.pop(cid, None)
+                good_votes[cid] = None
+                add_label_to_history(cid, "good")
+            else:
+                good_votes.pop(cid, None)
+                bad_votes[cid] = None
+                add_label_to_history(cid, "bad")
         applied += 1
 
     return jsonify({"applied": applied, "skipped": skipped})

@@ -6,6 +6,7 @@ Covers:
 - LabelSet construction from clips+votes, from results, from dict
 - LabelSet roundtrip serialisation
 - DatasetImporter.build_origin()
+- Clip matching helpers (build_clip_lookup, resolve_clip_ids)
 - Integration with label export/import routes
 """
 
@@ -14,6 +15,7 @@ from __future__ import annotations
 import app as app_module
 from vtsearch.datasets.labelset import LabelSet, LabeledElement
 from vtsearch.datasets.origin import Origin
+from vtsearch.utils import build_clip_lookup, resolve_clip_ids
 
 
 # ---------------------------------------------------------------------------
@@ -430,3 +432,79 @@ class TestLabelExportOrigin:
         assert len(ls) == 2
         assert ls.elements[0].origin is None
         assert ls.elements[0].md5 == "abc"
+
+
+# ---------------------------------------------------------------------------
+# Clip matching helpers
+# ---------------------------------------------------------------------------
+
+
+class TestBuildClipLookup:
+    def test_origin_lookup_populated(self):
+        clips = {
+            1: {"id": 1, "md5": "h1", "origin": {"importer": "folder", "params": {"path": "/a"}}, "origin_name": "a.wav"},
+            2: {"id": 2, "md5": "h2", "origin": {"importer": "folder", "params": {"path": "/a"}}, "origin_name": "b.wav"},
+        }
+        origin_lookup, md5_lookup = build_clip_lookup(clips)
+        assert len(origin_lookup) == 2
+        assert len(md5_lookup) == 2
+
+    def test_md5_lookup_groups_duplicates(self):
+        """Two clips with the same MD5 should both appear in the md5_lookup."""
+        clips = {
+            1: {"id": 1, "md5": "same_hash", "origin": {"importer": "folder", "params": {}}, "origin_name": "a.wav"},
+            2: {"id": 2, "md5": "same_hash", "origin": {"importer": "folder", "params": {}}, "origin_name": "b.wav"},
+        }
+        _, md5_lookup = build_clip_lookup(clips)
+        assert sorted(md5_lookup["same_hash"]) == [1, 2]
+
+    def test_clips_without_origin_only_in_md5_lookup(self):
+        clips = {
+            1: {"id": 1, "md5": "h1"},
+        }
+        origin_lookup, md5_lookup = build_clip_lookup(clips)
+        assert len(origin_lookup) == 0
+        assert md5_lookup["h1"] == [1]
+
+
+class TestResolveClipIds:
+    def _make_lookups(self):
+        clips = {
+            1: {"id": 1, "md5": "h1", "origin": {"importer": "folder", "params": {"path": "/a"}}, "origin_name": "a.wav"},
+            2: {"id": 2, "md5": "h2", "origin": {"importer": "folder", "params": {"path": "/a"}}, "origin_name": "b.wav"},
+            3: {"id": 3, "md5": "h1", "origin": {"importer": "folder", "params": {"path": "/b"}}, "origin_name": "a.wav"},
+        }
+        return build_clip_lookup(clips)
+
+    def test_match_by_origin(self):
+        origin_lookup, md5_lookup = self._make_lookups()
+        entry = {"md5": "wrong", "origin": {"importer": "folder", "params": {"path": "/a"}}, "origin_name": "a.wav"}
+        ids = resolve_clip_ids(entry, origin_lookup, md5_lookup)
+        assert ids == [1]
+
+    def test_fallback_to_md5(self):
+        origin_lookup, md5_lookup = self._make_lookups()
+        entry = {"md5": "h2"}
+        ids = resolve_clip_ids(entry, origin_lookup, md5_lookup)
+        assert ids == [2]
+
+    def test_md5_fallback_returns_all_duplicates(self):
+        """When falling back to MD5, all clips with that hash are returned."""
+        origin_lookup, md5_lookup = self._make_lookups()
+        entry = {"md5": "h1"}
+        ids = resolve_clip_ids(entry, origin_lookup, md5_lookup)
+        assert sorted(ids) == [1, 3]
+
+    def test_no_match_returns_empty(self):
+        origin_lookup, md5_lookup = self._make_lookups()
+        entry = {"md5": "nonexistent"}
+        ids = resolve_clip_ids(entry, origin_lookup, md5_lookup)
+        assert ids == []
+
+    def test_origin_preferred_over_md5(self):
+        """When origin matches, MD5 is not used even if it would match more clips."""
+        origin_lookup, md5_lookup = self._make_lookups()
+        # h1 matches clips 1 and 3 by MD5, but origin narrows it to just clip 1
+        entry = {"md5": "h1", "origin": {"importer": "folder", "params": {"path": "/a"}}, "origin_name": "a.wav"}
+        ids = resolve_clip_ids(entry, origin_lookup, md5_lookup)
+        assert ids == [1]

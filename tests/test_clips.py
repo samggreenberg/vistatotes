@@ -67,10 +67,6 @@ class TestClipMD5:
             expected_md5 = hashlib.md5(clip["wav_bytes"]).hexdigest()
             assert clip["md5"] == expected_md5
 
-    def test_different_clips_have_different_md5(self):
-        md5_hashes = {clip["md5"] for clip in app_module.clips.values()}
-        assert len(md5_hashes) == len(app_module.clips)
-
     def test_md5_deterministic(self):
         """MD5 should be the same for the same clip across re-generation."""
         clip = app_module.clips[1]

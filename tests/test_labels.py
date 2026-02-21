@@ -175,3 +175,36 @@ class TestImportLabels:
             assert set(app_module.bad_votes) == {3}
         finally:
             set_dataset_creation_info(None)
+
+    def test_import_matches_by_origin(self, client):
+        """Labels with origin+origin_name match the correct clip."""
+        clip = app_module.clips[1]
+        labels = [
+            {
+                "md5": "wrong_md5_on_purpose",
+                "label": "good",
+                "origin": clip["origin"],
+                "origin_name": clip["origin_name"],
+            }
+        ]
+        resp = client.post("/api/labels/import", json={"labels": labels})
+        data = resp.get_json()
+        assert data["applied"] == 1
+        assert 1 in app_module.good_votes
+
+    def test_import_duplicate_md5_labels_both_clips(self, client):
+        """Two clips sharing the same MD5 should both receive the label."""
+        # Temporarily give clip 2 the same MD5 as clip 1
+        original_md5 = app_module.clips[2]["md5"]
+        app_module.clips[2]["md5"] = app_module.clips[1]["md5"]
+        try:
+            shared_md5 = app_module.clips[1]["md5"]
+            labels = [{"md5": shared_md5, "label": "good"}]
+            resp = client.post("/api/labels/import", json={"labels": labels})
+            data = resp.get_json()
+            assert data["applied"] == 1
+            # Both clips with the same MD5 should receive the label
+            assert 1 in app_module.good_votes
+            assert 2 in app_module.good_votes
+        finally:
+            app_module.clips[2]["md5"] = original_md5

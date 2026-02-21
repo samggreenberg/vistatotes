@@ -1,5 +1,6 @@
 """Global state management for clips and votes."""
 
+import json
 from typing import Any
 
 # Clips storage: id -> {id, type, duration, file_size, embedding, wav_bytes, video_bytes}
@@ -280,3 +281,75 @@ def set_dataset_creation_info(info: dict[str, Any] | None) -> None:
 def get_dataset_creation_info() -> dict[str, Any] | None:
     """Return the creation info for the currently loaded dataset, or ``None``."""
     return dataset_creation_info
+
+
+# ---------------------------------------------------------------------------
+# Clip matching helpers (origin+origin_name preferred, MD5 fallback)
+# ---------------------------------------------------------------------------
+
+
+def _origin_key(origin: dict[str, Any], origin_name: str) -> str:
+    """Return a hashable string key for an (origin, origin_name) pair."""
+    return json.dumps(origin, sort_keys=True) + "\0" + origin_name
+
+
+def build_clip_lookup(
+    clip_dict: dict[int, dict[str, Any]],
+) -> tuple[dict[str, list[int]], dict[str, list[int]]]:
+    """Build lookup tables for matching label entries to clips.
+
+    Returns ``(origin_lookup, md5_lookup)`` where:
+
+    * **origin_lookup** maps ``_origin_key(origin, origin_name)`` to a list of
+      clip IDs that share that origin+name pair.
+    * **md5_lookup** maps an MD5 hex string to a list of clip IDs whose
+      content hash matches.
+
+    Both lookups map to *lists* because the same key can match multiple clips
+    (e.g. duplicate files with the same MD5).
+    """
+    origin_lookup: dict[str, list[int]] = {}
+    md5_lookup: dict[str, list[int]] = {}
+
+    for clip in clip_dict.values():
+        cid = clip["id"]
+
+        origin = clip.get("origin")
+        origin_name = clip.get("origin_name", "")
+        if origin is not None and origin_name:
+            key = _origin_key(origin, origin_name)
+            origin_lookup.setdefault(key, []).append(cid)
+
+        md5 = clip.get("md5", "")
+        if md5:
+            md5_lookup.setdefault(md5, []).append(cid)
+
+    return origin_lookup, md5_lookup
+
+
+def resolve_clip_ids(
+    entry: dict[str, Any],
+    origin_lookup: dict[str, list[int]],
+    md5_lookup: dict[str, list[int]],
+) -> list[int]:
+    """Resolve a label entry to matching clip ID(s).
+
+    Prefers matching by ``origin`` + ``origin_name`` (exact provenance).
+    Falls back to matching by ``md5`` when origin info is absent or does not
+    match any loaded clip.  Returns **all** matching clip IDs so that
+    duplicate files (same MD5) are all labelled correctly.
+    """
+    origin = entry.get("origin")
+    origin_name = entry.get("origin_name", "")
+
+    if origin is not None and origin_name:
+        key = _origin_key(origin, origin_name)
+        ids = origin_lookup.get(key)
+        if ids:
+            return ids
+
+    md5 = entry.get("md5", "")
+    if md5:
+        return md5_lookup.get(md5, [])
+
+    return []

@@ -398,3 +398,58 @@ def autodetect_importer_main(
     except (FileNotFoundError, ValueError, NotADirectoryError) as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
+
+
+def import_processor_main(
+    processor_importer_name: str,
+    field_values: dict[str, Any],
+    processor_name: str,
+) -> None:
+    """CLI entry point: import a processor (detector) via a named processor importer.
+
+    Runs the processor importer and saves the result as a favorite detector.
+    Prints a summary to stdout.  Exits with code 0 on success, 1 on error.
+
+    Args:
+        processor_importer_name: Registered name of the processor importer.
+        field_values: Mapping of importer field keys to their CLI values.
+        processor_name: Name to assign to the imported detector.
+    """
+    try:
+        from vtsearch.processors.importers import get_processor_importer
+
+        proc_importer = get_processor_importer(processor_importer_name)
+        if proc_importer is None:
+            from vtsearch.processors.importers import list_processor_importers
+
+            available = ", ".join(imp.name for imp in list_processor_importers())
+            raise ValueError(f"Unknown processor importer: {processor_importer_name}. Available: {available}")
+
+        proc_importer.validate_cli_field_values(field_values)
+        result = proc_importer.run_cli(field_values)
+
+        if not isinstance(result, dict):
+            raise ValueError("Processor importer did not return a dict.")
+
+        media_type = result.get("media_type", "audio")
+        weights = result.get("weights")
+        threshold = result.get("threshold", 0.5)
+
+        if not weights:
+            raise ValueError("Processor importer result missing 'weights'.")
+
+        from vtsearch.utils import add_favorite_detector
+
+        add_favorite_detector(processor_name, media_type, weights, threshold)
+
+        loaded = result.get("loaded", "")
+        skipped = result.get("skipped", "")
+        extra = ""
+        if loaded:
+            extra += f", loaded {loaded} files"
+        if skipped:
+            extra += f", skipped {skipped}"
+        print(f"Imported detector '{processor_name}' ({media_type}{extra}).")
+    except (FileNotFoundError, ValueError) as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)

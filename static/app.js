@@ -115,6 +115,13 @@
   const labelImporterList = document.getElementById("label-importer-list");
   const labelImporterFormDiv = document.getElementById("label-importer-form");
   const labelImporterBack = document.getElementById("label-importer-back");
+  const processorImporterModal = document.getElementById("processor-importer-modal");
+  const processorImporterModalClose = document.getElementById("processor-importer-modal-close");
+  const processorImporterList = document.getElementById("processor-importer-list");
+  const processorImporterFormDiv = document.getElementById("processor-importer-form");
+  const processorImporterBack = document.getElementById("processor-importer-back");
+  const menuFavoritesImport = document.getElementById("menu-favorites-import");
+  const menuFavoritesStatus = document.getElementById("menu-favorites-status");
   const menuFavoritesManage = document.getElementById("menu-favorites-manage");
   const menuFavoritesAutodetect = document.getElementById("menu-favorites-autodetect");
   const favoritesModal = document.getElementById("favorites-modal");
@@ -1928,6 +1935,159 @@
       labelImporterFormDiv.innerHTML = "";
       labelImporterBack.style.display = "none";
       labelImporterList.style.display = "";
+    });
+  }
+
+  // ---- Processor importer modal ----
+
+  if (menuFavoritesImport && burgerDropdown) {
+    menuFavoritesImport.addEventListener("click", async () => {
+      burgerDropdown.classList.remove("show");
+      await openProcessorImporterModal();
+    });
+  }
+
+  async function openProcessorImporterModal() {
+    let importers = [];
+    try {
+      const res = await fetch("/api/processor-importers");
+      if (res.ok) importers = await res.json();
+    } catch (_) { /* ignore */ }
+
+    processorImporterFormDiv.style.display = "none";
+    processorImporterFormDiv.innerHTML = "";
+    processorImporterBack.style.display = "none";
+    processorImporterList.style.display = "";
+
+    if (importers.length === 0) {
+      processorImporterList.innerHTML = '<p style="color:#888;">No processor importers available.</p>';
+    } else {
+      processorImporterList.innerHTML = importers.map(imp => `
+        <div class="processor-importer-option" data-name="${escapeHtml(imp.name)}" style="
+          background:#2a2d3a; border:1px solid #3a3d50; border-radius:6px;
+          padding:12px 16px; margin-bottom:10px; cursor:pointer;
+          display:flex; align-items:center; gap:12px;">
+          <span style="font-size:1.5rem;">${escapeHtml(imp.icon || '\u{1F9E9}')}</span>
+          <div>
+            <div style="font-weight:bold; color:#e0e0e0;">${escapeHtml(imp.display_name)}</div>
+            <div style="font-size:0.8rem; color:#888; margin-top:2px;">${escapeHtml(imp.description)}</div>
+          </div>
+        </div>
+      `).join("");
+
+      processorImporterList.querySelectorAll(".processor-importer-option").forEach(el => {
+        const name = el.dataset.name;
+        const imp = importers.find(i => i.name === name);
+        el.addEventListener("click", () => showProcessorImporterForm(imp));
+      });
+    }
+
+    processorImporterModal.classList.add("show");
+  }
+
+  function showProcessorImporterForm(importer) {
+    processorImporterList.style.display = "none";
+    processorImporterBack.style.display = "inline-block";
+
+    const inputStyle = "width:100%;padding:8px;background:#252940;border:1px solid #2a2d3a;border-radius:4px;color:#e0e0e0;box-sizing:border-box;";
+    let html = `<h3 style="margin-bottom:14px;color:#e0e0e0;">${escapeHtml(importer.display_name)}</h3>`;
+    html += `<form id="proc-imp-form">`;
+    // Name field (always required)
+    html += `<div style="margin-bottom:14px;">`;
+    html += `<label style="display:block;margin-bottom:5px;color:#aaa;font-size:0.85rem;">Detector Name *</label>`;
+    html += `<input type="text" name="name" placeholder="e.g. Dog Barks" style="${inputStyle}" required>`;
+    html += `<div style="margin-top:4px;font-size:0.75rem;color:#666;">Name for the imported detector.</div>`;
+    html += `</div>`;
+    for (const field of importer.fields) {
+      html += `<div style="margin-bottom:14px;">`;
+      html += `<label style="display:block;margin-bottom:5px;color:#aaa;font-size:0.85rem;">${escapeHtml(field.label)}${field.required ? " *" : ""}</label>`;
+      if (field.field_type === "file") {
+        html += `<input type="file" name="${escapeHtml(field.key)}" accept="${escapeHtml(field.accept)}" style="color:#e0e0e0;width:100%;" ${field.required ? "required" : ""}>`;
+      } else if (field.field_type === "select") {
+        html += `<select name="${escapeHtml(field.key)}" style="${inputStyle}">`;
+        for (const opt of field.options) {
+          html += `<option value="${escapeHtml(opt)}"${opt === field.default ? " selected" : ""}>${escapeHtml(opt || "(auto-detect)")}</option>`;
+        }
+        html += `</select>`;
+      } else {
+        const itype = field.field_type === "password" ? "password" : "text";
+        const placeholder = escapeHtml(field.placeholder || field.description);
+        html += `<input type="${itype}" name="${escapeHtml(field.key)}" value="${escapeHtml(field.default)}" placeholder="${placeholder}" style="${inputStyle}" ${field.required ? "required" : ""}>`;
+      }
+      if (field.description) {
+        html += `<div style="margin-top:4px;font-size:0.75rem;color:#666;">${escapeHtml(field.description)}</div>`;
+      }
+      html += `</div>`;
+    }
+    html += `<div id="proc-imp-status" style="min-height:1.4em;font-size:0.85rem;color:#888;margin-bottom:10px;"></div>`;
+    html += `<button type="submit" style="width:100%;padding:10px;background:#7c8aff;border:none;border-radius:4px;color:#fff;cursor:pointer;font-size:0.9rem;">Import</button>`;
+    html += `</form>`;
+
+    processorImporterFormDiv.innerHTML = html;
+    processorImporterFormDiv.style.display = "block";
+
+    const statusEl = processorImporterFormDiv.querySelector("#proc-imp-status");
+
+    processorImporterFormDiv.querySelector("#proc-imp-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      statusEl.textContent = "Importing\u2026";
+      statusEl.style.color = "#888";
+
+      const formEl = e.target;
+      const hasFiles = importer.fields.some(f => f.field_type === "file");
+      let body, headers = {};
+
+      if (hasFiles) {
+        body = new FormData(formEl);
+      } else {
+        const obj = { name: formEl.elements["name"].value };
+        for (const field of importer.fields) {
+          obj[field.key] = formEl.elements[field.key].value;
+        }
+        body = JSON.stringify(obj);
+        headers["Content-Type"] = "application/json";
+      }
+
+      try {
+        const res = await fetch(`/api/processor-importers/import/${encodeURIComponent(importer.name)}`, {
+          method: "POST", headers, body,
+        });
+        const result = await res.json();
+        if (res.ok) {
+          let msg = `Imported "${result.name}" (${result.media_type})`;
+          if (result.loaded) msg += `, ${result.loaded} files loaded`;
+          statusEl.textContent = msg;
+          statusEl.style.color = "#4caf50";
+          setTimeout(() => {
+            processorImporterModal.classList.remove("show");
+            if (menuFavoritesStatus) {
+              menuFavoritesStatus.textContent = msg;
+              setTimeout(() => { menuFavoritesStatus.textContent = ""; }, 3000);
+            }
+          }, 1500);
+        } else {
+          statusEl.textContent = result.error || "Import failed";
+          statusEl.style.color = "#f44336";
+        }
+      } catch (err) {
+        statusEl.textContent = `Error: ${err.message}`;
+        statusEl.style.color = "#f44336";
+      }
+    });
+  }
+
+  if (processorImporterModalClose) {
+    processorImporterModalClose.addEventListener("click", () => {
+      processorImporterModal.classList.remove("show");
+    });
+  }
+
+  if (processorImporterBack) {
+    processorImporterBack.addEventListener("click", () => {
+      processorImporterFormDiv.style.display = "none";
+      processorImporterFormDiv.innerHTML = "";
+      processorImporterBack.style.display = "none";
+      processorImporterList.style.display = "";
     });
   }
 

@@ -45,6 +45,17 @@ Media explorer web app for browsing/voting on audio, images, or text. Semantic s
   - `test_processors.py` — Media processor tests
   - `test_gpu.py` — GPU tests: training, cross-calibration, detectors, embedding models (CLAP/CLIP/X-CLIP/E5), CPU↔GPU equivalence, memory cleanup (skipped without CUDA)
 
+## Test Workflow (IMPORTANT)
+
+Testing can crash the session. To avoid losing work, follow this workflow:
+
+1. **Commit and push before running tests.** Before running `pytest` or any test command, commit all current changes and push to your working branch. Use a message like `"WIP: pre-test checkpoint"` if the work isn't finalized yet.
+2. **Run tests.**
+3. **If tests fail and fixes are needed**, make the fixes, then commit and push again before re-running tests.
+4. **Repeat** until tests pass. Every cycle of fixes should be committed and pushed before the next test run.
+
+This ensures work is recoverable if the session crashes during a test run.
+
 ## Key Details
 - Global state lives in `vtsearch/utils/state.py`: `clips`, `good_votes`, `bad_votes` are module-level dicts
 - Votes are `dict[int, None]` (not sets) — use `votes[id] = None` syntax

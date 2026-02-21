@@ -978,34 +978,64 @@
     }, 500);
   }
 
+  function formatOrigin(hit) {
+    const origin = hit.origin;
+    if (!origin) return "";
+    if (origin.params) {
+      const firstVal = Object.values(origin.params)[0];
+      if (firstVal) return `${origin.importer}(${firstVal})`;
+    }
+    return origin.importer || "";
+  }
+
   function displayAutodetectResults(data) {
+    // Collect all Good hits across all detectors
+    const allHits = [];
+    for (const result of Object.values(data.results)) {
+      for (const hit of (result.hits || [])) {
+        allHits.push(hit);
+      }
+    }
+
     // Display summary
     autodetectSummary.innerHTML = `
       <p style="color: #e0e0e0;">
-        <strong>Media Type:</strong> ${data.media_type}<br>
-        <strong>Detectors Run:</strong> ${data.detectors_run}<br>
-        <strong>Total Positive Hits:</strong> ${Object.values(data.results).reduce((sum, r) => sum + r.total_hits, 0)}
+        <strong>Media Type:</strong> ${data.media_type} &nbsp;|&nbsp;
+        <strong>Detectors Run:</strong> ${data.detectors_run} &nbsp;|&nbsp;
+        <strong>Good Results:</strong> ${allHits.length}
       </p>
     `;
 
-    // Display results by detector
-    autodetectResults.innerHTML = Object.values(data.results).map(result => `
-      <div style="background: #2a2d3a; padding: 16px; margin-bottom: 16px; border-radius: 4px;">
-        <h3 style="color: #7c8aff; margin-top: 0;">${escapeHtml(result.detector_name)}</h3>
-        <p style="color: #aaa; font-size: 0.9rem;">Threshold: ${result.threshold} | Positive Hits: ${result.total_hits}</p>
-        ${result.hits.length === 0 ? '<p style="color: #888;">No positive hits found.</p>' : ''}
-        ${result.hits.slice(0, 10).map(hit => `
-          <div style="background: #1a1d27; padding: 8px; margin-bottom: 4px; border-radius: 4px; display: flex; justify-content: space-between;">
-            <span style="color: #e0e0e0;">Clip #${hit.id}: ${hit.filename || 'N/A'}</span>
-            <span style="color: #7c8aff; font-weight: bold;">Score: ${hit.score}</span>
-          </div>
-        `).join('')}
-        ${result.hits.length > 10 ? `<p style="color: #888; font-size: 0.85rem;">...and ${result.hits.length - 10} more</p>` : ''}
-      </div>
-    `).join('');
+    // Display results as a table
+    if (allHits.length === 0) {
+      autodetectResults.innerHTML = '<p style="color: #888;">No positive hits found.</p>';
+    } else {
+      let tableHtml = `<table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">`;
+      tableHtml += `<thead><tr style="border-bottom: 1px solid #3a3d50;">`;
+      tableHtml += `<th style="text-align: left; padding: 8px; color: #7c8aff;">Origin</th>`;
+      tableHtml += `<th style="text-align: left; padding: 8px; color: #7c8aff;">Name</th>`;
+      tableHtml += `<th style="text-align: left; padding: 8px; color: #7c8aff;">MD5</th>`;
+      tableHtml += `<th style="text-align: left; padding: 8px; color: #7c8aff;">Filename</th>`;
+      tableHtml += `</tr></thead><tbody>`;
+      for (const hit of allHits) {
+        const origin = escapeHtml(formatOrigin(hit));
+        const name = escapeHtml(hit.origin_name || hit.filename || "");
+        const md5 = escapeHtml(hit.md5 || "");
+        const filename = escapeHtml(hit.filename || "");
+        tableHtml += `<tr style="border-bottom: 1px solid #2a2d3a;">`;
+        tableHtml += `<td style="padding: 6px 8px; color: #aaa;">${origin}</td>`;
+        tableHtml += `<td style="padding: 6px 8px; color: #e0e0e0;">${name}</td>`;
+        tableHtml += `<td style="padding: 6px 8px; color: #888; font-family: monospace; font-size: 0.75rem;">${md5}</td>`;
+        tableHtml += `<td style="padding: 6px 8px; color: #aaa;">${filename}</td>`;
+        tableHtml += `</tr>`;
+      }
+      tableHtml += `</tbody></table>`;
+      autodetectResults.innerHTML = tableHtml;
+    }
 
     // Store results for copying
     window.autodetectResultsData = data;
+    window.autodetectAllHits = allHits;
 
     // Show modal
     autodetectModal.classList.add("show");
@@ -1019,29 +1049,41 @@
 
   if (copyResultsBtn) {
     copyResultsBtn.addEventListener("click", () => {
-      if (!window.autodetectResultsData) return;
+      const allHits = window.autodetectAllHits;
+      if (!allHits || allHits.length === 0) return;
 
-      const data = window.autodetectResultsData;
-      let text = `Auto-Detect Results\n`;
-      text += `Media Type: ${data.media_type}\n`;
-      text += `Detectors Run: ${data.detectors_run}\n\n`;
+      const columnSelect = document.getElementById("copy-column-select");
+      const separatorSelect = document.getElementById("copy-separator-select");
+      const column = columnSelect ? columnSelect.value : "origin+name";
+      const sepKey = separatorSelect ? separatorSelect.value : "newline";
 
-      for (const [detectorName, result] of Object.entries(data.results)) {
-        text += `\n=== ${detectorName} ===\n`;
-        text += `Threshold: ${result.threshold} | Positive Hits: ${result.total_hits}\n`;
-        if (result.hits.length > 0) {
-          result.hits.forEach(hit => {
-            text += `  Clip #${hit.id}: ${hit.filename || 'N/A'} (Score: ${hit.score})\n`;
-          });
-        } else {
-          text += `  No positive hits found.\n`;
+      const separatorMap = { ",": ",", "tab": "\t", "space": " ", "newline": "\n" };
+      const sep = separatorMap[sepKey] || "\n";
+
+      const values = allHits.map(hit => {
+        const origin = formatOrigin(hit);
+        const name = hit.origin_name || hit.filename || "";
+        switch (column) {
+          case "origin+name":
+            return origin ? `${origin}  ${name}` : name;
+          case "name":
+            return name;
+          case "md5":
+            return hit.md5 || "";
+          case "filename":
+            return hit.filename || "";
+          case "origin":
+            return origin;
+          default:
+            return name;
         }
-      }
+      });
 
+      const text = values.join(sep);
       navigator.clipboard.writeText(text).then(() => {
         copyResultsBtn.textContent = "Copied!";
         setTimeout(() => {
-          copyResultsBtn.textContent = "Copy Results to Clipboard";
+          copyResultsBtn.textContent = "Copy To Clipboard";
         }, 2000);
       });
     });

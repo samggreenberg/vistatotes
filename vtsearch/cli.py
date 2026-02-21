@@ -304,12 +304,9 @@ def autodetect_main(
 
         hits = _score_clips_with_detector(clips, detector_path)
 
-        if exporter_name:
-            media_type = _detect_media_type(clips)
-            results = _build_results_dict(hits, detector_path, media_type)
-            _run_exporter(exporter_name, exporter_field_values or {}, results)
-        else:
-            _print_hits(hits)
+        media_type = _detect_media_type(clips)
+        results = _build_results_dict(hits, detector_path, media_type)
+        _run_exporter(exporter_name or "gui", exporter_field_values or {}, results)
     except (FileNotFoundError, ValueError) as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
@@ -462,12 +459,9 @@ def autodetect_importer_main(
 
         hits = _score_clips_with_detector(clips, detector_path)
 
-        if exporter_name:
-            media_type = _detect_media_type(clips)
-            results = _build_results_dict(hits, detector_path, media_type)
-            _run_exporter(exporter_name, exporter_field_values or {}, results)
-        else:
-            _print_hits(hits)
+        media_type = _detect_media_type(clips)
+        results = _build_results_dict(hits, detector_path, media_type)
+        _run_exporter(exporter_name or "gui", exporter_field_values or {}, results)
     except (FileNotFoundError, ValueError, NotADirectoryError) as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)

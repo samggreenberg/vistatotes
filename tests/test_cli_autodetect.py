@@ -423,7 +423,7 @@ class TestAutodetectCLI:
         assert result.returncode == 1
         assert "Error" in result.stderr
 
-    def test_autodetect_output_contains_filenames(self, client, tmp_path):
+    def test_autodetect_output_contains_names(self, client, tmp_path):
         dataset_path = _make_dataset_file(tmp_path, app_module.clips)
         detector_path, detector = _make_detector_file(tmp_path, client, [1, 2, 3], [18, 19, 20])
 
@@ -440,7 +440,8 @@ class TestAutodetectCLI:
             timeout=120,
         )
         assert result.returncode == 0
-        assert "score:" in result.stdout
+        # Default gui exporter lists names, not scores
+        assert "Predicted Good" in result.stdout
 
     def test_autodetect_no_hits_message(self, client, tmp_path):
         dataset_path = _make_dataset_file(tmp_path, app_module.clips)
@@ -827,7 +828,9 @@ class TestRunExporter:
 
         _run_exporter("gui", {}, results)
         captured = capsys.readouterr()
+        # gui exporter prints origins+names (no scores) or the confirmation message
         assert "Predicted Good" in captured.out or "Printed" in captured.out
+        assert "score:" not in captured.out.lower()
 
     def test_unknown_exporter_raises_error(self):
         with pytest.raises(ValueError, match="Unknown exporter"):
@@ -864,7 +867,7 @@ class TestAutodetectMainWithExporter:
         saved = json.loads(output_file.read_text())
         assert "results" in saved
 
-    def test_no_exporter_prints_hits(self, client, tmp_path, capsys):
+    def test_no_exporter_uses_gui_default(self, client, tmp_path, capsys):
         dataset_path = _make_dataset_file(tmp_path, app_module.clips)
         detector_path, _ = _make_detector_file(tmp_path, client, [1, 2, 3], [18, 19, 20])
 
@@ -873,7 +876,10 @@ class TestAutodetectMainWithExporter:
         autodetect_main(str(dataset_path), str(detector_path))
 
         captured = capsys.readouterr()
+        # Default exporter is gui, which prints origins+names or "No items predicted"
         assert "Predicted Good" in captured.out or "No items predicted as Good" in captured.out
+        # Should NOT contain score or category info (gui exporter strips those)
+        assert "score:" not in captured.out.lower()
 
 
 class TestAutodetectImporterMainWithExporter:
@@ -996,6 +1002,8 @@ class TestAutodetectExporterCLI:
             or "No items predicted as Good" in result.stdout
             or "Printed" in result.stdout
         )
+        # gui exporter should not include scores
+        assert "score:" not in result.stdout.lower()
 
     def test_unknown_exporter_fails(self, client, tmp_path):
         dataset_path = _make_dataset_file(tmp_path, app_module.clips)

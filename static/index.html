@@ -225,9 +225,26 @@
     </div>
     <div class="modal-body">
       <div id="autodetect-summary" style="margin-bottom: 16px;"></div>
-      <div id="autodetect-results"></div>
-      <div style="margin-top: 16px;">
-        <button id="copy-results-btn" style="padding: 8px 16px; background: #7c8aff; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Copy Results to Clipboard</button>
+      <div id="autodetect-results" style="max-height: 500px; overflow-y: auto;"></div>
+      <div style="margin-top: 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <label style="color: #aaa; font-size: 0.85rem;">Column:
+          <select id="copy-column-select" style="padding: 4px 8px; background: #1a1d27; color: #e0e0e0; border: 1px solid #2a2d3a; border-radius: 4px; font-size: 0.85rem; margin-left: 4px;">
+            <option value="origin+name">origin+name</option>
+            <option value="name">name</option>
+            <option value="md5">md5</option>
+            <option value="filename">filename</option>
+            <option value="origin">origin</option>
+          </select>
+        </label>
+        <label style="color: #aaa; font-size: 0.85rem;">Separator:
+          <select id="copy-separator-select" style="padding: 4px 8px; background: #1a1d27; color: #e0e0e0; border: 1px solid #2a2d3a; border-radius: 4px; font-size: 0.85rem; margin-left: 4px;">
+            <option value="newline">newline</option>
+            <option value=",">,</option>
+            <option value="tab">tab</option>
+            <option value="space">space</option>
+          </select>
+        </label>
+        <button id="copy-results-btn" style="padding: 8px 16px; background: #7c8aff; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Copy To Clipboard</button>
       </div>
     </div>
   </div>

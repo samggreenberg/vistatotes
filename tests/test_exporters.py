@@ -217,6 +217,58 @@ class TestDisplayLabelsetExporter:
         assert "message" in result
         assert result["display_results"] is EMPTY_RESULTS
 
+    def test_export_cli_prints_origins_and_names(self, capsys):
+        from vtsearch.exporters import get_exporter
+
+        results_with_origin = {
+            "media_type": "audio",
+            "detectors_run": 1,
+            "results": {
+                "det1": {
+                    "detector_name": "det1",
+                    "threshold": 0.5,
+                    "total_hits": 2,
+                    "hits": [
+                        {
+                            "id": 1,
+                            "filename": "bark1.wav",
+                            "origin_name": "bark1.wav",
+                            "origin": {"importer": "folder", "params": {"path": "/data"}},
+                            "score": 0.9,
+                            "category": "dog",
+                        },
+                        {
+                            "id": 2,
+                            "filename": "bark2.wav",
+                            "origin_name": "bark2.wav",
+                            "score": 0.7,
+                            "category": "dog",
+                        },
+                    ],
+                },
+            },
+        }
+        exp = get_exporter("gui")
+        result = exp.export_cli(results_with_origin, {})
+        captured = capsys.readouterr()
+        assert "message" in result
+        # Should list origin and name, not scores or categories
+        assert "folder(/data)" in captured.out
+        assert "bark1.wav" in captured.out
+        assert "bark2.wav" in captured.out
+        assert "score" not in captured.out.lower()
+        assert "category" not in captured.out.lower()
+        assert "dog" not in captured.out
+
+    def test_export_cli_no_hits(self, capsys):
+        from vtsearch.exporters import get_exporter
+
+        exp = get_exporter("gui")
+        result = exp.export_cli(EMPTY_RESULTS, {})
+        captured = capsys.readouterr()
+        assert "No items predicted as Good" in captured.out
+        assert "message" in result
+
 
 # ---------------------------------------------------------------------------
 # File exporter

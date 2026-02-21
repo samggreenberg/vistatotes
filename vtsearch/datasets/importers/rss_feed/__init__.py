@@ -8,13 +8,20 @@ from __future__ import annotations
 
 import hashlib
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import requests
 
 from config import DATA_DIR
 from vtsearch.datasets.importers.base import DatasetImporter, ImporterField
-from vtsearch.utils import update_progress
+
+ProgressCallback = Callable[[str, str, int, int], None]
+
+
+def _default_progress() -> ProgressCallback:
+    from vtsearch.utils import update_progress
+
+    return update_progress
 
 
 def _download_enclosure(url: str, dest: Path, timeout: int = 120) -> None:
@@ -74,11 +81,13 @@ class RssFeedImporter(DatasetImporter):
         from vtsearch.datasets.loader import load_dataset_from_folder
         from vtsearch.media import get_by_folder_name
 
+        progress = _default_progress()
+
         url = field_values["url"]
         media_type = field_values.get("media_type", "sounds")
         max_episodes = int(field_values.get("max_episodes", "0") or "0")
 
-        update_progress("downloading", "Parsing feed...", 0, 0)
+        progress("downloading", "Parsing feed...", 0, 0)
         feed = feedparser.parse(url)
 
         if feed.bozo and not feed.entries:
@@ -125,7 +134,7 @@ class RssFeedImporter(DatasetImporter):
             dest_name = f"{short_hash}_{url_filename}"
             dest = download_dir / dest_name
 
-            update_progress(
+            progress(
                 "downloading",
                 f"Downloading {url_filename} ({i}/{total})...",
                 i,
@@ -135,7 +144,7 @@ class RssFeedImporter(DatasetImporter):
                 _download_enclosure(href, dest)
             except Exception as exc:
                 # Skip episodes that fail to download
-                update_progress(
+                progress(
                     "downloading",
                     f"Skipped {url_filename}: {exc}",
                     i,
@@ -143,7 +152,7 @@ class RssFeedImporter(DatasetImporter):
                 )
                 continue
 
-        load_dataset_from_folder(download_dir, media_type, clips)
+        load_dataset_from_folder(download_dir, media_type, clips, on_progress=progress)
 
     def run_cli(self, field_values: dict[str, Any], clips: dict) -> None:
         url = field_values.get("url", "")

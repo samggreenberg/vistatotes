@@ -6,9 +6,17 @@ from typing import Any
 
 from flask import Blueprint, Response, jsonify, request, send_file
 
+from vtsearch.media.base import MediaResponse
 from vtsearch.utils import add_label_to_history, bad_votes, clips, good_votes
 
 clips_bp = Blueprint("clips", __name__)
+
+
+def _flask_response(mr: MediaResponse) -> Response:
+    """Convert a framework-agnostic :class:`MediaResponse` to a Flask response."""
+    if isinstance(mr.data, dict):
+        return jsonify(mr.data)
+    return send_file(io.BytesIO(mr.data), mimetype=mr.mimetype, download_name=mr.download_name)
 
 
 @clips_bp.route("/api/clips")
@@ -200,7 +208,7 @@ def clip_media(clip_id: int) -> tuple[Response, int] | Response:
     except KeyError:
         return jsonify({"error": f"unsupported media type: {c.get('type')}"}), 400
 
-    return mt.clip_response(c)
+    return _flask_response(mt.clip_response(c))
 
 
 @clips_bp.route("/api/clips/<int:clip_id>/vote", methods=["POST"])

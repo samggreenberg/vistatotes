@@ -52,6 +52,8 @@ from typing import Any, Literal
 
 FieldType = Literal["file", "folder", "url", "text", "select"]
 
+__all__ = ["DatasetImporter", "FieldType", "ImporterField"]
+
 
 @dataclass
 class ImporterField:

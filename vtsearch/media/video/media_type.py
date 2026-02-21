@@ -2,18 +2,16 @@
 
 from __future__ import annotations
 
-import io
 from pathlib import Path
 from typing import Optional
 
 import numpy as np
 import torch
-from flask import Response, send_file
 from PIL import Image
 from transformers import XCLIPModel, XCLIPProcessor
 
 from config import MODELS_CACHE_DIR, VIDEO_DIR, XCLIP_MODEL_ID
-from vtsearch.media.base import DemoDataset, MediaType
+from vtsearch.media.base import DemoDataset, MediaResponse, MediaType, ProgressCallback, _noop_progress
 
 
 def _extract_tensor(output: object) -> torch.Tensor:
@@ -52,6 +50,7 @@ class VideoMediaType(MediaType):
     def __init__(self) -> None:
         self._model: Optional[XCLIPModel] = None
         self._processor: Optional[XCLIPProcessor] = None
+        self._on_progress: ProgressCallback = _noop_progress
 
     # ------------------------------------------------------------------
     # Identity
@@ -141,11 +140,9 @@ class VideoMediaType(MediaType):
             return
         import gc
 
-        from vtsearch.utils import update_progress
-
         gc.collect()
         cache_dir = str(MODELS_CACHE_DIR)
-        update_progress("loading", "Loading video embedder (X-CLIP model)...", 0, 0)
+        self._on_progress("loading", "Loading video embedder (X-CLIP model)...", 0, 0)
         self._model = XCLIPModel.from_pretrained(XCLIP_MODEL_ID, low_cpu_mem_usage=True, cache_dir=cache_dir)
         self._processor = XCLIPProcessor.from_pretrained(XCLIP_MODEL_ID, cache_dir=cache_dir, use_fast=False)
 
@@ -231,12 +228,12 @@ class VideoMediaType(MediaType):
     # HTTP serving
     # ------------------------------------------------------------------
 
-    def clip_response(self, clip: dict) -> Response:
+    def clip_response(self, clip: dict) -> MediaResponse:
         filename = clip.get("filename", "")
         ext = Path(filename).suffix.lower() if filename else ".mp4"
         mimetype = _VIDEO_MIME_TYPES.get(ext, "video/mp4")
-        return send_file(
-            io.BytesIO(clip["video_bytes"]),
+        return MediaResponse(
+            data=clip["video_bytes"],
             mimetype=mimetype,
             download_name=f"clip_{clip['id']}{ext}",
         )

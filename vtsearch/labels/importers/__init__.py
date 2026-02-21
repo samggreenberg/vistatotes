@@ -60,3 +60,9 @@ def list_label_importers() -> list[LabelImporter]:
     """Return all registered label importers in discovery order."""
     _ensure_discovered()
     return list(_registry.values())
+
+
+__all__ = [
+    "get_label_importer",
+    "list_label_importers",
+]

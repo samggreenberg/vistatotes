@@ -28,7 +28,13 @@ from config import DATA_DIR, NUM_CLIPS
 from vtsearch.audio import generate_wav
 from vtsearch.models import embed_audio_file, initialize_models
 from vtsearch.routes import clips_bp, datasets_bp, detectors_bp, exporters_bp, label_importers_bp, main_bp, sorting_bp
-from vtsearch.utils import clips
+from vtsearch.media import set_progress_callback
+from vtsearch.utils import clips, update_progress
+
+# Wire media types into the Flask app's progress reporting system.
+# Without this call, media types use a silent no-op callback and can run
+# standalone (e.g. in a CLI tool or notebook) without Flask.
+set_progress_callback(update_progress)
 
 app = Flask(__name__)
 

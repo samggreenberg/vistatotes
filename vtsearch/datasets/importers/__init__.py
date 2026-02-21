@@ -60,3 +60,9 @@ def list_importers() -> list[DatasetImporter]:
     """Return all registered importers in discovery order."""
     _ensure_discovered()
     return list(_registry.values())
+
+
+__all__ = [
+    "get_importer",
+    "list_importers",
+]

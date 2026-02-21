@@ -352,6 +352,7 @@ class TestImporterCLIArguments:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.slow
 class TestAutodetectCLI:
     """Tests for the command-line --autodetect flag via subprocess."""
 
@@ -466,6 +467,7 @@ class TestAutodetectCLI:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.slow
 class TestAutodetectImporterCLI:
     """Tests for the --autodetect --importer path via subprocess."""
 
@@ -903,6 +905,7 @@ class TestAutodetectImporterMainWithExporter:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.slow
 class TestAutodetectExporterCLI:
     """Tests for the --autodetect --exporter path via subprocess."""
 

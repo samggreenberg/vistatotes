@@ -176,7 +176,7 @@ def simulate_voting_iterations(
         input_dim = X.shape[1]
 
         # Train and find threshold (mirrors train_and_score)
-        threshold = calculate_cross_calibration_threshold(X_list, y_list, input_dim, inclusion)
+        threshold = calculate_cross_calibration_threshold(X_list, y_list, input_dim, inclusion, rng=rng)
         model = train_model(X, y, input_dim, inclusion)
 
         # Evaluate on held-out test set

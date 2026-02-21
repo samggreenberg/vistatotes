@@ -71,6 +71,20 @@ def clear_dataset():
     clear_progress_cache()
 
 
+def _set_clip_origins(clips_dict: dict, origin: dict) -> None:
+    """Set origin and origin_name on clips that don't already have them.
+
+    Called after an importer finishes populating the clips dict.  Clips
+    that already carry their own origin (e.g. loaded from a pickle that
+    recorded per-element provenance) are left untouched.
+    """
+    for clip in clips_dict.values():
+        if clip.get("origin") is None:
+            clip["origin"] = origin
+        if not clip.get("origin_name"):
+            clip["origin_name"] = clip.get("filename", "")
+
+
 def _run_importer_in_background(importer, field_values: dict) -> None:
     """Start *importer*.run() in a daemon thread after clearing the dataset."""
 
@@ -78,6 +92,7 @@ def _run_importer_in_background(importer, field_values: dict) -> None:
         try:
             clear_dataset()
             importer.run(field_values, clips)
+            _set_clip_origins(clips, importer.build_origin(field_values))
             set_dataset_creation_info(importer.build_creation_info(field_values))
             _load_embedder_for_clips()
         except Exception as e:
@@ -294,6 +309,8 @@ def load_demo_dataset_route():
         try:
             clear_dataset()
             load_demo_dataset(dataset_name, clips)
+            demo_origin = {"importer": "demo", "params": {"name": dataset_name}}
+            _set_clip_origins(clips, demo_origin)
             set_dataset_creation_info(
                 {
                     "importer": "demo",

@@ -138,21 +138,19 @@ def get_votes():
 
 @sorting_bp.route("/api/labels/export")
 def export_labels():
-    """Export labels as JSON keyed by clip MD5 hash.
+    """Export labels as a :class:`~vtsearch.datasets.labelset.LabelSet`.
 
-    The response includes ``dataset_creation_info`` (if available) so that
-    consumers of the label file know which dataset the labels refer to.
+    Each label entry includes the element's ``origin`` and ``origin_name``
+    so that consumers know exactly where each labeled element came from.
+    The response also includes ``dataset_creation_info`` (if available).
+
+    The format is a superset of the legacy export format — old consumers
+    that only read ``md5`` and ``label`` keys continue to work unchanged.
     """
-    labels = []
-    for cid in good_votes:  # Maintains insertion order
-        clip = clips.get(cid)
-        if clip:
-            labels.append({"md5": clip["md5"], "label": "good"})
-    for cid in bad_votes:  # Maintains insertion order
-        clip = clips.get(cid)
-        if clip:
-            labels.append({"md5": clip["md5"], "label": "bad"})
-    result: dict = {"labels": labels}
+    from vtsearch.datasets.labelset import LabelSet
+
+    labelset = LabelSet.from_clips_and_votes(clips, good_votes, bad_votes)
+    result: dict = labelset.to_dict()
     creation_info = get_dataset_creation_info()
     if creation_info is not None:
         result["dataset_creation_info"] = creation_info

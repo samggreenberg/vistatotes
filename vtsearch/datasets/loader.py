@@ -243,6 +243,7 @@ def load_dataset_from_folder(
     clips: dict[int, dict[str, Any]],
     content_vectors: dict[str, Any] | None = None,
     on_progress: Optional[ProgressCallback] = None,
+    origin: dict[str, Any] | None = None,
 ) -> None:
     """Generate a dataset in-place from a flat folder of media files.
 
@@ -271,6 +272,10 @@ def load_dataset_from_folder(
             pre-computed embedding ``numpy.ndarray``.  When a file's name is
             found in this dict the supplied vector is used directly and the
             embedding model is not invoked for that file.
+        origin: Optional serialised
+            :class:`~vtsearch.datasets.origin.Origin` dict to attach to each
+            clip (as ``clip["origin"]``).  When ``None`` no origin is set
+            and the caller is expected to set it afterwards.
 
     Raises:
         ValueError: If ``media_type`` is not recognised, or if no matching
@@ -327,6 +332,8 @@ def load_dataset_from_folder(
             "embedding": embedding,
             "filename": file_path.name,
             "category": "custom",
+            "origin": origin,
+            "origin_name": file_path.name,
             # Null-out all optional media fields so clips from different types
             # stored in the same dict have consistent keys.
             "wav_bytes": None,
@@ -388,6 +395,16 @@ def load_dataset_from_pickle(
         creation_info = data.get("creation_info")
     else:
         clips_data = data
+
+    # Build a fallback origin from creation_info if present.  Old pickles
+    # that predate per-element origins will have creation_info at the dataset
+    # level; we use that as the origin for every element.
+    fallback_origin = None
+    if creation_info:
+        fallback_origin = {
+            "importer": creation_info.get("importer", "unknown"),
+            "params": creation_info.get("field_values", {}),
+        }
 
     # Convert to the app's clip format
     missing_media = 0
@@ -455,6 +472,7 @@ def load_dataset_from_pickle(
                     missing_media += 1
 
         if media_bytes:
+            fname = clip_info.get("filename", f"clip_{clip_id}.{media_type}")
             clip_data = {
                 "id": clip_id,
                 "type": media_type,
@@ -466,8 +484,10 @@ def load_dataset_from_pickle(
                 "video_bytes": video_bytes,
                 "image_bytes": image_bytes,
                 "text_content": text_content,
-                "filename": clip_info.get("filename", f"clip_{clip_id}.{media_type}"),
+                "filename": fname,
                 "category": clip_info.get("category", "unknown"),
+                "origin": clip_info.get("origin", fallback_origin),
+                "origin_name": clip_info.get("origin_name", fname),
             }
             # Add media-specific metadata
             if media_type == "image":
@@ -551,6 +571,7 @@ def load_demo_dataset(
 
     dataset_info = DEMO_DATASETS[dataset_name]
     media_type = dataset_info.get("media_type", "audio")
+    demo_origin: dict[str, Any] = {"importer": "demo", "params": {"name": dataset_name}}
 
     # Check if already embedded
     pkl_file = EMBEDDINGS_DIR / f"{dataset_name}.pkl"
@@ -624,6 +645,7 @@ def load_demo_dataset(
                 if embedding is None:
                     continue
 
+                fname = f"{category}_{clip_id}.png"
                 clips[clip_id] = {
                     "id": clip_id,
                     "type": "image",
@@ -635,10 +657,12 @@ def load_demo_dataset(
                     "video_bytes": None,
                     "image_bytes": image_bytes,
                     "text_content": None,
-                    "filename": f"{category}_{clip_id}.png",
+                    "filename": fname,
                     "category": category,
                     "width": img.width,
                     "height": img.height,
+                    "origin": demo_origin,
+                    "origin_name": fname,
                 }
                 clip_id += 1
 
@@ -725,6 +749,8 @@ def load_demo_dataset(
                     "category": category,
                     "width": width,
                     "height": height,
+                    "origin": demo_origin,
+                    "origin_name": img_path.name,
                 }
                 clip_id += 1
 
@@ -813,6 +839,7 @@ def load_demo_dataset(
                 character_count = len(text_content)
                 text_bytes = text_content.encode("utf-8")
 
+                fname = f"{category}_{clip_id}.txt"
                 clips[clip_id] = {
                     "id": clip_id,
                     "type": "paragraph",
@@ -824,10 +851,12 @@ def load_demo_dataset(
                     "video_bytes": None,
                     "image_bytes": None,
                     "text_content": text_content,
-                    "filename": f"{category}_{clip_id}.txt",
+                    "filename": fname,
                     "category": category,
                     "word_count": word_count,
                     "character_count": character_count,
+                    "origin": demo_origin,
+                    "origin_name": fname,
                 }
                 clip_id += 1
 
@@ -905,6 +934,8 @@ def load_demo_dataset(
                     "video_bytes": video_bytes,
                     "filename": video_path.name,
                     "category": meta["category"],
+                    "origin": demo_origin,
+                    "origin_name": video_path.name,
                 }
                 clip_id += 1
 
@@ -980,6 +1011,8 @@ def load_demo_dataset(
             "video_bytes": None,
             "filename": audio_path.name,
             "category": meta["category"],
+            "origin": demo_origin,
+            "origin_name": audio_path.name,
         }
         clip_id += 1
 
@@ -1038,6 +1071,8 @@ def export_dataset_to_file(
                 else clip["embedding"],
                 "filename": clip.get("filename", f"clip_{cid}.wav"),
                 "category": clip.get("category", "unknown"),
+                "origin": clip.get("origin"),
+                "origin_name": clip.get("origin_name", clip.get("filename", "")),
                 "wav_bytes": clip.get("wav_bytes"),
                 "video_bytes": clip.get("video_bytes"),
                 "image_bytes": clip.get("image_bytes"),

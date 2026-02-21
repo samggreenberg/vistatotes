@@ -231,6 +231,31 @@ class DatasetImporter:
                 parts.append(f"{arg_name} {value}")
         return " ".join(parts)
 
+    def build_origin(self, field_values: dict[str, Any]) -> dict[str, Any]:
+        """Build an origin dict for elements imported by this importer.
+
+        The returned dict is the serialised form of an
+        :class:`~vtsearch.datasets.origin.Origin` object and is stored on
+        each clip as ``clip["origin"]``.  It captures enough information to
+        identify the data source (importer name + string-serialisable
+        field values).
+
+        Args:
+            field_values: The field values used for the import.
+
+        Returns:
+            A dict with ``"importer"`` (str) and ``"params"`` (dict of str)
+            keys.
+        """
+        params: dict[str, str] = {}
+        for f in self.fields:
+            if f.field_type == "file":
+                continue
+            val = field_values.get(f.key, "")
+            if val:
+                params[f.key] = str(val)
+        return {"importer": self.name, "params": params}
+
     def build_creation_info(self, field_values: dict[str, Any]) -> dict[str, Any]:
         """Build a creation-info dict describing how a dataset was imported.
 

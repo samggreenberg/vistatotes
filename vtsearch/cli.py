@@ -77,14 +77,19 @@ def _score_clips_with_detector(
     for cid, score in zip(all_ids, scores):
         if score >= threshold:
             clip = clips[cid]
-            positive_hits.append(
-                {
-                    "id": cid,
-                    "filename": clip.get("filename", f"clip_{cid}"),
-                    "category": clip.get("category", "unknown"),
-                    "score": round(score, 4),
-                }
-            )
+            hit: dict[str, Any] = {
+                "id": cid,
+                "filename": clip.get("filename", f"clip_{cid}"),
+                "category": clip.get("category", "unknown"),
+                "score": round(score, 4),
+            }
+            if clip.get("origin") is not None:
+                hit["origin"] = clip["origin"]
+            if clip.get("origin_name"):
+                hit["origin_name"] = clip["origin_name"]
+            if clip.get("md5"):
+                hit["md5"] = clip["md5"]
+            positive_hits.append(hit)
 
     # Sort by score descending
     positive_hits.sort(key=lambda x: x["score"], reverse=True)

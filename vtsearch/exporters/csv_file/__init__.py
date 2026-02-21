@@ -50,12 +50,18 @@ class CsvExporter(ResultsExporter):
         total_hits = 0
         with open(filepath, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
-            writer.writerow(["detector", "threshold", "filename", "category", "score"])
+            writer.writerow(["detector", "threshold", "filename", "category", "score", "origin", "origin_name"])
 
             for det_result in results.get("results", {}).values():
                 detector_name = det_result.get("detector_name", "unknown")
                 threshold = det_result.get("threshold", "")
                 for hit in det_result.get("hits", []):
+                    origin = hit.get("origin")
+                    origin_str = ""
+                    if origin:
+                        from vtsearch.datasets.origin import Origin
+
+                        origin_str = Origin.from_dict(origin).display()
                     writer.writerow(
                         [
                             detector_name,
@@ -63,6 +69,8 @@ class CsvExporter(ResultsExporter):
                             hit.get("filename", ""),
                             hit.get("category", ""),
                             hit.get("score", ""),
+                            origin_str,
+                            hit.get("origin_name", ""),
                         ]
                     )
                     total_hits += 1

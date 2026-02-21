@@ -10,6 +10,7 @@ from vtsearch.datasets.downloader import (
 )
 from vtsearch.datasets.importers import get_importer, list_importers
 from vtsearch.datasets.importers.base import DatasetImporter, ImporterField
+from vtsearch.datasets.labelset import LabelSet, LabeledElement
 from vtsearch.datasets.loader import (
     export_dataset_to_file,
     load_cifar10_batch,
@@ -21,10 +22,15 @@ from vtsearch.datasets.loader import (
     load_paragraph_metadata_from_folders,
     load_video_metadata_from_folders,
 )
+from vtsearch.datasets.origin import Origin
 from vtsearch.datasets.split import split_dataset
 
 __all__ = [
     "DEMO_DATASETS",
+    # Origin & LabelSet
+    "Origin",
+    "LabelSet",
+    "LabeledElement",
     # Importer registry
     "DatasetImporter",
     "ImporterField",

@@ -546,6 +546,7 @@ class TestLabelImportEndpoint:
         result = res.get_json()
         assert result["applied"] == 1
         assert result["skipped"] == 0
+        assert result["missing_count"] == 0
         assert 1 in app_module.good_votes
 
     def test_json_importer_applies_bad_label(self, client):
@@ -560,7 +561,7 @@ class TestLabelImportEndpoint:
         assert res.status_code == 200
         assert 2 in app_module.bad_votes
 
-    def test_json_importer_skips_unknown_md5(self, client):
+    def test_json_importer_reports_unknown_md5_as_missing(self, client):
         payload = json.dumps({"labels": [{"md5": "no_such_md5", "label": "good"}]}).encode()
         data = {"file": (io.BytesIO(payload), "labels.json")}
         res = client.post(
@@ -571,7 +572,8 @@ class TestLabelImportEndpoint:
         assert res.status_code == 200
         result = res.get_json()
         assert result["applied"] == 0
-        assert result["skipped"] == 1
+        assert result["missing_count"] == 1
+        assert len(result["missing"]) == 1
 
     def test_json_importer_skips_invalid_label_value(self, client):
         md5 = app_module.clips[1]["md5"]
@@ -603,7 +605,7 @@ class TestLabelImportEndpoint:
         assert 1 in app_module.good_votes
         assert 2 in app_module.bad_votes
 
-    def test_csv_importer_skips_unknown_md5(self, client):
+    def test_csv_importer_reports_unknown_md5_as_missing(self, client):
         csv_bytes = b"md5,label\nunknown_hash,good\n"
         data = {"file": (io.BytesIO(csv_bytes), "labels.csv")}
         res = client.post(
@@ -614,7 +616,7 @@ class TestLabelImportEndpoint:
         assert res.status_code == 200
         result = res.get_json()
         assert result["applied"] == 0
-        assert result["skipped"] == 1
+        assert result["missing_count"] == 1
 
     def test_import_overrides_existing_label(self, client):
         app_module.good_votes[1] = None
@@ -718,3 +720,299 @@ class TestLabelImportEndpoint:
         assert result["applied"] == 5
         assert set(app_module.good_votes) == {1, 2, 3}
         assert set(app_module.bad_votes) == {4, 5}
+
+
+# ---------------------------------------------------------------------------
+# resolve_clip_ids: union matching (origin+name AND md5)
+# ---------------------------------------------------------------------------
+
+
+class TestResolveClipIdsUnion:
+    """Test that resolve_clip_ids returns the union of origin+name and md5 matches."""
+
+    def test_md5_match_only(self):
+        from vtsearch.utils import build_clip_lookup, resolve_clip_ids
+
+        # Entry with only md5, no origin — should match by md5
+        md5 = app_module.clips[1]["md5"]
+        origin_lookup, md5_lookup = build_clip_lookup(app_module.clips)
+        entry = {"md5": md5, "label": "good"}
+        cids = resolve_clip_ids(entry, origin_lookup, md5_lookup)
+        assert 1 in cids
+
+    def test_origin_match_only(self):
+        from vtsearch.utils import build_clip_lookup, resolve_clip_ids
+
+        origin_lookup, md5_lookup = build_clip_lookup(app_module.clips)
+        clip = app_module.clips[1]
+        entry = {"origin": clip["origin"], "origin_name": clip["origin_name"], "label": "good"}
+        cids = resolve_clip_ids(entry, origin_lookup, md5_lookup)
+        assert 1 in cids
+
+    def test_union_of_origin_and_md5(self):
+        """When origin matches clip A and md5 matches clip B, both are returned."""
+        from vtsearch.utils import build_clip_lookup, resolve_clip_ids
+
+        # Give clip 2 the same md5 as clip 1 (simulate content-duplicate under different origin)
+        orig_md5 = app_module.clips[2]["md5"]
+        app_module.clips[2]["md5"] = app_module.clips[1]["md5"]
+        try:
+            origin_lookup, md5_lookup = build_clip_lookup(app_module.clips)
+            clip1 = app_module.clips[1]
+            # Entry: origin matches clip 1, md5 also matches clip 1 AND clip 2
+            entry = {
+                "md5": clip1["md5"],
+                "origin": clip1["origin"],
+                "origin_name": clip1["origin_name"],
+                "label": "good",
+            }
+            cids = resolve_clip_ids(entry, origin_lookup, md5_lookup)
+            assert 1 in cids
+            assert 2 in cids
+        finally:
+            app_module.clips[2]["md5"] = orig_md5
+
+    def test_no_match_returns_empty(self):
+        from vtsearch.utils import build_clip_lookup, resolve_clip_ids
+
+        origin_lookup, md5_lookup = build_clip_lookup(app_module.clips)
+        entry = {"md5": "nonexistent", "origin": {"importer": "nope", "params": {}}, "origin_name": "x", "label": "good"}
+        cids = resolve_clip_ids(entry, origin_lookup, md5_lookup)
+        assert cids == []
+
+
+# ---------------------------------------------------------------------------
+# find_missing_entries
+# ---------------------------------------------------------------------------
+
+
+class TestFindMissingEntries:
+    def test_all_present_returns_empty(self):
+        from vtsearch.utils import build_clip_lookup, find_missing_entries
+
+        origin_lookup, md5_lookup = build_clip_lookup(app_module.clips)
+        entries = [{"md5": app_module.clips[i]["md5"], "label": "good"} for i in [1, 2, 3]]
+        missing = find_missing_entries(entries, origin_lookup, md5_lookup)
+        assert missing == []
+
+    def test_unknown_entries_returned(self):
+        from vtsearch.utils import build_clip_lookup, find_missing_entries
+
+        origin_lookup, md5_lookup = build_clip_lookup(app_module.clips)
+        entries = [
+            {"md5": app_module.clips[1]["md5"], "label": "good"},
+            {"md5": "totally_unknown", "label": "bad"},
+        ]
+        missing = find_missing_entries(entries, origin_lookup, md5_lookup)
+        assert len(missing) == 1
+        assert missing[0]["md5"] == "totally_unknown"
+
+    def test_invalid_labels_excluded(self):
+        from vtsearch.utils import build_clip_lookup, find_missing_entries
+
+        origin_lookup, md5_lookup = build_clip_lookup(app_module.clips)
+        entries = [
+            {"md5": "unknown1", "label": "good"},
+            {"md5": "unknown2", "label": "meh"},  # invalid label — excluded
+        ]
+        missing = find_missing_entries(entries, origin_lookup, md5_lookup)
+        assert len(missing) == 1
+
+
+# ---------------------------------------------------------------------------
+# next_clip_id
+# ---------------------------------------------------------------------------
+
+
+class TestNextClipId:
+    def test_empty_dict_returns_1(self):
+        from vtsearch.utils.state import next_clip_id
+
+        assert next_clip_id({}) == 1
+
+    def test_returns_max_plus_one(self):
+        from vtsearch.utils.state import next_clip_id
+
+        assert next_clip_id(app_module.clips) == max(app_module.clips) + 1
+
+
+# ---------------------------------------------------------------------------
+# API – missing elements in label import response
+# ---------------------------------------------------------------------------
+
+
+class TestLabelImportMissingElements:
+    def test_response_includes_missing_entries(self, client):
+        """Labels referencing unknown elements should appear in 'missing'."""
+        known_md5 = app_module.clips[1]["md5"]
+        payload = json.dumps(
+            {
+                "labels": [
+                    {"md5": known_md5, "label": "good"},
+                    {
+                        "md5": "unknown_abc123",
+                        "label": "bad",
+                        "origin": {"importer": "folder", "params": {"path": "/data"}},
+                        "origin_name": "mystery.wav",
+                    },
+                ]
+            }
+        ).encode()
+        data = {"file": (io.BytesIO(payload), "labels.json")}
+        res = client.post(
+            "/api/label-importers/import/json_file",
+            data=data,
+            content_type="multipart/form-data",
+        )
+        assert res.status_code == 200
+        result = res.get_json()
+        assert result["applied"] == 1
+        assert result["missing_count"] == 1
+        assert result["missing"][0]["md5"] == "unknown_abc123"
+        assert result["missing"][0]["origin"]["importer"] == "folder"
+
+    def test_no_missing_when_all_match(self, client):
+        md5 = app_module.clips[1]["md5"]
+        payload = json.dumps({"labels": [{"md5": md5, "label": "good"}]}).encode()
+        data = {"file": (io.BytesIO(payload), "labels.json")}
+        res = client.post(
+            "/api/label-importers/import/json_file",
+            data=data,
+            content_type="multipart/form-data",
+        )
+        result = res.get_json()
+        assert result["missing_count"] == 0
+        assert result["missing"] == []
+
+
+# ---------------------------------------------------------------------------
+# API – POST /api/label-importers/ingest-missing
+# ---------------------------------------------------------------------------
+
+
+class TestIngestMissingEndpoint:
+    def test_empty_entries_returns_400(self, client):
+        res = client.post(
+            "/api/label-importers/ingest-missing",
+            json={"entries": []},
+        )
+        assert res.status_code == 400
+
+    def test_missing_entries_key_returns_400(self, client):
+        res = client.post(
+            "/api/label-importers/ingest-missing",
+            json={},
+        )
+        assert res.status_code == 400
+
+    def test_ingest_with_unknown_origin_returns_zero(self, client):
+        """Entries whose origin importer doesn't exist are gracefully skipped."""
+        entries = [
+            {
+                "md5": "fake_md5",
+                "label": "good",
+                "origin": {"importer": "nonexistent_importer", "params": {}},
+                "origin_name": "file.wav",
+            }
+        ]
+        res = client.post(
+            "/api/label-importers/ingest-missing",
+            json={"entries": entries},
+        )
+        assert res.status_code == 200
+        result = res.get_json()
+        assert result["ingested"] == 0
+
+    def test_ingest_with_no_origin_returns_zero(self, client):
+        """Entries without origin cannot be ingested."""
+        entries = [{"md5": "fake_md5", "label": "good"}]
+        res = client.post(
+            "/api/label-importers/ingest-missing",
+            json={"entries": entries},
+        )
+        assert res.status_code == 200
+        result = res.get_json()
+        assert result["ingested"] == 0
+
+
+# ---------------------------------------------------------------------------
+# ingest_missing_clips (unit tests)
+# ---------------------------------------------------------------------------
+
+
+class TestIngestMissingClips:
+    def test_groups_by_origin(self):
+        from vtsearch.datasets.ingest import _group_by_origin
+
+        entries = [
+            {"origin": {"importer": "a", "params": {}}, "origin_name": "x", "md5": "1", "label": "good"},
+            {"origin": {"importer": "a", "params": {}}, "origin_name": "y", "md5": "2", "label": "bad"},
+            {"origin": {"importer": "b", "params": {}}, "origin_name": "z", "md5": "3", "label": "good"},
+        ]
+        groups = _group_by_origin(entries)
+        assert len(groups) == 2
+        # Each group should have the correct number of entries
+        counts = sorted(len(es) for _, es in groups.values())
+        assert counts == [1, 2]
+
+    def test_entries_without_origin_skipped(self):
+        from vtsearch.datasets.ingest import _group_by_origin
+
+        entries = [{"md5": "abc", "label": "good"}]
+        groups = _group_by_origin(entries)
+        assert len(groups) == 0
+
+    def test_ingest_with_folder_importer(self, tmp_path):
+        """Ingest missing clips from a real folder origin."""
+        import hashlib
+
+        import numpy as np
+
+        from vtsearch.datasets.ingest import ingest_missing_clips
+
+        # Create a folder with a text file to simulate a media source
+        text_dir = tmp_path / "texts"
+        text_dir.mkdir()
+        (text_dir / "hello.txt").write_text("Hello world, this is a test paragraph for embedding.")
+        (text_dir / "goodbye.txt").write_text("Goodbye world, this is another test paragraph.")
+
+        origin = {"importer": "folder", "params": {"path": str(text_dir), "media_type": "paragraphs"}}
+
+        # Start with an existing clips dict
+        existing_clips: dict = {
+            1: {
+                "id": 1,
+                "type": "paragraph",
+                "duration": 0,
+                "file_size": 10,
+                "md5": "existing_md5",
+                "embedding": np.zeros(768),
+                "wav_bytes": None,
+                "video_bytes": None,
+                "image_bytes": None,
+                "text_content": "existing",
+                "filename": "existing.txt",
+                "category": "test",
+                "origin": None,
+                "origin_name": "existing.txt",
+            }
+        }
+
+        missing_entries = [
+            {
+                "md5": hashlib.md5(b"Hello world, this is a test paragraph for embedding.").hexdigest(),
+                "label": "good",
+                "origin": origin,
+                "origin_name": "hello.txt",
+            },
+        ]
+
+        def noop_progress(status, message, current, total):
+            pass
+
+        ingested = ingest_missing_clips(missing_entries, existing_clips, on_progress=noop_progress)
+        assert ingested == 1
+        # New clip should have id=2 (next after existing)
+        assert 2 in existing_clips
+        assert existing_clips[2]["origin_name"] == "hello.txt"
+        assert existing_clips[2]["embedding"] is not None

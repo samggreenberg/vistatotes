@@ -326,6 +326,8 @@ def train_and_score(
     with torch.no_grad():
         scores = model(X_all).squeeze(1).tolist()
 
-    results = [{"id": cid, "score": round(s, 4)} for cid, s in zip(all_ids, scores)]
-    results.sort(key=lambda x: x["score"], reverse=True)
+    # Sort by raw scores (full precision) so that tiny differences still
+    # affect ordering.  Round only for the JSON response values.
+    paired = sorted(zip(all_ids, scores), key=lambda x: x[1], reverse=True)
+    results = [{"id": cid, "score": round(s, 4)} for cid, s in paired]
     return results, threshold

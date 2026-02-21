@@ -85,6 +85,26 @@ class TestTrainAndScore:
         avg_bad = np.mean([score_map[i] for i in app_module.bad_votes])
         assert avg_good > avg_bad
 
+    def test_order_changes_after_new_vote(self):
+        """After adding a vote and retraining, the sort order should change."""
+        app_module.good_votes.update({k: None for k in [1, 2]})
+        app_module.bad_votes.update({k: None for k in [19, 20]})
+        results_before, _ = app_module.train_and_score(
+            app_module.clips, app_module.good_votes, app_module.bad_votes
+        )
+        order_before = [e["id"] for e in results_before]
+
+        # Add a new good vote on a clip that was in the middle
+        app_module.good_votes[10] = None
+        results_after, _ = app_module.train_and_score(
+            app_module.clips, app_module.good_votes, app_module.bad_votes
+        )
+        order_after = [e["id"] for e in results_after]
+
+        assert order_before != order_after, (
+            "Sort order did not change after adding a new vote"
+        )
+
 
 class TestLearnedSort:
     def test_returns_all_clips(self, client):

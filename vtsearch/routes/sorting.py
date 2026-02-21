@@ -364,8 +364,9 @@ def label_file_sort():
         with torch.no_grad():
             scores = model(X_all).squeeze(1).tolist()
 
-        results = [{"id": cid, "score": round(s, 4)} for cid, s in zip(all_ids, scores)]
-        results.sort(key=lambda x: x["score"], reverse=True)
+        # Sort by raw scores (full precision) before rounding for display.
+        paired = sorted(zip(all_ids, scores), key=lambda x: x[1], reverse=True)
+        results = [{"id": cid, "score": round(s, 4)} for cid, s in paired]
 
         return jsonify(
             {

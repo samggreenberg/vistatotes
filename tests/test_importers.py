@@ -393,9 +393,9 @@ class TestLoadDatasetContentVectors:
         mt = self._make_fake_media_type(embed_return=np.zeros(3))
 
         clips: dict = {}
+        _noop = lambda *a: None
         with mock.patch("vtsearch.media.get_by_folder_name", return_value=mt):
-            with mock.patch("vtsearch.datasets.loader.update_progress"):
-                load_dataset_from_folder(tmp_path, "sounds", clips, content_vectors={"a.wav": pre_vector})
+            load_dataset_from_folder(tmp_path, "sounds", clips, content_vectors={"a.wav": pre_vector}, on_progress=_noop)
 
         assert len(clips) == 1
         np.testing.assert_array_equal(clips[1]["embedding"], pre_vector)
@@ -416,9 +416,9 @@ class TestLoadDatasetContentVectors:
         mt = self._make_fake_media_type(embed_return=model_vector)
 
         clips: dict = {}
+        _noop = lambda *a: None
         with mock.patch("vtsearch.media.get_by_folder_name", return_value=mt):
-            with mock.patch("vtsearch.datasets.loader.update_progress"):
-                load_dataset_from_folder(tmp_path, "sounds", clips, content_vectors={})
+            load_dataset_from_folder(tmp_path, "sounds", clips, content_vectors={}, on_progress=_noop)
 
         assert len(clips) == 1
         np.testing.assert_array_equal(clips[1]["embedding"], model_vector)
@@ -442,9 +442,9 @@ class TestLoadDatasetContentVectors:
         mt = self._make_fake_media_type(embed_return=model_vector)
 
         clips: dict = {}
+        _noop = lambda *a: None
         with mock.patch("vtsearch.media.get_by_folder_name", return_value=mt):
-            with mock.patch("vtsearch.datasets.loader.update_progress"):
-                load_dataset_from_folder(tmp_path, "sounds", clips, content_vectors={"a.wav": pre_vector})
+            load_dataset_from_folder(tmp_path, "sounds", clips, content_vectors={"a.wav": pre_vector}, on_progress=_noop)
 
         assert len(clips) == 2
         # One clip should have the pre-computed vector, the other the model vector
@@ -467,9 +467,9 @@ class TestLoadDatasetContentVectors:
         mt = self._make_fake_media_type(embed_return=model_vector)
 
         clips: dict = {}
+        _noop = lambda *a: None
         with mock.patch("vtsearch.media.get_by_folder_name", return_value=mt):
-            with mock.patch("vtsearch.datasets.loader.update_progress"):
-                load_dataset_from_folder(tmp_path, "sounds", clips)
+            load_dataset_from_folder(tmp_path, "sounds", clips, on_progress=_noop)
 
         assert len(clips) == 1
         np.testing.assert_array_equal(clips[1]["embedding"], model_vector)
@@ -491,9 +491,9 @@ class TestLoadDatasetContentVectors:
         mt = self._make_fake_media_type(embed_return=None)
 
         clips: dict = {}
+        _noop = lambda *a: None
         with mock.patch("vtsearch.media.get_by_folder_name", return_value=mt):
-            with mock.patch("vtsearch.datasets.loader.update_progress"):
-                load_dataset_from_folder(tmp_path, "sounds", clips, content_vectors={"d.wav": pre_vector})
+            load_dataset_from_folder(tmp_path, "sounds", clips, content_vectors={"d.wav": pre_vector}, on_progress=_noop)
 
         assert len(clips) == 1
         np.testing.assert_array_equal(clips[1]["embedding"], pre_vector)

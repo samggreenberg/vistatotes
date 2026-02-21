@@ -15,7 +15,16 @@ dataset loading, HTTP routing, and the demo-dataset listing.
 
 from __future__ import annotations
 
-from vtsearch.media.base import DemoDataset, Detector, Extractor, MediaType, Processor
+from vtsearch.media.base import (
+    DemoDataset,
+    Detector,
+    Extractor,
+    MediaResponse,
+    MediaType,
+    Processor,
+    ProgressCallback,
+    _noop_progress,
+)
 
 _registry: dict[str, "MediaType"] = {}
 
@@ -93,15 +102,31 @@ register(VideoMediaType())
 register(ImageMediaType())
 register(TextMediaType())
 
+
+def set_progress_callback(callback: "ProgressCallback") -> None:
+    """Set the progress callback on all registered media types.
+
+    Call this once at application startup to wire media types into whatever
+    progress reporting mechanism the host application uses.  When not called,
+    media types use a silent no-op callback and can run without any
+    framework dependencies.
+    """
+    for mt in _registry.values():
+        mt._on_progress = callback
+
+
 __all__ = [
     "MediaType",
+    "MediaResponse",
     "DemoDataset",
     "Processor",
     "Detector",
     "Extractor",
+    "ProgressCallback",
     "register",
     "get",
     "get_by_folder_name",
     "all_types",
     "all_demo_datasets",
+    "set_progress_callback",
 ]

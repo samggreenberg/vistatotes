@@ -37,7 +37,13 @@ from vtsearch.routes import (
     processor_importers_bp,
     sorting_bp,
 )
-from vtsearch.utils import clips
+from vtsearch.media import set_progress_callback
+from vtsearch.utils import clips, update_progress
+
+# Wire media types into the Flask app's progress reporting system.
+# Without this call, media types use a silent no-op callback and can run
+# standalone (e.g. in a CLI tool or notebook) without Flask.
+set_progress_callback(update_progress)
 
 app = Flask(__name__)
 

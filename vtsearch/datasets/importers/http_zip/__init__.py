@@ -1,4 +1,4 @@
-"""HTTP-Archive importer \u2013 downloads a public archive of media files and loads them.
+"""HTTP-Archive importer – downloads a public archive of media files and loads them.
 
 Supports .zip, .tar, .tar.gz, .tar.bz2, .tar.xz archives.
 RAR support requires the optional ``rarfile`` package.
@@ -11,17 +11,31 @@ from __future__ import annotations
 import tarfile
 import zipfile
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable, Optional
 
 from config import DATA_DIR
 from vtsearch.datasets.downloader import download_file_with_progress
 from vtsearch.datasets.importers.base import DatasetImporter, ImporterField
 from vtsearch.datasets.loader import load_dataset_from_folder
-from vtsearch.utils import update_progress
+
+ProgressCallback = Callable[[str, str, int, int], None]
 
 
-def _extract_archive(archive_path: Path, extract_dir: Path) -> None:
+def _default_progress() -> ProgressCallback:
+    from vtsearch.utils import update_progress
+
+    return update_progress
+
+
+def _extract_archive(
+    archive_path: Path,
+    extract_dir: Path,
+    on_progress: Optional[ProgressCallback] = None,
+) -> None:
     """Extract *archive_path* into *extract_dir*, supporting zip/tar/rar."""
+    if on_progress is None:
+        on_progress = _default_progress()
+
     name = archive_path.name.lower()
 
     if name.endswith(".zip"):
@@ -29,7 +43,7 @@ def _extract_archive(archive_path: Path, extract_dir: Path) -> None:
             members = zf.namelist()
             total = len(members)
             for i, member in enumerate(members, 1):
-                update_progress(
+                on_progress(
                     "loading",
                     f"Extracting {member.split('/')[-1]}...",
                     i,
@@ -42,7 +56,7 @@ def _extract_archive(archive_path: Path, extract_dir: Path) -> None:
             members = tf.getmembers()
             total = len(members)
             for i, member in enumerate(members, 1):
-                update_progress(
+                on_progress(
                     "loading",
                     f"Extracting {member.name.split('/')[-1]}...",
                     i,
@@ -61,7 +75,7 @@ def _extract_archive(archive_path: Path, extract_dir: Path) -> None:
             members = rf.namelist()
             total = len(members)
             for i, member in enumerate(members, 1):
-                update_progress(
+                on_progress(
                     "loading",
                     f"Extracting {member.split('/')[-1]}...",
                     i,
@@ -115,21 +129,23 @@ class HttpArchiveImporter(DatasetImporter):
 
         DATA_DIR.mkdir(exist_ok=True)
 
+        progress = _default_progress()
+
         # Derive a local filename from the URL so we preserve the extension
         url_path = url.split("?")[0].rstrip("/")
         url_filename = url_path.split("/")[-1] or "archive"
         archive_path = DATA_DIR / f"http_archive_download_{url_filename}"
         extract_dir = DATA_DIR / "http_archive_extract"
 
-        update_progress("downloading", "Downloading archive...", 0, 0)
-        download_file_with_progress(url, archive_path)
+        progress("downloading", "Downloading archive...", 0, 0)
+        download_file_with_progress(url, archive_path, on_progress=progress)
 
-        update_progress("loading", "Extracting archive...", 0, 0)
+        progress("loading", "Extracting archive...", 0, 0)
         extract_dir.mkdir(exist_ok=True)
-        _extract_archive(archive_path, extract_dir)
+        _extract_archive(archive_path, extract_dir, on_progress=progress)
         archive_path.unlink(missing_ok=True)
 
-        load_dataset_from_folder(extract_dir, media_type, clips)
+        load_dataset_from_folder(extract_dir, media_type, clips, on_progress=progress)
 
     def run_cli(self, field_values: dict[str, Any], clips: dict) -> None:
         url = field_values.get("url", "")

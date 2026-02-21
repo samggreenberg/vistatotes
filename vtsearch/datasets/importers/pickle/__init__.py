@@ -12,7 +12,12 @@ from typing import Any
 from config import DATA_DIR
 from vtsearch.datasets.importers.base import DatasetImporter, ImporterField
 from vtsearch.datasets.loader import load_dataset_from_pickle
-from vtsearch.utils import update_progress
+
+
+def _get_progress():
+    from vtsearch.utils import update_progress
+
+    return update_progress
 
 
 class PickleImporter(DatasetImporter):
@@ -44,7 +49,8 @@ class PickleImporter(DatasetImporter):
         from vtsearch.utils import set_dataset_creation_info
 
         file_obj = field_values["file"]  # werkzeug FileStorage
-        update_progress("loading", "Loading dataset from file...", 0, 0)
+        progress = _get_progress()
+        progress("loading", "Loading dataset from file...", 0, 0)
         temp_path = DATA_DIR / "temp_upload.pkl"
         DATA_DIR.mkdir(exist_ok=True)
         file_obj.save(temp_path)
@@ -54,7 +60,7 @@ class PickleImporter(DatasetImporter):
             temp_path.unlink(missing_ok=True)
         if creation_info:
             set_dataset_creation_info(creation_info)
-        update_progress("idle", f"Loaded {len(clips)} clips from file")
+        progress("idle", f"Loaded {len(clips)} clips from file")
 
     def run_cli(self, field_values: dict[str, Any], clips: dict) -> None:
         """Load from a pickle file path (string) instead of FileStorage."""

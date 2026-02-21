@@ -247,3 +247,6 @@ class TestClearDataset:
         set_dataset_creation_info({"importer": "test", "display_name": "x", "field_values": {}, "cli_args": ""})
         clear_clips()
         assert get_dataset_creation_info() is None
+
+        # Re-initialize for other tests
+        app_module.init_clips()

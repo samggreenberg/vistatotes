@@ -1,7 +1,15 @@
-"""Dataset downloading utilities."""
+"""Dataset downloading utilities.
+
+All public functions accept an optional ``on_progress`` callback with the
+signature ``(status: str, message: str, current: int, total: int) -> None``.
+When omitted the functions fall back to the application-wide
+:func:`~vtsearch.utils.update_progress` reporter; pass an explicit callback
+to use these functions outside the Flask app (scripts, notebooks, tests).
+"""
 
 import zipfile
 from pathlib import Path
+from typing import Callable, Optional
 
 import requests
 
@@ -16,13 +24,26 @@ from config import (
     IMAGE_DIR,
     VIDEO_DIR,
 )
-from vtsearch.utils import update_progress
+
+ProgressCallback = Callable[[str, str, int, int], None]
 
 
-def download_file_with_progress(url: str, dest_path: Path, expected_size: int = 0) -> None:
+def _default_progress() -> ProgressCallback:
+    """Lazily resolve the application-wide progress callback."""
+    from vtsearch.utils import update_progress
+
+    return update_progress
+
+
+def download_file_with_progress(
+    url: str,
+    dest_path: Path,
+    expected_size: int = 0,
+    on_progress: Optional[ProgressCallback] = None,
+) -> None:
     """Download a file from a URL to a local path, reporting byte-level progress.
 
-    Streams the HTTP response in 8 KB chunks and calls :func:`update_progress`
+    Streams the HTTP response in 8 KB chunks and calls *on_progress*
     after each chunk so that a polling client can track download progress.
 
     Args:
@@ -31,10 +52,15 @@ def download_file_with_progress(url: str, dest_path: Path, expected_size: int = 
         expected_size: Expected file size in bytes, used as a fallback when the
             server does not supply a ``Content-Length`` header. Pass 0 (default)
             if the size is unknown.
+        on_progress: Optional progress callback. Falls back to the
+            application-wide ``update_progress`` when ``None``.
 
     Raises:
         requests.HTTPError: If the server returns a non-2xx status code.
     """
+    if on_progress is None:
+        on_progress = _default_progress()
+
     response = requests.get(url, stream=True)
     response.raise_for_status()
     total_size = int(response.headers.get("content-length", 0))
@@ -46,34 +72,41 @@ def download_file_with_progress(url: str, dest_path: Path, expected_size: int = 
         for chunk in response.iter_content(chunk_size=8192):
             size = f.write(chunk)
             downloaded += size
-            update_progress("downloading", "Downloading ESC-50...", downloaded, total_size)
+            on_progress("downloading", "Downloading ESC-50...", downloaded, total_size)
 
 
-def download_esc50() -> Path:
+def download_esc50(on_progress: Optional[ProgressCallback] = None) -> Path:
     """Download and extract the ESC-50 environmental sounds dataset.
 
     Downloads ``esc50.zip`` from the configured ``ESC50_URL`` into ``DATA_DIR``
     if it is not already present, then extracts it and deletes the zip to
-    reclaim disk space. Both steps report progress via :func:`update_progress`.
+    reclaim disk space. Both steps report progress via *on_progress*.
+
+    Args:
+        on_progress: Optional progress callback. Falls back to the
+            application-wide ``update_progress`` when ``None``.
 
     Returns:
         Path to the ``audio/`` subdirectory inside the extracted ``ESC-50-master``
         directory (e.g. ``data/ESC-50-master/audio``).
     """
+    if on_progress is None:
+        on_progress = _default_progress()
+
     zip_path = DATA_DIR / "esc50.zip"
     extract_dir = DATA_DIR / "ESC-50-master"
     DATA_DIR.mkdir(exist_ok=True)
 
     if not extract_dir.exists():
         if not zip_path.exists():
-            update_progress("downloading", "Starting download...", 0, 0)
-            download_file_with_progress(ESC50_URL, zip_path, ESC50_DOWNLOAD_SIZE_MB * 1024 * 1024)
+            on_progress("downloading", "Starting download...", 0, 0)
+            download_file_with_progress(ESC50_URL, zip_path, ESC50_DOWNLOAD_SIZE_MB * 1024 * 1024, on_progress)
 
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
             members = zip_ref.namelist()
             total = len(members)
             for i, member in enumerate(members, 1):
-                update_progress(
+                on_progress(
                     "downloading",
                     f"Extracting {member.split('/')[-1]}...",
                     i,
@@ -86,18 +119,25 @@ def download_esc50() -> Path:
     return extract_dir / "audio"
 
 
-def download_cifar10() -> Path:
+def download_cifar10(on_progress: Optional[ProgressCallback] = None) -> Path:
     """Download and extract the CIFAR-10 image classification dataset.
 
     Downloads ``cifar-10-python.tar.gz`` from the configured ``CIFAR10_URL``
     into ``DATA_DIR`` if it is not already present, then extracts it and deletes
     the archive to reclaim disk space. Both steps report progress via
-    :func:`update_progress`.
+    *on_progress*.
+
+    Args:
+        on_progress: Optional progress callback. Falls back to the
+            application-wide ``update_progress`` when ``None``.
 
     Returns:
         Path to the ``cifar-10-batches-py/`` directory containing the raw pickle
         batch files (e.g. ``data/cifar-10-batches-py``).
     """
+    if on_progress is None:
+        on_progress = _default_progress()
+
     import tarfile
 
     tar_path = DATA_DIR / "cifar-10-python.tar.gz"
@@ -106,10 +146,10 @@ def download_cifar10() -> Path:
 
     if not extract_dir.exists():
         if not tar_path.exists():
-            update_progress("downloading", "Starting CIFAR-10 download...", 0, 0)
-            download_file_with_progress(CIFAR10_URL, tar_path, CIFAR10_DOWNLOAD_SIZE_MB * 1024 * 1024)
+            on_progress("downloading", "Starting CIFAR-10 download...", 0, 0)
+            download_file_with_progress(CIFAR10_URL, tar_path, CIFAR10_DOWNLOAD_SIZE_MB * 1024 * 1024, on_progress)
 
-        update_progress("downloading", "Extracting CIFAR-10...", 0, 0)
+        on_progress("downloading", "Extracting CIFAR-10...", 0, 0)
         with tarfile.open(tar_path, "r:gz") as tar_ref:
             tar_ref.extractall(DATA_DIR)
 
@@ -118,18 +158,25 @@ def download_cifar10() -> Path:
     return extract_dir
 
 
-def download_caltech101() -> Path:
+def download_caltech101(on_progress: Optional[ProgressCallback] = None) -> Path:
     """Download and extract the Caltech-101 image classification dataset.
 
     Downloads ``caltech-101.zip`` from the configured ``CALTECH101_URL``
     into ``DATA_DIR`` if it is not already present, then extracts it and
     deletes the archive to reclaim disk space.
 
+    Args:
+        on_progress: Optional progress callback. Falls back to the
+            application-wide ``update_progress`` when ``None``.
+
     Returns:
         Path to the ``101_ObjectCategories/`` directory containing category
         subfolders of JPEG images (e.g.
         ``data/caltech-101/101_ObjectCategories``).
     """
+    if on_progress is None:
+        on_progress = _default_progress()
+
     zip_path = DATA_DIR / "caltech-101.zip"
     extract_dir = DATA_DIR / "caltech-101"
     DATA_DIR.mkdir(exist_ok=True)
@@ -138,16 +185,18 @@ def download_caltech101() -> Path:
     categories_dir = extract_dir / "101_ObjectCategories"
     if not categories_dir.exists():
         if not zip_path.exists():
-            update_progress("downloading", "Starting Caltech-101 download...", 0, 0)
-            download_file_with_progress(CALTECH101_URL, zip_path, CALTECH101_DOWNLOAD_SIZE_MB * 1024 * 1024)
+            on_progress("downloading", "Starting Caltech-101 download...", 0, 0)
+            download_file_with_progress(
+                CALTECH101_URL, zip_path, CALTECH101_DOWNLOAD_SIZE_MB * 1024 * 1024, on_progress
+            )
 
-        update_progress("downloading", "Extracting Caltech-101...", 0, 0)
+        on_progress("downloading", "Extracting Caltech-101...", 0, 0)
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
             members = zip_ref.namelist()
             total = len(members)
             for i, member in enumerate(members, 1):
                 if i % 100 == 0 or i == total:
-                    update_progress(
+                    on_progress(
                         "downloading",
                         f"Extracting Caltech-101 ({i}/{total})...",
                         i,
@@ -200,6 +249,7 @@ def download_ucf101_subset() -> Path:
 
 def download_20newsgroups(
     categories: list[str],
+    on_progress: Optional[ProgressCallback] = None,
 ) -> tuple[list[str], list[int], list[str]]:
     """Download and prepare a subset of the 20 Newsgroups text dataset.
 
@@ -220,6 +270,8 @@ def download_20newsgroups(
 
             Any category not in the mapping is passed through unchanged as the
             full newsgroup name.
+        on_progress: Optional progress callback. Falls back to the
+            application-wide ``update_progress`` when ``None``.
 
     Returns:
         A 3-tuple ``(texts, labels, category_names)`` where:
@@ -231,9 +283,12 @@ def download_20newsgroups(
         - ``category_names`` is a list of simplified category name strings,
           ordered to correspond with label index values.
     """
+    if on_progress is None:
+        on_progress = _default_progress()
+
     from sklearn.datasets import fetch_20newsgroups
 
-    update_progress("downloading", "Downloading 20 Newsgroups dataset...", 0, 0)
+    on_progress("downloading", "Downloading 20 Newsgroups dataset...", 0, 0)
 
     # Map our category names to 20 newsgroups categories.
     # Covers all 20 newsgroups under shorter, friendlier aliases.

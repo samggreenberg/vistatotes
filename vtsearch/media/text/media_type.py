@@ -6,11 +6,10 @@ from pathlib import Path
 from typing import Optional
 
 import numpy as np
-from flask import Response, jsonify
 from sentence_transformers import SentenceTransformer
 
 from config import E5_MODEL_ID, MODELS_CACHE_DIR
-from vtsearch.media.base import DemoDataset, MediaType
+from vtsearch.media.base import DemoDataset, MediaResponse, MediaType, ProgressCallback, _noop_progress
 
 
 class TextMediaType(MediaType):
@@ -26,6 +25,7 @@ class TextMediaType(MediaType):
 
     def __init__(self) -> None:
         self._model: Optional[SentenceTransformer] = None
+        self._on_progress: ProgressCallback = _noop_progress
 
     # ------------------------------------------------------------------
     # Identity
@@ -120,11 +120,9 @@ class TextMediaType(MediaType):
             return
         import gc
 
-        from vtsearch.utils import update_progress
-
         gc.collect()
         cache_dir = str(MODELS_CACHE_DIR)
-        update_progress("loading", "Loading text embedder (E5 model)...", 0, 0)
+        self._on_progress("loading", "Loading text embedder (E5 model)...", 0, 0)
         self._model = SentenceTransformer(E5_MODEL_ID, cache_folder=cache_dir)
 
     def embed_media(self, file_path: Path) -> Optional[np.ndarray]:
@@ -193,11 +191,12 @@ class TextMediaType(MediaType):
     # HTTP serving
     # ------------------------------------------------------------------
 
-    def clip_response(self, clip: dict) -> Response:
-        return jsonify(
-            {
+    def clip_response(self, clip: dict) -> MediaResponse:
+        return MediaResponse(
+            data={
                 "content": clip.get("text_content", ""),
                 "word_count": clip.get("word_count", 0),
                 "character_count": clip.get("character_count", 0),
-            }
+            },
+            mimetype="application/json",
         )

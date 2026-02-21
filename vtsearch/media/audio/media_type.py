@@ -2,18 +2,16 @@
 
 from __future__ import annotations
 
-import io
 from pathlib import Path
 from typing import Optional
 
 import librosa
 import numpy as np
 import torch
-from flask import Response, send_file
 from transformers import ClapModel, ClapProcessor
 
 from config import CLAP_MODEL_ID, DATA_DIR, MODELS_CACHE_DIR, SAMPLE_RATE
-from vtsearch.media.base import DemoDataset, MediaType
+from vtsearch.media.base import DemoDataset, MediaResponse, MediaType, ProgressCallback, _noop_progress
 
 
 class AudioMediaType(MediaType):
@@ -28,6 +26,7 @@ class AudioMediaType(MediaType):
     def __init__(self) -> None:
         self._model: Optional[ClapModel] = None
         self._processor: Optional[ClapProcessor] = None
+        self._on_progress: ProgressCallback = _noop_progress
 
     # ------------------------------------------------------------------
     # Identity
@@ -151,11 +150,9 @@ class AudioMediaType(MediaType):
             return
         import gc
 
-        from vtsearch.utils import update_progress
-
         gc.collect()
         cache_dir = str(MODELS_CACHE_DIR)
-        update_progress("loading", "Loading audio embedder (CLAP model)...", 0, 0)
+        self._on_progress("loading", "Loading audio embedder (CLAP model)...", 0, 0)
         self._model = ClapModel.from_pretrained(CLAP_MODEL_ID, low_cpu_mem_usage=True, cache_dir=cache_dir)
         self._processor = ClapProcessor.from_pretrained(CLAP_MODEL_ID, cache_dir=cache_dir)
 
@@ -221,9 +218,9 @@ class AudioMediaType(MediaType):
     # HTTP serving
     # ------------------------------------------------------------------
 
-    def clip_response(self, clip: dict) -> Response:
-        return send_file(
-            io.BytesIO(clip["wav_bytes"]),
+    def clip_response(self, clip: dict) -> MediaResponse:
+        return MediaResponse(
+            data=clip["wav_bytes"],
             mimetype="audio/wav",
             download_name=f"clip_{clip['id']}.wav",
         )

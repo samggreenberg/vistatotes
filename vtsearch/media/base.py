@@ -18,12 +18,49 @@ the registry.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 import numpy as np
-from flask import Response
+
+# Type alias for progress callbacks.  Modules that accept an ``on_progress``
+# parameter use this signature so callers can report status without depending
+# on ``vtsearch.utils.progress``.
+ProgressCallback = Callable[[str, str, int, int], None]
+
+__all__ = [
+    "DemoDataset",
+    "Detector",
+    "Extractor",
+    "MediaResponse",
+    "MediaType",
+    "Processor",
+    "ProgressCallback",
+]
+
+
+def _noop_progress(status: str, message: str = "", current: int = 0, total: int = 0) -> None:
+    """Default no-op progress callback used when no real reporter is set."""
+
+
+@dataclass
+class MediaResponse:
+    """Framework-agnostic representation of media content for HTTP serving.
+
+    This decouples media type implementations from Flask so they can be used
+    as standalone libraries.  The Flask route layer converts this into a real
+    ``flask.Response`` via :func:`media_response_to_flask`.
+
+    Attributes:
+        data: The payload — ``bytes`` for binary media, ``dict`` for JSON.
+        mimetype: MIME type string (e.g. ``"audio/wav"``, ``"application/json"``).
+        download_name: Suggested filename for the ``Content-Disposition`` header.
+    """
+
+    data: bytes | dict
+    mimetype: str
+    download_name: str = ""
 
 
 @dataclass
@@ -192,11 +229,12 @@ class MediaType(ABC):
     # ------------------------------------------------------------------
 
     @abstractmethod
-    def clip_response(self, clip: dict) -> Response:
-        """Return a Flask :class:`~flask.Response` that serves *clip*'s media content.
+    def clip_response(self, clip: dict) -> MediaResponse:
+        """Return a :class:`MediaResponse` with the clip's media content.
 
-        Use ``flask.send_file`` for binary media or ``flask.jsonify`` for
-        text/structured data.
+        For binary media, set ``data`` to raw bytes with an appropriate
+        ``mimetype``.  For structured data (e.g. text paragraphs), set
+        ``data`` to a JSON-serialisable dict with ``mimetype="application/json"``.
         """
 
 

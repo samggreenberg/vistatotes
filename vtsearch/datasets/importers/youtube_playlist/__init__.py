@@ -6,11 +6,18 @@ Requires the ``yt-dlp`` package.  Install with: ``pip install yt-dlp``.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from config import DATA_DIR
 from vtsearch.datasets.importers.base import DatasetImporter, ImporterField
-from vtsearch.utils import update_progress
+
+ProgressCallback = Callable[[str, str, int, int], None]
+
+
+def _default_progress() -> ProgressCallback:
+    from vtsearch.utils import update_progress
+
+    return update_progress
 
 
 class YouTubePlaylistImporter(DatasetImporter):
@@ -60,6 +67,8 @@ class YouTubePlaylistImporter(DatasetImporter):
 
         from vtsearch.datasets.loader import load_dataset_from_folder
 
+        progress = _default_progress()
+
         url = field_values["url"]
         media_type = field_values.get("media_type", "videos")
         max_videos = int(field_values.get("max_videos", "0") or "0")
@@ -67,7 +76,7 @@ class YouTubePlaylistImporter(DatasetImporter):
         download_dir = DATA_DIR / "youtube_playlist_download"
         download_dir.mkdir(parents=True, exist_ok=True)
 
-        update_progress("downloading", "Fetching playlist info...", 0, 0)
+        progress("downloading", "Fetching playlist info...", 0, 0)
 
         # Build yt-dlp options
         ydl_opts: dict[str, Any] = {
@@ -101,7 +110,7 @@ class YouTubePlaylistImporter(DatasetImporter):
             if d["status"] == "finished":
                 downloaded_count += 1
                 filename = Path(d.get("filename", "")).name
-                update_progress(
+                progress(
                     "downloading",
                     f"Downloaded {filename} ({downloaded_count})...",
                     downloaded_count,
@@ -120,7 +129,7 @@ class YouTubePlaylistImporter(DatasetImporter):
         if not any_files:
             raise ValueError("No videos were downloaded. Check the URL and try again.")
 
-        load_dataset_from_folder(download_dir, media_type, clips)
+        load_dataset_from_folder(download_dir, media_type, clips, on_progress=progress)
 
     def run_cli(self, field_values: dict[str, Any], clips: dict) -> None:
         url = field_values.get("url", "")

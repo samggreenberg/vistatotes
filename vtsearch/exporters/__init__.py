@@ -60,3 +60,9 @@ def list_exporters() -> list[ResultsExporter]:
     """Return all registered exporters in discovery order."""
     _ensure_discovered()
     return list(_registry.values())
+
+
+__all__ = [
+    "get_exporter",
+    "list_exporters",
+]

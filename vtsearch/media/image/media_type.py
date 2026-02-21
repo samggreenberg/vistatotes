@@ -2,18 +2,16 @@
 
 from __future__ import annotations
 
-import io
 from pathlib import Path
 from typing import Optional
 
 import numpy as np
 import torch
-from flask import Response, send_file
 from PIL import Image
 from transformers import CLIPModel, CLIPProcessor
 
 from config import CLIP_MODEL_ID, DATA_DIR, MODELS_CACHE_DIR
-from vtsearch.media.base import DemoDataset, MediaType
+from vtsearch.media.base import DemoDataset, MediaResponse, MediaType, ProgressCallback, _noop_progress
 
 
 def _extract_tensor(output: object) -> torch.Tensor:
@@ -54,6 +52,7 @@ class ImageMediaType(MediaType):
     def __init__(self) -> None:
         self._model: Optional[CLIPModel] = None
         self._processor: Optional[CLIPProcessor] = None
+        self._on_progress: ProgressCallback = _noop_progress
 
     # ------------------------------------------------------------------
     # Identity
@@ -167,11 +166,9 @@ class ImageMediaType(MediaType):
             return
         import gc
 
-        from vtsearch.utils import update_progress
-
         gc.collect()
         cache_dir = str(MODELS_CACHE_DIR)
-        update_progress("loading", "Loading image embedder (CLIP model)...", 0, 0)
+        self._on_progress("loading", "Loading image embedder (CLIP model)...", 0, 0)
         # Older CLIP checkpoints include position_ids buffers that newer transformers
         # versions compute on-the-fly.  Tell the loader to silently ignore them.
         CLIPModel._keys_to_ignore_on_load_unexpected = [r".*position_ids.*"]
@@ -250,12 +247,12 @@ class ImageMediaType(MediaType):
     # HTTP serving
     # ------------------------------------------------------------------
 
-    def clip_response(self, clip: dict) -> Response:
+    def clip_response(self, clip: dict) -> MediaResponse:
         filename = clip.get("filename", "")
         ext = Path(filename).suffix.lower() if filename else ".jpg"
         mimetype = _IMAGE_MIME_TYPES.get(ext, "image/jpeg")
-        return send_file(
-            io.BytesIO(clip["image_bytes"]),
+        return MediaResponse(
+            data=clip["image_bytes"],
             mimetype=mimetype,
             download_name=f"clip_{clip['id']}{ext}",
         )

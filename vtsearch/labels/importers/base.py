@@ -62,6 +62,8 @@ from typing import Any, Literal
 
 FieldType = Literal["file", "text", "password", "select"]
 
+__all__ = ["FieldType", "LabelImporter", "LabelImporterField"]
+
 
 @dataclass
 class LabelImporterField:

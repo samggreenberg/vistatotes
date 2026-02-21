@@ -1,11 +1,19 @@
-"""Dataset loading and management utilities."""
+"""Dataset loading and management utilities.
+
+All public functions that perform I/O accept an optional ``on_progress``
+callback with the signature
+``(status: str, message: str, current: int, total: int) -> None``.
+When omitted the functions fall back to the application-wide
+:func:`~vtsearch.utils.update_progress` reporter; pass an explicit callback
+to use these functions outside the Flask app.
+"""
 
 import csv
 import hashlib
 import io
 import pickle
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 import numpy as np
 from PIL import Image
@@ -19,7 +27,15 @@ from vtsearch.datasets.downloader import (
     download_esc50,
     download_ucf101_subset,
 )
-from vtsearch.utils import update_progress
+
+ProgressCallback = Callable[[str, str, int, int], None]
+
+
+def _default_progress() -> ProgressCallback:
+    """Lazily resolve the application-wide progress callback."""
+    from vtsearch.utils import update_progress
+
+    return update_progress
 
 
 def load_esc50_metadata(esc50_dir: Path) -> dict[str, dict[str, Any]]:
@@ -226,6 +242,7 @@ def load_dataset_from_folder(
     media_type: str,
     clips: dict[int, dict[str, Any]],
     content_vectors: dict[str, Any] | None = None,
+    on_progress: Optional[ProgressCallback] = None,
 ) -> None:
     """Generate a dataset in-place from a flat folder of media files.
 
@@ -261,7 +278,10 @@ def load_dataset_from_folder(
     """
     from vtsearch.media import get_by_folder_name
 
-    update_progress("embedding", "Scanning media files...", 0, 0)
+    if on_progress is None:
+        on_progress = _default_progress()
+
+    on_progress("embedding", "Scanning media files...", 0, 0)
 
     try:
         mt = get_by_folder_name(media_type)
@@ -281,7 +301,7 @@ def load_dataset_from_folder(
     total_files = len(media_files)
 
     for i, file_path in enumerate(media_files):
-        update_progress(
+        on_progress(
             "embedding",
             f"Embedding {media_type} {file_path.name}...",
             i + 1,
@@ -322,7 +342,7 @@ def load_dataset_from_folder(
         clips[clip_id] = clip_data
         clip_id += 1
 
-    update_progress("idle", f"Loaded {len(clips)} {media_type} clips from folder")
+    on_progress("idle", f"Loaded {len(clips)} {media_type} clips from folder")
 
 
 def load_dataset_from_pickle(
@@ -489,6 +509,7 @@ def load_demo_dataset(
     dataset_name: str,
     clips: dict[int, dict[str, Any]],
     e5_model: Any = None,
+    on_progress: Optional[ProgressCallback] = None,
 ) -> None:
     """Load a named demo dataset into the clips dict, downloading and embedding as needed.
 
@@ -522,6 +543,9 @@ def load_demo_dataset(
         ValueError: If ``dataset_name`` is not in ``DEMO_DATASETS``, or if the
             UCF-101 dataset is requested but not yet downloaded.
     """
+    if on_progress is None:
+        on_progress = _default_progress()
+
     if dataset_name not in DEMO_DATASETS:
         raise ValueError(f"Unknown dataset: {dataset_name}")
 
@@ -531,16 +555,16 @@ def load_demo_dataset(
     # Check if already embedded
     pkl_file = EMBEDDINGS_DIR / f"{dataset_name}.pkl"
     if pkl_file.exists():
-        update_progress("loading", f"Loading {dataset_name} dataset...", 0, 0)
+        on_progress("loading", f"Loading {dataset_name} dataset...", 0, 0)
         load_dataset_from_pickle(pkl_file, clips)
 
         # Check if any clips were actually loaded
         if len(clips) == 0:
             # Pickle file exists but media files are missing, delete and re-embed
-            update_progress("loading", f"Media files missing, re-embedding {dataset_name}...", 0, 0)
+            on_progress("loading", f"Media files missing, re-embedding {dataset_name}...", 0, 0)
             pkl_file.unlink()
         else:
-            update_progress("idle", f"Loaded {dataset_name} dataset")
+            on_progress("idle", f"Loaded {dataset_name} dataset")
             return
 
     # Process based on media type
@@ -577,10 +601,10 @@ def load_demo_dataset(
             clips.clear()
             clip_id = 1
             total = len(selected_images)
-            update_progress("embedding", f"Starting embedding for {total} images...", 0, total)
+            on_progress("embedding", f"Starting embedding for {total} images...", 0, total)
 
             for i, (image_array, category) in enumerate(zip(selected_images, selected_labels)):
-                update_progress(
+                on_progress(
                     "embedding",
                     f"Embedding {category}: image {i + 1}/{total}",
                     i + 1,
@@ -636,7 +660,7 @@ def load_demo_dataset(
                     f,
                 )
 
-            update_progress("idle", f"Loaded {dataset_name} dataset")
+            on_progress("idle", f"Loaded {dataset_name} dataset")
             return
 
         elif image_source == "caltech101":
@@ -663,10 +687,10 @@ def load_demo_dataset(
             clips.clear()
             clip_id = 1
             total = len(selected)
-            update_progress("embedding", f"Starting embedding for {total} images...", 0, total)
+            on_progress("embedding", f"Starting embedding for {total} images...", 0, total)
 
             for i, (img_path, category) in enumerate(selected):
-                update_progress(
+                on_progress(
                     "embedding",
                     f"Embedding {category}: {img_path.name} ({i + 1}/{total})",
                     i + 1,
@@ -722,7 +746,7 @@ def load_demo_dataset(
                     f,
                 )
 
-            update_progress("idle", f"Loaded {dataset_name} dataset")
+            on_progress("idle", f"Loaded {dataset_name} dataset")
             return
 
     elif media_type == "paragraph":
@@ -755,7 +779,7 @@ def load_demo_dataset(
             clips.clear()
             clip_id = 1
             total = len(selected_texts)
-            update_progress(
+            on_progress(
                 "embedding",
                 f"Starting embedding for {total} paragraphs...",
                 0,
@@ -763,7 +787,7 @@ def load_demo_dataset(
             )
 
             for i, (text_content, category) in enumerate(zip(selected_texts, selected_categories)):
-                update_progress(
+                on_progress(
                     "embedding",
                     f"Embedding {category}: paragraph {i + 1}/{total}",
                     i + 1,
@@ -825,7 +849,7 @@ def load_demo_dataset(
                     f,
                 )
 
-            update_progress("idle", f"Loaded {dataset_name} dataset")
+            on_progress("idle", f"Loaded {dataset_name} dataset")
             return
 
     elif media_type == "video":
@@ -841,7 +865,7 @@ def load_demo_dataset(
                 video_dir = download_ucf101_subset()
             except ValueError as e:
                 # If UCF-101 is not available, provide helpful error message
-                update_progress("idle", "")
+                on_progress("idle", "")
                 raise e
 
             metadata = load_video_metadata_from_folders(video_dir, dataset_info["categories"])
@@ -851,10 +875,10 @@ def load_demo_dataset(
             clips.clear()
             clip_id = 1
             total = len(video_files)
-            update_progress("embedding", f"Starting embedding for {total} video files...", 0, total)
+            on_progress("embedding", f"Starting embedding for {total} video files...", 0, total)
 
             for i, (video_path, meta) in enumerate(video_files):
-                update_progress(
+                on_progress(
                     "embedding",
                     f"Embedding {meta['category']}: {video_path.name} ({i + 1}/{total})",
                     i + 1,
@@ -903,7 +927,7 @@ def load_demo_dataset(
                     f,
                 )
 
-            update_progress("idle", f"Loaded {dataset_name} dataset")
+            on_progress("idle", f"Loaded {dataset_name} dataset")
             return
 
     # Handle audio datasets (ESC-50 logic)
@@ -926,10 +950,10 @@ def load_demo_dataset(
     clips.clear()
     clip_id = 1
     total = len(audio_files)
-    update_progress("embedding", f"Starting embedding for {total} audio files...", 0, total)
+    on_progress("embedding", f"Starting embedding for {total} audio files...", 0, total)
 
     for i, (audio_path, meta) in enumerate(audio_files):
-        update_progress(
+        on_progress(
             "embedding",
             f"Embedding {meta['category']}: {audio_path.name} ({i + 1}/{total})",
             i + 1,
@@ -976,7 +1000,7 @@ def load_demo_dataset(
             f,
         )
 
-    update_progress("idle", f"Loaded {dataset_name} dataset")
+    on_progress("idle", f"Loaded {dataset_name} dataset")
 
 
 def export_dataset_to_file(

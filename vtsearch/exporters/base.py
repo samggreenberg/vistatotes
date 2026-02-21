@@ -53,6 +53,8 @@ from typing import Any, Literal
 
 FieldType = Literal["text", "password", "email", "file", "folder", "select"]
 
+__all__ = ["ExporterField", "FieldType", "ResultsExporter"]
+
 
 @dataclass
 class ExporterField:

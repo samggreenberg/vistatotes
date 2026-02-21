@@ -338,14 +338,19 @@ def import_labels_main(
         if not isinstance(label_entries, list):
             raise ValueError("Label importer did not return a list of label dicts.")
 
-        # Apply labels by MD5 matching
-        md5_to_id = {clip["md5"]: clip["id"] for clip in clips.values()}
+        # Apply labels by origin+origin_name matching (MD5 fallback)
+        from vtsearch.utils import build_clip_lookup, resolve_clip_ids
+
+        origin_lookup, md5_lookup = build_clip_lookup(clips)
         applied = 0
         skipped = 0
         for entry in label_entries:
-            md5 = entry.get("md5", "")
             label = entry.get("label", "")
-            if label not in ("good", "bad") or md5 not in md5_to_id:
+            if label not in ("good", "bad"):
+                skipped += 1
+                continue
+            cids = resolve_clip_ids(entry, origin_lookup, md5_lookup)
+            if not cids:
                 skipped += 1
                 continue
             applied += 1

@@ -6,6 +6,7 @@ from vtsearch.utils.state import (
     add_favorite_extractor,
     add_label_to_history,
     bad_votes,
+    build_clip_lookup,
     clear_all,
     clear_clips,
     clear_votes,
@@ -26,6 +27,7 @@ from vtsearch.utils.state import (
     remove_favorite_extractor,
     rename_favorite_detector,
     rename_favorite_extractor,
+    resolve_clip_ids,
     set_dataset_creation_info,
     set_inclusion,
 )
@@ -63,4 +65,6 @@ __all__ = [
     "rename_favorite_extractor",
     "get_favorite_extractors",
     "get_favorite_extractors_by_media",
+    "build_clip_lookup",
+    "resolve_clip_ids",
 ]

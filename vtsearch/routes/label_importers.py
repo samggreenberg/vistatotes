@@ -19,7 +19,7 @@ from __future__ import annotations
 from flask import Blueprint, jsonify, request
 
 from vtsearch.labels.importers import get_label_importer, list_label_importers
-from vtsearch.utils import add_label_to_history, bad_votes, clips, good_votes
+from vtsearch.utils import add_label_to_history, bad_votes, build_clip_lookup, clips, good_votes, resolve_clip_ids
 
 label_importers_bp = Blueprint("label_importers", __name__)
 
@@ -97,29 +97,29 @@ def run_label_import(importer_name: str):
         return jsonify({"error": "Importer did not return a list of label dicts."}), 500
 
     # Apply labels to global vote state
-    md5_to_id = {clip["md5"]: clip["id"] for clip in clips.values()}
+    origin_lookup, md5_lookup = build_clip_lookup(clips)
     applied = 0
     skipped = 0
 
     for entry in label_entries:
-        md5 = entry.get("md5", "")
         label = entry.get("label", "")
         if label not in ("good", "bad"):
             skipped += 1
             continue
-        cid = md5_to_id.get(md5)
-        if cid is None:
+        cids = resolve_clip_ids(entry, origin_lookup, md5_lookup)
+        if not cids:
             skipped += 1
             continue
 
-        if label == "good":
-            bad_votes.pop(cid, None)
-            good_votes[cid] = None
-            add_label_to_history(cid, "good")
-        else:
-            good_votes.pop(cid, None)
-            bad_votes[cid] = None
-            add_label_to_history(cid, "bad")
+        for cid in cids:
+            if label == "good":
+                bad_votes.pop(cid, None)
+                good_votes[cid] = None
+                add_label_to_history(cid, "good")
+            else:
+                good_votes.pop(cid, None)
+                bad_votes[cid] = None
+                add_label_to_history(cid, "bad")
         applied += 1
 
     return jsonify(

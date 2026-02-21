@@ -205,5 +205,25 @@ video { max-width: 600px; max-height: 400px; }
 .progress-recommendation h3 { font-size: 0.9rem; color: #7c8aff; margin-bottom: 4px; }
 .progress-recommendation p { font-size: 0.85rem; color: #aaa; margin: 0; }
 
+/* Custom VTSearch dialog */
+.vt-dialog-box { max-width: 440px; min-width: 320px; }
+.vt-dialog-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.vt-dialog-header h2 { font-size: 1.1rem; color: #7c8aff; margin: 0; }
+.vt-dialog-icon { font-size: 1.4rem; line-height: 1; flex-shrink: 0; }
+.vt-dialog-icon.warning { color: #f0c040; }
+.vt-dialog-icon.error { color: #f44336; }
+.vt-dialog-icon.success { color: #4caf50; }
+.vt-dialog-icon.info { color: #7c8aff; }
+.vt-dialog-body { color: #e0e0e0; font-size: 0.92rem; margin-bottom: 20px; line-height: 1.5; }
+.vt-dialog-body p { margin: 0; }
+.vt-dialog-input { width: 100%; padding: 8px 10px; margin-top: 12px; border: 1px solid #2a2d3a; border-radius: 4px; background: #14161e; color: #e0e0e0; font-size: 0.9rem; outline: none; }
+.vt-dialog-input:focus { border-color: #7c8aff; }
+.vt-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.vt-dialog-btn { padding: 8px 20px; border-radius: 4px; font-size: 0.85rem; cursor: pointer; transition: all 0.15s; border: 1px solid #2a2d3a; }
+.vt-dialog-btn.primary { background: #7c8aff; color: #fff; border-color: #7c8aff; }
+.vt-dialog-btn.primary:hover { background: #6b79ee; }
+.vt-dialog-btn.secondary { background: #1a1d27; color: #aaa; }
+.vt-dialog-btn.secondary:hover { background: #252940; color: #e0e0e0; }
+
 /* Label count display */
 .label-count { font-size: 0.75rem; color: #888; font-weight: normal; }

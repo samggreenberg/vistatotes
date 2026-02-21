@@ -31,6 +31,89 @@
   const sortProgressFill = document.querySelector(".sort-progress-fill");
   let sortProgressTimer = null;
 
+  // --- Custom VTSearch dialog system (replaces native alert/confirm/prompt) ---
+  const vtDialogModal = document.getElementById("vt-dialog-modal");
+  const vtDialogIcon = document.getElementById("vt-dialog-icon");
+  const vtDialogMessage = document.getElementById("vt-dialog-message");
+  const vtDialogInput = document.getElementById("vt-dialog-input");
+  const vtDialogActions = document.getElementById("vt-dialog-actions");
+
+  const VT_ICONS = {
+    warning: "\u26A0\uFE0F",
+    error: "\u274C",
+    success: "\u2705",
+    info: "\u2139\uFE0F",
+  };
+
+  function vtShowDialog({ message, type, showInput, inputDefault, buttons }) {
+    return new Promise((resolve) => {
+      vtDialogIcon.textContent = VT_ICONS[type] || VT_ICONS.info;
+      vtDialogIcon.className = "vt-dialog-icon " + (type || "info");
+      vtDialogMessage.textContent = message;
+
+      if (showInput) {
+        vtDialogInput.style.display = "";
+        vtDialogInput.value = inputDefault || "";
+      } else {
+        vtDialogInput.style.display = "none";
+      }
+
+      vtDialogActions.innerHTML = "";
+      buttons.forEach((btn) => {
+        const el = document.createElement("button");
+        el.className = "vt-dialog-btn " + (btn.primary ? "primary" : "secondary");
+        el.textContent = btn.label;
+        el.addEventListener("click", () => {
+          vtDialogModal.classList.remove("show");
+          resolve(btn.value === "input" ? vtDialogInput.value : btn.value);
+        });
+        vtDialogActions.appendChild(el);
+      });
+
+      vtDialogModal.classList.add("show");
+      if (showInput) {
+        setTimeout(() => vtDialogInput.focus(), 50);
+      }
+    });
+  }
+
+  function vtAlert(message, type) {
+    type = type || "info";
+    return vtShowDialog({
+      message,
+      type,
+      showInput: false,
+      buttons: [{ label: "OK", primary: true, value: true }],
+    });
+  }
+
+  function vtConfirm(message, type) {
+    type = type || "warning";
+    return vtShowDialog({
+      message,
+      type,
+      showInput: false,
+      buttons: [
+        { label: "Cancel", primary: false, value: false },
+        { label: "OK", primary: true, value: true },
+      ],
+    });
+  }
+
+  function vtPrompt(message, defaultValue, type) {
+    type = type || "info";
+    return vtShowDialog({
+      message,
+      type,
+      showInput: true,
+      inputDefault: defaultValue || "",
+      buttons: [
+        { label: "Cancel", primary: false, value: null },
+        { label: "OK", primary: true, value: "input" },
+      ],
+    });
+  }
+
   function showSortProgress(label) {
     sortStatus.textContent = "";
     sortProgressLabel.textContent = label;
@@ -585,8 +668,8 @@
 
   // Dataset change
   if (menuDatasetChange && burgerDropdown) {
-    menuDatasetChange.addEventListener("click", () => {
-      if (confirm("Changing the dataset will erase your current dataset. Continue?")) {
+    menuDatasetChange.addEventListener("click", async () => {
+      if (await vtConfirm("Changing the dataset will erase your current dataset. Continue?")) {
         fetch("/api/dataset/clear", { method: "POST" })
           .then(() => {
             showWelcomeScreen();
@@ -716,7 +799,7 @@
   }
 
   window.renameDetector = async function(oldName) {
-    const newName = prompt(`Rename detector "${oldName}" to:`, oldName);
+    const newName = await vtPrompt(`Rename detector "${oldName}" to:`, oldName);
     if (!newName || newName === oldName) return;
 
     const res = await fetch(`/api/favorite-detectors/${encodeURIComponent(oldName)}/rename`, {
@@ -728,12 +811,12 @@
     if (res.ok) {
       await loadFavoriteDetectors();
     } else {
-      alert("Failed to rename detector. Name may already exist.");
+      await vtAlert("Failed to rename detector. Name may already exist.", "error");
     }
   };
 
   window.deleteDetector = async function(name) {
-    if (!confirm(`Are you sure you want to delete detector "${name}"?`)) return;
+    if (!await vtConfirm(`Are you sure you want to delete detector "${name}"?`)) return;
 
     const res = await fetch(`/api/favorite-detectors/${encodeURIComponent(name)}`, {
       method: "DELETE",
@@ -742,7 +825,7 @@
     if (res.ok) {
       await loadFavoriteDetectors();
     } else {
-      alert("Failed to delete detector.");
+      await vtAlert("Failed to delete detector.", "error");
     }
   };
 
@@ -894,7 +977,7 @@
   if (menuFavoritesAutodetect) {
     menuFavoritesAutodetect.addEventListener("click", async () => {
       if (clips.length === 0) {
-        alert("No dataset loaded. Please load a dataset first.");
+        await vtAlert("No dataset loaded. Please load a dataset first.", "warning");
         return;
       }
 
@@ -922,11 +1005,11 @@
       clearInterval(progressInterval);
       autodetectProgressBar.style.width = "100%";
 
-      setTimeout(() => {
+      setTimeout(async () => {
         autodetectProgressModal.classList.remove("show");
 
         if (!res.ok) {
-          alert("Auto-detect failed. Make sure you have saved some favorite detectors for this media type.");
+          await vtAlert("Auto-detect failed. Make sure you have saved some favorite detectors for this media type.", "error");
           return;
         }
 
@@ -964,11 +1047,11 @@
     clearInterval(progressInterval);
     autodetectProgressBar.style.width = "100%";
 
-    setTimeout(() => {
+    setTimeout(async () => {
       autodetectProgressModal.classList.remove("show");
 
       if (!res.ok) {
-        alert("Auto-detect failed. Make sure you have saved some favorite detectors for this media type.");
+        await vtAlert("Auto-detect failed. Make sure you have saved some favorite detectors for this media type.", "error");
         return;
       }
 
@@ -2223,7 +2306,7 @@
 
   checkProgressBtn.addEventListener("click", async () => {
     if (votes.good.length === 0 || votes.bad.length === 0) {
-      alert("Need at least one good and one bad vote to check progress");
+      await vtAlert("Need at least one good and one bad vote to check progress", "warning");
       return;
     }
 
@@ -2264,7 +2347,7 @@
 
       if (!res.ok) {
         const error = await res.json();
-        alert(error.error || "Failed to analyze progress");
+        await vtAlert(error.error || "Failed to analyze progress", "error");
         return;
       }
 
@@ -2274,7 +2357,7 @@
     } catch (e) {
       clearInterval(progressInterval);
       labelingAnalysisModal.classList.remove("show");
-      alert("Error analyzing progress: " + e.message);
+      await vtAlert("Error analyzing progress: " + e.message, "error");
     } finally {
       checkProgressBtn.disabled = false;
       checkProgressBtn.querySelector(".indicator-label").textContent = "Progress";

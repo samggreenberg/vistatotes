@@ -23,6 +23,7 @@ from vtsearch.utils import (
     add_label_to_history,
     bad_votes,
     clips,
+    get_dataset_creation_info,
     get_inclusion,
     get_sort_progress,
     good_votes,
@@ -137,7 +138,11 @@ def get_votes():
 
 @sorting_bp.route("/api/labels/export")
 def export_labels():
-    """Export labels as JSON keyed by clip MD5 hash."""
+    """Export labels as JSON keyed by clip MD5 hash.
+
+    The response includes ``dataset_creation_info`` (if available) so that
+    consumers of the label file know which dataset the labels refer to.
+    """
     labels = []
     for cid in good_votes:  # Maintains insertion order
         clip = clips.get(cid)
@@ -147,7 +152,11 @@ def export_labels():
         clip = clips.get(cid)
         if clip:
             labels.append({"md5": clip["md5"], "label": "bad"})
-    return jsonify({"labels": labels})
+    result: dict = {"labels": labels}
+    creation_info = get_dataset_creation_info()
+    if creation_info is not None:
+        result["dataset_creation_info"] = creation_info
+    return jsonify(result)
 
 
 @sorting_bp.route("/api/labels/import", methods=["POST"])

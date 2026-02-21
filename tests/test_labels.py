@@ -1,4 +1,5 @@
 import app as app_module
+from vtsearch.utils import get_dataset_creation_info, set_dataset_creation_info
 
 
 class TestExportLabels:
@@ -38,6 +39,31 @@ class TestExportLabels:
         assert "label" in entry
         assert entry["md5"] == app_module.clips[1]["md5"]
         assert entry["label"] == "good"
+
+    def test_export_includes_dataset_creation_info(self, client):
+        creation_info = {
+            "importer": "folder",
+            "display_name": "Generate from Folder",
+            "field_values": {"path": "/data/my_data"},
+            "cli_args": "--importer folder --path /data/my_data",
+        }
+        set_dataset_creation_info(creation_info)
+        try:
+            app_module.good_votes[1] = None
+            resp = client.get("/api/labels/export")
+            data = resp.get_json()
+            assert "dataset_creation_info" in data
+            assert data["dataset_creation_info"]["importer"] == "folder"
+            assert data["dataset_creation_info"]["field_values"]["path"] == "/data/my_data"
+        finally:
+            set_dataset_creation_info(None)
+
+    def test_export_omits_creation_info_when_none(self, client):
+        set_dataset_creation_info(None)
+        app_module.good_votes[1] = None
+        resp = client.get("/api/labels/export")
+        data = resp.get_json()
+        assert "dataset_creation_info" not in data
 
 
 class TestImportLabels:
@@ -122,3 +148,30 @@ class TestImportLabels:
         assert data["applied"] == 5
         assert set(app_module.good_votes) == {1, 3, 5}
         assert set(app_module.bad_votes) == {2, 4}
+
+    def test_roundtrip_with_creation_info(self, client):
+        """Export with dataset_creation_info, re-import via legacy route — info is ignored."""
+        creation_info = {
+            "importer": "folder",
+            "display_name": "Generate from Folder",
+            "field_values": {"path": "/data/test"},
+            "cli_args": "--importer folder --path /data/test",
+        }
+        set_dataset_creation_info(creation_info)
+        try:
+            app_module.good_votes.update({k: None for k in [1, 2]})
+            app_module.bad_votes.update({k: None for k in [3]})
+            resp = client.get("/api/labels/export")
+            exported = resp.get_json()
+            assert "dataset_creation_info" in exported
+
+            app_module.good_votes.clear()
+            app_module.bad_votes.clear()
+
+            resp = client.post("/api/labels/import", json=exported)
+            data = resp.get_json()
+            assert data["applied"] == 3
+            assert set(app_module.good_votes) == {1, 2}
+            assert set(app_module.bad_votes) == {3}
+        finally:
+            set_dataset_creation_info(None)

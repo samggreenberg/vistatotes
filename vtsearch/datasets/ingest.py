@@ -14,7 +14,7 @@ from __future__ import annotations
 import json
 from typing import Any, Callable, Optional
 
-from vtsearch.utils.state import _origin_key, next_clip_id
+from vtsearch.utils.state import next_clip_id
 
 ProgressCallback = Callable[[str, str, int, int], None]
 

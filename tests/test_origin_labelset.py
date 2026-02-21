@@ -501,10 +501,10 @@ class TestResolveClipIds:
         ids = resolve_clip_ids(entry, origin_lookup, md5_lookup)
         assert ids == []
 
-    def test_origin_preferred_over_md5(self):
-        """When origin matches, MD5 is not used even if it would match more clips."""
+    def test_union_of_origin_and_md5(self):
+        """Origin and MD5 matches are unioned: all matching clips are returned."""
         origin_lookup, md5_lookup = self._make_lookups()
-        # h1 matches clips 1 and 3 by MD5, but origin narrows it to just clip 1
+        # Origin matches clip 1, md5 "h1" matches clips 1 and 3 → union is [1, 3]
         entry = {"md5": "h1", "origin": {"importer": "folder", "params": {"path": "/a"}}, "origin_name": "a.wav"}
         ids = resolve_clip_ids(entry, origin_lookup, md5_lookup)
-        assert ids == [1]
+        assert sorted(ids) == [1, 3]

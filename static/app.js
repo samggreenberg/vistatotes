@@ -112,7 +112,6 @@
   const menuDetectorStatus = document.getElementById("menu-detector-status");
   const importFile = document.getElementById("import-file");
   const menuFavoritesManage = document.getElementById("menu-favorites-manage");
-  const menuFavoritesSave = document.getElementById("menu-favorites-save");
   const menuFavoritesAutodetect = document.getElementById("menu-favorites-autodetect");
   const favoritesModal = document.getElementById("favorites-modal");
   const favoritesModalClose = document.getElementById("favorites-modal-close");
@@ -746,55 +745,6 @@
   if (favoritesModalClose) {
     favoritesModalClose.addEventListener("click", () => {
       favoritesModal.classList.remove("show");
-    });
-  }
-
-  if (menuFavoritesSave) {
-    menuFavoritesSave.addEventListener("click", async () => {
-      if (votes.good.length === 0 || votes.bad.length === 0) {
-        alert("You need to vote on at least one good and one bad clip before saving a detector.");
-        return;
-      }
-
-      const name = prompt("Enter a name for this detector:");
-      if (!name) return;
-
-      // Export the detector first
-      const res = await fetch("/api/detector/export", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (!res.ok) {
-        alert("Failed to export detector.");
-        return;
-      }
-
-      const detectorData = await res.json();
-
-      // Determine media type from current clips
-      const mediaType = clips.length > 0 ? clips[0].type : "audio";
-
-      // Save as favorite
-      const saveRes = await fetch("/api/favorite-detectors", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name,
-          media_type: mediaType,
-          weights: detectorData.weights,
-          threshold: detectorData.threshold,
-        }),
-      });
-
-      if (saveRes.ok) {
-        alert(`Detector "${name}" saved successfully!`);
-        await loadFavoriteDetectors();
-      } else {
-        alert("Failed to save detector.");
-      }
-
-      burgerDropdown.classList.remove("show");
     });
   }
 

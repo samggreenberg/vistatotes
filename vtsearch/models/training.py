@@ -208,6 +208,7 @@ def calculate_cross_calibration_threshold(
     y_list: list[float],
     input_dim: int,
     inclusion_value: int = 0,
+    rng: np.random.RandomState | None = None,
 ) -> float:
     """Estimate a decision threshold using cross-calibration.
 
@@ -229,6 +230,8 @@ def calculate_cross_calibration_threshold(
         input_dim: Dimensionality of the embeddings.
         inclusion_value: Integer in ``[-10, 10]`` passed to :func:`train_model`
             and :func:`find_optimal_threshold` to control the FPR/FNR trade-off.
+        rng: Optional seeded RandomState for reproducible splits. Falls back
+            to the global ``np.random`` state when ``None``.
 
     Returns:
         A float threshold. Returns 0.5 if fewer than 4 examples are provided
@@ -241,7 +244,8 @@ def calculate_cross_calibration_threshold(
 
     # Split data in half
     mid = n // 2
-    indices = np.random.permutation(n)
+    _rng = rng if rng is not None else np.random
+    indices = _rng.permutation(n)
     idx1 = indices[:mid]
     idx2 = indices[mid:]
 

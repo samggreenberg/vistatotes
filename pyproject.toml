@@ -14,5 +14,6 @@ indent-style = "space"
 testpaths = ["tests"]
 markers = [
     "gpu: tests that require a CUDA GPU (deselected by default, run with: -m gpu)",
+    "slow: CLI subprocess tests that spawn a fresh Python process (~16s each)",
 ]
-addopts = "-m 'not gpu'"
+addopts = "-m 'not gpu and not slow'"

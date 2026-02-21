@@ -3,7 +3,9 @@
 Media explorer web app for browsing/voting on audio, images, or text. Semantic sorting (LAION-CLAP, CLIP, E5 embeddings) and learned sorting (neural net trained on votes). Flask + vanilla JS + PyTorch.
 
 ## Commands
-- **Run tests (CPU)**: `bash .claude/hooks/ensure-test-deps.sh && python -m pytest tests/ -v`
+- **Run tests (CPU, fast)**: `bash .claude/hooks/ensure-test-deps.sh && python -m pytest tests/ -v`
+- **Run tests (CPU, full)**: `bash .claude/hooks/ensure-test-deps.sh && python -m pytest tests/ -v -m 'not gpu'`
+- **Run slow CLI subprocess tests only**: `python -m pytest tests/ -v -m slow`
 - **Run GPU tests**: `python -m pytest tests/test_gpu.py -v -m gpu` (requires CUDA GPU; downloads models on first run)
 - **Run all tests (CPU + GPU)**: `python -m pytest tests/ -v -m ''`
 - **Start app**: `bash .claude/hooks/ensure-test-deps.sh && python app.py` (or `python app.py --local` for dev)
@@ -39,7 +41,7 @@ Media explorer web app for browsing/voting on audio, images, or text. Semantic s
   - `test_label_importers.py` — Label importer base class, registry, json_file/csv_file importers, API routes
   - `test_inclusion.py` — Inclusion GET/POST
   - `test_detectors.py` — Detector export, detector sort, favorites, auto-detect
-  - `test_cli_autodetect.py` — CLI autodetect: run_autodetect function, --autodetect flag, --exporter flag
+  - `test_cli_autodetect.py` — CLI autodetect: run_autodetect function, --autodetect flag, --exporter flag. Subprocess tests marked `slow` (~16s each, excluded from default run)
   - `test_datasets.py` — Dataset endpoints, startup state, importers, archive extraction
   - `test_rss_youtube_importers.py` — RSS feed and YouTube playlist importer metadata, CLI args, run logic
   - `test_csv_webhook_exporters.py` — CSV and Webhook exporter metadata, CLI args, export logic
@@ -48,6 +50,12 @@ Media explorer web app for browsing/voting on audio, images, or text. Semantic s
   - `test_extractors.py` — Image class extractor
   - `test_processors.py` — Media processor tests
   - `test_gpu.py` — GPU tests: training, cross-calibration, detectors, embedding models (CLAP/CLIP/X-CLIP/E5), CPU↔GPU equivalence, memory cleanup (skipped without CUDA)
+
+## Test Markers
+- **Default** (`pytest tests/ -v`): Runs fast CPU tests only (~35s). Excludes `gpu` and `slow` markers.
+- **`slow`**: CLI subprocess tests that spawn `python app.py --autodetect` (each ~16s, total ~290s). Run with `-m slow` or include with `-m 'not gpu'`.
+- **`gpu`**: CUDA-only tests. Run with `-m gpu`.
+- **All tests**: Use `-m ''` to run everything.
 
 ## Test Workflow (IMPORTANT)
 

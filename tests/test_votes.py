@@ -68,7 +68,10 @@ class TestGetVotes:
         resp = client.get("/api/votes")
         assert resp.status_code == 200
         data = resp.get_json()
-        assert data == {"good": [], "bad": []}
+        assert data["good"] == []
+        assert data["bad"] == []
+        assert data["click_times"] == {}
+        assert data["learned_scores"] == {}
 
     def test_returns_good_votes(self, client):
         app_module.good_votes.update({k: None for k in [1, 3, 5]})

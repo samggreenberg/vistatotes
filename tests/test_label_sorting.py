@@ -33,11 +33,11 @@ class TestClickTimeTracking:
     def test_revote_gets_new_click_time(self, client):
         client.post("/api/clips/1/vote", json={"vote": "good"})
         assert vote_click_times[1] == 1
-        # Toggle off
+        # Toggle off (does not increment counter)
         client.post("/api/clips/1/vote", json={"vote": "good"})
         # Vote again — should get a new, higher click time
         client.post("/api/clips/1/vote", json={"vote": "good"})
-        assert vote_click_times[1] == 3
+        assert vote_click_times[1] == 2
 
     def test_switch_vote_gets_new_click_time(self, client):
         client.post("/api/clips/1/vote", json={"vote": "good"})

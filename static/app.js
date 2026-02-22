@@ -17,6 +17,7 @@
   let progressEtaState = null; // { startTime, lastCurrent, lastTime } for ETA calculation
   let learnedSortController = null; // AbortController for in-flight background training
   let learnedSortDebounce = null;   // Debounce timer for background training
+  let waveformAudioCtx = null;       // Shared AudioContext for waveform decoding
   const clipList = document.getElementById("clip-list");
   const center = document.getElementById("center");
   const goodList = document.getElementById("good-list");
@@ -1930,9 +1931,11 @@
       const response = await fetch(`/api/clips/${clipId}/audio`);
       const arrayBuffer = await response.arrayBuffer();
 
-      // Decode audio data
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      // Decode audio data (reuse a single AudioContext to avoid leaks)
+      if (!waveformAudioCtx || waveformAudioCtx.state === "closed") {
+        waveformAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      const audioBuffer = await waveformAudioCtx.decodeAudioData(arrayBuffer);
 
       // Get audio data from first channel
       const channelData = audioBuffer.getChannelData(0);

@@ -118,14 +118,17 @@ def set_inclusion(value: int) -> None:
     _save(s)
 
 
+VALID_THEMES = ("dark", "light", "highviz")
+
+
 def get_theme() -> str:
-    """Return the persisted theme ('dark' or 'light')."""
+    """Return the persisted theme ('dark', 'light', or 'highviz')."""
     return str(_ensure_loaded().get("theme", _DEFAULTS["theme"]))
 
 
 def set_theme(value: str) -> None:
-    """Set and persist the theme.  Must be 'dark' or 'light'."""
-    if value not in ("dark", "light"):
+    """Set and persist the theme.  Must be 'dark', 'light', or 'highviz'."""
+    if value not in VALID_THEMES:
         raise ValueError(f"Invalid theme: {value!r}")
     s = _ensure_loaded()
     s["theme"] = value

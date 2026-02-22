@@ -57,7 +57,7 @@ def update_settings():
         try:
             settings.set_theme(str(body["theme"]))
         except ValueError:
-            return jsonify({"error": "theme must be 'dark' or 'light'"}), 400
+            return jsonify({"error": "theme must be 'dark', 'light', or 'highviz'"}), 400
 
     if "inclusion" in body:
         try:

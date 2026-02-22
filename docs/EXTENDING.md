@@ -1,8 +1,14 @@
 # Extending VTSearch
 
-This guide explains how to add a new **Data Importer**, **Results Exporter**, or
-**Media Type** to VTSearch.  Each section describes the interface contract,
-where files go, and how to wire up dependencies.
+This guide explains how to add a new **Data Importer**, **Results Exporter**,
+**Label Importer**, **Processor Importer**, or **Media Type** to VTSearch.
+Each section describes the interface contract, where files go, and how to wire
+up dependencies.
+
+All four plugin systems (data importers, results exporters, label importers,
+processor importers) share the same architecture: an abstract base class, a
+field dataclass for UI forms, auto-discovery via `pkgutil`, and CLI support
+auto-derived from field definitions.
 
 ---
 
@@ -10,8 +16,10 @@ where files go, and how to wire up dependencies.
 
 1. [Adding a Data Importer](#adding-a-data-importer)
 2. [Adding a Results Exporter](#adding-a-results-exporter)
-3. [Adding a Media Type](#adding-a-media-type)
-4. [Dependency Management (requirements.txt)](#dependency-management)
+3. [Adding a Label Importer](#adding-a-label-importer)
+4. [Adding a Processor Importer](#adding-a-processor-importer)
+5. [Adding a Media Type](#adding-a-media-type)
+6. [Dependency Management (requirements.txt)](#dependency-management)
 
 ---
 
@@ -223,119 +231,334 @@ and stored as an error in the progress tracker.
 
 ## Adding a Results Exporter
 
-VTSearch currently exports three kinds of results, each served from an
-existing API endpoint.  There is no abstract base class or auto-discovery
-mechanism for exporters (unlike importers).  Adding a new exporter means adding
-a new route to the appropriate blueprint.
+Results exporters deliver autodetect results to a destination (file, webhook,
+email, etc.).  Like data importers, they use auto-discovery — no changes to
+routes or core code are needed.
 
-### Existing export endpoints
+### How discovery works
 
-| Endpoint                  | Method | What it exports                              | Format          | Blueprint    |
-|---------------------------|--------|----------------------------------------------|-----------------|--------------|
-| `/api/dataset/export`     | GET    | Full dataset (clips + embeddings + media)    | Pickle (`.pkl`) | `datasets_bp`|
-| `/api/labels/export`      | GET    | LabelSet — labels with per-element origin    | JSON            | `sorting_bp` |
-| `/api/detector/export`    | POST   | Trained MLP weights + threshold              | JSON            | `sorting_bp` |
+The registry in `vtsearch/exporters/__init__.py` uses `pkgutil` to scan for
+**sub-packages** under `vtsearch/exporters/`.  For each sub-package it finds,
+it imports the module and looks for a module-level attribute named `EXPORTER`.
+If that attribute exists and is a `LabelsetExporter` instance, it is registered
+automatically.
 
-### Label export format (LabelSet)
+Failed imports emit a warning but do not break the application.
 
-The label export endpoint (`GET /api/labels/export`) returns a
-`LabelSet` — each entry includes the element's origin and name in
-addition to its MD5 and label.  This is a superset of the legacy format:
+### File structure
+
+Create a new sub-package directory:
+
+```
+vtsearch/exporters/<your_exporter>/
+├── __init__.py       # Exporter class + EXPORTER instance (required)
+└── requirements.txt  # Pip dependencies, even if empty (required)
+```
+
+### What to implement
+
+Subclass `LabelsetExporter` from `vtsearch.exporters.base` and set the
+required class attributes.  Then implement the `export()` method and expose a
+module-level `EXPORTER` instance.
+
+```python
+# vtsearch/exporters/sftp/__init__.py
+
+from vtsearch.exporters.base import LabelsetExporter, ExporterField
+
+
+class SftpLabelsetExporter(LabelsetExporter):
+    name = "sftp"
+    display_name = "SFTP Upload"
+    description = "Upload results JSON to a remote SFTP server."
+    icon = "📡"
+    fields = [
+        ExporterField("host", "Hostname", "text"),
+        ExporterField("user", "Username", "text"),
+        ExporterField("password", "Password", "password"),
+        ExporterField(
+            "path", "Remote Path", "text",
+            default="/results/autodetect.json",
+        ),
+    ]
+
+    def export(self, results: dict, field_values: dict) -> dict:
+        """Export results to an SFTP server.
+
+        Args:
+            results: The full auto-detect results dict.  Shape:
+                {
+                    "media_type": "audio",
+                    "detectors_run": 2,
+                    "results": {
+                        "detector_name": {
+                            "detector_name": "...",
+                            "threshold": 0.5,
+                            "total_hits": 15,
+                            "hits": [{...}, ...]
+                        }
+                    }
+                }
+            field_values: Mapping of ExporterField.key to user-supplied value.
+
+        Returns:
+            A dict with a "message" key (shown as confirmation to the user).
+        """
+        import json
+        import paramiko
+
+        host = field_values["host"]
+        path = field_values["path"]
+
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(host, username=field_values["user"],
+                    password=field_values["password"])
+        sftp = ssh.open_sftp()
+        with sftp.open(path, "w") as f:
+            f.write(json.dumps(results, indent=2))
+        sftp.close()
+        ssh.close()
+
+        return {"message": f"Uploaded to {host}:{path}"}
+
+
+EXPORTER = SftpLabelsetExporter()
+```
+
+### Class attributes reference
+
+| Attribute      | Type                  | Required | Description                                    |
+|----------------|-----------------------|----------|------------------------------------------------|
+| `name`         | `str`                 | Yes      | Snake_case identifier, used in API URL path    |
+| `display_name` | `str`                 | Yes      | Human-readable label for the UI                |
+| `description`  | `str`                 | Yes      | One-sentence subtitle                          |
+| `icon`         | `str`                 | No       | Emoji/icon string (default `"📤"`)             |
+| `fields`       | `list[ExporterField]` | Yes      | Ordered list of user-facing input fields       |
+
+### ExporterField options
+
+| Parameter    | Type        | Default  | Description                                             |
+|--------------|-------------|----------|---------------------------------------------------------|
+| `key`        | `str`       | —        | Field identifier (used as dict key in `field_values`)   |
+| `label`      | `str`       | —        | Display label in the UI                                 |
+| `field_type` | `FieldType` | —        | `"text"`, `"password"`, `"email"`, `"file"`, `"folder"`, or `"select"` |
+| `description`| `str`       | `""`     | Helper text shown below the field                       |
+| `options`    | `list[str]` | `[]`     | For `"select"` fields: allowed dropdown values          |
+| `default`    | `str`       | `""`     | Pre-filled value                                        |
+| `required`   | `bool`      | `True`   | Whether the field must be filled before exporting       |
+| `placeholder`| `str`       | `""`     | Hint shown as placeholder text in the input widget      |
+
+### How it gets invoked
+
+1. The frontend calls `GET /api/exporters` to discover available exporters.
+   The response includes your exporter's `name`, `display_name`, `description`,
+   `icon`, and `fields`.
+2. The user fills out the form and submits it.  The frontend sends
+   `POST /api/exporters/export/<name>` with a JSON body.
+3. The route handler in `vtsearch/routes/exporters.py` extracts `field_values`
+   and calls `exporter.export()`.
+
+### CLI usage
+
+Exporters are also usable from the command line via the `--exporter` flag on
+the autodetect workflow:
+
+```bash
+python app.py --autodetect --dataset data.pkl --settings settings.json --exporter sftp --host example.com --user admin --password secret --path /results.json
+```
+
+CLI arguments are auto-generated from the exporter's `fields` list.
+
+### Wiring up dependencies
+
+1. Create `vtsearch/exporters/<name>/requirements.txt` listing any pip
+   packages your exporter needs (create the file even if empty).
+2. Add a reference line to `requirements-exporters.txt`:
+   ```
+   -r vtsearch/exporters/<name>/requirements.txt
+   ```
+3. If using `requirements-cpu.txt`, add the packages inline in that file too.
+
+### Built-in export endpoints
+
+In addition to the exporter plugin system, VTSearch has several built-in
+export endpoints:
+
+| Endpoint                  | Method | What it exports                              | Format          |
+|---------------------------|--------|----------------------------------------------|-----------------|
+| `/api/dataset/export`     | GET    | Full dataset (clips + embeddings + media)    | Pickle (`.pkl`) |
+| `/api/labels/export`      | GET    | LabelSet — labels with per-element origin    | JSON            |
+| `/api/detector/export`    | POST   | Trained MLP weights + threshold              | JSON            |
+
+---
+
+## Adding a Label Importer
+
+Label importers let users import pre-existing labels (good/bad votes) from
+external sources (JSON files, CSV files, databases, etc.).  Like data
+importers, they are auto-discovered at runtime.
+
+### How discovery works
+
+The registry in `vtsearch/labels/importers/__init__.py` scans for sub-packages
+with a module-level `LABEL_IMPORTER` attribute.
+
+### File structure
+
+```
+vtsearch/labels/importers/<your_importer>/
+├── __init__.py       # Importer class + LABEL_IMPORTER instance (required)
+└── requirements.txt  # Pip dependencies, even if empty (required)
+```
+
+### What to implement
+
+Subclass `LabelImporter` from `vtsearch.labels.importers.base`.  The `run()`
+method must return a list of label dicts:
+
+```python
+# vtsearch/labels/importers/postgres/__init__.py
+
+from vtsearch.labels.importers.base import LabelImporter, LabelImporterField
+
+
+class PostgresLabelImporter(LabelImporter):
+    name = "postgres"
+    display_name = "PostgreSQL Query"
+    description = "Import labels from a PostgreSQL database query."
+    icon = "🐘"
+    fields = [
+        LabelImporterField("host", "Hostname", "text"),
+        LabelImporterField("database", "Database", "text"),
+        LabelImporterField(
+            "query", "SQL Query", "text",
+            description="Must return md5 and label columns.",
+        ),
+    ]
+
+    def run(self, field_values: dict) -> list[dict]:
+        """Return a list of label dicts.
+
+        Each dict must have "md5" and "label" keys.  Labels must be
+        "good" or "bad"; any other value is skipped by the route handler.
+        """
+        import psycopg2
+
+        conn = psycopg2.connect(
+            host=field_values["host"],
+            database=field_values["database"],
+        )
+        cur = conn.cursor()
+        cur.execute(field_values["query"])
+        return [{"md5": row[0], "label": row[1]} for row in cur.fetchall()]
+
+
+LABEL_IMPORTER = PostgresLabelImporter()
+```
+
+### How it gets invoked
+
+1. `GET /api/label-importers` returns the list of available label importers.
+2. `POST /api/label-importers/import/<name>` invokes `run()` and applies the
+   returned labels to the current dataset by matching clip MD5 hashes.
+
+---
+
+## Adding a Processor Importer
+
+Processor importers let users import processors (detectors/extractors) from
+external sources.  A processor importer takes some input (a JSON detector
+file, a labeled media file, etc.) and returns a dict containing model weights
+and a threshold — which is then saved as a favorite detector.
+
+### How discovery works
+
+The registry in `vtsearch/processors/importers/__init__.py` scans for
+sub-packages with a module-level `PROCESSOR_IMPORTER` attribute.
+
+### File structure
+
+```
+vtsearch/processors/importers/<your_importer>/
+├── __init__.py       # Importer class + PROCESSOR_IMPORTER instance (required)
+└── requirements.txt  # Pip dependencies, even if empty (required)
+```
+
+### What to implement
+
+Subclass `ProcessorImporter` from `vtsearch.processors.importers.base`.  The
+`run()` method must return a dict with `media_type`, `weights`, and
+`threshold` keys:
+
+```python
+# vtsearch/processors/importers/s3/__init__.py
+
+from vtsearch.processors.importers.base import ProcessorImporter, ProcessorImporterField
+
+
+class S3ProcessorImporter(ProcessorImporter):
+    name = "s3"
+    display_name = "S3 Detector File"
+    description = "Download a detector JSON file from an S3 bucket."
+    icon = "☁️"
+    fields = [
+        ProcessorImporterField("bucket", "S3 Bucket", "text"),
+        ProcessorImporterField("key", "Object Key", "text"),
+    ]
+
+    def run(self, field_values: dict) -> dict:
+        """Download and parse a detector JSON from S3.
+
+        Must return a dict with at minimum:
+            - "media_type" (str): e.g. "audio", "image"
+            - "weights" (dict): MLP state dict as nested lists
+            - "threshold" (float): decision boundary in [0, 1]
+        """
+        import json
+        import boto3
+
+        s3 = boto3.client("s3")
+        obj = s3.get_object(Bucket=field_values["bucket"], Key=field_values["key"])
+        data = json.loads(obj["Body"].read())
+        return {
+            "media_type": data.get("media_type", "audio"),
+            "weights": data["weights"],
+            "threshold": data.get("threshold", 0.5),
+        }
+
+
+PROCESSOR_IMPORTER = S3ProcessorImporter()
+```
+
+### How it gets invoked
+
+1. `GET /api/processor-importers` returns the list of available importers.
+2. `POST /api/processor-importers/import/<name>` invokes `run()`, combines the
+   result with the user-supplied name, and saves it as a favorite detector.
+
+### CLI usage
+
+Processor importers are used from the CLI via the settings file.  Add a
+processor recipe to `favorite_processors` in `settings.json`:
 
 ```json
 {
-  "labels": [
-    {
-      "md5": "d41d8cd98f...",
-      "label": "good",
-      "origin": {"importer": "folder", "params": {"path": "/data/audio"}},
-      "origin_name": "bark_001.wav",
-      "filename": "bark_001.wav",
-      "category": "dogs"
-    }
-  ],
+    "favorite_processors": [
+        {
+            "processor_name": "my detector",
+            "processor_importer": "s3",
+            "field_values": {"bucket": "my-bucket", "key": "detector.json"}
+        }
+    ]
 }
 ```
 
-Old consumers that only read `md5` and `label` continue to work unchanged.
+Then run autodetect:
 
-### Where to put a new exporter
-
-Decide which blueprint your exporter belongs to based on what it exports:
-
-- **Dataset-level exports** (clip data, metadata) → `vtsearch/routes/datasets.py` on `datasets_bp`
-- **Sorting / voting / model exports** (labels, detectors, scores) → `vtsearch/routes/sorting.py` on `sorting_bp`
-
-### Example: CSV results exporter
-
-```python
-# Add to vtsearch/routes/sorting.py (or datasets.py)
-
-import csv
-import io
-
-@sorting_bp.route("/api/results/export-csv")
-def export_results_csv():
-    """Export clip scores and votes as a CSV file."""
-    if not clips:
-        return jsonify({"error": "No dataset loaded"}), 400
-
-    buf = io.StringIO()
-    writer = csv.writer(buf)
-    writer.writerow(["clip_id", "filename", "md5", "category", "vote"])
-
-    for cid, clip in clips.items():
-        if cid in good_votes:
-            vote = "good"
-        elif cid in bad_votes:
-            vote = "bad"
-        else:
-            vote = ""
-        writer.writerow([cid, clip["filename"], clip["md5"],
-                         clip.get("category", ""), vote])
-
-    return send_file(
-        io.BytesIO(buf.getvalue().encode("utf-8")),
-        mimetype="text/csv",
-        download_name="vtsearch_results.csv",
-        as_attachment=True,
-    )
+```bash
+python app.py --autodetect --dataset data.pkl --settings settings.json
 ```
-
-### Accessing state for export
-
-All global state is available from `vtsearch.utils`:
-
-```python
-from vtsearch.utils import clips, good_votes, bad_votes, label_history
-```
-
-| Variable         | Type                             | Contents                            |
-|------------------|----------------------------------|-------------------------------------|
-| `clips`          | `dict[int, dict]`                | Clip ID → clip data dict            |
-| `good_votes`     | `dict[int, None]`                | Clip IDs voted "good" (ordered)     |
-| `bad_votes`      | `dict[int, None]`                | Clip IDs voted "bad" (ordered)      |
-| `label_history`  | `list[tuple[int, str, float]]`   | `(clip_id, "good"/"bad", timestamp)`|
-
-Each clip dict contains at minimum: `id`, `type`, `duration`, `file_size`,
-`md5`, `embedding` (numpy array), `filename`, `category`, `origin` (dict or
-None), `origin_name` (str), plus media-specific fields (see
-[Media Type clip data](#what-to-implement-1) below).
-
-### Frontend integration
-
-To make your exporter accessible from the UI, add a button or link in
-`static/index.html` that calls your new endpoint.  Dataset exports typically
-use `window.location.href = "/api/..."` for file downloads, while JSON exports
-use `fetch()`.
-
-### Dependencies
-
-If your exporter needs additional packages (e.g. `openpyxl` for Excel export),
-add them to `requirements.txt` (the core file) or create a dedicated
-requirements file and reference it.  There is no separate aggregator file for
-exporters like there is for importers — this may change if exporters get their
-own plugin system in the future.
 
 ---
 
@@ -374,9 +597,8 @@ from pathlib import Path
 from typing import Optional
 
 import numpy as np
-from flask import Response, jsonify
 
-from vtsearch.media.base import DemoDataset, MediaType
+from vtsearch.media.base import DemoDataset, MediaResponse, MediaType
 
 
 class CodeMediaType(MediaType):
@@ -516,16 +738,19 @@ class CodeMediaType(MediaType):
     # HTTP serving (required method)
     # ------------------------------------------------------------------
 
-    def clip_response(self, clip: dict) -> Response:
-        """Return a Flask Response serving this clip's content.
+    def clip_response(self, clip: dict) -> MediaResponse:
+        """Return a MediaResponse serving this clip's content.
 
-        Use flask.send_file() for binary media, flask.jsonify() for
-        text/structured data.
+        Set data to bytes for binary media (with an appropriate mimetype)
+        or to a dict for JSON responses.
         """
-        return jsonify({
-            "content": clip.get("clip_string", ""),
-            "line_count": clip.get("line_count", 0),
-        })
+        return MediaResponse(
+            data={
+                "content": clip.get("clip_string", ""),
+                "line_count": clip.get("line_count", 0),
+            },
+            mimetype="application/json",
+        )
 ```
 
 ### Register the new type
@@ -579,7 +804,7 @@ additional changes:
 | `embed_media(file_path)`            | `(Path) -> Optional[np.ndarray]`                   |
 | `embed_text(text)`                  | `(str) -> Optional[np.ndarray]`                    |
 | `load_clip_data(file_path)`         | `(Path) -> dict` (must include `"duration"` key)   |
-| `clip_response(clip)`               | `(dict) -> flask.Response`                          |
+| `clip_response(clip)`               | `(dict) -> MediaResponse`                           |
 
 ### Making dataset export aware of custom clip fields
 
@@ -605,15 +830,19 @@ VTSearch uses a layered requirements file structure to keep dependencies
 modular:
 
 ```
-requirements.txt              # Core deps + includes per-media + per-importer
+requirements.txt              # Core deps + includes per-media + per-importer + per-exporter
 ├── vtsearch/media/audio/requirements.txt
 ├── vtsearch/media/video/requirements.txt
 ├── vtsearch/media/image/requirements.txt
 ├── vtsearch/media/text/requirements.txt
-├── requirements-importers.txt          # Aggregates all importer deps
+├── requirements-importers.txt          # Aggregates all data importer deps
 │   ├── vtsearch/datasets/importers/pickle/requirements.txt
 │   ├── vtsearch/datasets/importers/folder/requirements.txt
 │   └── vtsearch/datasets/importers/http_zip/requirements.txt
+├── requirements-exporters.txt          # Aggregates all exporter deps
+│   ├── vtsearch/exporters/gui/requirements.txt
+│   ├── vtsearch/exporters/file/requirements.txt
+│   └── vtsearch/exporters/email_smtp/requirements.txt
 requirements-cpu.txt          # CPU-specific pins (lists packages INLINE)
 requirements-gpu.txt          # GPU-specific (minimal, includes importers)
 requirements-dev.txt          # Dev tools (pytest)
@@ -656,9 +885,14 @@ requirements-dev.txt          # Dev tools (pytest)
 
 ### For a new exporter
 
-There is no dedicated aggregator file for exporters.  Add any new dependencies
-directly to `requirements.txt` (or create a standalone requirements file and
-reference it from `requirements.txt` with `-r`).
+1. **Create** `vtsearch/exporters/<name>/requirements.txt`.  Even if your
+   exporter has no extra deps, create the file with a comment.
+2. **Add** a `-r` line to `requirements-exporters.txt`:
+   ```
+   -r vtsearch/exporters/<name>/requirements.txt
+   ```
+3. **Add** packages inline to `requirements-cpu.txt` if CPU-specific pins are
+   needed.
 
 ### Why the layered structure?
 
@@ -689,12 +923,32 @@ reference it from `requirements.txt` with `-r`).
 
 ### New Exporter Checklist
 
-- [ ] Add a route function to the appropriate blueprint (`datasets_bp` or `sorting_bp`)
-- [ ] Import state from `vtsearch.utils` (`clips`, `good_votes`, `bad_votes`, etc.)
-- [ ] Return data via `send_file()` (binary downloads) or `jsonify()` (JSON)
-- [ ] Add any new dependencies to `requirements.txt`
-- [ ] Add a UI trigger in `static/index.html` if needed
-- [ ] Test: start the app, load a dataset, and call your endpoint
+- [ ] Create `vtsearch/exporters/<name>/__init__.py`
+- [ ] Subclass `LabelsetExporter`, set `name`, `display_name`, `description`, `fields`
+- [ ] Implement `export(self, results, field_values)` — return a dict with a `"message"` key
+- [ ] Expose `EXPORTER = YourExporter()` at module level
+- [ ] Create `vtsearch/exporters/<name>/requirements.txt`
+- [ ] Add `-r` line to `requirements-exporters.txt`
+- [ ] Add inline deps to `requirements-cpu.txt` if needed
+- [ ] Test: start the app and check `GET /api/exporters` includes your exporter
+
+### New Label Importer Checklist
+
+- [ ] Create `vtsearch/labels/importers/<name>/__init__.py`
+- [ ] Subclass `LabelImporter`, set `name`, `display_name`, `description`, `fields`
+- [ ] Implement `run(self, field_values)` — return a list of `{"md5": ..., "label": ...}` dicts
+- [ ] Expose `LABEL_IMPORTER = YourImporter()` at module level
+- [ ] Create `vtsearch/labels/importers/<name>/requirements.txt`
+- [ ] Test: start the app and check `GET /api/label-importers` includes your importer
+
+### New Processor Importer Checklist
+
+- [ ] Create `vtsearch/processors/importers/<name>/__init__.py`
+- [ ] Subclass `ProcessorImporter`, set `name`, `display_name`, `description`, `fields`
+- [ ] Implement `run(self, field_values)` — return a dict with `media_type`, `weights`, `threshold`
+- [ ] Expose `PROCESSOR_IMPORTER = YourImporter()` at module level
+- [ ] Create `vtsearch/processors/importers/<name>/requirements.txt`
+- [ ] Test: start the app and check `GET /api/processor-importers` includes your importer
 
 ### New Media Type Checklist
 

@@ -19,7 +19,7 @@ combines:
   good/bad labels.
 - **Flask web UI** — vanilla JS frontend with a REST API.
 - **Plugin systems** — auto-discovered dataset importers, results
-  exporters, and label importers.
+  exporters, label importers, and processor importers.
 
 ---
 
@@ -28,11 +28,15 @@ combines:
 ```
 VTSearch/
 ├── app.py                          Flask entry point, CLI, startup
-├── config.py                       Constants (paths, model IDs, rates)
 │
 ├── vtsearch/
+│   ├── config.py                   Constants (paths, model IDs, rates)
+│   ├── clips.py                    Test clip generation & embedding cache
+│   ├── cli.py                      CLI autodetect workflow
+│   ├── settings.py                 Persistent settings & favorite processors
+│   │
 │   ├── media/                      Media type registry + plugins
-│   │   ├── base.py                 MediaType ABC, MediaResponse, ProgressCallback
+│   │   ├── base.py                 MediaType ABC, MediaResponse, Processor, Detector, Extractor
 │   │   ├── __init__.py             Registry (register/get/all_types)
 │   │   ├── audio/media_type.py     CLAP embeddings
 │   │   ├── image/media_type.py     CLIP embeddings
@@ -49,7 +53,8 @@ VTSearch/
 │   │   ├── origin.py               Origin dataclass (per-element provenance)
 │   │   ├── labelset.py             LabelSet / LabeledElement (labeled data with origins)
 │   │   ├── loader.py               load_dataset_from_folder/pickle/demo
-│   │   ├── downloader.py           HTTP download + ESC-50/CIFAR-10/etc.
+│   │   ├── downloader.py           HTTP download + ESC-50/Caltech-101/etc.
+│   │   ├── ingest.py               Clip ingestion (file → clip dict)
 │   │   ├── config.py               Demo dataset catalogue
 │   │   ├── split.py                Train/test splitting
 │   │   └── importers/              Plugin system for data sources
@@ -66,12 +71,26 @@ VTSearch/
 │   │   ├── csv_file/               CSV file writer
 │   │   ├── email_smtp/             SMTP email sender
 │   │   ├── webhook/                HTTP POST webhook
-│   │   └── gui/                    In-browser display
+│   │   └── gui/                    In-browser / console display
 │   │
 │   ├── labels/importers/           Plugin system for label sources
 │   │   ├── base.py                 LabelImporter ABC + LabelImporterField
 │   │   ├── json_file/              JSON label file reader
 │   │   └── csv_file/               CSV label file reader
+│   │
+│   ├── processors/importers/       Plugin system for processor sources
+│   │   ├── base.py                 ProcessorImporter ABC + ProcessorImporterField
+│   │   ├── detector_file/          Import detector from JSON file
+│   │   ├── label_file/             Train detector from a labeled media file
+│   │   └── csv_label_file/         Train detector from a CSV label file
+│   │
+│   ├── eval/                       Evaluation framework
+│   │   ├── __main__.py             CLI entry point (python -m vtsearch.eval)
+│   │   ├── config.py               Eval dataset catalogue
+│   │   ├── runner.py               run_eval() orchestrator
+│   │   ├── metrics.py              mAP, P@k, R@k, F1 calculations
+│   │   ├── visualize.py            Matplotlib chart generation
+│   │   └── voting_iterations.py    Voting-iteration simulation
 │   │
 │   ├── routes/                     Flask blueprints (HTTP layer)
 │   │   ├── clips.py                Clip listing, media serving, voting
@@ -80,14 +99,15 @@ VTSearch/
 │   │   ├── datasets.py             Dataset loading & management
 │   │   ├── exporters.py            Exporter registry & execution
 │   │   ├── label_importers.py      Label importer registry & execution
+│   │   ├── processor_importers.py  Processor importer registry & execution
+│   │   ├── settings.py             Settings persistence (volume, theme, etc.)
 │   │   └── main.py                 Root route
 │   │
 │   ├── utils/
-│   │   ├── state.py                Global state (clips, votes, history)
+│   │   ├── state.py                Global state (clips, votes, favorites, history)
 │   │   └── progress.py             Thread-safe progress tracking
 │   │
-│   ├── audio/                      WAV/tone generation utilities
-│   └── cli.py                      CLI autodetect + label-import logic
+│   └── audio/                      WAV/tone generation utilities
 │
 ├── static/                         Frontend (HTML + CSS + JS)
 └── tests/                          Comprehensive test suite
@@ -109,7 +129,9 @@ modules on the right.
 │                ├──► models/embeddings, models/training    │
 │                ├──► datasets/loader                       │
 │                ├──► exporters (registry)                  │
-│                └──► labels/importers (registry)           │
+│                ├──► labels/importers (registry)           │
+│                ├──► processors/importers (registry)       │
+│                └──► settings                              │
 └──────────────────────────────────────────────────────────┘
         │               │                │
         ▼               ▼                ▼
@@ -127,16 +149,16 @@ modules on the right.
 │ (NO Flask)  │ │ (NO Flask) │
 └──────────────┘ └────────────┘
 
-┌─────────────────────┐  ┌────────────────────────┐
-│ exporters/*         │  │ labels/importers/*      │
-│                     │  │                          │
-│ base.py (ABC)       │  │ base.py (ABC)           │
-│ file, csv, webhook  │  │ json_file, csv_file     │
-│ email_smtp, gui     │  │                          │
-│                     │  │ (NO Flask, NO state,     │
-│ (NO Flask,          │  │  pure data processing)   │
-│  NO state,          │  │                          │
-│  pure data in/out)  │  └────────────────────────┘
+┌─────────────────────┐  ┌────────────────────────┐  ┌──────────────────────────┐
+│ exporters/*         │  │ labels/importers/*      │  │ processors/importers/*   │
+│                     │  │                          │  │                          │
+│ base.py (ABC)       │  │ base.py (ABC)           │  │ base.py (ABC)            │
+│ file, csv, webhook  │  │ json_file, csv_file     │  │ detector_file, label_file│
+│ email_smtp, gui     │  │                          │  │ csv_label_file           │
+│                     │  │ (NO Flask, NO state,     │  │                          │
+│ (NO Flask,          │  │  pure data processing)   │  │ (NO Flask, NO state,     │
+│  NO state,          │  │                          │  │  pure data processing)   │
+│  pure data in/out)  │  └────────────────────────┘  └──────────────────────────┘
 └─────────────────────┘
 ```
 
@@ -146,8 +168,9 @@ modules on the right.
   dataclass; the route layer converts it to a Flask response.
 - **models/ do NOT import Flask or global state.**  Functions accept
   `clips_dict`, `good_votes`, `bad_votes` etc. as parameters.
-- **exporters and label importers are fully standalone.**  They receive
-  a plain dict and return a plain dict/list.  Zero framework coupling.
+- **exporters, label importers, and processor importers are fully
+  standalone.**  They receive a plain dict and return a plain dict/list.
+  Zero framework coupling.
 - **datasets/ functions accept an optional `on_progress` callback.**
   When `None`, they lazily resolve the app's `update_progress`; when
   provided, they use the caller's callback.
@@ -163,9 +186,12 @@ modules on the right.
 | `models/progress.py` | No | No (params) | **Yes** — pure torch/numpy |
 | `exporters/base.py` + all exporters | No | No | **Yes** — pure data processing |
 | `labels/importers/base.py` + all importers | No | No | **Yes** — pure data processing |
+| `processors/importers/base.py` + all importers | No | No | **Yes** — pure data processing |
 | `datasets/downloader.py` | No | No (callback) | **Yes** — requests only |
 | `datasets/loader.py` | No | No (callback + params) | **Yes** — needs media registry |
 | `datasets/importers/base.py` + all importers | No | No (callback) | **Yes** — each self-contained |
+| `eval/*` | No | No | **Yes** — needs media + datasets |
+| `settings.py` | No | No | **Yes** — JSON file I/O |
 | `media/base.py` | No | No | **Yes** — abstract only |
 | `media/audio,image,text,video` | No | No | **Yes** — torch + HF models |
 | `utils/progress.py` | No | No | **Yes** — threading only |
@@ -180,7 +206,7 @@ modules on the right.
 
 ### The ML training pipeline
 
-**Files:** `vtsearch/models/training.py`, `config.py` (for `TRAIN_EPOCHS`)
+**Files:** `vtsearch/models/training.py`, `vtsearch/config.py` (for `TRAIN_EPOCHS`)
 
 **Dependencies:** `torch`, `sklearn`, `numpy`
 
@@ -223,13 +249,13 @@ audio._on_progress = lambda status, msg, cur, tot: print(f"{msg} ({cur}/{tot})")
 audio.load_models()
 ```
 
-### The plugin systems (exporters, importers)
+### The plugin systems
 
-**Pattern:** Each plugin system uses the same architecture:
+**Pattern:** Each of the four plugin systems uses the same architecture:
 1. An abstract base class with `fields` (form descriptors) and a
    `run()`/`export()` method.
 2. Auto-discovery via `pkgutil.iter_modules` scanning for a sentinel
-   attribute (`EXPORTER`, `IMPORTER`, `LABEL_IMPORTER`).
+   attribute (`EXPORTER`, `IMPORTER`, `LABEL_IMPORTER`, `PROCESSOR_IMPORTER`).
 3. CLI support auto-derived from field definitions.
 
 To use an exporter standalone:
@@ -270,14 +296,15 @@ application as-is.
 
 ## Plugin architecture details
 
-All three plugin systems (dataset importers, exporters, label importers)
-follow the same pattern:
+All four plugin systems (dataset importers, exporters, label importers,
+processor importers) follow the same pattern:
 
 1. **Base class** defines `name`, `display_name`, `fields`, and an
    abstract `run()`/`export()` method.
 2. **Field dataclass** (`ImporterField`, `ExporterField`,
-   `LabelImporterField`) describes each user-configurable input with
-   type, label, default, validation, and placeholder.
+   `LabelImporterField`, `ProcessorImporterField`) describes each
+   user-configurable input with type, label, default, validation, and
+   placeholder.
 3. **Auto-discovery** scans sub-packages for a sentinel attribute and
    registers them lazily on first access.
 4. **CLI support** auto-generates `argparse` flags from field
@@ -300,10 +327,15 @@ dicts:
 | `clips` | `dict[int, dict]` | All loaded media clips with embeddings |
 | `good_votes` | `dict[int, None]` | Clip IDs voted "good" |
 | `bad_votes` | `dict[int, None]` | Clip IDs voted "bad" |
-| `label_history` | `list[tuple]` | Ordered labelling events |
-| `inclusion` | `int` | FPR/FNR trade-off parameter |
+| `label_history` | `list[tuple]` | Ordered labelling events `(clip_id, label, timestamp)` |
+| `inclusion` | `int \| None` | FPR/FNR trade-off parameter; lazy-loaded from settings |
+| `textsort_suggestions` | `list[str]` | Text queries that received a Good vote (MRU order) |
 | `favorite_detectors` | `dict` | Saved detector configurations |
 | `favorite_extractors` | `dict` | Saved extractor configurations |
+
+Persistent settings (volume, theme, inclusion, `enrich_descriptions`,
+`safe_thresholds`, favorite processor recipes) live separately in
+`vtsearch/settings.py` and are auto-saved to `data/settings.json`.
 
 **Only Flask routes mutate this state.**  All ML and dataset functions
 accept state as parameters — they never import it directly.  This means

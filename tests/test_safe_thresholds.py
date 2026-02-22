@@ -1,7 +1,7 @@
 """Tests for the Safe Thresholds feature.
 
 Covers:
-- calculate_safe_threshold logic (blending, extreme detection, label-count ramp)
+- calculate_safe_threshold logic (blending, label-count ramp)
 - train_and_score integration with safe_thresholds flag
 - Settings get/set persistence
 - API routes for GET/POST /api/safe-thresholds
@@ -33,7 +33,7 @@ class TestCalculateSafeThreshold:
         assert safe == pytest.approx(gmm, abs=1e-6)
 
     def test_many_labels_returns_xcal(self):
-        """With >= 20 labels and non-extreme x-cal, result equals x-cal."""
+        """With >= 20 labels, result equals x-cal."""
         scores = [0.1, 0.2, 0.3, 0.7, 0.8, 0.9]
         xcal = 0.45
         safe = calculate_safe_threshold(xcal, scores, n_labels=25)
@@ -51,48 +51,12 @@ class TestCalculateSafeThreshold:
             lo, hi = sorted([gmm, xcal])
             assert lo <= safe <= hi
 
-    def test_extreme_high_xcal_penalised(self):
-        """x-cal near 1.0 should be penalised even with many labels."""
+    def test_many_labels_extreme_xcal_returns_xcal(self):
+        """With >= 20 labels, even extreme x-cal values are used directly."""
         scores = [0.1, 0.2, 0.3, 0.7, 0.8, 0.9]
-        xcal = 0.98
-        gmm = calculate_gmm_threshold(scores)
-        safe = calculate_safe_threshold(xcal, scores, n_labels=30)
-
-        # With 30 labels, label_weight=1.0 but extreme penalty halves it to 0.5
-        expected = 0.5 * xcal + 0.5 * gmm
-        assert safe == pytest.approx(expected, abs=1e-6)
-
-    def test_extreme_low_xcal_penalised(self):
-        """x-cal near 0.0 should be penalised even with many labels."""
-        scores = [0.1, 0.2, 0.3, 0.7, 0.8, 0.9]
-        xcal = 0.02
-        gmm = calculate_gmm_threshold(scores)
-        safe = calculate_safe_threshold(xcal, scores, n_labels=30)
-
-        expected = 0.5 * xcal + 0.5 * gmm
-        assert safe == pytest.approx(expected, abs=1e-6)
-
-    def test_non_extreme_no_penalty(self):
-        """x-cal of 0.5 should not be penalised."""
-        scores = [0.1, 0.2, 0.3, 0.7, 0.8, 0.9]
-        xcal = 0.5
-        safe = calculate_safe_threshold(xcal, scores, n_labels=30)
-        # label_weight=1.0, no penalty → pure x-cal
-        assert safe == pytest.approx(xcal, abs=1e-6)
-
-    def test_boundary_05_not_extreme(self):
-        """x-cal of exactly 0.05 is not extreme (boundary is < 0.05)."""
-        scores = [0.1, 0.2, 0.3, 0.7, 0.8, 0.9]
-        xcal = 0.05
-        safe = calculate_safe_threshold(xcal, scores, n_labels=30)
-        assert safe == pytest.approx(xcal, abs=1e-6)
-
-    def test_boundary_095_not_extreme(self):
-        """x-cal of exactly 0.95 is not extreme (boundary is > 0.95)."""
-        scores = [0.1, 0.2, 0.3, 0.7, 0.8, 0.9]
-        xcal = 0.95
-        safe = calculate_safe_threshold(xcal, scores, n_labels=30)
-        assert safe == pytest.approx(xcal, abs=1e-6)
+        for xcal in [0.02, 0.98]:
+            safe = calculate_safe_threshold(xcal, scores, n_labels=30)
+            assert safe == pytest.approx(xcal, abs=1e-6)
 
     def test_exactly_6_labels_starts_ramp(self):
         """At exactly 6 labels, label_weight should be 0 → pure GMM."""
@@ -103,7 +67,7 @@ class TestCalculateSafeThreshold:
         assert safe == pytest.approx(gmm, abs=1e-6)
 
     def test_exactly_20_labels_ends_ramp(self):
-        """At exactly 20 labels, label_weight should be 1 → pure x-cal (if non-extreme)."""
+        """At exactly 20 labels, label_weight should be 1 → pure x-cal."""
         scores = [0.1, 0.2, 0.3, 0.7, 0.8, 0.9]
         xcal = 0.45
         safe = calculate_safe_threshold(xcal, scores, n_labels=20)

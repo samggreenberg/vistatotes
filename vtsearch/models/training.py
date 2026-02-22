@@ -302,17 +302,15 @@ def calculate_safe_threshold(
 ) -> float:
     """Blend cross-calibration and GMM thresholds for robustness with small label counts.
 
-    When few labels are available the cross-calibration threshold can be unreliable
-    (e.g. near 0 or 1).  This function computes a GMM-based threshold on the full
-    score distribution and returns a weighted average of the two, where the weight
-    assigned to x-cal grows linearly with the number of labels and is penalised when
-    the x-cal threshold is extreme.
+    When few labels are available the cross-calibration threshold can be unreliable.
+    This function computes a GMM-based threshold on the full score distribution and
+    returns a weighted average of the two, where the weight assigned to x-cal grows
+    linearly with the number of labels.
 
     Blending rules:
         * ``n_labels < 6``  → pure GMM threshold.
-        * ``n_labels >= 20`` → pure x-cal threshold (unless extreme).
+        * ``n_labels >= 20`` → pure x-cal threshold.
         * In between → linear interpolation.
-        * If x-cal is < 0.05 or > 0.95 its weight is halved (extreme penalty).
 
     Args:
         xcal_threshold: The cross-calibrated threshold.
@@ -329,11 +327,7 @@ def calculate_safe_threshold(
     MAX_LABELS = 20
     label_weight = max(0.0, min(1.0, (n_labels - MIN_LABELS) / (MAX_LABELS - MIN_LABELS)))
 
-    # Penalise extreme x-cal thresholds
-    extreme_penalty = 0.5 if (xcal_threshold < 0.05 or xcal_threshold > 0.95) else 1.0
-
-    xcal_weight = label_weight * extreme_penalty
-    return xcal_weight * xcal_threshold + (1.0 - xcal_weight) * gmm_threshold
+    return label_weight * xcal_threshold + (1.0 - label_weight) * gmm_threshold
 
 
 def train_and_score(

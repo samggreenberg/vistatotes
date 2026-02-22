@@ -23,8 +23,8 @@ def _flask_response(mr: MediaResponse) -> Response:
 def list_clips() -> Response:
     """Return metadata for all loaded clips as a JSON array.
 
-    Excludes heavyweight fields (``embedding``, ``wav_bytes``, ``video_bytes``,
-    ``image_bytes``, ``text_content``) from the response. Only includes the
+    Excludes heavyweight fields (``embedding``, ``clip_bytes``,
+    ``clip_string``) from the response. Only includes the
     ``frequency`` field when it is present (synthetic clips only).
 
     Returns:
@@ -65,7 +65,7 @@ def clip_audio(clip_id: int) -> tuple[Response, int] | Response:
     if not c:
         return jsonify({"error": "not found"}), 404
     return send_file(
-        io.BytesIO(c["wav_bytes"]),
+        io.BytesIO(c["clip_bytes"]),
         mimetype="audio/wav",
         download_name=f"clip_{clip_id}.wav",
     )
@@ -89,7 +89,7 @@ def clip_video(clip_id: int) -> tuple[Response, int] | Response:
     c = clips.get(clip_id)
     if not c:
         return jsonify({"error": "not found"}), 404
-    if c.get("type") != "video" or not c.get("video_bytes"):
+    if c.get("type") != "video" or not c.get("clip_bytes"):
         return jsonify({"error": "not a video clip"}), 400
 
     # Determine mimetype based on filename extension
@@ -105,7 +105,7 @@ def clip_video(clip_id: int) -> tuple[Response, int] | Response:
 
     ext = Path(filename).suffix if filename else ".mp4"
     return send_file(
-        io.BytesIO(c["video_bytes"]),
+        io.BytesIO(c["clip_bytes"]),
         mimetype=mimetype,
         download_name=f"clip_{clip_id}{ext}",
     )
@@ -129,7 +129,7 @@ def clip_image(clip_id: int) -> tuple[Response, int] | Response:
     c = clips.get(clip_id)
     if not c:
         return jsonify({"error": "not found"}), 404
-    if c.get("type") != "image" or not c.get("image_bytes"):
+    if c.get("type") != "image" or not c.get("clip_bytes"):
         return jsonify({"error": "not an image clip"}), 400
 
     # Determine mimetype based on filename extension
@@ -146,7 +146,7 @@ def clip_image(clip_id: int) -> tuple[Response, int] | Response:
         mimetype = "image/jpeg"
 
     return send_file(
-        io.BytesIO(c["image_bytes"]),
+        io.BytesIO(c["clip_bytes"]),
         mimetype=mimetype,
         download_name=f"clip_{clip_id}.jpg",
     )
@@ -168,12 +168,12 @@ def clip_paragraph(clip_id: int) -> tuple[Response, int] | Response:
     c = clips.get(clip_id)
     if not c:
         return jsonify({"error": "not found"}), 404
-    if c.get("type") != "paragraph" or not c.get("text_content"):
+    if c.get("type") != "paragraph" or not c.get("clip_string"):
         return jsonify({"error": "not a paragraph clip"}), 400
 
     return jsonify(
         {
-            "content": c.get("text_content", ""),
+            "content": c.get("clip_string", ""),
             "word_count": c.get("word_count", 0),
             "character_count": c.get("character_count", 0),
         }

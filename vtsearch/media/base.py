@@ -259,11 +259,11 @@ class MediaType(ABC):
 
         Example return value for audio::
 
-            {"wav_bytes": b"...", "duration": 3.2}
+            {"clip_bytes": b"...", "duration": 3.2}
 
         Example return value for images::
 
-            {"image_bytes": b"...", "duration": 0, "width": 32, "height": 32}
+            {"clip_bytes": b"...", "duration": 0, "width": 32, "height": 32}
         """
 
     # ------------------------------------------------------------------

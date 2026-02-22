@@ -256,34 +256,6 @@ class DatasetImporter:
                 params[f.key] = str(val)
         return {"importer": self.name, "params": params}
 
-    def build_creation_info(self, field_values: dict[str, Any]) -> dict[str, Any]:
-        """Build a creation-info dict describing how a dataset was imported.
-
-        The returned dict is stored alongside the dataset so its provenance
-        can be reconstructed later.
-
-        Args:
-            field_values: The field values used for the import.
-
-        Returns:
-            A dict with keys ``"importer"``, ``"display_name"``,
-            ``"field_values"`` (serialisable subset), and ``"cli_args"``.
-        """
-        # Only keep string-serialisable field values (skip file objects, etc.)
-        safe_values = {}
-        for f in self.fields:
-            val = field_values.get(f.key, "")
-            if f.field_type == "file":
-                continue
-            if val:
-                safe_values[f.key] = str(val)
-        return {
-            "importer": self.name,
-            "display_name": self.display_name,
-            "field_values": safe_values,
-            "cli_args": self.build_cli_args(field_values),
-        }
-
     def to_dict(self) -> dict[str, Any]:
         """Serialise importer metadata for the ``/api/dataset/importers`` endpoint."""
         return {

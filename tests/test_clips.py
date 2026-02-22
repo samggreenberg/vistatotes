@@ -30,14 +30,14 @@ class TestInitClips:
             assert isinstance(emb, np.ndarray)
             assert len(emb) > 0
 
-    def test_clip_has_wav_bytes(self):
+    def test_clip_has_clip_bytes(self):
         for clip in app_module.clips.values():
-            assert isinstance(clip["wav_bytes"], bytes)
-            assert len(clip["wav_bytes"]) > 0
+            assert isinstance(clip["clip_bytes"], bytes)
+            assert len(clip["clip_bytes"]) > 0
 
-    def test_file_size_matches_wav_bytes_length(self):
+    def test_file_size_matches_clip_bytes_length(self):
         for clip in app_module.clips.values():
-            assert clip["file_size"] == len(clip["wav_bytes"])
+            assert clip["file_size"] == len(clip["clip_bytes"])
 
     def test_deterministic_embeddings(self):
         """CLAP embeddings should be deterministic for the same input audio."""
@@ -47,7 +47,7 @@ class TestInitClips:
         clip = app_module.clips[1]
         # Re-embed the same WAV and verify the result matches
         temp_path = DATA_DIR / "temp_determ_test.wav"
-        temp_path.write_bytes(clip["wav_bytes"])
+        temp_path.write_bytes(clip["clip_bytes"])
         embedding = embed_audio_file(temp_path)
         temp_path.unlink(missing_ok=True)
         np.testing.assert_array_almost_equal(embedding, clip["embedding"])
@@ -60,9 +60,9 @@ class TestClipMD5:
             assert isinstance(clip["md5"], str)
             assert len(clip["md5"]) == 32  # MD5 hex string
 
-    def test_md5_matches_wav_bytes(self):
+    def test_md5_matches_clip_bytes(self):
         for clip in app_module.clips.values():
-            expected_md5 = hashlib.md5(clip["wav_bytes"]).hexdigest()
+            expected_md5 = hashlib.md5(clip["clip_bytes"]).hexdigest()
             assert clip["md5"] == expected_md5
 
     def test_md5_deterministic(self):
@@ -89,11 +89,11 @@ class TestListClips:
             assert "duration" in clip
             assert "file_size" in clip
 
-    def test_does_not_expose_wav_bytes(self, client):
+    def test_does_not_expose_clip_bytes(self, client):
         resp = client.get("/api/clips")
         data = resp.get_json()
         for clip in data:
-            assert "wav_bytes" not in clip
+            assert "clip_bytes" not in clip
 
     def test_does_not_expose_embedding(self, client):
         resp = client.get("/api/clips")

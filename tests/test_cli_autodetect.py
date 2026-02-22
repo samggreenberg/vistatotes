@@ -213,10 +213,8 @@ class TestRunAutodetect:
 
         hits = run_autodetect(str(dataset_path), str(detector_path))
         for hit in hits:
-            assert "wav_bytes" not in hit
-            assert "image_bytes" not in hit
-            assert "video_bytes" not in hit
-            assert "text_content" not in hit
+            assert "clip_bytes" not in hit
+            assert "clip_string" not in hit
 
     def test_with_threshold_zero_returns_all_clips(self, client, tmp_path):
         """A threshold of 0 should return all clips since sigmoid output >= 0."""

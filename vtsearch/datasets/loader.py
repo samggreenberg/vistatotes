@@ -334,12 +334,10 @@ def load_dataset_from_folder(
             "category": "custom",
             "origin": origin,
             "origin_name": file_path.name,
-            # Null-out all optional media fields so clips from different types
+            # Null-out optional media fields so clips from different types
             # stored in the same dict have consistent keys.
-            "wav_bytes": None,
-            "video_bytes": None,
-            "image_bytes": None,
-            "text_content": None,
+            "clip_bytes": None,
+            "clip_string": None,
             "duration": 0,
         }
 
@@ -381,7 +379,8 @@ def load_dataset_from_pickle(
             loading. Keys are clip IDs (int); values are clip data dicts.
 
     Returns:
-        The ``creation_info`` dict stored in the pickle (if any), or ``None``.
+        ``None``.  (Formerly returned ``creation_info``; that field has been
+        removed.)
     """
     with open(file_path, "rb") as f:
         data = pickle.load(f)
@@ -389,16 +388,15 @@ def load_dataset_from_pickle(
     clips.clear()
 
     # Handle both old format (just clips dict) and new format (with metadata)
-    creation_info = None
     if isinstance(data, dict) and "clips" in data:
         clips_data = data["clips"]
+        # Old pickles may contain creation_info; extract a fallback origin
+        # for clips that predate per-element origin tracking.
         creation_info = data.get("creation_info")
     else:
         clips_data = data
+        creation_info = None
 
-    # Build a fallback origin from creation_info if present.  Old pickles
-    # that predate per-element origins will have creation_info at the dataset
-    # level; we use that as the origin for every element.
     fallback_origin = None
     if creation_info:
         fallback_origin = {
@@ -412,62 +410,63 @@ def load_dataset_from_pickle(
         # Determine media type
         media_type = clip_info.get("type", "audio")
 
-        # Load the actual media file
-        wav_bytes = None
-        video_bytes = None
-        image_bytes = None
-        text_content = None
+        # Load the actual media content.
+        # Support both new key names (clip_bytes/clip_string) and legacy
+        # per-media-type key names (wav_bytes/video_bytes/image_bytes/
+        # text_content) for backward compatibility with old pickles.
+        clip_bytes = None
+        clip_string = None
         media_bytes = None
 
         if media_type == "audio":
-            if "wav_bytes" in clip_info:
-                wav_bytes = clip_info["wav_bytes"]
-                media_bytes = wav_bytes
+            clip_bytes = clip_info.get("clip_bytes") or clip_info.get("wav_bytes")
+            if clip_bytes is not None:
+                media_bytes = clip_bytes
             elif "filename" in clip_info and "audio_dir" in data:
                 audio_path = Path(data["audio_dir"]) / clip_info["filename"]
                 if audio_path.exists():
                     with open(audio_path, "rb") as f:
-                        wav_bytes = f.read()
-                        media_bytes = wav_bytes
+                        clip_bytes = f.read()
+                        media_bytes = clip_bytes
                 else:
                     missing_media += 1
 
         elif media_type == "video":
-            if "video_bytes" in clip_info:
-                video_bytes = clip_info["video_bytes"]
-                media_bytes = video_bytes
+            clip_bytes = clip_info.get("clip_bytes") or clip_info.get("video_bytes")
+            if clip_bytes is not None:
+                media_bytes = clip_bytes
             elif "filename" in clip_info and "video_dir" in data:
                 video_path = Path(data["video_dir"]) / clip_info["filename"]
                 if video_path.exists():
                     with open(video_path, "rb") as f:
-                        video_bytes = f.read()
-                        media_bytes = video_bytes
+                        clip_bytes = f.read()
+                        media_bytes = clip_bytes
                 else:
                     missing_media += 1
 
         elif media_type == "image":
-            if "image_bytes" in clip_info:
-                image_bytes = clip_info["image_bytes"]
-                media_bytes = image_bytes
+            clip_bytes = clip_info.get("clip_bytes") or clip_info.get("image_bytes")
+            if clip_bytes is not None:
+                media_bytes = clip_bytes
             elif "filename" in clip_info and "image_dir" in data:
                 image_path = Path(data["image_dir"]) / clip_info["filename"]
                 if image_path.exists():
                     with open(image_path, "rb") as f:
-                        image_bytes = f.read()
-                        media_bytes = image_bytes
+                        clip_bytes = f.read()
+                        media_bytes = clip_bytes
                 else:
                     missing_media += 1
 
         elif media_type == "paragraph":
-            if "text_content" in clip_info:
-                text_content = clip_info["text_content"]
-                media_bytes = text_content.encode("utf-8")  # For MD5 hash
+            clip_string = clip_info.get("clip_string") or clip_info.get("text_content")
+            if clip_string is not None:
+                media_bytes = clip_string.encode("utf-8")  # For MD5 hash
             elif "filename" in clip_info and "text_dir" in data:
                 text_path = Path(data["text_dir"]) / clip_info["filename"]
                 if text_path.exists():
                     with open(text_path, "r", encoding="utf-8") as f:
-                        text_content = f.read()
-                        media_bytes = text_content.encode("utf-8")
+                        clip_string = f.read()
+                        media_bytes = clip_string.encode("utf-8")
                 else:
                     missing_media += 1
 
@@ -480,10 +479,8 @@ def load_dataset_from_pickle(
                 "file_size": clip_info.get("file_size", len(media_bytes)),
                 "md5": hashlib.md5(media_bytes).hexdigest(),
                 "embedding": np.array(clip_info["embedding"]),
-                "wav_bytes": wav_bytes,
-                "video_bytes": video_bytes,
-                "image_bytes": image_bytes,
-                "text_content": text_content,
+                "clip_bytes": clip_bytes,
+                "clip_string": clip_string,
                 "filename": fname,
                 "category": clip_info.get("category", "unknown"),
                 "origin": clip_info.get("origin", fallback_origin),
@@ -502,7 +499,7 @@ def load_dataset_from_pickle(
     if missing_media > 0:
         print(f"WARNING: {missing_media} media files missing from {file_path}", flush=True)
 
-    return creation_info
+    return None
 
 
 def embed_image_file_from_pil(image: Image.Image) -> Optional[np.ndarray]:
@@ -653,10 +650,8 @@ def load_demo_dataset(
                     "file_size": len(image_bytes),
                     "md5": hashlib.md5(image_bytes).hexdigest(),
                     "embedding": embedding,
-                    "wav_bytes": None,
-                    "video_bytes": None,
-                    "image_bytes": image_bytes,
-                    "text_content": None,
+                    "clip_bytes": image_bytes,
+                    "clip_string": None,
                     "filename": fname,
                     "category": category,
                     "width": img.width,
@@ -676,7 +671,6 @@ def load_demo_dataset(
                             cid: {
                                 k: v.tolist() if isinstance(v, np.ndarray) else v
                                 for k, v in clip.items()
-                                if k not in ["wav_bytes", "video_bytes"]
                             }
                             for cid, clip in clips.items()
                         },
@@ -741,10 +735,8 @@ def load_demo_dataset(
                     "file_size": len(image_bytes),
                     "md5": hashlib.md5(image_bytes).hexdigest(),
                     "embedding": embedding,
-                    "wav_bytes": None,
-                    "video_bytes": None,
-                    "image_bytes": image_bytes,
-                    "text_content": None,
+                    "clip_bytes": image_bytes,
+                    "clip_string": None,
                     "filename": img_path.name,
                     "category": category,
                     "width": width,
@@ -764,7 +756,6 @@ def load_demo_dataset(
                             cid: {
                                 k: v.tolist() if isinstance(v, np.ndarray) else v
                                 for k, v in clip.items()
-                                if k not in ["wav_bytes", "video_bytes"]
                             }
                             for cid, clip in clips.items()
                         },
@@ -847,10 +838,8 @@ def load_demo_dataset(
                     "file_size": len(text_bytes),
                     "md5": hashlib.md5(text_bytes).hexdigest(),
                     "embedding": embedding,
-                    "wav_bytes": None,
-                    "video_bytes": None,
-                    "image_bytes": None,
-                    "text_content": text_content,
+                    "clip_bytes": None,
+                    "clip_string": text_content,
                     "filename": fname,
                     "category": category,
                     "word_count": word_count,
@@ -870,7 +859,6 @@ def load_demo_dataset(
                             cid: {
                                 k: v.tolist() if isinstance(v, np.ndarray) else v
                                 for k, v in clip.items()
-                                if k not in ["wav_bytes", "video_bytes", "image_bytes"]
                             }
                             for cid, clip in clips.items()
                         },
@@ -930,8 +918,7 @@ def load_demo_dataset(
                     "file_size": len(video_bytes),
                     "md5": hashlib.md5(video_bytes).hexdigest(),
                     "embedding": embedding,
-                    "wav_bytes": None,
-                    "video_bytes": video_bytes,
+                    "clip_bytes": video_bytes,
                     "filename": video_path.name,
                     "category": meta["category"],
                     "origin": demo_origin,
@@ -949,7 +936,7 @@ def load_demo_dataset(
                             cid: {
                                 k: v.tolist() if isinstance(v, np.ndarray) else v
                                 for k, v in clip.items()
-                                if k not in ["wav_bytes", "video_bytes"]
+                                if k != "clip_bytes"
                             }
                             for cid, clip in clips.items()
                         },
@@ -1007,8 +994,7 @@ def load_demo_dataset(
             "file_size": len(wav_bytes),
             "md5": hashlib.md5(wav_bytes).hexdigest(),
             "embedding": embedding,
-            "wav_bytes": wav_bytes,
-            "video_bytes": None,
+            "clip_bytes": wav_bytes,
             "filename": audio_path.name,
             "category": meta["category"],
             "origin": demo_origin,
@@ -1024,7 +1010,9 @@ def load_demo_dataset(
                 "name": dataset_name,
                 "clips": {
                     cid: {
-                        k: v.tolist() if isinstance(v, np.ndarray) else v for k, v in clip.items() if k != "wav_bytes"
+                        k: v.tolist() if isinstance(v, np.ndarray) else v
+                        for k, v in clip.items()
+                        if k != "clip_bytes"
                     }
                     for cid, clip in clips.items()
                 },
@@ -1038,7 +1026,6 @@ def load_demo_dataset(
 
 def export_dataset_to_file(
     clips: dict[int, dict[str, Any]],
-    creation_info: dict[str, Any] | None = None,
 ) -> bytes:
     """Serialise the current clip dataset to a pickle-formatted byte string.
 
@@ -1050,10 +1037,6 @@ def export_dataset_to_file(
 
     Args:
         clips: Mapping of clip ID to clip data dict.
-        creation_info: Optional provenance dict describing how the dataset was
-            created (importer name, field values, CLI args).  When present it
-            is stored under the ``"creation_info"`` key in the pickle so that
-            downstream consumers can reconstruct the dataset source.
 
     Returns:
         Raw bytes of the pickled dataset dict.
@@ -1073,10 +1056,8 @@ def export_dataset_to_file(
                 "category": clip.get("category", "unknown"),
                 "origin": clip.get("origin"),
                 "origin_name": clip.get("origin_name", clip.get("filename", "")),
-                "wav_bytes": clip.get("wav_bytes"),
-                "video_bytes": clip.get("video_bytes"),
-                "image_bytes": clip.get("image_bytes"),
-                "text_content": clip.get("text_content"),
+                "clip_bytes": clip.get("clip_bytes"),
+                "clip_string": clip.get("clip_string"),
                 "word_count": clip.get("word_count"),
                 "character_count": clip.get("character_count"),
                 "width": clip.get("width"),
@@ -1085,9 +1066,6 @@ def export_dataset_to_file(
             for cid, clip in clips.items()
         }
     }
-
-    if creation_info is not None:
-        data["creation_info"] = creation_info
 
     buf = io.BytesIO()
     pickle.dump(data, buf)

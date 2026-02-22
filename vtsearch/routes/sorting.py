@@ -24,7 +24,6 @@ from vtsearch.utils import (
     bad_votes,
     build_clip_lookup,
     clips,
-    get_dataset_creation_info,
     get_inclusion,
     get_sort_progress,
     good_votes,
@@ -148,8 +147,6 @@ def export_labels():
 
     Each label entry includes the element's ``origin`` and ``origin_name``
     so that consumers know exactly where each labeled element came from.
-    The response also includes ``dataset_creation_info`` (if available).
-
     The format is a superset of the legacy export format — old consumers
     that only read ``md5`` and ``label`` keys continue to work unchanged.
     """
@@ -157,9 +154,6 @@ def export_labels():
 
     labelset = LabelSet.from_clips_and_votes(clips, good_votes, bad_votes)
     result: dict = labelset.to_dict()
-    creation_info = get_dataset_creation_info()
-    if creation_info is not None:
-        result["dataset_creation_info"] = creation_info
     return jsonify(result)
 
 

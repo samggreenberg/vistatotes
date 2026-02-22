@@ -240,14 +240,14 @@ class ImageMediaType(MediaType):
 
     def load_clip_data(self, file_path: Path) -> dict:
         with open(file_path, "rb") as f:
-            image_bytes = f.read()
+            clip_bytes = f.read()
         try:
             img = Image.open(file_path)
             width, height = img.width, img.height
         except Exception:
             width, height = None, None
         return {
-            "image_bytes": image_bytes,
+            "clip_bytes": clip_bytes,
             "duration": 0,
             "width": width,
             "height": height,
@@ -262,7 +262,7 @@ class ImageMediaType(MediaType):
         ext = Path(filename).suffix.lower() if filename else ".jpg"
         mimetype = _IMAGE_MIME_TYPES.get(ext, "image/jpeg")
         return MediaResponse(
-            data=clip["image_bytes"],
+            data=clip["clip_bytes"],
             mimetype=mimetype,
             download_name=f"clip_{clip['id']}{ext}",
         )

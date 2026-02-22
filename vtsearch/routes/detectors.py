@@ -428,10 +428,8 @@ def auto_detect():
             if score >= threshold:
                 clip_info = clips[cid].copy()
                 clip_info.pop("embedding", None)
-                clip_info.pop("wav_bytes", None)
-                clip_info.pop("video_bytes", None)
-                clip_info.pop("image_bytes", None)
-                clip_info.pop("text_content", None)
+                clip_info.pop("clip_bytes", None)
+                clip_info.pop("clip_string", None)
                 clip_info["score"] = round(score, 4)
                 positive_hits.append(clip_info)
 
@@ -591,7 +589,7 @@ def run_extract():
             clip_info = {
                 k: v
                 for k, v in clip.items()
-                if k not in ("embedding", "wav_bytes", "video_bytes", "image_bytes", "text_content")
+                if k not in ("embedding", "clip_bytes", "clip_string")
             }
             clip_info["extractions"] = extractions
             results.append(clip_info)
@@ -635,7 +633,7 @@ def auto_extract():
                 clip_info = {
                     k: v
                     for k, v in clip.items()
-                    if k not in ("embedding", "wav_bytes", "video_bytes", "image_bytes", "text_content")
+                    if k not in ("embedding", "clip_bytes", "clip_string")
                 }
                 clip_info["extractions"] = extractions
                 ext_results.append(clip_info)

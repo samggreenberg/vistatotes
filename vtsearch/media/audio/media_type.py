@@ -216,13 +216,13 @@ class AudioMediaType(MediaType):
 
     def load_clip_data(self, file_path: Path) -> dict:
         with open(file_path, "rb") as f:
-            wav_bytes = f.read()
+            clip_bytes = f.read()
         try:
             audio_data, sr = librosa.load(file_path, sr=SAMPLE_RATE, mono=True)
             duration = len(audio_data) / sr
         except Exception:
             duration = 0.0
-        return {"wav_bytes": wav_bytes, "duration": duration}
+        return {"clip_bytes": clip_bytes, "duration": duration}
 
     # ------------------------------------------------------------------
     # HTTP serving
@@ -230,7 +230,7 @@ class AudioMediaType(MediaType):
 
     def clip_response(self, clip: dict) -> MediaResponse:
         return MediaResponse(
-            data=clip["wav_bytes"],
+            data=clip["clip_bytes"],
             mimetype="audio/wav",
             download_name=f"clip_{clip['id']}.wav",
         )

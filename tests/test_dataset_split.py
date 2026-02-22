@@ -28,7 +28,7 @@ def _make_clips(categories: dict[str, int]) -> dict[int, dict]:
                 "file_size": 100,
                 "md5": f"md5_{clip_id}",
                 "filename": f"clip_{clip_id}.wav",
-                "wav_bytes": b"\x00",
+                "clip_bytes": b"\x00",
             }
             clip_id += 1
     return clips

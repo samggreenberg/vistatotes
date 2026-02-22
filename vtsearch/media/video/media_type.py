@@ -221,7 +221,7 @@ class VideoMediaType(MediaType):
 
     def load_clip_data(self, file_path: Path) -> dict:
         with open(file_path, "rb") as f:
-            video_bytes = f.read()
+            clip_bytes = f.read()
         try:
             import cv2  # noqa: PLC0415
 
@@ -232,7 +232,7 @@ class VideoMediaType(MediaType):
             cap.release()
         except Exception:
             duration = 0.0
-        return {"video_bytes": video_bytes, "duration": duration}
+        return {"clip_bytes": clip_bytes, "duration": duration}
 
     # ------------------------------------------------------------------
     # HTTP serving
@@ -243,7 +243,7 @@ class VideoMediaType(MediaType):
         ext = Path(filename).suffix.lower() if filename else ".mp4"
         mimetype = _VIDEO_MIME_TYPES.get(ext, "video/mp4")
         return MediaResponse(
-            data=clip["video_bytes"],
+            data=clip["clip_bytes"],
             mimetype=mimetype,
             download_name=f"clip_{clip['id']}{ext}",
         )

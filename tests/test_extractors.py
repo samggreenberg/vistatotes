@@ -131,7 +131,7 @@ class TestImageClassExtractor:
 
         ext = ImageClassExtractor("test", "person", threshold=0.5)
         ext._model = mock_model  # inject mock directly, skip load_model
-        clip = {"image_bytes": self._make_image_bytes()}
+        clip = {"clip_bytes": self._make_image_bytes()}
         hits = ext.extract(clip)
 
         assert len(hits) == 2
@@ -149,7 +149,7 @@ class TestImageClassExtractor:
 
         ext = ImageClassExtractor("test", "person", threshold=0.5)
         ext._model = mock_model
-        clip = {"image_bytes": self._make_image_bytes()}
+        clip = {"clip_bytes": self._make_image_bytes()}
         hits = ext.extract(clip)
 
         assert len(hits) == 0
@@ -164,12 +164,12 @@ class TestImageClassExtractor:
 
         ext = ImageClassExtractor("test", "person", threshold=0.25)
         ext._model = mock_model
-        clip = {"image_bytes": self._make_image_bytes()}
+        clip = {"clip_bytes": self._make_image_bytes()}
         hits = ext.extract(clip)
 
         assert len(hits) == 0
 
-    def test_extract_missing_image_bytes(self):
+    def test_extract_missing_clip_bytes(self):
         from vtsearch.media.image.extractor import ImageClassExtractor
 
         ext = ImageClassExtractor("test", "person")

@@ -662,41 +662,28 @@ class TestLabelImportEndpoint:
         assert set(app_module.good_votes) == {1, 3, 5}
         assert set(app_module.bad_votes) == {2, 4}
 
-    def test_json_roundtrip_with_creation_info(self, client):
-        """Export with dataset_creation_info, re-import via json_file importer."""
-        from vtsearch.utils import set_dataset_creation_info
+    def test_json_roundtrip(self, client):
+        """Export labels, re-import via json_file importer."""
+        app_module.good_votes.update({k: None for k in [1, 3]})
+        app_module.bad_votes.update({k: None for k in [2]})
 
-        creation_info = {
-            "importer": "folder",
-            "display_name": "Generate from Folder",
-            "field_values": {"path": "/data/roundtrip_test"},
-            "cli_args": "--importer folder --path /data/roundtrip_test",
-        }
-        set_dataset_creation_info(creation_info)
-        try:
-            app_module.good_votes.update({k: None for k in [1, 3]})
-            app_module.bad_votes.update({k: None for k in [2]})
+        export_res = client.get("/api/labels/export")
+        exported = export_res.get_json()
 
-            export_res = client.get("/api/labels/export")
-            exported = export_res.get_json()
-            assert "dataset_creation_info" in exported
+        app_module.good_votes.clear()
+        app_module.bad_votes.clear()
 
-            app_module.good_votes.clear()
-            app_module.bad_votes.clear()
-
-            raw = json.dumps(exported).encode()
-            data = {"file": (io.BytesIO(raw), "labels.json")}
-            res = client.post(
-                "/api/label-importers/import/json_file",
-                data=data,
-                content_type="multipart/form-data",
-            )
-            result = res.get_json()
-            assert result["applied"] == 3
-            assert set(app_module.good_votes) == {1, 3}
-            assert set(app_module.bad_votes) == {2}
-        finally:
-            set_dataset_creation_info(None)
+        raw = json.dumps(exported).encode()
+        data = {"file": (io.BytesIO(raw), "labels.json")}
+        res = client.post(
+            "/api/label-importers/import/json_file",
+            data=data,
+            content_type="multipart/form-data",
+        )
+        result = res.get_json()
+        assert result["applied"] == 3
+        assert set(app_module.good_votes) == {1, 3}
+        assert set(app_module.bad_votes) == {2}
 
     def test_multiple_clips_via_csv(self, client):
         lines = ["md5,label"]
@@ -984,10 +971,8 @@ class TestIngestMissingClips:
                 "file_size": 10,
                 "md5": "existing_md5",
                 "embedding": np.zeros(768),
-                "wav_bytes": None,
-                "video_bytes": None,
-                "image_bytes": None,
-                "text_content": "existing",
+                "clip_bytes": None,
+                "clip_string": "existing",
                 "filename": "existing.txt",
                 "category": "test",
                 "origin": None,

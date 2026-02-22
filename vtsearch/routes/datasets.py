@@ -24,11 +24,9 @@ from vtsearch.models.progress import clear_progress_cache
 from vtsearch.utils import (
     bad_votes,
     clips,
-    get_dataset_creation_info,
     get_progress,
     good_votes,
     label_history,
-    set_dataset_creation_info,
     update_progress,
 )
 
@@ -67,7 +65,6 @@ def clear_dataset():
     good_votes.clear()
     bad_votes.clear()
     label_history.clear()
-    set_dataset_creation_info(None)
     clear_progress_cache()
 
 
@@ -93,7 +90,6 @@ def _run_importer_in_background(importer, field_values: dict) -> None:
             clear_dataset()
             importer.run(field_values, clips)
             _set_clip_origins(clips, importer.build_origin(field_values))
-            set_dataset_creation_info(importer.build_creation_info(field_values))
             _load_embedder_for_clips()
         except Exception as e:
             update_progress("idle", "", 0, 0, str(e))
@@ -119,7 +115,6 @@ def dataset_status():
             "num_clips": len(clips),
             "has_votes": len(good_votes) + len(bad_votes) > 0,
             "media_type": media_type,
-            "creation_info": get_dataset_creation_info(),
         }
     )
 
@@ -311,14 +306,6 @@ def load_demo_dataset_route():
             load_demo_dataset(dataset_name, clips)
             demo_origin = {"importer": "demo", "params": {"name": dataset_name}}
             _set_clip_origins(clips, demo_origin)
-            set_dataset_creation_info(
-                {
-                    "importer": "demo",
-                    "display_name": "Demo Dataset",
-                    "field_values": {"name": dataset_name},
-                    "cli_args": None,
-                }
-            )
             _load_embedder_for_clips()
         except Exception as e:
             update_progress("idle", "", 0, 0, str(e))
@@ -392,7 +379,7 @@ def export_dataset():
         return jsonify({"error": "No dataset loaded"}), 400
 
     try:
-        dataset_bytes = export_dataset_to_file(clips, get_dataset_creation_info())
+        dataset_bytes = export_dataset_to_file(clips)
         return send_file(
             io.BytesIO(dataset_bytes),
             mimetype="application/octet-stream",

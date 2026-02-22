@@ -191,7 +191,7 @@ class TextMediaType(MediaType):
         except Exception:
             text_content = ""
         return {
-            "text_content": text_content,
+            "clip_string": text_content,
             "duration": 0,
             "word_count": len(text_content.split()),
             "character_count": len(text_content),
@@ -204,7 +204,7 @@ class TextMediaType(MediaType):
     def clip_response(self, clip: dict) -> MediaResponse:
         return MediaResponse(
             data={
-                "content": clip.get("text_content", ""),
+                "content": clip.get("clip_string", ""),
                 "word_count": clip.get("word_count", 0),
                 "character_count": clip.get("character_count", 0),
             },

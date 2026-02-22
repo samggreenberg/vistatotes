@@ -2959,4 +2959,74 @@
   loadFavoriteDetectors();
   fetchLabelingStatus();
   loadSettings();
+
+  // ---- Keyboard shortcuts ----
+  // Arrow Left / Right  = vote Bad / Good (like Tinder swipe)
+  // Arrow Up / Down     = volume up / down
+  // Spacebar            = pause / resume media (only when not typing)
+
+  function isTyping() {
+    const el = document.activeElement;
+    if (!el) return false;
+    const tag = el.tagName;
+    if (tag === "INPUT" && el.type !== "checkbox" && el.type !== "radio" && el.type !== "range") return true;
+    if (tag === "TEXTAREA" || tag === "SELECT") return true;
+    if (el.isContentEditable) return true;
+    return false;
+  }
+
+  document.addEventListener("keydown", (e) => {
+    // Never intercept keys when a dialog is open
+    if (vtDialogModal.classList.contains("show")) return;
+
+    // Never intercept keys when typing in text fields
+    if (isTyping()) return;
+
+    // Never intercept if modifier keys are held (let browser/OS shortcuts work)
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+    switch (e.key) {
+      case "ArrowRight":
+        e.preventDefault();
+        if (selected != null) castVote(selected, "good");
+        break;
+      case "ArrowLeft":
+        e.preventDefault();
+        if (selected != null) castVote(selected, "bad");
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        adjustVolume(0.05);
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        adjustVolume(-0.05);
+        break;
+      case " ":
+        e.preventDefault();
+        toggleMediaPlayback();
+        break;
+    }
+  });
+
+  function adjustVolume(delta) {
+    audioVolume = Math.max(0, Math.min(1, audioVolume + delta));
+    const audioEl = document.getElementById("clip-audio");
+    const videoEl = document.getElementById("clip-video");
+    if (audioEl) audioEl.volume = audioVolume;
+    if (videoEl) videoEl.volume = audioVolume;
+    saveVolume(audioVolume);
+  }
+
+  function toggleMediaPlayback() {
+    const audioEl = document.getElementById("clip-audio");
+    const videoEl = document.getElementById("clip-video");
+    const media = audioEl || videoEl;
+    if (!media) return;
+    if (media.paused) {
+      media.play().catch(() => {});
+    } else {
+      media.pause();
+    }
+  }
 })();

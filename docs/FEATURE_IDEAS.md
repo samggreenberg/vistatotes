@@ -164,7 +164,7 @@ Brainstorm of potential features organized by category.
 
 124. **Screen reader support** — Add ARIA labels and keyboard navigation for full accessibility compliance.
 125. **Internationalization (i18n)** — Support multiple UI languages with a language switcher.
-126. **High contrast mode** — A high-contrast theme option beyond the current light/dark toggle.
+126. ~~**High contrast mode** — A high-contrast theme option beyond the current light/dark toggle.~~ *(Implemented: HighViz theme)*
 127. **Configurable font size** — Let users adjust the UI font size for readability.
 128. **Color-blind friendly palettes** — Use colorblind-safe colors for charts, confidence overlays, and the stripe overview.
 

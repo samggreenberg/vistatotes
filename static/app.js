@@ -3141,19 +3141,17 @@
 
   // ---- Theme toggle ----
 
-  const themeToggleCheckbox = document.getElementById("theme-toggle-checkbox");
-  const themeLabel = document.getElementById("theme-label");
+  const themeBtns = document.querySelectorAll(".theme-btn");
 
   function applyTheme(theme) {
-    if (theme === "light") {
-      document.documentElement.setAttribute("data-theme", "light");
-      if (themeToggleCheckbox) themeToggleCheckbox.checked = true;
-      if (themeLabel) themeLabel.textContent = "Light Mode";
+    if (theme === "light" || theme === "highviz") {
+      document.documentElement.setAttribute("data-theme", theme);
     } else {
       document.documentElement.removeAttribute("data-theme");
-      if (themeToggleCheckbox) themeToggleCheckbox.checked = false;
-      if (themeLabel) themeLabel.textContent = "Dark Mode";
     }
+    themeBtns.forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.theme === theme);
+    });
   }
 
   function saveTheme(theme) {
@@ -3164,13 +3162,13 @@
     }).catch(() => {});
   }
 
-  if (themeToggleCheckbox) {
-    themeToggleCheckbox.addEventListener("change", () => {
-      const theme = themeToggleCheckbox.checked ? "light" : "dark";
+  themeBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const theme = btn.dataset.theme;
       applyTheme(theme);
       saveTheme(theme);
     });
-  }
+  });
 
   async function loadSettings() {
     try {

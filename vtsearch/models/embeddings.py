@@ -53,18 +53,21 @@ def embed_paragraph_file(text_path: Path) -> Optional[np.ndarray]:
     return media_get("paragraph").embed_media(text_path)
 
 
-def embed_text_query(text: str, media_type: str) -> Optional[np.ndarray]:
+def embed_text_query(text: str, media_type: str, enrich: bool = False) -> Optional[np.ndarray]:
     """Embed *text* in the vector space of the given *media_type*.
 
     Delegates to the registered :class:`~vtsearch.media.base.MediaType`'s
-    :meth:`~vtsearch.media.base.MediaType.embed_text` method, so the
-    resulting vector can be compared against media embeddings via cosine
-    similarity.
+    :meth:`~vtsearch.media.base.MediaType.embed_text` method (or
+    :meth:`~vtsearch.media.base.MediaType.embed_text_enriched` when
+    *enrich* is ``True``), so the resulting vector can be compared against
+    media embeddings via cosine similarity.
 
     Args:
         text: The natural-language search query to embed.
         media_type: Internal type identifier, e.g. ``"audio"``, ``"video"``,
             ``"image"``, or ``"paragraph"``.
+        enrich: If ``True``, use the average over description-wrapper
+            embeddings instead of the plain text embedding.
 
     Returns:
         A 1-D ``numpy.ndarray`` embedding, or ``None`` if the media type is
@@ -73,6 +76,9 @@ def embed_text_query(text: str, media_type: str) -> Optional[np.ndarray]:
     from vtsearch.media import get as media_get
 
     try:
-        return media_get(media_type).embed_text(text)
+        mt = media_get(media_type)
+        if enrich:
+            return mt.embed_text_enriched(text)
+        return mt.embed_text(text)
     except KeyError:
         return None

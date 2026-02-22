@@ -86,7 +86,10 @@ def sort_clips():
         update_sort_progress("sorting", "Embedding text query…", 0, total_steps)
 
     # Embed text query using refactored module
-    text_vec = embed_text_query(text, media_type)
+    from vtsearch import settings
+
+    enrich = settings.get_enrich_descriptions()
+    text_vec = embed_text_query(text, media_type, enrich=enrich)
     if text_vec is None:
         update_sort_progress("idle")
         return (

@@ -56,6 +56,9 @@ def update_settings():
         except ValueError:
             return jsonify({"error": "theme must be 'dark' or 'light'"}), 400
 
+    if "enrich_descriptions" in body:
+        settings.set_enrich_descriptions(bool(body["enrich_descriptions"]))
+
     return jsonify(settings.get_all())
 
 

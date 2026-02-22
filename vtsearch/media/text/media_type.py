@@ -115,6 +115,16 @@ class TextMediaType(MediaType):
     # Embeddings
     # ------------------------------------------------------------------
 
+    @property
+    def description_wrappers(self) -> list[str]:
+        return [
+            "a document about {text}",
+            "an article discussing {text}",
+            "{text}",
+            "a text passage about {text}",
+            "writing on the topic of {text}",
+        ]
+
     def load_models(self) -> None:
         if self._model is not None:
             return

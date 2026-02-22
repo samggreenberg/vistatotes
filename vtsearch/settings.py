@@ -37,6 +37,7 @@ SETTINGS_PATH: Path = DATA_DIR / "settings.json"
 _DEFAULTS: dict[str, Any] = {
     "volume": 1.0,
     "theme": "dark",
+    "enrich_descriptions": False,
     "favorite_processors": [],
 }
 
@@ -106,6 +107,18 @@ def set_theme(value: str) -> None:
         raise ValueError(f"Invalid theme: {value!r}")
     s = _ensure_loaded()
     s["theme"] = value
+    _save(s)
+
+
+def get_enrich_descriptions() -> bool:
+    """Return whether enriched description embedding is enabled."""
+    return bool(_ensure_loaded().get("enrich_descriptions", _DEFAULTS["enrich_descriptions"]))
+
+
+def set_enrich_descriptions(value: bool) -> None:
+    """Set and persist the enrich_descriptions flag."""
+    s = _ensure_loaded()
+    s["enrich_descriptions"] = bool(value)
     _save(s)
 
 

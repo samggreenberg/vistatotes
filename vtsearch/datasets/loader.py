@@ -602,16 +602,17 @@ def load_demo_dataset(
             category_indices = {label_names[i]: i for i in range(len(label_names))}
             requested_categories = dataset_info["categories"]
 
-            # Collect images for requested categories
+            # Collect images for requested categories, applying per-category slicing
+            slice_start = dataset_info.get("slice_start", 0)
+            slice_end = dataset_info.get("slice_end", IMAGES_PER_CIFAR10_CATEGORY)
             selected_images = []
             selected_labels = []
 
             for cat in requested_categories:
                 if cat in category_indices:
                     cat_idx = category_indices[cat]
-                    # Get first N images of this category
                     cat_mask = [i for i, lbl in enumerate(labels) if lbl == cat_idx]
-                    for idx in cat_mask[:IMAGES_PER_CIFAR10_CATEGORY]:
+                    for idx in cat_mask[slice_start:slice_end]:
                         selected_images.append(images[idx])
                         selected_labels.append(cat)
 
@@ -668,10 +669,7 @@ def load_demo_dataset(
                     {
                         "name": dataset_name,
                         "clips": {
-                            cid: {
-                                k: v.tolist() if isinstance(v, np.ndarray) else v
-                                for k, v in clip.items()
-                            }
+                            cid: {k: v.tolist() if isinstance(v, np.ndarray) else v for k, v in clip.items()}
                             for cid, clip in clips.items()
                         },
                     },
@@ -688,15 +686,17 @@ def load_demo_dataset(
             # Scan category folders for images
             metadata = load_image_metadata_from_folders(caltech_dir, dataset_info["categories"])
 
-            # Limit per category
-            cat_counts: dict[str, int] = {}
-            selected: list[tuple[Path, str]] = []
+            # Group by category (sorted order within each), then slice
+            slice_start = dataset_info.get("slice_start", 0)
+            slice_end = dataset_info.get("slice_end", IMAGES_PER_CALTECH101_CATEGORY)
+            by_cat: dict[str, list[tuple[Path, str]]] = {}
             for fname, meta in sorted(metadata.items()):
                 cat = meta["category"]
-                cat_counts.setdefault(cat, 0)
-                if cat_counts[cat] < IMAGES_PER_CALTECH101_CATEGORY:
-                    selected.append((meta["path"], cat))
-                    cat_counts[cat] += 1
+                by_cat.setdefault(cat, []).append((meta["path"], cat))
+
+            selected: list[tuple[Path, str]] = []
+            for cat in dataset_info["categories"]:
+                selected.extend(by_cat.get(cat, [])[slice_start:slice_end])
 
             from vtsearch.media import get as media_get
 
@@ -753,10 +753,7 @@ def load_demo_dataset(
                     {
                         "name": dataset_name,
                         "clips": {
-                            cid: {
-                                k: v.tolist() if isinstance(v, np.ndarray) else v
-                                for k, v in clip.items()
-                            }
+                            cid: {k: v.tolist() if isinstance(v, np.ndarray) else v for k, v in clip.items()}
                             for cid, clip in clips.items()
                         },
                     },
@@ -778,8 +775,9 @@ def load_demo_dataset(
             # Use 20 Newsgroups dataset from scikit-learn
             texts, labels, category_names = download_20newsgroups(dataset_info["categories"])
 
-            # Limit number of texts per category for demo
-            max_per_category = TEXTS_PER_CATEGORY
+            # Slice per category for disjoint S/M/L demo datasets
+            slice_start = dataset_info.get("slice_start", 0)
+            slice_end = dataset_info.get("slice_end", TEXTS_PER_CATEGORY)
             selected_texts = []
             selected_categories = []
 
@@ -787,8 +785,7 @@ def load_demo_dataset(
                 if cat_name in category_names:
                     cat_idx = category_names.index(cat_name)
                     cat_texts = [texts[i] for i, lbl in enumerate(labels) if lbl == cat_idx]
-                    # Limit to max_per_category
-                    for text in cat_texts[:max_per_category]:
+                    for text in cat_texts[slice_start:slice_end]:
                         selected_texts.append(text)
                         selected_categories.append(cat_name)
 
@@ -856,10 +853,7 @@ def load_demo_dataset(
                     {
                         "name": dataset_name,
                         "clips": {
-                            cid: {
-                                k: v.tolist() if isinstance(v, np.ndarray) else v
-                                for k, v in clip.items()
-                            }
+                            cid: {k: v.tolist() if isinstance(v, np.ndarray) else v for k, v in clip.items()}
                             for cid, clip in clips.items()
                         },
                     },
@@ -956,13 +950,23 @@ def load_demo_dataset(
     audio_dir = download_esc50()
     metadata = load_esc50_metadata(audio_dir.parent)
 
-    # Filter files for this dataset
+    # Filter files for this dataset, applying per-category slicing
     categories = DEMO_DATASETS[dataset_name]["categories"]
-    audio_files = []
+    slice_start = dataset_info.get("slice_start", 0)
+    slice_end = dataset_info.get("slice_end")
+
+    # Group files by category (sorted order within each)
+    by_cat: dict[str, list] = {}
     for audio_path in sorted(audio_dir.glob("*.wav")):
         if audio_path.name in metadata:
-            if metadata[audio_path.name]["category"] in categories:
-                audio_files.append((audio_path, metadata[audio_path.name]))
+            cat = metadata[audio_path.name]["category"]
+            if cat in categories:
+                by_cat.setdefault(cat, []).append((audio_path, metadata[audio_path.name]))
+
+    # Slice each category and flatten
+    audio_files = []
+    for cat in categories:
+        audio_files.extend(by_cat.get(cat, [])[slice_start:slice_end])
 
     # Generate embeddings
     clips.clear()
@@ -1010,9 +1014,7 @@ def load_demo_dataset(
                 "name": dataset_name,
                 "clips": {
                     cid: {
-                        k: v.tolist() if isinstance(v, np.ndarray) else v
-                        for k, v in clip.items()
-                        if k != "clip_bytes"
+                        k: v.tolist() if isinstance(v, np.ndarray) else v for k, v in clip.items() if k != "clip_bytes"
                     }
                     for cid, clip in clips.items()
                 },

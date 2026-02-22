@@ -187,7 +187,7 @@ def clip_image(clip_id: int) -> tuple[Response, int] | Response:
     return send_file(
         io.BytesIO(clip_bytes),
         mimetype=mimetype,
-        download_name=f"clip_{clip_id}.jpg",
+        download_name=f"clip_{clip_id}{Path(filename).suffix if filename and Path(filename).suffix else '.jpg'}",
     )
 
 

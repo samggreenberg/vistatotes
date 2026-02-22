@@ -169,18 +169,24 @@ class VideoMediaType(MediaType):
                 print(f"Error opening video {file_path}")
                 return None
 
-            frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-            num_frames = min(8, max(1, frame_count))
-            indices = np.linspace(0, frame_count - 1, num_frames, dtype=int)
+            try:
+                frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                if frame_count <= 0:
+                    cap.release()
+                    print(f"Error: could not determine frame count for {file_path}")
+                    return None
+                num_frames = min(8, max(1, frame_count))
+                indices = np.linspace(0, frame_count - 1, num_frames, dtype=int)
 
-            frames = []
-            for idx in indices:
-                cap.set(cv2.CAP_PROP_POS_FRAMES, idx)
-                ret, frame = cap.read()
-                if ret:
-                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    frames.append(Image.fromarray(frame))
-            cap.release()
+                frames = []
+                for idx in indices:
+                    cap.set(cv2.CAP_PROP_POS_FRAMES, idx)
+                    ret, frame = cap.read()
+                    if ret:
+                        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                        frames.append(Image.fromarray(frame))
+            finally:
+                cap.release()
 
             if not frames:
                 print(f"Error: could not extract frames from {file_path}")
@@ -226,10 +232,12 @@ class VideoMediaType(MediaType):
             import cv2  # noqa: PLC0415
 
             cap = cv2.VideoCapture(str(file_path))
-            fps = cap.get(cv2.CAP_PROP_FPS)
-            frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
-            duration = frame_count / fps if fps > 0 else 0.0
-            cap.release()
+            try:
+                fps = cap.get(cv2.CAP_PROP_FPS)
+                frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+                duration = frame_count / fps if fps > 0 else 0.0
+            finally:
+                cap.release()
         except Exception:
             duration = 0.0
         return {"clip_bytes": clip_bytes, "duration": duration}

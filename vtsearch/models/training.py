@@ -380,11 +380,13 @@ def train_and_score(
     X_list = []
     y_list = []
     for cid in good_votes:
-        X_list.append(clips_dict[cid]["embedding"])
-        y_list.append(1.0)
+        if cid in clips_dict:
+            X_list.append(clips_dict[cid]["embedding"])
+            y_list.append(1.0)
     for cid in bad_votes:
-        X_list.append(clips_dict[cid]["embedding"])
-        y_list.append(0.0)
+        if cid in clips_dict:
+            X_list.append(clips_dict[cid]["embedding"])
+            y_list.append(0.0)
 
     X = torch.tensor(np.array(X_list), dtype=torch.float32)
     y = torch.tensor(y_list, dtype=torch.float32).unsqueeze(1)

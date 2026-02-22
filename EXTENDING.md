@@ -254,7 +254,6 @@ addition to its MD5 and label.  This is a superset of the legacy format:
       "category": "dogs"
     }
   ],
-  "dataset_creation_info": { ... }
 }
 ```
 
@@ -508,7 +507,7 @@ class CodeMediaType(MediaType):
         """
         content = file_path.read_text(errors="replace")
         return {
-            "text_content": content,
+            "clip_string": content,
             "duration": 0,
             "line_count": content.count("\n") + 1,
         }
@@ -524,7 +523,7 @@ class CodeMediaType(MediaType):
         text/structured data.
         """
         return jsonify({
-            "content": clip.get("text_content", ""),
+            "content": clip.get("clip_string", ""),
             "line_count": clip.get("line_count", 0),
         })
 ```
@@ -585,8 +584,8 @@ additional changes:
 ### Making dataset export aware of custom clip fields
 
 The existing `export_dataset_to_file()` in `vtsearch/datasets/loader.py`
-serializes a fixed set of keys (`wav_bytes`, `video_bytes`, `image_bytes`,
-`text_content`, `word_count`, `character_count`, `width`, `height`).  If your
+serializes a fixed set of keys (`clip_bytes`, `clip_string`, `word_count`,
+`character_count`, `width`, `height`).  If your
 media type stores clip data under different keys, add those keys to the export
 function so they survive a round-trip through pickle export/import.
 

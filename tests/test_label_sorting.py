@@ -10,7 +10,7 @@ class TestClickTimeTracking:
     """Verify that voting via the API assigns monotonically-increasing click times."""
 
     def test_vote_assigns_click_time(self, client):
-        resp = client.post(f"/api/clips/1/vote", json={"vote": "good"})
+        resp = client.post("/api/clips/1/vote", json={"vote": "good"})
         assert resp.status_code == 200
         assert 1 in vote_click_times
         assert vote_click_times[1] == 1

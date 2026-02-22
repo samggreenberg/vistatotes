@@ -7,7 +7,7 @@ from typing import Any
 from flask import Blueprint, Response, jsonify, request, send_file
 
 from vtsearch.media.base import MediaResponse
-from vtsearch.utils import add_label_to_history, bad_votes, clips, good_votes
+from vtsearch.utils import add_label_to_history, assign_click_time, bad_votes, clips, good_votes, remove_click_time
 
 clips_bp = Blueprint("clips", __name__)
 
@@ -298,18 +298,22 @@ def vote_clip(clip_id: int) -> tuple[Response, int] | Response:
     if vote == "good":
         if clip_id in good_votes:
             good_votes.pop(clip_id, None)
+            remove_click_time(clip_id)
             add_label_to_history(clip_id, "unlabel")
         else:
             bad_votes.pop(clip_id, None)
             good_votes[clip_id] = None
+            assign_click_time(clip_id)
             add_label_to_history(clip_id, "good")
     else:
         if clip_id in bad_votes:
             bad_votes.pop(clip_id, None)
+            remove_click_time(clip_id)
             add_label_to_history(clip_id, "unlabel")
         else:
             good_votes.pop(clip_id, None)
             bad_votes[clip_id] = None
+            assign_click_time(clip_id)
             add_label_to_history(clip_id, "bad")
 
     return jsonify({"ok": True})

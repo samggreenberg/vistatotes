@@ -27,14 +27,17 @@ from vtsearch.utils import (
     build_clip_lookup,
     clips,
     get_inclusion,
+    get_learned_scores,
     get_safe_thresholds,
     get_sort_progress,
     get_textsort_suggestions,
+    get_vote_click_times,
     good_votes,
     label_history,
     resolve_clip_ids,
     set_inclusion,
     set_safe_thresholds,
+    update_learned_scores,
     update_sort_progress,
 )
 
@@ -135,15 +138,21 @@ def learned_sort():
     results, threshold = train_and_score(
         clips, good_votes, bad_votes, get_inclusion(), safe_thresholds=get_safe_thresholds()
     )
+    # Store scores so the /api/votes endpoint can provide confidence info.
+    update_learned_scores({r["id"]: r["score"] for r in results})
     return jsonify({"results": results, "threshold": round(threshold, 4)})
 
 
 @sorting_bp.route("/api/votes")
 def get_votes():
+    click_times = get_vote_click_times()
+    learned_scores = get_learned_scores()
     return jsonify(
         {
             "good": list(good_votes),  # Maintains insertion order (dict keys)
             "bad": list(bad_votes),  # Maintains insertion order (dict keys)
+            "click_times": {str(k): v for k, v in click_times.items()},
+            "learned_scores": {str(k): round(v, 4) for k, v in learned_scores.items()},
         }
     )
 

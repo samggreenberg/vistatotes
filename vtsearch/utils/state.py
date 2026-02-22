@@ -14,6 +14,16 @@ bad_votes: dict[int, None] = {}
 # Tracks the order of all labels across both categories
 label_history: list[tuple[int, str, float]] = []
 
+# Click-time tracking: clip_id -> click order (1-indexed).
+# Assigned when a vote is cast via the API; labels loaded via import get no entry
+# (the frontend treats missing entries as time=-1).
+vote_click_times: dict[int, int] = {}
+_click_counter: int = 0
+
+# Last learned-sort scores: clip_id -> score (float in [0, 1]).
+# Updated each time /api/learned-sort completes.
+last_learned_scores: dict[int, float] = {}
+
 # Inclusion setting: -10 to +10, default 0.
 # ``None`` means "not yet loaded"; on first access the value is read from the
 # persisted settings file so that it survives restarts.
@@ -34,14 +44,18 @@ def clear_votes() -> None:
 
     Removes all entries from ``good_votes``, ``bad_votes``, and
     ``label_history`` in place. Does not affect the ``clips`` dict.
-    Also clears the progress model cache.
+    Also clears the progress model cache and click-time / score tracking.
     """
+    global _click_counter
     from vtsearch.models.progress import clear_progress_cache
 
     good_votes.clear()
     bad_votes.clear()
     label_history.clear()
     textsort_suggestions.clear()
+    vote_click_times.clear()
+    _click_counter = 0
+    last_learned_scores.clear()
     clear_progress_cache()
 
 
@@ -132,6 +146,39 @@ def set_safe_thresholds(value: bool) -> None:
     from vtsearch import settings
 
     settings.set_safe_thresholds(value)
+
+
+def assign_click_time(clip_id: int) -> int:
+    """Assign the next click-time ordinal to a clip and return it.
+
+    Each call increments the global counter so click-times are unique and
+    monotonically increasing.
+    """
+    global _click_counter
+    _click_counter += 1
+    vote_click_times[clip_id] = _click_counter
+    return _click_counter
+
+
+def remove_click_time(clip_id: int) -> None:
+    """Remove the click-time entry for a clip (e.g. when unlabelling)."""
+    vote_click_times.pop(clip_id, None)
+
+
+def get_vote_click_times() -> dict[int, int]:
+    """Return a copy of the click-time mapping."""
+    return vote_click_times.copy()
+
+
+def update_learned_scores(scores: dict[int, float]) -> None:
+    """Replace the stored learned-sort scores with *scores*."""
+    last_learned_scores.clear()
+    last_learned_scores.update(scores)
+
+
+def get_learned_scores() -> dict[int, float]:
+    """Return a copy of the last learned-sort scores."""
+    return last_learned_scores.copy()
 
 
 def add_label_to_history(clip_id: int, label: str) -> None:

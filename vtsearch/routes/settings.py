@@ -31,9 +31,9 @@ settings_bp = Blueprint("settings", __name__)
 def get_settings():
     """Return all settings."""
     data = settings.get_all()
-    # Include CLI command strings for each favorite processor
+    # Include settings JSON snippets for each favorite processor
     for proc in data.get("favorite_processors", []):
-        proc["cli_command"] = settings.to_cli_command(proc)
+        proc["settings_json"] = settings.to_settings_json(proc)
     return jsonify(data)
 
 
@@ -80,7 +80,7 @@ def get_favorite_processors():
     """List all favorite processor recipes."""
     procs = settings.get_favorite_processors()
     for proc in procs:
-        proc["cli_command"] = settings.to_cli_command(proc)
+        proc["settings_json"] = settings.to_settings_json(proc)
     return jsonify({"favorite_processors": procs})
 
 
@@ -106,7 +106,7 @@ def add_favorite_processor():
         "processor_importer": processor_importer,
         "field_values": field_values,
     }
-    entry["cli_command"] = settings.to_cli_command(entry)
+    entry["settings_json"] = settings.to_settings_json(entry)
     return jsonify({"success": True, **entry})
 
 

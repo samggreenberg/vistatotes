@@ -183,50 +183,13 @@ if __name__ == "__main__":
         type=str,
         help="Name of the results exporter to use (e.g. file, email_smtp, gui). Used with --autodetect.",
     )
-    parser.add_argument(
-        "--import-labels",
-        action="store_true",
-        help="Import labels into a loaded dataset from the command line.",
-    )
-    parser.add_argument(
-        "--label-importer",
-        type=str,
-        help="Name of the label importer to use (e.g. json_file, csv_file). Used with --import-labels.",
-    )
-    parser.add_argument(
-        "--import-missing",
-        choices=["yes", "no", "ask"],
-        default="ask",
-        help=(
-            "When --import-labels finds elements not in the dataset: "
-            "'yes' to auto-import from origins, 'no' to skip, 'ask' to prompt (default: ask)."
-        ),
-    )
-    parser.add_argument(
-        "--import-processor",
-        action="store_true",
-        help="Import a processor (detector) via a named processor importer from the command line.",
-    )
-    parser.add_argument(
-        "--processor-importer",
-        type=str,
-        help="Name of the processor importer to use (e.g. detector_file, label_file). Used with --import-processor.",
-    )
-    parser.add_argument(
-        "--processor-name",
-        type=str,
-        help="Name to assign to the imported processor/detector. Used with --import-processor.",
-    )
 
-    # Two-pass parsing: first pass gets --importer, --exporter,
-    # --label-importer, and --processor-importer names; second pass adds
-    # their arguments and re-parses.
+    # Two-pass parsing: first pass gets --importer and --exporter names;
+    # second pass adds their plugin-specific arguments and re-parses.
     args, remaining = parser.parse_known_args()
 
     importer = None
     exporter = None
-    label_importer = None
-    proc_importer = None
 
     if args.autodetect and args.importer:
         from vtsearch.datasets.importers import get_importer, list_importers
@@ -248,60 +211,14 @@ if __name__ == "__main__":
 
         exporter.add_cli_arguments(parser)
 
-    if getattr(args, "import_labels", False) and getattr(args, "label_importer", None):
-        from vtsearch.labels.importers import get_label_importer, list_label_importers
-
-        label_importer = get_label_importer(args.label_importer)
-        if label_importer is None:
-            available = ", ".join(imp.name for imp in list_label_importers())
-            parser.error(f"Unknown label importer: {args.label_importer}. Available: {available}")
-
-        label_importer.add_cli_arguments(parser)
-
-    if getattr(args, "import_processor", False) and getattr(args, "processor_importer", None):
-        from vtsearch.processors.importers import get_processor_importer, list_processor_importers
-
-        proc_importer = get_processor_importer(args.processor_importer)
-        if proc_importer is None:
-            available = ", ".join(imp.name for imp in list_processor_importers())
-            parser.error(f"Unknown processor importer: {args.processor_importer}. Available: {available}")
-
-        proc_importer.add_cli_arguments(parser)
-
-    if importer or exporter or label_importer or proc_importer:
+    if importer or exporter:
         args = parser.parse_args()
     elif remaining:
         # No importer/exporter specified but there are unknown args; let
         # argparse report the error.
         parser.parse_args()
 
-    if getattr(args, "import_processor", False):
-        if not getattr(args, "processor_importer", None):
-            parser.error("--import-processor requires --processor-importer <name>")
-
-        proc_name = getattr(args, "processor_name", None) or ""
-        if not proc_name.strip():
-            parser.error("--import-processor requires --processor-name <name>")
-
-        from vtsearch.cli import import_processor_main
-
-        field_values = {f.key: getattr(args, f.key, f.default or None) for f in proc_importer.fields}
-        import_processor_main(args.processor_importer, field_values, proc_name)
-
-    elif getattr(args, "import_labels", False):
-        if not getattr(args, "label_importer", None):
-            parser.error("--import-labels requires --label-importer <name>")
-        if not args.dataset:
-            parser.error("--import-labels requires --dataset <file.pkl>")
-
-        from vtsearch.cli import import_labels_main
-
-        field_values = {f.key: getattr(args, f.key, f.default or None) for f in label_importer.fields}
-        import_missing_flag = getattr(args, "import_missing", "ask")
-        auto_import_missing = {"yes": True, "no": False, "ask": None}[import_missing_flag]
-        import_labels_main(args.dataset, args.label_importer, field_values, auto_import_missing=auto_import_missing)
-
-    elif args.autodetect:
+    if args.autodetect:
         # Collect exporter field values if an exporter was specified
         exporter_field_values = None
         if exporter:

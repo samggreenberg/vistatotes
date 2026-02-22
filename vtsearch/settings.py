@@ -174,26 +174,26 @@ def remove_favorite_processor(processor_name: str) -> bool:
     return False
 
 
-def to_cli_command(entry: dict[str, Any]) -> str:
-    """Build the CLI command string that would import a favorite processor.
+def to_settings_json(entry: dict[str, Any]) -> str:
+    """Build the JSON snippet for a favorite processor entry.
+
+    Returns the JSON object that would appear inside the
+    ``favorite_processors`` array in a settings file.  Useful for showing
+    users how to recreate this processor configuration.
 
     Example output::
 
-        python app.py --import-processor --processor-importer detector_file \\
-            --processor-name "my detector" --file detector.json
+        {"processor_name": "my detector", "processor_importer": "detector_file",
+         "field_values": {"file": "detector.json"}}
     """
-    parts = [
-        "python app.py --import-processor",
-        f"--processor-importer {entry['processor_importer']}",
-        f'--processor-name "{entry["processor_name"]}"',
-    ]
-    for key, value in entry.get("field_values", {}).items():
-        flag = f"--{key.replace('_', '-')}"
-        if " " in str(value):
-            parts.append(f'{flag} "{value}"')
-        else:
-            parts.append(f"{flag} {value}")
-    return " ".join(parts)
+    import json
+
+    snippet = {
+        "processor_name": entry["processor_name"],
+        "processor_importer": entry["processor_importer"],
+        "field_values": entry.get("field_values", {}),
+    }
+    return json.dumps(snippet)
 
 
 def ensure_favorite_processors_imported() -> list[str]:

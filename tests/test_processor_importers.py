@@ -5,7 +5,6 @@ Covers:
 - Auto-discovery registry (list_processor_importers, get_processor_importer)
 - Built-in importers: detector_file, label_file
 - Flask API routes: GET /api/processor-importers, POST /api/processor-importers/import/<name>
-- CLI import_processor_main function
 """
 
 from __future__ import annotations
@@ -539,39 +538,3 @@ class TestProcessorImportEndpoint:
         assert res.status_code == 400
 
 
-# ---------------------------------------------------------------------------
-# CLI – import_processor_main
-# ---------------------------------------------------------------------------
-
-
-class TestImportProcessorMainCLI:
-    def test_imports_detector_file(self, tmp_path):
-        from vtsearch.cli import import_processor_main
-        from vtsearch.utils import favorite_detectors
-
-        payload = {
-            "weights": {"0.weight": [[1.0, 2.0]], "0.bias": [0.5]},
-            "threshold": 0.8,
-            "media_type": "audio",
-        }
-        p = tmp_path / "test_det.json"
-        p.write_text(json.dumps(payload))
-
-        import_processor_main("detector_file", {"file": str(p)}, "cli_detector")
-        assert "cli_detector" in favorite_detectors
-        assert favorite_detectors["cli_detector"]["threshold"] == 0.8
-
-        # Clean up
-        favorite_detectors.pop("cli_detector", None)
-
-    def test_unknown_importer_exits(self, tmp_path):
-        from vtsearch.cli import import_processor_main
-
-        with pytest.raises(SystemExit):
-            import_processor_main("no_such_importer", {}, "test")
-
-    def test_missing_required_field_exits(self):
-        from vtsearch.cli import import_processor_main
-
-        with pytest.raises(SystemExit):
-            import_processor_main("detector_file", {"file": ""}, "test")

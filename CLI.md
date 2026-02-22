@@ -1,24 +1,26 @@
 # Command-line interface
 
-VTSearch provides several CLI workflows for running detectors, importing labels, and importing processors — all without starting the web server.
+VTSearch provides a CLI workflow for running detectors on datasets and exporting results — all without starting the web server.
 
-## Auto-detect (run a detector on a dataset)
+## Auto-detect (run detectors on a dataset)
 
-Score every item in a dataset with a trained detector and output the items predicted as "Good."
+Score every item in a dataset with your favorite processors (detectors) and output the items predicted as "Good."
+
+Detectors are specified via a **settings file** (`--settings`) that lists favorite processors. Each processor is a recipe referencing a processor importer (e.g. `detector_file` for a pre-trained detector JSON, or `label_file` to train a detector from labeled media). See below for how to create one.
 
 **From a pickle file:**
 
 ```bash
-python app.py --autodetect --dataset path/to/dataset.pkl --detector path/to/detector.json
+python app.py --autodetect --dataset path/to/dataset.pkl --settings settings.json
 ```
 
 **From any supported data source** (folder, HTTP archive, RSS feed, YouTube playlist):
 
 ```bash
-python app.py --autodetect --importer folder --path /data/sounds --media-type sounds --detector detector.json
-python app.py --autodetect --importer http_archive --url https://example.com/data.zip --detector detector.json
-python app.py --autodetect --importer rss_feed --url https://example.com/feed.xml --detector detector.json
-python app.py --autodetect --importer youtube_playlist --url https://youtube.com/playlist?list=... --detector detector.json
+python app.py --autodetect --importer folder --path /data/sounds --media-type sounds --settings settings.json
+python app.py --autodetect --importer http_archive --url https://example.com/data.zip --settings settings.json
+python app.py --autodetect --importer rss_feed --url https://example.com/feed.xml --settings settings.json
+python app.py --autodetect --importer youtube_playlist --url https://youtube.com/playlist?list=... --settings settings.json
 ```
 
 Available importers: `folder`, `pickle`, `http_archive`, `rss_feed`, `youtube_playlist`. Each importer adds its own flags — run `python app.py --autodetect --importer <name> --help` to see them (e.g. `--max-episodes` for RSS, `--max-videos` for YouTube).
@@ -26,16 +28,44 @@ Available importers: `folder`, `pickle`, `http_archive`, `rss_feed`, `youtube_pl
 **Exporting results** — by default results are printed to the console. Add `--exporter <name>` to send them elsewhere:
 
 ```bash
-python app.py --autodetect --dataset data.pkl --detector detector.json --exporter file --filepath results.json
-python app.py --autodetect --dataset data.pkl --detector detector.json --exporter csv --filepath results.csv
-python app.py --autodetect --dataset data.pkl --detector detector.json --exporter webhook --url https://example.com/hook
+python app.py --autodetect --dataset data.pkl --settings settings.json --exporter file --filepath results.json
+python app.py --autodetect --dataset data.pkl --settings settings.json --exporter csv_file --filepath results.csv
+python app.py --autodetect --dataset data.pkl --settings settings.json --exporter webhook --url https://example.com/hook
 ```
 
-Available exporters: `file` (JSON), `csv` (CSV), `webhook` (HTTP POST), `email_smtp`, `gui` (default — print to console).
+Available exporters: `file` (JSON), `csv_file` (CSV), `webhook` (HTTP POST), `email_smtp`, `gui` (default — print to console).
 
 **How to get the files:**
 
 - **Dataset file** — Export from the web UI via the dataset menu ("Export dataset"), or use a cached `.pkl` file from the `data/embeddings/` directory after loading a demo dataset.
+- **Settings file** — A JSON file listing favorite processors. Each processor references a processor importer and its field values. Example:
+
+```json
+{
+  "favorite_processors": [
+    {
+      "processor_name": "my detector",
+      "processor_importer": "detector_file",
+      "field_values": { "file": "path/to/detector.json" }
+    }
+  ]
+}
+```
+
+To use a labelset (labeled media) as a detector, use the `label_file` processor importer — VTSearch will load the referenced media clips, compute their embeddings, train a model, and use that as a detector:
+
+```json
+{
+  "favorite_processors": [
+    {
+      "processor_name": "trained from labels",
+      "processor_importer": "label_file",
+      "field_values": { "file": "path/to/labels.json" }
+    }
+  ]
+}
+```
+
 - **Detector file** — In the web UI, vote on some items, then export a detector from the sorting panel. Save the returned JSON to a file. You can also use a favorite detector exported via the API (`POST /api/detector/export`).
 
 **Example output:**
@@ -49,37 +79,6 @@ Predicted Good (5 items):
   1-22694-A-4.wav  (score: 0.7612, category: dog)
   1-77445-A-1.wav  (score: 0.6204, category: cat)
 ```
-
-## Import labels
-
-Apply voting labels (good/bad) to items in an existing dataset. Useful for batch-labeling from an external source.
-
-```bash
-python app.py --import-labels --dataset data.pkl --label-importer json_file --file labels.json
-python app.py --import-labels --dataset data.pkl --label-importer csv_file --file labels.csv
-```
-
-Available label importers: `json_file`, `csv_file`.
-
-When the label file references items not present in the dataset, you are prompted whether to import them from their origins. Use `--import-missing yes|no|ask` to control this (default: `ask`).
-
-## Import a processor (detector)
-
-Import or train a detector from the command line and save it as a favorite processor for later use.
-
-**Load a pre-trained detector from JSON:**
-
-```bash
-python app.py --import-processor --processor-importer detector_file --processor-name "my detector" --file detector.json
-```
-
-**Train a new detector from labeled media files:**
-
-```bash
-python app.py --import-processor --processor-importer label_file --processor-name "trained" --file labels.json --media-type audio
-```
-
-Available processor importers: `detector_file`, `label_file`.
 
 ## Development mode
 

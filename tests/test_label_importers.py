@@ -5,7 +5,6 @@ Covers:
 - Auto-discovery registry (list_label_importers, get_label_importer)
 - Built-in importers: json_file, csv_file
 - Flask API routes: GET /api/label-importers, POST /api/label-importers/import/<name>
-- CLI import_labels_main function
 """
 
 from __future__ import annotations

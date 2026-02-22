@@ -11,16 +11,14 @@ Media explorer web app for browsing/voting on audio, images, or text. Semantic s
 - **Start app**: `bash .claude/hooks/ensure-test-deps.sh && python app.py` (or `python app.py --local` for dev)
 - **CLI autodetect**: `bash .claude/hooks/ensure-test-deps.sh && python app.py --autodetect --dataset <file.pkl> --settings <settings.json>`
 - **CLI autodetect + exporter**: `bash .claude/hooks/ensure-test-deps.sh && python app.py --autodetect --dataset <file.pkl> --settings <settings.json> --exporter file --filepath results.json`
-- **CLI label import**: `bash .claude/hooks/ensure-test-deps.sh && python app.py --import-labels --dataset <file.pkl> --label-importer json_file --file labels.json`
-- **CLI label import (CSV)**: `bash .claude/hooks/ensure-test-deps.sh && python app.py --import-labels --dataset <file.pkl> --label-importer csv_file --file labels.csv`
-- **CLI processor import**: `bash .claude/hooks/ensure-test-deps.sh && python app.py --import-processor --processor-importer detector_file --processor-name "my detector" --file detector.json`
+- **CLI autodetect + importer**: `bash .claude/hooks/ensure-test-deps.sh && python app.py --autodetect --importer folder --path /data/sounds --media-type sounds --settings <settings.json>`
 - **Install deps**: `pip install -r requirements-cpu.txt` (or `requirements-gpu.txt`)
 - **Lint**: `ruff check .`
 - **Format**: `ruff format .`
 
 ## Architecture
 - `app.py` — Flask entry point, registers blueprints, startup logic, CLI argument parsing
-- `vtsearch/cli.py` — CLI utilities: autodetect (load dataset + detector, run inference, export results), import_labels_main (load dataset + label importer), import_processor_main (import detector via processor importer)
+- `vtsearch/cli.py` — CLI utilities: autodetect (load dataset + detectors from settings, run inference, export results)
 - `config.py` — Constants (SAMPLE_RATE, NUM_CLIPS, paths, model IDs)
 - `vtsearch/routes/` — Flask blueprints: `main.py`, `clips.py`, `sorting.py`, `detectors.py`, `datasets.py`, `exporters.py`, `label_importers.py`, `processor_importers.py`
 - `vtsearch/models/` — Embeddings, training, model loading, progress tracking
@@ -51,7 +49,7 @@ Media explorer web app for browsing/voting on audio, images, or text. Semantic s
   - `test_importers.py` — Importer base class, HTTP archive/folder importer metadata, archive extraction
   - `test_extractors.py` — Image class extractor
   - `test_processors.py` — Media processor tests
-  - `test_processor_importers.py` — Processor importer base class, registry, detector_file/label_file importers, API routes, CLI
+  - `test_processor_importers.py` — Processor importer base class, registry, detector_file/label_file importers, API routes
   - `test_origin_labelset.py` — Origin class, LabeledElement, LabelSet, build_origin(), label export/import with origins, integration
   - `test_gpu.py` — GPU tests: training, cross-calibration, detectors, embedding models (CLAP/CLIP/X-CLIP/E5), CPU↔GPU equivalence, memory cleanup (skipped without CUDA)
 

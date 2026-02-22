@@ -1,4 +1,11 @@
-"""Command-line interface utilities for VTSearch."""
+"""Command-line interface utilities for VTSearch.
+
+The only CLI workflow is autodetect: load a dataset (from pickle or via an
+importer), score it against favourite processors from a settings file, and
+export the results.  Datasets, detectors, and labelsets are loaded
+indirectly as part of this workflow — there are no standalone CLI commands
+for importing them individually.
+"""
 
 from __future__ import annotations
 
@@ -432,113 +439,6 @@ def autodetect_main(
         sys.exit(1)
 
 
-def import_labels_main(
-    dataset_path: str,
-    label_importer_name: str,
-    field_values: dict[str, Any],
-    *,
-    auto_import_missing: bool | None = None,
-) -> None:
-    """CLI entry point: load a dataset and import labels via a named label importer.
-
-    Prints a summary of applied and skipped labels to stdout.
-    Exits with code 0 on success, 1 on error.
-
-    When label entries reference elements not present in the dataset (neither
-    by origin+name nor md5), the user is prompted whether to import the
-    missing clips from their origins.  Pass *auto_import_missing* to bypass
-    the prompt (``True`` to always import, ``False`` to always skip).
-
-    Args:
-        dataset_path: Path to the dataset pickle file.
-        label_importer_name: Registered name of the label importer.
-        field_values: Mapping of label importer field keys to their CLI values.
-        auto_import_missing: If ``True``/``False``, skip the interactive
-            prompt and automatically import/skip missing entries.
-    """
-    try:
-        from vtsearch.labels.importers import get_label_importer
-
-        label_importer = get_label_importer(label_importer_name)
-        if label_importer is None:
-            from vtsearch.labels.importers import list_label_importers
-
-            available = ", ".join(imp.name for imp in list_label_importers())
-            raise ValueError(f"Unknown label importer: {label_importer_name}. Available: {available}")
-
-        label_importer.validate_cli_field_values(field_values)
-
-        dataset_file = Path(dataset_path)
-        if not dataset_file.exists():
-            raise FileNotFoundError(f"Dataset file not found: {dataset_path}")
-
-        clips: dict[int, dict[str, Any]] = {}
-        load_dataset_from_pickle(dataset_file, clips)
-        if not clips:
-            raise ValueError(f"No clips loaded from dataset: {dataset_path}")
-
-        label_entries = label_importer.run_cli(field_values)
-        if not isinstance(label_entries, list):
-            raise ValueError("Label importer did not return a list of label dicts.")
-
-        # Apply labels by origin+origin_name and md5 matching (union)
-        from vtsearch.utils import build_clip_lookup, find_missing_entries, resolve_clip_ids
-
-        origin_lookup, md5_lookup = build_clip_lookup(clips)
-        applied = 0
-        skipped = 0
-        for entry in label_entries:
-            label = entry.get("label", "")
-            if label not in ("good", "bad"):
-                skipped += 1
-                continue
-            cids = resolve_clip_ids(entry, origin_lookup, md5_lookup)
-            if not cids:
-                skipped += 1
-                continue
-            applied += 1
-
-        # Detect entries not matched by origin+name or md5
-        missing = find_missing_entries(label_entries, origin_lookup, md5_lookup)
-        skipped -= len(missing)
-
-        print(f"Applied {applied} label(s), skipped {skipped}.")
-
-        if missing:
-            should_import = auto_import_missing
-            if should_import is None:
-                # Interactive prompt
-                answer = input(
-                    f"{len(missing)} element(s) not found in dataset. "
-                    "Import them from their origins? [y/N] "
-                ).strip().lower()
-                should_import = answer in ("y", "yes")
-
-            if should_import:
-                from vtsearch.datasets.ingest import ingest_missing_clips
-
-                def _cli_progress(status: str, message: str, current: int, total: int) -> None:
-                    if message:
-                        print(message)
-
-                ingested = ingest_missing_clips(missing, clips, on_progress=_cli_progress)
-
-                # Apply labels to the newly ingested clips
-                origin_lookup2, md5_lookup2 = build_clip_lookup(clips)
-                extra_applied = 0
-                for entry in missing:
-                    cids = resolve_clip_ids(entry, origin_lookup2, md5_lookup2)
-                    if cids:
-                        extra_applied += 1
-                print(f"Ingested {ingested} clip(s), applied {extra_applied} additional label(s).")
-            else:
-                print(f"Skipped {len(missing)} missing element(s).")
-
-    except (FileNotFoundError, ValueError) as e:
-        print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)
-
-
 def autodetect_importer_main(
     importer_name: str,
     field_values: dict[str, Any],
@@ -602,56 +502,3 @@ def autodetect_importer_main(
         sys.exit(1)
 
 
-def import_processor_main(
-    processor_importer_name: str,
-    field_values: dict[str, Any],
-    processor_name: str,
-) -> None:
-    """CLI entry point: import a processor (detector) via a named processor importer.
-
-    Runs the processor importer and saves the result as a favorite detector.
-    Prints a summary to stdout.  Exits with code 0 on success, 1 on error.
-
-    Args:
-        processor_importer_name: Registered name of the processor importer.
-        field_values: Mapping of importer field keys to their CLI values.
-        processor_name: Name to assign to the imported detector.
-    """
-    try:
-        from vtsearch.processors.importers import get_processor_importer
-
-        proc_importer = get_processor_importer(processor_importer_name)
-        if proc_importer is None:
-            from vtsearch.processors.importers import list_processor_importers
-
-            available = ", ".join(imp.name for imp in list_processor_importers())
-            raise ValueError(f"Unknown processor importer: {processor_importer_name}. Available: {available}")
-
-        proc_importer.validate_cli_field_values(field_values)
-        result = proc_importer.run_cli(field_values)
-
-        if not isinstance(result, dict):
-            raise ValueError("Processor importer did not return a dict.")
-
-        media_type = result.get("media_type", "audio")
-        weights = result.get("weights")
-        threshold = result.get("threshold", 0.5)
-
-        if not weights:
-            raise ValueError("Processor importer result missing 'weights'.")
-
-        from vtsearch.utils import add_favorite_detector
-
-        add_favorite_detector(processor_name, media_type, weights, threshold)
-
-        loaded = result.get("loaded", "")
-        skipped = result.get("skipped", "")
-        extra = ""
-        if loaded:
-            extra += f", loaded {loaded} files"
-        if skipped:
-            extra += f", skipped {skipped}"
-        print(f"Imported detector '{processor_name}' ({media_type}{extra}).")
-    except (FileNotFoundError, ValueError) as e:
-        print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)

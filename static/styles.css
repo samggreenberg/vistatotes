@@ -140,7 +140,7 @@ header h1 { margin-left: 48px; }
 .sort-progress-fill { height: 100%; width: 30%; background: linear-gradient(90deg, var(--accent), var(--accent-light)); border-radius: 3px; position: absolute; animation: sort-progress-slide 1.2s ease-in-out infinite; transition: width 0.2s; }
 .sort-progress-fill.determinate { animation: none; left: 0; }
 @keyframes sort-progress-slide { 0% { left: -30%; } 100% { left: 100%; } }
-.sort-progress-label { font-size: 0.7rem; color: var(--text-muted); margin-top: 3px; text-align: center; }
+.sort-progress-label { font-size: 0.7rem; color: var(--text-muted); margin-top: 3px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #clip-list { overflow-y: auto; flex: 1; }
 .clip-item { padding: 10px 16px; cursor: pointer; font-size: 0.9rem; border-bottom: 1px solid var(--border-subtle); transition: background 0.15s; border-left: 3px solid transparent; }
 .clip-item:hover { background: var(--bg-subtle); }
@@ -235,7 +235,8 @@ video { max-width: 600px; max-height: 400px; }
 .progress-fill.indeterminate { width: 30% !important; animation: indeterminate 1.5s ease-in-out infinite; }
 @keyframes indeterminate { 0% { margin-left: 0%; } 50% { margin-left: 70%; } 100% { margin-left: 0%; } }
 .progress-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.75rem; color: #fff; font-weight: bold; }
-.progress-message { font-size: 0.85rem; color: var(--text-secondary); margin-top: 8px; text-align: center; }
+.progress-message { font-size: 0.85rem; color: var(--text-secondary); margin-top: 8px; text-align: center; width: 100%; max-width: 500px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.progress-eta { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; text-align: center; min-height: 1.1em; }
 .demo-datasets { display: grid; grid-template-columns: repeat(4, minmax(180px, 1fr)); gap: 16px; width: 100%; margin-top: 16px; }
 .demo-column { display: flex; flex-direction: column; gap: 8px; }
 .demo-column-header { font-size: 0.7rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; padding-bottom: 6px; border-bottom: 1px solid var(--border); margin-bottom: 2px; }

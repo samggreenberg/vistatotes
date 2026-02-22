@@ -496,6 +496,14 @@
       // Extended importers are optional – silently ignore failures.
     }
 
+    // Append the Combine Existing Datasets button
+    const combineBtnEl = document.createElement("button");
+    combineBtnEl.className = "dataset-option";
+    combineBtnEl.id = "combine-datasets-btn";
+    combineBtnEl.innerHTML = `<h3>\uD83D\uDD00 Combine Existing Datasets</h3><p>Merge multiple .pkl datasets into one, skipping duplicates</p>`;
+    combineBtnEl.addEventListener("click", () => showCombineDatasetsForm());
+    datasetOptions.appendChild(combineBtnEl);
+
     // Append the Load Demo Dataset button after all dynamic importers
     const demoBtnEl = document.createElement("button");
     demoBtnEl.className = "dataset-option";
@@ -663,6 +671,138 @@
       startProgressPolling();
       try {
         const res = await fetch(`/api/dataset/import/${importer.name}`, { method: "POST", headers, body });
+        if (!res.ok) {
+          const err = await res.json();
+          progressMessage.textContent = `Error: ${err.error}`;
+          progressMessage.style.color = "var(--color-bad)";
+          stopProgressPolling();
+        }
+      } catch (err) {
+        progressMessage.textContent = `Error: ${err.message}`;
+        progressMessage.style.color = "var(--color-bad)";
+        stopProgressPolling();
+      }
+    });
+  }
+
+  // ---- Combine Existing Datasets UI ----
+
+  async function showCombineDatasetsForm() {
+    datasetOptions.style.display = "none";
+    backButton.style.display = "block";
+
+    const inputStyle = "width:100%;padding:8px;background:var(--bg-hover);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);box-sizing:border-box;";
+
+    let html = `<div style="max-width:420px;width:100%;margin:0 auto;">`;
+    html += `<h3 style="margin-bottom:16px;color:var(--text-primary);">\uD83D\uDD00 Combine Existing Datasets</h3>`;
+    html += `<p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px;">Select two or more datasets to merge. All must be the same media type. Duplicates are skipped automatically.</p>`;
+    html += `<div id="combine-dataset-list" style="margin-bottom:14px;"><p style="color:var(--text-dim);font-size:0.85rem;">Loading available datasets...</p></div>`;
+    html += `<div style="margin-bottom:14px;">`;
+    html += `<label style="display:block;margin-bottom:5px;color:var(--text-secondary);font-size:0.85rem;">Or add a .pkl file path</label>`;
+    html += `<div style="display:flex;gap:8px;">`;
+    html += `<input type="text" id="combine-extra-path" placeholder="/path/to/dataset.pkl" style="${inputStyle}flex:1;">`;
+    html += `<button type="button" id="combine-add-path-btn" style="padding:8px 14px;background:var(--bg-hover);border:1px solid var(--border);border-radius:4px;color:var(--text-secondary);cursor:pointer;white-space:nowrap;">Add</button>`;
+    html += `</div></div>`;
+    html += `<div id="combine-extra-paths" style="margin-bottom:14px;"></div>`;
+    html += `<button type="button" id="combine-submit-btn" style="width:100%;padding:10px;background:var(--accent);border:none;border-radius:4px;color:#fff;cursor:pointer;font-size:0.9rem;" disabled>Select at least 2 datasets</button>`;
+    html += `</div>`;
+
+    extendedImporterForm.innerHTML = html;
+    extendedImporterForm.style.display = "block";
+
+    const listDiv = document.getElementById("combine-dataset-list");
+    const submitBtn = document.getElementById("combine-submit-btn");
+    const extraPathInput = document.getElementById("combine-extra-path");
+    const addPathBtn = document.getElementById("combine-add-path-btn");
+    const extraPathsDiv = document.getElementById("combine-extra-paths");
+    const extraPaths = [];
+
+    function updateSubmitState() {
+      const checked = listDiv.querySelectorAll("input[type=checkbox]:checked");
+      const total = checked.length + extraPaths.length;
+      if (total >= 2) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = `Combine ${total} Datasets`;
+      } else {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Select at least 2 datasets";
+      }
+    }
+
+    // Fetch available datasets
+    try {
+      const res = await fetch("/api/dataset/available-files");
+      if (!res.ok) throw new Error("Failed to fetch");
+      const data = await res.json();
+
+      if (data.files.length === 0) {
+        listDiv.innerHTML = `<p style="color:var(--text-dim);font-size:0.85rem;">No saved datasets found. Add file paths below.</p>`;
+      } else {
+        let listHtml = "";
+        for (const file of data.files) {
+          listHtml += `<label style="display:flex;align-items:center;padding:8px;margin-bottom:4px;background:var(--bg-hover);border-radius:4px;cursor:pointer;">`;
+          listHtml += `<input type="checkbox" data-path="${escapeHtml(file.path)}" style="margin-right:10px;">`;
+          listHtml += `<span style="flex:1;color:var(--text-primary);font-size:0.9rem;">${escapeHtml(file.name)}</span>`;
+          listHtml += `<span style="color:var(--text-dim);font-size:0.75rem;">${file.size_mb} MB</span>`;
+          listHtml += `</label>`;
+        }
+        listDiv.innerHTML = listHtml;
+        listDiv.querySelectorAll("input[type=checkbox]").forEach(cb => {
+          cb.addEventListener("change", updateSubmitState);
+        });
+      }
+    } catch (_) {
+      listDiv.innerHTML = `<p style="color:var(--text-dim);font-size:0.85rem;">Could not load available datasets. Add file paths below.</p>`;
+    }
+
+    // Handle adding extra file paths
+    function addExtraPath() {
+      const val = extraPathInput.value.trim();
+      if (!val) return;
+      extraPaths.push(val);
+      extraPathInput.value = "";
+      renderExtraPaths();
+      updateSubmitState();
+    }
+
+    function renderExtraPaths() {
+      let html = "";
+      extraPaths.forEach((p, i) => {
+        html += `<div style="display:flex;align-items:center;padding:6px 8px;margin-bottom:4px;background:var(--bg-hover);border-radius:4px;">`;
+        html += `<span style="flex:1;color:var(--text-primary);font-size:0.85rem;word-break:break-all;">${escapeHtml(p)}</span>`;
+        html += `<button type="button" data-remove-idx="${i}" style="background:none;border:none;color:var(--color-bad);cursor:pointer;font-size:1rem;padding:0 4px;">&times;</button>`;
+        html += `</div>`;
+      });
+      extraPathsDiv.innerHTML = html;
+      extraPathsDiv.querySelectorAll("[data-remove-idx]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          extraPaths.splice(parseInt(btn.dataset.removeIdx), 1);
+          renderExtraPaths();
+          updateSubmitState();
+        });
+      });
+    }
+
+    addPathBtn.addEventListener("click", addExtraPath);
+    extraPathInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); addExtraPath(); }
+    });
+
+    // Handle submit
+    submitBtn.addEventListener("click", async () => {
+      const checkedPaths = Array.from(listDiv.querySelectorAll("input[type=checkbox]:checked"))
+        .map(cb => cb.dataset.path);
+      const allPaths = [...checkedPaths, ...extraPaths];
+
+      if (allPaths.length < 2) return;
+
+      startProgressPolling();
+      try {
+        const res = await fetch("/api/dataset/combine", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ datasets: allPaths }),
+        });
         if (!res.ok) {
           const err = await res.json();
           progressMessage.textContent = `Error: ${err.error}`;

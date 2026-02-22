@@ -35,7 +35,7 @@ datasets_bp = Blueprint("datasets", __name__)
 # Names of importers that have dedicated, hand-crafted UI sections in the
 # frontend.  They are excluded from the generic /api/dataset/importers list
 # so the frontend doesn't render a duplicate panel for them.
-_BUILTIN_IMPORTER_NAMES = {"pickle"}
+_BUILTIN_IMPORTER_NAMES = {"pickle", "combine_datasets"}
 
 
 def _load_embedder_for_clips() -> None:
@@ -167,6 +167,67 @@ def dataset_importers():
     """
     extended = [imp.to_dict() for imp in list_importers() if imp.name not in _BUILTIN_IMPORTER_NAMES]
     return jsonify({"importers": extended})
+
+
+# ---------------------------------------------------------------------------
+# Available dataset files (for the Combine Existing Datasets UI)
+# ---------------------------------------------------------------------------
+
+
+@datasets_bp.route("/api/dataset/available-files")
+def available_dataset_files():
+    """List ``.pkl`` files in the embeddings directory.
+
+    Returns a JSON object::
+
+        {
+          "files": [
+            {"name": "esc50_animals.pkl", "path": "/abs/path/to/esc50_animals.pkl", "size_mb": 12.3},
+            ...
+          ]
+        }
+    """
+    files = []
+    if EMBEDDINGS_DIR.exists():
+        for pkl in sorted(EMBEDDINGS_DIR.glob("*.pkl")):
+            files.append(
+                {
+                    "name": pkl.stem,
+                    "path": str(pkl),
+                    "size_mb": round(pkl.stat().st_size / (1024 * 1024), 1),
+                }
+            )
+    return jsonify({"files": files})
+
+
+@datasets_bp.route("/api/dataset/combine", methods=["POST"])
+def combine_datasets_route():
+    """Combine multiple pickle datasets in a background thread.
+
+    Expects a JSON body with a ``"datasets"`` key containing a list of
+    absolute paths to ``.pkl`` files::
+
+        {"datasets": ["/path/to/a.pkl", "/path/to/b.pkl"]}
+
+    Returns ``{"ok": true}`` immediately; poll ``/api/dataset/progress``
+    to track progress.
+    """
+    body = request.get_json(force=True) or {}
+    dataset_paths = body.get("datasets", [])
+
+    if not isinstance(dataset_paths, list) or len(dataset_paths) < 2:
+        return jsonify({"error": "Provide at least two dataset file paths."}), 400
+
+    for p in dataset_paths:
+        if not Path(p).exists():
+            return jsonify({"error": f"File not found: {p}"}), 404
+
+    importer = get_importer("combine_datasets")
+    if importer is None:
+        return jsonify({"error": "combine_datasets importer not available"}), 500
+
+    _run_importer_in_background(importer, {"datasets": dataset_paths})
+    return jsonify({"ok": True, "message": "Combining datasets..."})
 
 
 # ---------------------------------------------------------------------------

@@ -20,6 +20,7 @@ from vtsearch.utils.state import (
     get_favorite_extractors,
     get_favorite_extractors_by_media,
     get_inclusion,
+    get_safe_thresholds,
     get_textsort_suggestions,
     good_votes,
     inclusion,
@@ -31,6 +32,7 @@ from vtsearch.utils.state import (
     rename_favorite_extractor,
     resolve_clip_ids,
     set_inclusion,
+    set_safe_thresholds,
     textsort_suggestions,
 )
 
@@ -53,6 +55,8 @@ __all__ = [
     "clear_all",
     "get_inclusion",
     "set_inclusion",
+    "get_safe_thresholds",
+    "set_safe_thresholds",
     "add_label_to_history",
     "textsort_suggestions",
     "add_textsort_suggestion",

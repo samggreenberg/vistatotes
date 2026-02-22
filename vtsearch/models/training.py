@@ -311,11 +311,47 @@ def calculate_cross_calibration_threshold(
     return (t1 + t2) / 2.0
 
 
+def calculate_safe_threshold(
+    xcal_threshold: float,
+    all_scores: list[float],
+    n_labels: int,
+) -> float:
+    """Blend cross-calibration and GMM thresholds for robustness with small label counts.
+
+    When few labels are available the cross-calibration threshold can be unreliable.
+    This function computes a GMM-based threshold on the full score distribution and
+    returns a weighted average of the two, where the weight assigned to x-cal grows
+    linearly with the number of labels.
+
+    Blending rules:
+        * ``n_labels < 6``  → pure GMM threshold.
+        * ``n_labels >= 20`` → pure x-cal threshold.
+        * In between → linear interpolation.
+
+    Args:
+        xcal_threshold: The cross-calibrated threshold.
+        all_scores: Model output scores for all clips (used for GMM fitting).
+        n_labels: Total number of labelled examples (good + bad).
+
+    Returns:
+        A blended threshold float.
+    """
+    gmm_threshold = calculate_gmm_threshold(all_scores)
+
+    # Linear ramp: 0 at 6 labels, 1 at 20 labels
+    MIN_LABELS = 6
+    MAX_LABELS = 20
+    label_weight = max(0.0, min(1.0, (n_labels - MIN_LABELS) / (MAX_LABELS - MIN_LABELS)))
+
+    return label_weight * xcal_threshold + (1.0 - label_weight) * gmm_threshold
+
+
 def train_and_score(
     clips_dict: dict[int, dict[str, Any]],
     good_votes: dict[int, None],
     bad_votes: dict[int, None],
     inclusion_value: int = 0,
+    safe_thresholds: bool = False,
 ) -> tuple[list[dict[str, Any]], float]:
     """Train a small MLP on voted clip embeddings and score every clip.
 
@@ -330,13 +366,16 @@ def train_and_score(
         bad_votes: Dict whose keys are clip IDs labelled as bad (values are ``None``).
         inclusion_value: Integer in ``[-10, 10]`` passed to the training and
             threshold-finding functions to control the inclusion/exclusion bias.
+        safe_thresholds: When ``True``, blend the cross-calibration threshold with
+            a GMM-based threshold for robustness when few labels are available.
 
     Returns:
         A tuple ``(results, threshold)`` where:
 
         - ``results`` is a list of ``{"id": int, "score": float}`` dicts, sorted
           by score in descending order (highest confidence first).
-        - ``threshold`` is the cross-calibrated decision boundary as a float.
+        - ``threshold`` is the decision boundary as a float (cross-calibrated,
+          or blended with GMM when ``safe_thresholds`` is ``True``).
     """
     X_list = []
     y_list = []
@@ -364,6 +403,10 @@ def train_and_score(
     X_all = torch.tensor(all_embs, dtype=torch.float32)
     with torch.no_grad():
         scores = torch.sigmoid(model(X_all)).squeeze(1).tolist()
+
+    if safe_thresholds:
+        n_labels = len(good_votes) + len(bad_votes)
+        threshold = calculate_safe_threshold(threshold, scores, n_labels)
 
     # Sort by raw scores (full precision) so that tiny differences still
     # affect ordering.  Round only for the JSON response values.

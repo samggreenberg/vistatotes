@@ -40,6 +40,7 @@ _DEFAULTS: dict[str, Any] = {
     "inclusion": 0,
     "theme": "dark",
     "enrich_descriptions": False,
+    "safe_thresholds": False,
     "favorite_processors": [],
 }
 
@@ -133,6 +134,18 @@ def set_enrich_descriptions(value: bool) -> None:
     """Set and persist the enrich_descriptions flag."""
     s = _ensure_loaded()
     s["enrich_descriptions"] = bool(value)
+    _save(s)
+
+
+def get_safe_thresholds() -> bool:
+    """Return whether safe thresholds blending is enabled."""
+    return bool(_ensure_loaded().get("safe_thresholds", _DEFAULTS["safe_thresholds"]))
+
+
+def set_safe_thresholds(value: bool) -> None:
+    """Set and persist the safe_thresholds flag."""
+    s = _ensure_loaded()
+    s["safe_thresholds"] = bool(value)
     _save(s)
 
 

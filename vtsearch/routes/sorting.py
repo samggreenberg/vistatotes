@@ -13,6 +13,7 @@ from vtsearch.models import (
     build_model,
     calculate_cross_calibration_threshold,
     calculate_gmm_threshold,
+    calculate_safe_threshold,
     compute_labeling_status,
     embed_audio_file,
     embed_text_query,
@@ -27,12 +28,14 @@ from vtsearch.utils import (
     build_clip_lookup,
     clips,
     get_inclusion,
+    get_safe_thresholds,
     get_sort_progress,
     get_textsort_suggestions,
     good_votes,
     label_history,
     resolve_clip_ids,
     set_inclusion,
+    set_safe_thresholds,
     update_sort_progress,
 )
 
@@ -130,7 +133,9 @@ def learned_sort():
     """Train MLP on voted clips, return all clips sorted by predicted score."""
     if not good_votes or not bad_votes:
         return jsonify({"error": "need at least one good and one bad vote"}), 400
-    results, threshold = train_and_score(clips, good_votes, bad_votes, get_inclusion())
+    results, threshold = train_and_score(
+        clips, good_votes, bad_votes, get_inclusion(), safe_thresholds=get_safe_thresholds()
+    )
     return jsonify({"results": results, "threshold": round(threshold, 4)})
 
 
@@ -244,6 +249,27 @@ def set_inclusion_route():
     set_inclusion(new_inclusion)
 
     return jsonify({"inclusion": get_inclusion()})
+
+
+@sorting_bp.route("/api/safe-thresholds")
+def get_safe_thresholds_route():
+    """Get the current Safe Thresholds setting."""
+    return jsonify({"safe_thresholds": get_safe_thresholds()})
+
+
+@sorting_bp.route("/api/safe-thresholds", methods=["POST"])
+def set_safe_thresholds_route():
+    """Set the Safe Thresholds setting."""
+    data = request.get_json(force=True)
+    if data is None:
+        return jsonify({"error": "Invalid request body"}), 400
+
+    value = data.get("safe_thresholds")
+    if not isinstance(value, bool):
+        return jsonify({"error": "safe_thresholds must be a boolean"}), 400
+
+    set_safe_thresholds(value)
+    return jsonify({"safe_thresholds": get_safe_thresholds()})
 
 
 @sorting_bp.route("/api/example-sort", methods=["POST"])
@@ -393,6 +419,10 @@ def label_file_sort():
         X_all = torch.tensor(all_embs, dtype=torch.float32)
         with torch.no_grad():
             scores = torch.sigmoid(model(X_all)).squeeze(1).tolist()
+
+        # Apply safe thresholds blending if enabled
+        if get_safe_thresholds():
+            threshold = calculate_safe_threshold(threshold, scores, len(y_list))
 
         # Sort by raw scores (full precision) before rounding for display.
         paired = sorted(zip(all_ids, scores), key=lambda x: x[1], reverse=True)

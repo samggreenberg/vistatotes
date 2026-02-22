@@ -27,6 +27,7 @@ import torch
 
 from vtsearch.models.training import (
     calculate_cross_calibration_threshold,
+    calculate_safe_threshold,
     train_model,
 )
 
@@ -119,6 +120,7 @@ def simulate_voting_iterations(
     dataset_name: str = "",
     inclusion: int = 0,
     sim_fraction: float = 0.5,
+    safe_thresholds: bool = False,
 ) -> list[dict[str, Any]]:
     """Simulate voting on *clips_dict* and evaluate at every step.
 
@@ -129,6 +131,8 @@ def simulate_voting_iterations(
         dataset_name: Label included in result rows.
         inclusion: Inclusion setting in ``[-10, 10]``.
         sim_fraction: Fraction of clips used for simulated voting.
+        safe_thresholds: When ``True``, blend the cross-calibration threshold
+            with a GMM-based threshold for robustness with small label counts.
 
     Returns:
         List of row dicts with keys
@@ -146,6 +150,12 @@ def simulate_voting_iterations(
         return []
 
     vote_seq = _make_vote_sequence(sim_ids, clips_dict, target_category, rng)
+
+    # Pre-compute all-clip embeddings for safe threshold GMM scoring
+    if safe_thresholds:
+        all_clip_ids = sorted(clips_dict.keys())
+        all_clip_embs = np.array([clips_dict[cid]["embedding"] for cid in all_clip_ids])
+        X_all_clips = torch.tensor(all_clip_embs, dtype=torch.float32)
 
     good_votes: dict[int, None] = {}
     bad_votes: dict[int, None] = {}
@@ -179,6 +189,13 @@ def simulate_voting_iterations(
         threshold = calculate_cross_calibration_threshold(X_list, y_list, input_dim, inclusion, rng=rng)
         model = train_model(X, y, input_dim, inclusion)
 
+        # Apply safe threshold blending if enabled
+        if safe_thresholds:
+            with torch.no_grad():
+                all_scores = torch.sigmoid(model(X_all_clips)).squeeze(1).tolist()
+            n_labels = len(good_votes) + len(bad_votes)
+            threshold = calculate_safe_threshold(threshold, all_scores, n_labels)
+
         # Evaluate on held-out test set
         metrics = _evaluate_on_test(model, threshold, clips_dict, test_ids, target_category, inclusion)
 
@@ -206,6 +223,7 @@ def run_voting_iterations_eval(
     categories: Optional[dict[str, list[str]]] = None,
     inclusion: int = 0,
     sim_fraction: float = 0.5,
+    safe_thresholds: bool = False,
 ) -> pd.DataFrame:
     """Run the voting-iterations evaluation over multiple seeds/datasets/categories.
 
@@ -219,6 +237,8 @@ def run_voting_iterations_eval(
             all unique categories in that dataset are used.
         inclusion: Inclusion setting in ``[-10, 10]``.
         sim_fraction: Fraction of clips reserved for simulated voting.
+        safe_thresholds: When ``True``, blend thresholds with GMM
+            (see :func:`simulate_voting_iterations`).
 
     Returns:
         A :class:`~pandas.DataFrame` with columns
@@ -242,6 +262,7 @@ def run_voting_iterations_eval(
                     dataset_name=ds_name,
                     inclusion=inclusion,
                     sim_fraction=sim_fraction,
+                    safe_thresholds=safe_thresholds,
                 )
                 all_rows.extend(rows)
 
@@ -254,6 +275,7 @@ def run_voting_iterations_eval_from_pickles(
     categories: Optional[dict[str, list[str]]] = None,
     inclusion: int = 0,
     sim_fraction: float = 0.5,
+    safe_thresholds: bool = False,
 ) -> pd.DataFrame:
     """Convenience wrapper that loads datasets from pickle files.
 
@@ -263,6 +285,7 @@ def run_voting_iterations_eval_from_pickles(
         categories: Optional category filter (see :func:`run_voting_iterations_eval`).
         inclusion: Inclusion setting in ``[-10, 10]``.
         sim_fraction: Fraction of clips for simulation.
+        safe_thresholds: When ``True``, blend thresholds with GMM.
 
     Returns:
         A :class:`~pandas.DataFrame` identical to :func:`run_voting_iterations_eval`.
@@ -281,4 +304,5 @@ def run_voting_iterations_eval_from_pickles(
         categories=categories,
         inclusion=inclusion,
         sim_fraction=sim_fraction,
+        safe_thresholds=safe_thresholds,
     )

@@ -11,6 +11,7 @@ from flask import Blueprint, jsonify, request
 from vtsearch.models import (
     build_model,
     calculate_cross_calibration_threshold,
+    calculate_safe_threshold,
     embed_audio_file,
     embed_image_file,
     embed_paragraph_file,
@@ -26,6 +27,7 @@ from vtsearch.utils import (
     get_favorite_extractors,
     get_favorite_extractors_by_media,
     get_inclusion,
+    get_safe_thresholds,
     remove_favorite_detector,
     remove_favorite_extractor,
     rename_favorite_detector,
@@ -68,6 +70,15 @@ def export_detector():
 
     # Train final model on all data with inclusion
     model = train_model(X, y, input_dim, get_inclusion())
+
+    # Apply safe thresholds blending if enabled
+    if get_safe_thresholds():
+        all_ids = sorted(clips.keys())
+        all_embs = np.array([clips[cid]["embedding"] for cid in all_ids])
+        X_all = torch.tensor(all_embs, dtype=torch.float32)
+        with torch.no_grad():
+            all_scores = torch.sigmoid(model(X_all)).squeeze(1).tolist()
+        threshold = calculate_safe_threshold(threshold, all_scores, len(X_list))
 
     # Extract model weights
     state_dict = model.state_dict()
@@ -349,6 +360,15 @@ def import_detector_labels():
 
         threshold = calculate_cross_calibration_threshold(X_list, y_list, input_dim, get_inclusion())
         model = train_model(X, y, input_dim, get_inclusion())
+
+        # Apply safe thresholds blending if enabled
+        if get_safe_thresholds() and clips:
+            all_ids = sorted(clips.keys())
+            all_embs = np.array([clips[cid]["embedding"] for cid in all_ids])
+            X_all = torch.tensor(all_embs, dtype=torch.float32)
+            with torch.no_grad():
+                all_scores = torch.sigmoid(model(X_all)).squeeze(1).tolist()
+            threshold = calculate_safe_threshold(threshold, all_scores, len(y_list))
 
         state_dict = model.state_dict()
         weights = {}

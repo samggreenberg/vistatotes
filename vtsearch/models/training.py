@@ -1,7 +1,6 @@
 """ML training utilities for learned sorting."""
 
 import math
-from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 import numpy as np

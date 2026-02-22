@@ -222,10 +222,7 @@
   const favAddName = document.getElementById("fav-add-name");
   const favAddStatus = document.getElementById("fav-add-status");
   const favAddFromVotesBtn = document.getElementById("fav-add-from-votes-btn");
-  const favAddFromDetectorBtn = document.getElementById("fav-add-from-detector-btn");
-  const favAddFromLabelsBtn = document.getElementById("fav-add-from-labels-btn");
-  const favDetectorFileInput = document.getElementById("fav-detector-file-input");
-  const favLabelsFileInput = document.getElementById("fav-labels-file-input");
+  const favImporterButtonsDiv = document.getElementById("fav-importer-buttons");
   const autodetectModal = document.getElementById("autodetect-modal");
   const autodetectModalClose = document.getElementById("autodetect-modal-close");
   const autodetectSummary = document.getElementById("autodetect-summary");
@@ -848,6 +845,7 @@
   if (menuFavoritesManage) {
     menuFavoritesManage.addEventListener("click", async () => {
       await loadFavoriteDetectors();
+      loadFavImporterButtons();
       // Pre-fill name input with most recent text-sort suggestion
       if (favAddName && !favAddName.value.trim()) {
         try {
@@ -921,83 +919,107 @@
     });
   }
 
-  // Add from a detector JSON file (same format as Load Sort / detector export)
-  if (favAddFromDetectorBtn) {
-    favAddFromDetectorBtn.addEventListener("click", () => {
-      if (favDetectorFileInput) favDetectorFileInput.click();
-    });
-  }
+  // ---- Dynamic importer buttons (processor importers + label importers) ----
 
-  if (favDetectorFileInput) {
-    favDetectorFileInput.addEventListener("change", async () => {
-      const file = favDetectorFileInput.files[0];
-      if (!file) return;
-      const defaultName = file.name.replace(/\.[^/.]+$/, "");
-      const detectorName = (favAddName && favAddName.value.trim()) || defaultName;
+  async function loadFavImporterButtons() {
+    if (!favImporterButtonsDiv) return;
+    favImporterButtonsDiv.innerHTML = "";
 
-      setFavAddStatus("Importing detector\u2026", "#aaa");
+    const [procRes, labelRes] = await Promise.all([
+      fetch("/api/processor-importers").catch(() => null),
+      fetch("/api/label-importers").catch(() => null),
+    ]);
 
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("name", detectorName);
+    const procImporters = procRes && procRes.ok ? await procRes.json() : [];
+    const labelImporters = labelRes && labelRes.ok ? await labelRes.json() : [];
 
-      const res = await fetch("/api/favorite-detectors/import-pkl", {
-        method: "POST",
-        body: formData,
+    // Render a button for each processor importer
+    for (const imp of procImporters) {
+      const fileField = imp.fields.find((f) => f.field_type === "file");
+      if (!fileField) continue;
+      const btn = document.createElement("button");
+      btn.textContent = `From ${imp.display_name}`;
+      btn.style.cssText =
+        "flex: 1; padding: 8px 12px; background: var(--bg-secondary-btn); color: var(--text-btn-secondary); border: 1px solid var(--border-secondary); border-radius: 4px; cursor: pointer; font-size: 0.8rem;";
+      btn.addEventListener("click", () => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = fileField.accept || "";
+        input.style.display = "none";
+        document.body.appendChild(input);
+        input.addEventListener("change", async () => {
+          const file = input.files[0];
+          if (!file) { input.remove(); return; }
+          const defaultName = file.name.replace(/\.[^/.]+$/, "");
+          const detectorName = (favAddName && favAddName.value.trim()) || defaultName;
+          setFavAddStatus(`Importing from ${imp.display_name}\u2026`, "#aaa");
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("name", detectorName);
+          const res = await fetch(`/api/processor-importers/import/${imp.name}`, {
+            method: "POST",
+            body: formData,
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const detail = data.loaded != null ? `, ${data.loaded} files` : "";
+            setFavAddStatus(`Saved \u201c${data.name}\u201d (${data.media_type}${detail}).`, "#4caf50");
+            if (favAddName) favAddName.value = "";
+            await loadFavoriteDetectors();
+          } else {
+            const err = await res.json().catch(() => ({}));
+            setFavAddStatus(`Error: ${err.error || "Import failed"}`, "#f44336");
+          }
+          input.remove();
+        });
+        input.click();
       });
+      favImporterButtonsDiv.appendChild(btn);
+    }
 
-      if (res.ok) {
-        const data = await res.json();
-        setFavAddStatus(`Imported \u201c${data.name}\u201d (${data.media_type}).`, "#4caf50");
-        if (favAddName) favAddName.value = "";
-        await loadFavoriteDetectors();
-      } else {
-        const err = await res.json().catch(() => ({}));
-        setFavAddStatus(`Error: ${err.error || "Import failed"}`, "#f44336");
-      }
-      favDetectorFileInput.value = "";
-    });
-  }
-
-  // Add from a label file (JSON with paths + labels; trains a new detector)
-  if (favAddFromLabelsBtn) {
-    favAddFromLabelsBtn.addEventListener("click", () => {
-      if (favLabelsFileInput) favLabelsFileInput.click();
-    });
-  }
-
-  if (favLabelsFileInput) {
-    favLabelsFileInput.addEventListener("change", async () => {
-      const file = favLabelsFileInput.files[0];
-      if (!file) return;
-      const defaultName = file.name.replace(/\.[^/.]+$/, "");
-      const detectorName = (favAddName && favAddName.value.trim()) || defaultName;
-
-      setFavAddStatus("Training from label file\u2026", "#aaa");
-
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("name", detectorName);
-
-      const res = await fetch("/api/favorite-detectors/import-labels", {
-        method: "POST",
-        body: formData,
+    // Render a button for each label importer (trains from labelset matched to loaded clips)
+    for (const imp of labelImporters) {
+      const fileField = imp.fields.find((f) => f.field_type === "file");
+      if (!fileField) continue;
+      const btn = document.createElement("button");
+      btn.textContent = `From Labelset ${imp.display_name}`;
+      btn.style.cssText =
+        "flex: 1; padding: 8px 12px; background: var(--bg-secondary-btn); color: var(--text-btn-secondary); border: 1px solid var(--border-secondary); border-radius: 4px; cursor: pointer; font-size: 0.8rem;";
+      btn.addEventListener("click", () => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = fileField.accept || "";
+        input.style.display = "none";
+        document.body.appendChild(input);
+        input.addEventListener("change", async () => {
+          const file = input.files[0];
+          if (!file) { input.remove(); return; }
+          const defaultName = file.name.replace(/\.[^/.]+$/, "");
+          const detectorName = (favAddName && favAddName.value.trim()) || defaultName;
+          setFavAddStatus(`Training from labelset (${imp.display_name})\u2026`, "#aaa");
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("name", detectorName);
+          const res = await fetch(`/api/favorite-detectors/from-label-import/${imp.name}`, {
+            method: "POST",
+            body: formData,
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const detail = data.loaded != null ? `, ${data.loaded} matched` : "";
+            setFavAddStatus(`Trained \u201c${data.name}\u201d (${data.media_type}${detail}).`, "#4caf50");
+            if (favAddName) favAddName.value = "";
+            await loadFavoriteDetectors();
+          } else {
+            const err = await res.json().catch(() => ({}));
+            setFavAddStatus(`Error: ${err.error || "Training failed"}`, "#f44336");
+          }
+          input.remove();
+        });
+        input.click();
       });
-
-      if (res.ok) {
-        const data = await res.json();
-        setFavAddStatus(
-          `Trained \u201c${data.name}\u201d (${data.media_type}, ${data.loaded} files).`,
-          "#4caf50"
-        );
-        if (favAddName) favAddName.value = "";
-        await loadFavoriteDetectors();
-      } else {
-        const err = await res.json().catch(() => ({}));
-        setFavAddStatus(`Error: ${err.error || "Training failed"}`, "#f44336");
-      }
-      favLabelsFileInput.value = "";
-    });
+      favImporterButtonsDiv.appendChild(btn);
+    }
   }
 
   if (menuFavoritesAutodetect) {

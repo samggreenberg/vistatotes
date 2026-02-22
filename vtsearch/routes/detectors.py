@@ -371,6 +371,126 @@ def import_detector_labels():
         return jsonify({"error": str(e)}), 500
 
 
+@detectors_bp.route("/api/favorite-detectors/from-label-import/<importer_name>", methods=["POST"])
+def train_from_label_import(importer_name: str):
+    """Train a detector from label importer results without modifying votes.
+
+    Runs the named label importer to get ``[{md5, label}, ...]``, matches the
+    md5s to loaded clips, uses the matched embeddings to train a detector, and
+    saves it as a favorite.  Current votes are *not* modified.
+    """
+    from vtsearch.labels.importers import get_label_importer, list_label_importers
+
+    importer = get_label_importer(importer_name)
+    if importer is None:
+        known = [imp.name for imp in list_label_importers()]
+        return (
+            jsonify({"error": f"Unknown label importer '{importer_name}'. Available: {known}"}),
+            404,
+        )
+
+    if not clips:
+        return jsonify({"error": "No clips loaded. Load a dataset first."}), 400
+
+    # Build field_values from multipart form data
+    has_file_fields = any(f.field_type == "file" for f in importer.fields)
+    field_values: dict = {}
+
+    if has_file_fields:
+        for f in importer.fields:
+            if f.field_type == "file":
+                field_values[f.key] = request.files.get(f.key)
+            else:
+                field_values[f.key] = request.form.get(f.key, f.default or "")
+        name = request.form.get("name", "").strip()
+    else:
+        body = request.get_json(force=True, silent=True) or {}
+        for f in importer.fields:
+            field_values[f.key] = body.get(f.key, f.default or "")
+        name = body.get("name", "").strip()
+
+    if not name:
+        return jsonify({"error": "name is required"}), 400
+
+    try:
+        label_entries = importer.run(field_values)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    except Exception as exc:
+        return jsonify({"error": f"Import failed: {exc}"}), 500
+
+    if not isinstance(label_entries, list) or not label_entries:
+        return jsonify({"error": "Label importer returned no entries."}), 400
+
+    # Match md5s to loaded clips and collect embeddings
+    from vtsearch.utils import build_clip_lookup, resolve_clip_ids
+
+    origin_lookup, md5_lookup = build_clip_lookup(clips)
+
+    X_list: list = []
+    y_list: list = []
+    loaded_count = 0
+    skipped_count = 0
+
+    for entry in label_entries:
+        label = entry.get("label", "").lower()
+        if label not in ("good", "bad"):
+            skipped_count += 1
+            continue
+
+        cids = resolve_clip_ids(entry, origin_lookup, md5_lookup)
+        if not cids:
+            skipped_count += 1
+            continue
+
+        # Use the first matching clip's embedding
+        cid = cids[0]
+        embedding = clips[cid].get("embedding")
+        if embedding is None:
+            skipped_count += 1
+            continue
+
+        X_list.append(embedding)
+        y_list.append(1.0 if label == "good" else 0.0)
+        loaded_count += 1
+
+    if loaded_count < 2:
+        return (
+            jsonify({"error": f"Need at least 2 matched clips (matched {loaded_count}, skipped {skipped_count})"}),
+            400,
+        )
+
+    num_good = sum(1 for y in y_list if y == 1.0)
+    num_bad = len(y_list) - num_good
+    if num_good == 0 or num_bad == 0:
+        return jsonify({"error": "Need at least one good and one bad labeled example"}), 400
+
+    X = torch.tensor(np.array(X_list), dtype=torch.float32)
+    y = torch.tensor(y_list, dtype=torch.float32).unsqueeze(1)
+    input_dim = X.shape[1]
+
+    threshold = calculate_cross_calibration_threshold(X_list, y_list, input_dim, get_inclusion())
+    model = train_model(X, y, input_dim, get_inclusion())
+
+    state_dict = model.state_dict()
+    weights = {}
+    for key, value in state_dict.items():
+        weights[key] = value.tolist()
+
+    media_type = next(iter(clips.values())).get("type", "audio")
+    add_favorite_detector(name, media_type, weights, threshold)
+
+    return jsonify(
+        {
+            "success": True,
+            "name": name,
+            "media_type": media_type,
+            "loaded": loaded_count,
+            "skipped": skipped_count,
+        }
+    )
+
+
 @detectors_bp.route("/api/auto-detect", methods=["POST"])
 def auto_detect():
     """Run all favorite detectors for the current media type and return positive hits."""

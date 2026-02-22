@@ -165,7 +165,14 @@ if __name__ == "__main__":
         help="Run a detector on a dataset from the command line and print predicted-Good items",
     )
     parser.add_argument("--dataset", type=str, help="Path to a dataset pickle file (used with --autodetect)")
-    parser.add_argument("--detector", type=str, help="Path to a detector JSON file (used with --autodetect)")
+    parser.add_argument(
+        "--settings",
+        type=str,
+        help=(
+            "Path to a settings JSON file containing favorite processors. "
+            "Used with --autodetect. Defaults to data/settings.json."
+        ),
+    )
     parser.add_argument(
         "--importer",
         type=str,
@@ -300,24 +307,22 @@ if __name__ == "__main__":
         if exporter:
             exporter_field_values = {f.key: getattr(args, f.key, f.default or None) for f in exporter.fields}
 
-        if args.importer:
-            # New importer-based path
-            if not args.detector:
-                parser.error("--autodetect with --importer requires --detector")
+        settings_path = getattr(args, "settings", None)
 
+        if args.importer:
+            # Importer-based path
             from vtsearch.cli import autodetect_importer_main
 
             field_values = {f.key: getattr(args, f.key, f.default or None) for f in importer.fields}
-            autodetect_importer_main(args.importer, field_values, args.detector, args.exporter, exporter_field_values)
+            autodetect_importer_main(
+                args.importer, field_values, settings_path, args.exporter, exporter_field_values
+            )
 
         elif args.dataset:
-            # Legacy pickle-file path
-            if not args.detector:
-                parser.error("--autodetect requires --detector")
-
+            # Pickle-file path
             from vtsearch.cli import autodetect_main
 
-            autodetect_main(args.dataset, args.detector, args.exporter, exporter_field_values)
+            autodetect_main(args.dataset, settings_path, args.exporter, exporter_field_values)
 
         else:
             parser.error("--autodetect requires either --dataset <file.pkl> or --importer <name>")

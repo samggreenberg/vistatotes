@@ -135,6 +135,16 @@ class VideoMediaType(MediaType):
     # Embeddings
     # ------------------------------------------------------------------
 
+    @property
+    def description_wrappers(self) -> list[str]:
+        return [
+            "a video of {text}",
+            "a clip showing {text}",
+            "{text}",
+            "footage of {text}",
+            "a video clip of {text}",
+        ]
+
     def load_models(self) -> None:
         if self._model is not None:
             return

@@ -145,6 +145,16 @@ class AudioMediaType(MediaType):
     # Embeddings
     # ------------------------------------------------------------------
 
+    @property
+    def description_wrappers(self) -> list[str]:
+        return [
+            "the sound of {text}",
+            "a recording of {text}",
+            "{text}",
+            "audio of {text}",
+            "the noise of {text}",
+        ]
+
     def load_models(self) -> None:
         if self._model is not None:
             return

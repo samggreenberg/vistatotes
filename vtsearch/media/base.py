@@ -202,6 +202,48 @@ class MediaType(ABC):
         Returns ``None`` if the model is not loaded or encoding fails.
         """
 
+    @property
+    def description_wrappers(self) -> list[str]:
+        """Return wrapper templates for enriching sort descriptions.
+
+        Each template is a format string containing ``{text}`` where the
+        user's description will be inserted.  Override in subclasses to
+        provide media-specific wrappers that improve embedding quality.
+
+        The default returns an empty list (no wrappers — plain embedding only).
+        """
+        return []
+
+    def embed_text_enriched(self, text: str) -> Optional[np.ndarray]:
+        """Embed *text* using the average over all description wrappers.
+
+        For each wrapper in :attr:`description_wrappers`, formats the wrapper
+        with *text*, embeds the result, and returns the mean of all resulting
+        vectors (L2-normalised).  Falls back to :meth:`embed_text` if no
+        wrappers are defined or all wrapper embeddings fail.
+
+        Returns ``None`` only if :meth:`embed_text` also returns ``None``.
+        """
+        wrappers = self.description_wrappers
+        if not wrappers:
+            return self.embed_text(text)
+
+        embeddings = []
+        for wrapper in wrappers:
+            wrapped = wrapper.format(text=text)
+            vec = self.embed_text(wrapped)
+            if vec is not None:
+                embeddings.append(vec)
+
+        if not embeddings:
+            return self.embed_text(text)
+
+        avg = np.mean(embeddings, axis=0)
+        norm = np.linalg.norm(avg)
+        if norm > 0:
+            avg = avg / norm
+        return avg
+
     # ------------------------------------------------------------------
     # Clip data
     # ------------------------------------------------------------------

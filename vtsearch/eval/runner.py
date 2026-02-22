@@ -40,6 +40,7 @@ def _run_text_sort_query(
     query: EvalQuery,
     clips: dict[int, dict[str, Any]],
     media_type: str,
+    enrich: bool = False,
 ) -> list[dict[str, Any]]:
     """Embed the query text and rank clips by cosine similarity.
 
@@ -47,7 +48,7 @@ def _run_text_sort_query(
     """
     from vtsearch.models.embeddings import embed_text_query
 
-    text_vec = embed_text_query(query.text, media_type)
+    text_vec = embed_text_query(query.text, media_type, enrich=enrich)
     if text_vec is None:
         raise RuntimeError(f"Could not embed query {query.text!r} for media type {media_type}")
 
@@ -65,6 +66,7 @@ def eval_text_sort(
     queries: list[EvalQuery],
     media_type: str,
     k_values: list[int] | None = None,
+    enrich: bool = False,
 ) -> list:
     """Run text-sort evaluation for a list of queries.
 
@@ -76,6 +78,7 @@ def eval_text_sort(
         queries: List of :class:`EvalQuery` to evaluate.
         media_type: The media type string for embedding dispatch.
         k_values: Optional k values for P@k/R@k.
+        enrich: If ``True``, use enriched (wrapper-averaged) text embeddings.
 
     Returns:
         List of :class:`~vtsearch.eval.metrics.QueryMetrics`.
@@ -84,7 +87,7 @@ def eval_text_sort(
 
     results: list[QueryMetrics] = []
     for query in queries:
-        ranked = _run_text_sort_query(query, clips, media_type)
+        ranked = _run_text_sort_query(query, clips, media_type, enrich=enrich)
         ranked_ids = [r["id"] for r in ranked]
         relevant_ids = {cid for cid, c in clips.items() if c.get("category") == query.target_category}
 
@@ -184,6 +187,7 @@ def run_eval(
     k_values: list[int] | None = None,
     train_fraction: float = 0.5,
     seed: int = 42,
+    enrich: bool = False,
 ) -> list[DatasetResult]:
     """Run evaluation on one or more eval datasets.
 
@@ -198,6 +202,8 @@ def run_eval(
         k_values: k values for P@k/R@k.
         train_fraction: Train/test split ratio for learned-sort.
         seed: Random seed.
+        enrich: If ``True``, use enriched (wrapper-averaged) text embeddings
+            for text-sort evaluation.
 
     Returns:
         List of :class:`DatasetResult`, one per evaluated dataset.
@@ -247,7 +253,7 @@ def run_eval(
         # --- Text sort ---
         if mode in ("text", "both"):
             print(f"\n--- Text Sort Evaluation ({len(queries)} queries) ---")
-            text_results = eval_text_sort(clips, queries, media_type, k_values)
+            text_results = eval_text_sort(clips, queries, media_type, k_values, enrich=enrich)
             ds_result.text_sort = text_results
 
             for qm in text_results:

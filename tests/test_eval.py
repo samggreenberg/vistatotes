@@ -325,7 +325,7 @@ class TestEvalTextSort:
         ]
 
         # Mock embed_text_query to return the cluster centre
-        def mock_embed(text, media_type):
+        def mock_embed(text, media_type, enrich=False):
             if "cat" in text:
                 return cat_dir.copy()
             return dog_dir.copy()

@@ -161,6 +161,16 @@ class ImageMediaType(MediaType):
     # Embeddings
     # ------------------------------------------------------------------
 
+    @property
+    def description_wrappers(self) -> list[str]:
+        return [
+            "a photo of {text}",
+            "a photograph of {text}",
+            "an image of {text}",
+            "{text}",
+            "a picture of {text}",
+        ]
+
     def load_models(self) -> None:
         if self._model is not None:
             return

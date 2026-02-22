@@ -114,7 +114,7 @@ class DatasetImporter:
     CLI support
     -----------
     Every importer is automatically usable from the command line via
-    ``python app.py --autodetect --importer <name> [importer args] --detector <file>``.
+    ``python app.py --autodetect --importer <name> [importer args] --settings <file>``.
 
     The default :meth:`add_cli_arguments` derives ``argparse`` arguments from
     :attr:`fields` and :meth:`run_cli` delegates to :meth:`run`.  Override
@@ -209,7 +209,7 @@ class DatasetImporter:
         The returned string contains only the importer-specific portion, e.g.
         ``"--importer folder --media-type sounds --path /data/audio"``.  The
         caller can prepend ``python app.py --autodetect`` and append
-        ``--detector <file>`` as needed.
+        ``--settings <file>`` as needed.
 
         Fields with ``field_type="file"`` are skipped because they correspond
         to browser uploads that don't translate directly to a CLI flag.

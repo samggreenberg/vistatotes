@@ -9,8 +9,8 @@ Media explorer web app for browsing/voting on audio, images, or text. Semantic s
 - **Run GPU tests**: `python -m pytest tests/test_gpu.py -v -m gpu` (requires CUDA GPU; downloads models on first run)
 - **Run all tests (CPU + GPU)**: `python -m pytest tests/ -v -m ''`
 - **Start app**: `bash .claude/hooks/ensure-test-deps.sh && python app.py` (or `python app.py --local` for dev)
-- **CLI autodetect**: `bash .claude/hooks/ensure-test-deps.sh && python app.py --autodetect --dataset <file.pkl> --detector <file.json>`
-- **CLI autodetect + exporter**: `bash .claude/hooks/ensure-test-deps.sh && python app.py --autodetect --dataset <file.pkl> --detector <file.json> --exporter file --filepath results.json`
+- **CLI autodetect**: `bash .claude/hooks/ensure-test-deps.sh && python app.py --autodetect --dataset <file.pkl> --settings <settings.json>`
+- **CLI autodetect + exporter**: `bash .claude/hooks/ensure-test-deps.sh && python app.py --autodetect --dataset <file.pkl> --settings <settings.json> --exporter file --filepath results.json`
 - **CLI label import**: `bash .claude/hooks/ensure-test-deps.sh && python app.py --import-labels --dataset <file.pkl> --label-importer json_file --file labels.json`
 - **CLI label import (CSV)**: `bash .claude/hooks/ensure-test-deps.sh && python app.py --import-labels --dataset <file.pkl> --label-importer csv_file --file labels.csv`
 - **CLI processor import**: `bash .claude/hooks/ensure-test-deps.sh && python app.py --import-processor --processor-importer detector_file --processor-name "my detector" --file detector.json`

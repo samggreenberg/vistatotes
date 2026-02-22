@@ -37,6 +37,7 @@ SETTINGS_PATH: Path = DATA_DIR / "settings.json"
 _DEFAULTS: dict[str, Any] = {
     "volume": 1.0,
     "theme": "dark",
+    "enrich_descriptions": False,
     "favorite_processors": [],
 }
 
@@ -106,6 +107,18 @@ def set_theme(value: str) -> None:
         raise ValueError(f"Invalid theme: {value!r}")
     s = _ensure_loaded()
     s["theme"] = value
+    _save(s)
+
+
+def get_enrich_descriptions() -> bool:
+    """Return whether enriched description embedding is enabled."""
+    return bool(_ensure_loaded().get("enrich_descriptions", _DEFAULTS["enrich_descriptions"]))
+
+
+def set_enrich_descriptions(value: bool) -> None:
+    """Set and persist the enrich_descriptions flag."""
+    s = _ensure_loaded()
+    s["enrich_descriptions"] = bool(value)
     _save(s)
 
 
@@ -217,6 +230,18 @@ def ensure_favorite_processors_imported() -> list[str]:
             logger.warning("Favorite processor '%s': import failed: %s", name, exc)
 
     return imported
+
+
+def set_settings_path(path: str | Path) -> None:
+    """Override the settings file path and reset the in-memory cache.
+
+    Call this before :func:`ensure_favorite_processors_imported` to load
+    favorite processors from a custom settings file (e.g. the ``--settings``
+    CLI flag).
+    """
+    global SETTINGS_PATH, _settings
+    SETTINGS_PATH = Path(path)
+    _settings = None  # force reload on next access
 
 
 def reset() -> None:

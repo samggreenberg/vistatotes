@@ -223,6 +223,108 @@ def _build_results_dict(
     }
 
 
+def _score_clips_with_detectors(
+    clips: dict[int, dict[str, Any]],
+    detectors: dict[str, dict[str, Any]],
+) -> dict[str, dict[str, Any]]:
+    """Score all *clips* against every detector in *detectors*.
+
+    Embeddings are extracted once and reused across all detectors.
+
+    Args:
+        clips: The clips dict (must contain ``"embedding"`` per clip).
+        detectors: Mapping of detector name to detector data dict (with
+            ``"weights"`` and ``"threshold"`` keys).
+
+    Returns:
+        A dict mapping detector name to its results sub-dict (with
+        ``"detector_name"``, ``"threshold"``, ``"total_hits"``, ``"hits"``).
+
+    Raises:
+        ValueError: If *clips* or *detectors* is empty.
+    """
+    if not clips:
+        raise ValueError("No clips loaded from dataset")
+    if not detectors:
+        raise ValueError("No favorite processors found for the dataset's media type")
+
+    all_ids = sorted(clips.keys())
+    all_embs = np.array([clips[cid]["embedding"] for cid in all_ids])
+    X_all = torch.tensor(all_embs, dtype=torch.float32)
+
+    results: dict[str, dict[str, Any]] = {}
+    for detector_name, detector_data in detectors.items():
+        weights = detector_data["weights"]
+        threshold = detector_data["threshold"]
+
+        input_dim = len(weights["0.weight"][0])
+        model = nn.Sequential(
+            nn.Linear(input_dim, 64),
+            nn.ReLU(),
+            nn.Linear(64, 1),
+            nn.Sigmoid(),
+        )
+
+        state_dict = {}
+        for key, value in weights.items():
+            state_dict[key] = torch.tensor(value, dtype=torch.float32)
+        model.load_state_dict(state_dict)
+        model.eval()
+
+        with torch.no_grad():
+            scores = model(X_all).squeeze(1).tolist()
+
+        positive_hits: list[dict[str, Any]] = []
+        for cid, score in zip(all_ids, scores):
+            if score >= threshold:
+                clip = clips[cid]
+                hit: dict[str, Any] = {
+                    "id": cid,
+                    "filename": clip.get("filename", f"clip_{cid}"),
+                    "category": clip.get("category", "unknown"),
+                    "score": round(score, 4),
+                }
+                if clip.get("origin") is not None:
+                    hit["origin"] = clip["origin"]
+                if clip.get("origin_name"):
+                    hit["origin_name"] = clip["origin_name"]
+                if clip.get("md5"):
+                    hit["md5"] = clip["md5"]
+                positive_hits.append(hit)
+
+        positive_hits.sort(key=lambda x: x["score"], reverse=True)
+
+        results[detector_name] = {
+            "detector_name": detector_name,
+            "threshold": round(threshold, 4),
+            "total_hits": len(positive_hits),
+            "hits": positive_hits,
+        }
+
+    return results
+
+
+def _build_multi_results_dict(
+    detector_results: dict[str, dict[str, Any]],
+    media_type: str = "unknown",
+) -> dict[str, Any]:
+    """Build the full results dict from multi-detector scoring.
+
+    Args:
+        detector_results: Per-detector results from
+            :func:`_score_clips_with_detectors`.
+        media_type: The media type string for the dataset.
+
+    Returns:
+        A dict matching the shape expected by exporters.
+    """
+    return {
+        "media_type": media_type,
+        "detectors_run": len(detector_results),
+        "results": detector_results,
+    }
+
+
 def _detect_media_type(clips: dict[int, dict[str, Any]]) -> str:
     """Return the media type from the first clip, or ``"unknown"``."""
     for clip in clips.values():
@@ -252,12 +354,21 @@ def _run_exporter(
     print(result.get("message", "Export complete."))
 
 
-def _import_favorite_processors() -> None:
+def _import_favorite_processors(settings_path: str | None = None) -> None:
     """Import favorite processors from settings (if any).
+
+    When *settings_path* is provided the settings module is pointed at that
+    file before importing; otherwise the default ``data/settings.json`` is
+    used.
 
     Errors are logged as warnings but do not halt the autodetect run.
     """
     try:
+        if settings_path:
+            from vtsearch.settings import set_settings_path
+
+            set_settings_path(settings_path)
+
         from vtsearch.settings import ensure_favorite_processors_imported
 
         imported = ensure_favorite_processors_imported()
@@ -269,11 +380,16 @@ def _import_favorite_processors() -> None:
 
 def autodetect_main(
     dataset_path: str,
-    detector_path: str,
+    settings_path: str | None = None,
     exporter_name: str | None = None,
     exporter_field_values: dict[str, Any] | None = None,
 ) -> None:
-    """CLI entry point: run autodetect and output results.
+    """CLI entry point: run autodetect with all favorite processors and output results.
+
+    Loads favorite processors from the settings file (defaulting to the
+    normal ``data/settings.json``), scores the dataset against every
+    processor matching the dataset's media type, and exports a combined
+    result set with one column per processor.
 
     When *exporter_name* is ``None`` the hits are printed to stdout.
     Otherwise the named exporter is used to deliver the results.
@@ -282,12 +398,13 @@ def autodetect_main(
 
     Args:
         dataset_path: Path to the dataset pickle file.
-        detector_path: Path to the detector JSON file.
+        settings_path: Optional path to a settings JSON file.  When ``None``
+            the default ``data/settings.json`` is used.
         exporter_name: Optional registered exporter name.
         exporter_field_values: Optional exporter field values.
     """
     try:
-        _import_favorite_processors()
+        _import_favorite_processors(settings_path)
 
         dataset_file = Path(dataset_path)
         if not dataset_file.exists():
@@ -298,10 +415,19 @@ def autodetect_main(
         if not clips:
             raise ValueError(f"No clips loaded from dataset: {dataset_path}")
 
-        hits = _score_clips_with_detector(clips, detector_path)
-
         media_type = _detect_media_type(clips)
-        results = _build_results_dict(hits, detector_path, media_type)
+
+        from vtsearch.utils import get_favorite_detectors_by_media
+
+        detectors = get_favorite_detectors_by_media(media_type)
+        if not detectors:
+            raise ValueError(
+                f"No favorite processors found for media type: {media_type}. "
+                "Add processors to the settings file or use --settings to specify one."
+            )
+
+        detector_results = _score_clips_with_detectors(clips, detectors)
+        results = _build_multi_results_dict(detector_results, media_type)
         _run_exporter(exporter_name or "gui", exporter_field_values or {}, results)
     except (FileNotFoundError, ValueError) as e:
         print(f"Error: {e}", file=sys.stderr)
@@ -418,11 +544,16 @@ def import_labels_main(
 def autodetect_importer_main(
     importer_name: str,
     field_values: dict[str, Any],
-    detector_path: str,
+    settings_path: str | None = None,
     exporter_name: str | None = None,
     exporter_field_values: dict[str, Any] | None = None,
 ) -> None:
     """CLI entry point: run autodetect with a named importer and output results.
+
+    Loads favorite processors from the settings file (defaulting to the
+    normal ``data/settings.json``), scores the imported dataset against
+    every processor matching the dataset's media type, and exports a
+    combined result set with one column per processor.
 
     When *exporter_name* is ``None`` the hits are printed to stdout.
     Otherwise the named exporter is used to deliver the results.
@@ -432,12 +563,13 @@ def autodetect_importer_main(
     Args:
         importer_name: Registered name of the importer.
         field_values: Mapping of importer field keys to their CLI values.
-        detector_path: Path to the detector JSON file.
+        settings_path: Optional path to a settings JSON file.  When ``None``
+            the default ``data/settings.json`` is used.
         exporter_name: Optional registered exporter name.
         exporter_field_values: Optional exporter field values.
     """
     try:
-        _import_favorite_processors()
+        _import_favorite_processors(settings_path)
 
         from vtsearch.datasets.importers import get_importer
 
@@ -453,10 +585,19 @@ def autodetect_importer_main(
         if not clips:
             raise ValueError(f"No clips loaded by importer '{importer_name}'")
 
-        hits = _score_clips_with_detector(clips, detector_path)
-
         media_type = _detect_media_type(clips)
-        results = _build_results_dict(hits, detector_path, media_type)
+
+        from vtsearch.utils import get_favorite_detectors_by_media
+
+        detectors = get_favorite_detectors_by_media(media_type)
+        if not detectors:
+            raise ValueError(
+                f"No favorite processors found for media type: {media_type}. "
+                "Add processors to the settings file or use --settings to specify one."
+            )
+
+        detector_results = _score_clips_with_detectors(clips, detectors)
+        results = _build_multi_results_dict(detector_results, media_type)
         _run_exporter(exporter_name or "gui", exporter_field_values or {}, results)
     except (FileNotFoundError, ValueError, NotADirectoryError) as e:
         print(f"Error: {e}", file=sys.stderr)

@@ -170,6 +170,7 @@
   const stripeContainer = document.getElementById("stripe-container");
   const inclusionSlider = document.getElementById("inclusion-slider");
   const inclusionValue = document.getElementById("inclusion-value");
+  const enrichDescCheckbox = document.getElementById("enrich-descriptions-checkbox");
 
   // Dataset management elements
   const datasetWelcome = document.getElementById("dataset-welcome");
@@ -1259,6 +1260,22 @@
   inclusionSlider.addEventListener("input", () => {
     updateInclusion(parseInt(inclusionSlider.value));
   });
+
+  // ---- Enrich Sort Descriptions toggle ----
+
+  if (enrichDescCheckbox) {
+    enrichDescCheckbox.addEventListener("change", () => {
+      fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enrich_descriptions: enrichDescCheckbox.checked }),
+      }).catch(() => {});
+      // Re-trigger text sort if active
+      if (sortMode === "text") {
+        onTextSortInput();
+      }
+    });
+  }
 
   // ---- Text sort ----
 
@@ -2757,6 +2774,9 @@
       }
       if (data.theme) {
         applyTheme(data.theme);
+      }
+      if (enrichDescCheckbox) {
+        enrichDescCheckbox.checked = !!data.enrich_descriptions;
       }
     } catch (_) {
       // Settings not available yet; use defaults

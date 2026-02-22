@@ -98,6 +98,11 @@ def main() -> None:
         action="store_true",
         help="Disable plot generation even when --plot-dir is set.",
     )
+    parser.add_argument(
+        "--enrich-descriptions",
+        action="store_true",
+        help="Use enriched (wrapper-averaged) text embeddings for text-sort evaluation.",
+    )
 
     args = parser.parse_args()
 
@@ -119,6 +124,7 @@ def main() -> None:
         k_values=args.k,
         train_fraction=args.train_fraction,
         seed=args.seed,
+        enrich=args.enrich_descriptions,
     )
 
     # Print summary

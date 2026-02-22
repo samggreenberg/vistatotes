@@ -7,7 +7,6 @@ content when needed.
 
 import hashlib
 import pickle
-import tempfile
 from pathlib import Path
 from typing import Any
 

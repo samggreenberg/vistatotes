@@ -1691,7 +1691,7 @@
       // Audio/Sound
       playerHTML = `
         <canvas id="waveform-canvas" width="600" height="120"></canvas>
-        <audio controls loop autoplay src="/api/clips/${c.id}/audio" id="clip-audio"></audio>`;
+        <audio controls controlslist="nodownload" loop autoplay src="/api/clips/${c.id}/audio" id="clip-audio"></audio>`;
     }
 
     center.innerHTML = `

@@ -270,6 +270,16 @@
   const autodetectProgressText = document.getElementById("autodetect-progress-text");
   const autodetectProgressBar = document.getElementById("autodetect-progress-bar");
 
+  // Settings modal elements
+  const menuSettings = document.getElementById("menu-settings");
+  const settingsModal = document.getElementById("settings-modal");
+  const settingsModalClose = document.getElementById("settings-modal-close");
+  const safeThresholdsCheckbox = document.getElementById("safe-thresholds-checkbox");
+  const settingsDefaultBtn = document.getElementById("settings-default-btn");
+  const settingsImportBtn = document.getElementById("settings-import-btn");
+  const settingsImportFile = document.getElementById("settings-import-file");
+  const settingsExportBtn = document.getElementById("settings-export-btn");
+
   // ---- Dataset Management ----
 
   async function checkDatasetStatus() {
@@ -1415,6 +1425,127 @@
           copyResultsBtn.textContent = "Copy To Clipboard";
         }, 2000);
       });
+    });
+  }
+
+  // ---- Settings modal ----
+
+  function populateSettingsModal(data) {
+    applyTheme(data.theme || "dark");
+    if (calibrateCountInput) calibrateCountInput.value = data.calibrate_count;
+    if (calibrationFractionInput) calibrationFractionInput.value = data.calibration_fraction;
+    if (safeThresholdsCheckbox) safeThresholdsCheckbox.checked = !!data.safe_thresholds;
+  }
+
+  if (menuSettings && settingsModal && burgerDropdown) {
+    menuSettings.addEventListener("click", async () => {
+      burgerDropdown.classList.remove("show");
+      try {
+        const res = await fetch("/api/settings");
+        if (res.ok) populateSettingsModal(await res.json());
+      } catch (_) {}
+      settingsModal.classList.add("show");
+    });
+  }
+
+  if (settingsModalClose) {
+    settingsModalClose.addEventListener("click", () => {
+      settingsModal.classList.remove("show");
+    });
+  }
+
+  // Safe thresholds toggle
+  if (safeThresholdsCheckbox) {
+    safeThresholdsCheckbox.addEventListener("change", () => {
+      fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ safe_thresholds: safeThresholdsCheckbox.checked }),
+      }).catch(() => {});
+    });
+  }
+
+  // Default button — reset all settings to defaults
+  if (settingsDefaultBtn) {
+    settingsDefaultBtn.addEventListener("click", async () => {
+      try {
+        const res = await fetch("/api/settings/defaults");
+        if (!res.ok) return;
+        const defaults = await res.json();
+        // Apply defaults to server
+        await fetch("/api/settings", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(defaults),
+        });
+        // Update modal controls
+        populateSettingsModal(defaults);
+        // Apply theme immediately
+        applyTheme(defaults.theme || "dark");
+        // Update main UI controls that live outside the modal
+        if (enrichDescCheckbox) enrichDescCheckbox.checked = !!defaults.enrich_descriptions;
+        if (inclusionSlider) { inclusionSlider.value = defaults.inclusion || 0; inclusionValue.textContent = defaults.inclusion || 0; inclusion = defaults.inclusion || 0; }
+        audioVolume = defaults.volume != null ? defaults.volume : 1.0;
+        const audioEl = document.getElementById("clip-audio");
+        if (audioEl) audioEl.volume = audioVolume;
+      } catch (_) {}
+    });
+  }
+
+  // Import settings from file
+  if (settingsImportBtn && settingsImportFile) {
+    settingsImportBtn.addEventListener("click", () => settingsImportFile.click());
+    settingsImportFile.addEventListener("change", async () => {
+      const file = settingsImportFile.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const imported = JSON.parse(text);
+        // Send all importable fields to the server
+        const payload = {};
+        const importableKeys = ["volume", "theme", "inclusion", "enrich_descriptions", "safe_thresholds", "calibrate_count", "calibration_fraction"];
+        for (const k of importableKeys) {
+          if (k in imported) payload[k] = imported[k];
+        }
+        const res = await fetch("/api/settings", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          populateSettingsModal(data);
+          applyTheme(data.theme || "dark");
+          if (enrichDescCheckbox) enrichDescCheckbox.checked = !!data.enrich_descriptions;
+          if (inclusionSlider) { inclusionSlider.value = data.inclusion || 0; inclusionValue.textContent = data.inclusion || 0; inclusion = data.inclusion || 0; }
+          audioVolume = typeof data.volume === "number" ? data.volume : 1.0;
+          const audioEl = document.getElementById("clip-audio");
+          if (audioEl) audioEl.volume = audioVolume;
+        }
+      } catch (_) {
+        vtAlert("Failed to import settings. Make sure the file is valid JSON.", "error");
+      }
+      settingsImportFile.value = "";
+    });
+  }
+
+  // Export settings to file
+  if (settingsExportBtn) {
+    settingsExportBtn.addEventListener("click", async () => {
+      try {
+        const res = await fetch("/api/settings");
+        if (!res.ok) return;
+        const data = await res.json();
+        // Exclude runtime-only fields
+        delete data.favorite_processors;
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "vtsearch-settings.json";
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch (_) {}
     });
   }
 
@@ -3196,6 +3327,9 @@
       }
       if (calibrationFractionInput && typeof data.calibration_fraction === "number") {
         calibrationFractionInput.value = data.calibration_fraction;
+      }
+      if (safeThresholdsCheckbox) {
+        safeThresholdsCheckbox.checked = !!data.safe_thresholds;
       }
     } catch (_) {
       // Settings not available yet; use defaults

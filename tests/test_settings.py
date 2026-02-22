@@ -171,6 +171,25 @@ class TestSettingsModule:
         settings_mod.reset()
         assert settings_mod.get_calibrate_count() == 10
 
+    def test_get_set_safe_thresholds(self, isolated_settings):
+        settings_mod.set_safe_thresholds(True)
+        assert settings_mod.get_safe_thresholds() is True
+
+        raw = json.loads(isolated_settings.read_text())
+        assert raw["safe_thresholds"] is True
+
+    def test_safe_thresholds_default(self):
+        assert settings_mod.get_safe_thresholds() is False
+
+    def test_get_defaults(self):
+        defaults = settings_mod.get_defaults()
+        assert defaults["volume"] == 1.0
+        assert defaults["theme"] == "dark"
+        assert defaults["calibrate_count"] == 2
+        assert defaults["calibration_fraction"] == 0.5
+        assert defaults["safe_thresholds"] is False
+        assert "favorite_processors" not in defaults
+
     def test_corrupt_settings_file(self, isolated_settings):
         isolated_settings.write_text("not json!!!")
         settings_mod.reset()
@@ -413,3 +432,29 @@ class TestSettingsAPI:
         parsed = json.loads(proc["settings_json"])
         assert parsed["processor_name"] == "cmd_test"
         assert parsed["processor_importer"] == "detector_file"
+
+    def test_get_defaults(self, client):
+        res = client.get("/api/settings/defaults")
+        assert res.status_code == 200
+        data = res.get_json()
+        assert data["volume"] == 1.0
+        assert data["theme"] == "dark"
+        assert data["calibrate_count"] == 2
+        assert data["calibration_fraction"] == 0.5
+        assert data["safe_thresholds"] is False
+        assert "favorite_processors" not in data
+
+    def test_update_safe_thresholds(self, client):
+        res = client.put("/api/settings", json={"safe_thresholds": True})
+        assert res.status_code == 200
+        assert res.get_json()["safe_thresholds"] is True
+
+        # Verify it persisted
+        res2 = client.get("/api/settings")
+        assert res2.get_json()["safe_thresholds"] is True
+
+    def test_update_safe_thresholds_false(self, client):
+        client.put("/api/settings", json={"safe_thresholds": True})
+        res = client.put("/api/settings", json={"safe_thresholds": False})
+        assert res.status_code == 200
+        assert res.get_json()["safe_thresholds"] is False

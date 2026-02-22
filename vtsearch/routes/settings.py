@@ -56,6 +56,19 @@ def update_settings():
         except ValueError:
             return jsonify({"error": "theme must be 'dark' or 'light'"}), 400
 
+    if "inclusion" in body:
+        try:
+            val = body["inclusion"]
+            if not isinstance(val, (int, float)):
+                return jsonify({"error": "inclusion must be a number"}), 400
+            clamped = int(max(-10, min(10, int(val))))
+            # Update runtime state (which also persists to settings file)
+            from vtsearch.utils import set_inclusion
+
+            set_inclusion(clamped)
+        except (TypeError, ValueError):
+            return jsonify({"error": "inclusion must be a number"}), 400
+
     if "enrich_descriptions" in body:
         settings.set_enrich_descriptions(bool(body["enrich_descriptions"]))
 

@@ -1,3 +1,18 @@
+import pytest
+
+from vtsearch import settings as settings_mod
+
+
+@pytest.fixture(autouse=True)
+def isolated_settings(tmp_path, monkeypatch):
+    """Use a temp file so inclusion persistence doesn't affect other tests."""
+    test_settings_path = tmp_path / "settings.json"
+    monkeypatch.setattr(settings_mod, "SETTINGS_PATH", test_settings_path)
+    settings_mod.reset()
+    yield test_settings_path
+    settings_mod.reset()
+
+
 class TestInclusionEndpoints:
     def test_get_default_inclusion(self, client):
         resp = client.get("/api/inclusion")

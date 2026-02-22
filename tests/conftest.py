@@ -32,9 +32,12 @@ app_module.init_clips()
 @pytest.fixture(autouse=True)
 def reset_votes():
     """Reset vote state and progress cache before each test."""
+    import vtsearch.utils.state as _state
+
     good_votes.clear()
     bad_votes.clear()
     label_history.clear()
+    _state.inclusion = None  # reset to "not loaded" so it re-reads from settings
     clear_progress_cache()
 
 

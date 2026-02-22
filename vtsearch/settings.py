@@ -7,6 +7,7 @@ Schema (all keys optional, missing keys use defaults)::
 
     {
         "volume": 1.0,
+        "inclusion": 0,
         "favorite_processors": [
             {
                 "processor_name": "my detector",
@@ -36,6 +37,7 @@ SETTINGS_PATH: Path = DATA_DIR / "settings.json"
 
 _DEFAULTS: dict[str, Any] = {
     "volume": 1.0,
+    "inclusion": 0,
     "theme": "dark",
     "enrich_descriptions": False,
     "favorite_processors": [],
@@ -93,6 +95,18 @@ def set_volume(value: float) -> None:
     """Set and persist the playback volume."""
     s = _ensure_loaded()
     s["volume"] = max(0.0, min(1.0, float(value)))
+    _save(s)
+
+
+def get_inclusion() -> int:
+    """Return the persisted inclusion setting (-10 to +10)."""
+    return int(_ensure_loaded().get("inclusion", _DEFAULTS["inclusion"]))
+
+
+def set_inclusion(value: int) -> None:
+    """Set and persist the inclusion setting."""
+    s = _ensure_loaded()
+    s["inclusion"] = int(max(-10, min(10, int(value))))
     _save(s)
 
 

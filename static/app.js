@@ -2778,12 +2778,16 @@
       if (enrichDescCheckbox) {
         enrichDescCheckbox.checked = !!data.enrich_descriptions;
       }
+      if (typeof data.inclusion === "number") {
+        inclusion = data.inclusion;
+        inclusionSlider.value = inclusion;
+        inclusionValue.textContent = inclusion;
+      }
     } catch (_) {
       // Settings not available yet; use defaults
     }
   }
 
-  fetchInclusion();
   updateLabelCounts();
   loadFavoriteDetectors();
   fetchLabelingStatus();

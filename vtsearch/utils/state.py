@@ -14,8 +14,10 @@ bad_votes: dict[int, None] = {}
 # Tracks the order of all labels across both categories
 label_history: list[tuple[int, str, float]] = []
 
-# Inclusion setting: -10 to +10, default 0
-inclusion: int = 0
+# Inclusion setting: -10 to +10, default 0.
+# ``None`` means "not yet loaded"; on first access the value is read from the
+# persisted settings file so that it survives restarts.
+inclusion: int | None = None
 
 # Favorite detectors: name -> {name, media_type, weights, threshold, created_at}
 favorite_detectors: dict[str, dict[str, Any]] = {}
@@ -72,16 +74,24 @@ def clear_all() -> None:
 def get_inclusion() -> int:
     """Return the current inclusion setting.
 
+    On first call the value is loaded from the persisted settings file so
+    that it survives app restarts.
+
     Returns:
         An integer in ``[-10, 10]`` representing the inclusion bias. Positive
         values cause the learned sort model to include more items (higher
         recall); negative values cause it to include fewer (higher precision).
     """
+    global inclusion
+    if inclusion is None:
+        from vtsearch import settings
+
+        inclusion = settings.get_inclusion()
     return inclusion
 
 
 def set_inclusion(value: int) -> None:
-    """Set the global inclusion value.
+    """Set the global inclusion value and persist it to the settings file.
 
     Also clears the progress model cache since cached models were trained
     with the old inclusion value.
@@ -97,6 +107,10 @@ def set_inclusion(value: int) -> None:
 
         clear_progress_cache()
     inclusion = value
+
+    from vtsearch import settings
+
+    settings.set_inclusion(value)
 
 
 def add_label_to_history(clip_id: int, label: str) -> None:

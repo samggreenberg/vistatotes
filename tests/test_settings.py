@@ -62,6 +62,29 @@ class TestSettingsModule:
         settings_mod.set_volume(-3.0)
         assert settings_mod.get_volume() == 0.0
 
+    def test_get_set_inclusion(self, isolated_settings):
+        settings_mod.set_inclusion(5)
+        assert settings_mod.get_inclusion() == 5
+
+        # Persisted to disk
+        raw = json.loads(isolated_settings.read_text())
+        assert raw["inclusion"] == 5
+
+    def test_inclusion_clamped(self):
+        settings_mod.set_inclusion(100)
+        assert settings_mod.get_inclusion() == 10
+
+        settings_mod.set_inclusion(-100)
+        assert settings_mod.get_inclusion() == -10
+
+    def test_inclusion_default(self):
+        assert settings_mod.get_inclusion() == 0
+
+    def test_inclusion_persists_across_reset(self, isolated_settings):
+        settings_mod.set_inclusion(7)
+        settings_mod.reset()
+        assert settings_mod.get_inclusion() == 7
+
     def test_add_favorite_processor(self, isolated_settings):
         settings_mod.add_favorite_processor(
             "my det", "detector_file", {"file": "/tmp/det.json"}
@@ -217,6 +240,31 @@ class TestSettingsAPI:
         # Verify it persisted
         res2 = client.get("/api/settings")
         assert res2.get_json()["volume"] == pytest.approx(0.65)
+
+    def test_update_inclusion(self, client):
+        res = client.put(
+            "/api/settings",
+            json={"inclusion": 5},
+        )
+        assert res.status_code == 200
+        data = res.get_json()
+        assert data["inclusion"] == 5
+
+        # Verify it persisted
+        res2 = client.get("/api/settings")
+        assert res2.get_json()["inclusion"] == 5
+
+    def test_update_inclusion_clamped(self, client):
+        res = client.put("/api/settings", json={"inclusion": 99})
+        assert res.status_code == 200
+        assert res.get_json()["inclusion"] == 10
+
+    def test_update_inclusion_invalid(self, client):
+        res = client.put(
+            "/api/settings",
+            json={"inclusion": "not a number"},
+        )
+        assert res.status_code == 400
 
     def test_update_volume_invalid(self, client):
         res = client.put(

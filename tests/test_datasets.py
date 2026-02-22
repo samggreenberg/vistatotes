@@ -311,6 +311,34 @@ class TestImporterMetadata:
         assert keys.index("media_type") < keys.index("path")
 
 
+class TestLoadEmbedderForClips:
+    """_load_embedder_for_clips should warm up the text encoder at dataset load time."""
+
+    def test_warms_up_text_encoder(self):
+        """embed_text('warmup') is called to prime the text encoder branch."""
+        from unittest.mock import patch
+
+        from vtsearch.media import get as media_get
+        from vtsearch.routes.datasets import _load_embedder_for_clips
+
+        mt = media_get("audio")
+        with patch.object(mt, "embed_text", wraps=mt.embed_text) as mock_embed:
+            _load_embedder_for_clips()
+            mock_embed.assert_called_once_with("warmup")
+
+    def test_text_encoder_produces_valid_embedding_after_load(self):
+        """After _load_embedder_for_clips, embed_text returns a real vector."""
+        from vtsearch.media import get as media_get
+        from vtsearch.routes.datasets import _load_embedder_for_clips
+
+        _load_embedder_for_clips()
+        mt = media_get("audio")
+        vec = mt.embed_text("a high-pitched beep")
+        assert vec is not None
+        assert len(vec.shape) == 1
+        assert vec.shape[0] > 0
+
+
 class TestExtractArchive:
     """Unit tests for the zip/tar extraction helper."""
 

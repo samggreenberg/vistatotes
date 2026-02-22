@@ -45,6 +45,13 @@ def _load_embedder_for_clips() -> None:
     doesn't have to wait for the model download.  ``load_models()`` is
     idempotent, so this is a no-op when the model is already warm (e.g.
     after a folder import that already called ``embed_media()``).
+
+    After loading the model, a dummy text embedding is run to warm up the
+    text encoder branch.  Models like CLAP, CLIP, and X-CLIP have separate
+    media and text encoder sub-networks; data ingest only exercises the
+    media branch, leaving the text branch cold.  Without this warmup the
+    first user-initiated text sort would stall on PyTorch's lazy
+    initialisation for that branch.
     """
     if not clips:
         return
@@ -56,6 +63,12 @@ def _load_embedder_for_clips() -> None:
     except KeyError:
         return
     mt.load_models()
+    # Warm up the text encoder so the first text sort is instant.
+    update_progress("loading", "Warming up text encoder…", 0, 0)
+    try:
+        mt.embed_text("warmup")
+    except Exception:
+        pass
     update_progress("idle", "Ready")
 
 

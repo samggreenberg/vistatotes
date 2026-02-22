@@ -19,6 +19,9 @@ label_history: list[tuple[int, str, float]] = []
 # persisted settings file so that it survives restarts.
 inclusion: int | None = None
 
+# Text-sort suggestions: text queries that received a Good vote, most recent last.
+textsort_suggestions: list[str] = []
+
 # Favorite detectors: name -> {name, media_type, weights, threshold, created_at}
 favorite_detectors: dict[str, dict[str, Any]] = {}
 
@@ -38,6 +41,7 @@ def clear_votes() -> None:
     good_votes.clear()
     bad_votes.clear()
     label_history.clear()
+    textsort_suggestions.clear()
     clear_progress_cache()
 
 
@@ -116,6 +120,27 @@ def add_label_to_history(clip_id: int, label: str) -> None:
     import time
 
     label_history.append((clip_id, label, time.time()))
+
+
+def add_textsort_suggestion(text: str) -> None:
+    """Record a text-sort query as a suggested detector/labelset name.
+
+    Duplicates are moved to the end so the most-recently-voted query is last.
+
+    Args:
+        text: The text-sort query string to store.
+    """
+    # Remove existing occurrence so it moves to the end
+    try:
+        textsort_suggestions.remove(text)
+    except ValueError:
+        pass
+    textsort_suggestions.append(text)
+
+
+def get_textsort_suggestions() -> list[str]:
+    """Return stored text-sort suggestions, most recent last."""
+    return list(textsort_suggestions)
 
 
 def add_favorite_detector(name: str, media_type: str, weights: dict[str, Any], threshold: float) -> None:

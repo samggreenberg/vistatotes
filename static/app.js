@@ -489,15 +489,23 @@
 
           items.forEach(dataset => {
             const div = document.createElement("div");
-            div.className = "demo-dataset" + (dataset.ready ? " ready" : "");
-            const sizeText = dataset.ready
+            const st = dataset.status || (dataset.ready ? "ready" : "needs_download");
+            div.className = "demo-dataset" + (st === "ready" ? " ready" : st === "needs_embedding" ? " needs-embedding" : "");
+            const sizeText = st === "ready"
               ? `${dataset.download_size_mb} MB (cached)`
+              : st === "needs_embedding"
+              ? "Embedding required"
               : `${dataset.download_size_mb} MB to download`;
+            const badgeHtml = st === "ready"
+              ? '<span class="ready-badge">Ready</span>'
+              : st === "needs_embedding"
+              ? '<span class="embedding-badge">Needs Embedding</span>'
+              : '<span style="font-size:0.7rem;color:var(--text-dim);display:inline-block;margin-top:6px;">Needs Download &amp; Embedding</span>';
             div.innerHTML = `
               <h4>${dataset.label}</h4>
               <p style="margin: 4px 0 8px; font-size: 0.75rem; color: #999; line-height: 1.45;">${dataset.description}</p>
               <p style="margin: 0; font-size: 0.72rem; color: #666;">${cfg.icon} ${dataset.num_files} ${cfg.fileLabel} &middot; ${sizeText}</p>
-              ${dataset.ready ? '<span class="ready-badge">Ready</span>' : '<span style="font-size:0.7rem;color:var(--text-dim);display:inline-block;margin-top:6px;">Needs download</span>'}
+              ${badgeHtml}
             `;
             div.onclick = () => loadDemo(dataset.name);
             col.appendChild(div);
@@ -838,6 +846,16 @@
     menuFavoritesManage.addEventListener("click", async () => {
       await loadFavoriteDetectors();
       loadFavImporterButtons();
+      // Pre-fill name input with most recent text-sort suggestion
+      if (favAddName && !favAddName.value.trim()) {
+        try {
+          const sugRes = await fetch("/api/textsort-suggestions");
+          const sugData = await sugRes.json();
+          if (sugData.suggestions && sugData.suggestions.length > 0) {
+            favAddName.value = sugData.suggestions[sugData.suggestions.length - 1];
+          }
+        } catch (_) {}
+      }
       favoritesModal.classList.add("show");
       burgerDropdown.classList.remove("show");
     });
@@ -1713,7 +1731,7 @@
       // Audio/Sound
       playerHTML = `
         <canvas id="waveform-canvas" width="600" height="120"></canvas>
-        <audio controls loop autoplay src="/api/clips/${c.id}/audio" id="clip-audio"></audio>`;
+        <audio controls controlslist="nodownload" loop autoplay src="/api/clips/${c.id}/audio" id="clip-audio"></audio>`;
     }
 
     center.innerHTML = `
@@ -1812,6 +1830,19 @@
       body: JSON.stringify({ vote }),
     });
     await fetchVotes();
+
+    // When voting Good while a text-sort query is active, store the query
+    // as a suggested name for saving detectors / labelsets later.
+    if (vote === "good" && sortMode === "text") {
+      const textQuery = textSortInput.value.trim();
+      if (textQuery) {
+        fetch("/api/textsort-suggestions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: textQuery }),
+        }).catch(() => {}); // fire-and-forget
+      }
+    }
 
     // Auto-advance to next clip IMMEDIATELY using the current sort order,
     // so the user isn't blocked waiting for model training to finish.

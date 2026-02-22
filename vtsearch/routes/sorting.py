@@ -22,11 +22,13 @@ from vtsearch.models import (
 )
 from vtsearch.utils import (
     add_label_to_history,
+    add_textsort_suggestion,
     bad_votes,
     build_clip_lookup,
     clips,
     get_inclusion,
     get_sort_progress,
+    get_textsort_suggestions,
     good_votes,
     label_history,
     resolve_clip_ids,
@@ -140,6 +142,28 @@ def get_votes():
             "bad": list(bad_votes),  # Maintains insertion order (dict keys)
         }
     )
+
+
+@sorting_bp.route("/api/textsort-suggestions")
+def get_textsort_suggestions_route():
+    """Return stored text-sort suggestions (most recent last)."""
+    return jsonify({"suggestions": get_textsort_suggestions()})
+
+
+@sorting_bp.route("/api/textsort-suggestions", methods=["POST"])
+def add_textsort_suggestion_route():
+    """Store a text-sort query as a suggested name for detectors/labelsets."""
+    try:
+        data = request.get_json(force=True)
+    except Exception:
+        return jsonify({"error": "Invalid request body"}), 400
+    if data is None:
+        return jsonify({"error": "Invalid request body"}), 400
+    text = data.get("text", "").strip()
+    if not text:
+        return jsonify({"error": "text is required"}), 400
+    add_textsort_suggestion(text)
+    return jsonify({"ok": True})
 
 
 @sorting_bp.route("/api/labels/export")

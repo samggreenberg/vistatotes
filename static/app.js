@@ -1,6 +1,7 @@
 (function() {
   let clips = [];
-  let votes = { good: [], bad: [] };
+  let votes = { good: [], bad: [], click_times: {}, learned_scores: {} };
+  let labelSortMode = "time-desc"; // default: newest first
   let selected = null;
   let sortOrder = null;   // null = default, or [{id, score}, ...]
   let sortMode = "text";  // "text" | "learned" | "load"
@@ -882,7 +883,7 @@
           .then(() => {
             showWelcomeScreen();
             clips = [];
-            votes = { good: [], bad: [] };
+            votes = { good: [], bad: [], click_times: {}, learned_scores: {} };
             selected = null;
             datasetLoaded = false;
             burgerDropdown.classList.remove("show");
@@ -1498,6 +1499,16 @@
     updateInclusion(parseInt(inclusionSlider.value));
   });
 
+  // ---- Label sort dropdown ----
+
+  const labelSortSelect = document.getElementById("label-sort-select");
+  if (labelSortSelect) {
+    labelSortSelect.addEventListener("change", () => {
+      labelSortMode = labelSortSelect.value;
+      renderVotes();
+    });
+  }
+
   // ---- Enrich Sort Descriptions toggle ----
 
   if (enrichDescCheckbox) {
@@ -1576,9 +1587,14 @@
       const data = await res.json();
       sortOrder = data.results;  // [{id, score}, ...]
       threshold = data.threshold;
+      // Update learned_scores locally from sort results.
+      const fgScores = {};
+      data.results.forEach(r => { fgScores[String(r.id)] = r.score; });
+      votes.learned_scores = fgScores;
       hideSortProgress();
       sortStatus.textContent = `Threshold: ${(threshold * 100).toFixed(1)}%`;
       renderClipList();
+      renderVotes();
       if (autoSelect) {
         const nextClip = findNextClip();
         if (nextClip) selectClip(nextClip.id);
@@ -1625,9 +1641,15 @@
           if (!data) return;
           sortOrder = data.results;
           threshold = data.threshold;
+          // Update learned_scores locally from sort results so confidence
+          // renders immediately without an extra /api/votes round-trip.
+          const newScores = {};
+          data.results.forEach(r => { newScores[String(r.id)] = r.score; });
+          votes.learned_scores = newScores;
           hideSortProgress();
           sortStatus.textContent = `Threshold: ${(threshold * 100).toFixed(1)}%`;
           renderClipList();
+          renderVotes();
         })
         .catch(err => {
           if (err.name === "AbortError") return; // Superseded by a newer request
@@ -2127,27 +2149,78 @@
     }
   }
 
+  function labelSortKey(id, label) {
+    const clip = clips.find(c => c.id === id);
+    const name = clip ? (clip.filename || `Clip #${id}`) : `Clip #${id}`;
+    const time = votes.click_times[String(id)] ?? -1;
+    const score = votes.learned_scores[String(id)] ?? -1;
+    // Confidence: for "good" labels, higher score = more confident.
+    // For "bad" labels, lower score = more confident (so use 1 - score).
+    let confidence = -1;
+    if (score >= 0) {
+      confidence = label === "good" ? score : 1 - score;
+    }
+    return { id, name, time, score, confidence };
+  }
+
+  function sortLabelEntries(ids, label) {
+    const entries = ids.map(id => labelSortKey(id, label));
+    switch (labelSortMode) {
+      case "time-desc":
+        entries.sort((a, b) => b.time - a.time);
+        break;
+      case "time-asc":
+        entries.sort((a, b) => a.time - b.time);
+        break;
+      case "name-asc":
+        entries.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case "name-desc":
+        entries.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+      case "confidence-desc":
+        entries.sort((a, b) => b.confidence - a.confidence);
+        break;
+      case "confidence-asc":
+        entries.sort((a, b) => a.confidence - b.confidence);
+        break;
+      case "id-asc":
+      default:
+        entries.sort((a, b) => a.id - b.id);
+        break;
+    }
+    return entries;
+  }
+
   function renderVotes() {
     goodList.innerHTML = "";
     badList.innerHTML = "";
 
-    const sortedGood = [...votes.good].sort((a, b) => a - b);
+    const sortedGood = sortLabelEntries(votes.good, "good");
 
-    sortedGood.forEach(id => {
+    sortedGood.forEach(entry => {
       const div = document.createElement("div");
       div.className = "vote-entry";
-      div.textContent = `Clip #${id}`;
-      div.onclick = () => selectClip(id);
+      const metaParts = [];
+      if (entry.time >= 0) metaParts.push(`#${entry.time}`);
+      else metaParts.push("imported");
+      if (entry.confidence >= 0) metaParts.push(`${(entry.confidence * 100).toFixed(0)}%`);
+      div.innerHTML = `<span class="vote-name">${entry.name}</span><span class="vote-meta">${metaParts.join(" \u00b7 ")}</span>`;
+      div.onclick = () => selectClip(entry.id);
       goodList.appendChild(div);
     });
 
-    const sortedBad = [...votes.bad].sort((a, b) => a - b);
+    const sortedBad = sortLabelEntries(votes.bad, "bad");
 
-    sortedBad.forEach(id => {
+    sortedBad.forEach(entry => {
       const div = document.createElement("div");
       div.className = "vote-entry";
-      div.textContent = `Clip #${id}`;
-      div.onclick = () => selectClip(id);
+      const metaParts = [];
+      if (entry.time >= 0) metaParts.push(`#${entry.time}`);
+      else metaParts.push("imported");
+      if (entry.confidence >= 0) metaParts.push(`${(entry.confidence * 100).toFixed(0)}%`);
+      div.innerHTML = `<span class="vote-name">${entry.name}</span><span class="vote-meta">${metaParts.join(" \u00b7 ")}</span>`;
+      div.onclick = () => selectClip(entry.id);
       badList.appendChild(div);
     });
   }

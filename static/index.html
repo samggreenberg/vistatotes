@@ -146,6 +146,18 @@
         <span class="indicator-subtext" id="indicator-subtext"></span>
       </button>
     </div>
+    <div class="label-sort-bar">
+      <span class="sort-label" style="font-size:0.72rem; color:var(--text-dim);">Sort labels</span>
+      <select id="label-sort-select" style="padding:3px 6px; font-size:0.78rem; background:var(--bg-surface); color:var(--text-primary); border:1px solid var(--border); border-radius:4px;">
+        <option value="time-desc">Newest first</option>
+        <option value="time-asc">Oldest first</option>
+        <option value="name-asc">Name A–Z</option>
+        <option value="name-desc">Name Z–A</option>
+        <option value="confidence-desc">Confidence ↓</option>
+        <option value="confidence-asc">Confidence ↑</option>
+        <option value="id-asc">ID ↑</option>
+      </select>
+    </div>
     <div class="vote-section">
       <h3 class="good">Good <span class="label-count" id="good-count">(0)</span></h3>
       <div id="good-list"></div>

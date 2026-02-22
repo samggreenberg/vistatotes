@@ -118,9 +118,10 @@ class ProcessorImporter:
 
     CLI support
     -----------
-    Every importer is automatically usable from the command line via::
+    Processor importers are used indirectly from the CLI via the autodetect
+    workflow: add a processor recipe to the settings JSON file and run::
 
-        python app.py --import-processor --processor-importer <name> [importer args]
+        python app.py --autodetect --dataset <file.pkl> --settings <settings.json>
 
     The default :meth:`add_cli_arguments` derives ``argparse`` arguments from
     :attr:`fields` and :meth:`run_cli` delegates to :meth:`run`.  Override

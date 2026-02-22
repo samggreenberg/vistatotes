@@ -94,66 +94,63 @@ class ImageMediaType(MediaType):
     # Demo datasets
     # ------------------------------------------------------------------
 
+    # Shared categories for all S/M/L image demo datasets.
+    # All three sizes use the same 8 categories; only the underlying
+    # images differ (disjoint slices of each category's Caltech-101 images).
+    _DEMO_CATEGORIES = [
+        "butterfly",
+        "dolphin",
+        "elephant",
+        "grand_piano",
+        "helicopter",
+        "lobster",
+        "starfish",
+        "stop_sign",
+    ]
+
     @property
     def demo_datasets(self) -> list:
+        cats = self._DEMO_CATEGORIES
+        folder = DATA_DIR / "caltech-101" / "101_ObjectCategories"
         return [
             DemoDataset(
                 id="images_s",
-                label="Caltech-101 Nature & Flight (S)",
+                label="Caltech-101 Object Mix (S)",
                 description=(
-                    "Photographs of butterflies, sunflowers, starfish, and"
-                    " helicopters from the Caltech-101 dataset."
+                    "128 photographs across 8 categories — animals, instruments,"
+                    " vehicles, and objects from the Caltech-101 dataset."
                 ),
-                categories=["butterfly", "sunflower", "starfish", "helicopter"],
+                categories=cats,
                 source="caltech101",
-                required_folder=DATA_DIR / "caltech-101" / "101_ObjectCategories",
+                required_folder=folder,
+                slice_start=0,
+                slice_end=16,
             ),
             DemoDataset(
                 id="images_m",
-                label="Caltech-101 Animals & Objects (M)",
+                label="Caltech-101 Object Mix (M)",
                 description=(
-                    "Photographs of dolphins, grand pianos, elephants, kangaroos,"
-                    " laptops, lobsters, watches, and flamingos from Caltech-101."
+                    "256 photographs across 8 categories — animals, instruments,"
+                    " vehicles, and objects from the Caltech-101 dataset."
                 ),
-                categories=[
-                    "dolphin",
-                    "grand_piano",
-                    "elephant",
-                    "kangaroo",
-                    "laptop",
-                    "lobster",
-                    "watch",
-                    "flamingo",
-                ],
+                categories=cats,
                 source="caltech101",
-                required_folder=DATA_DIR / "caltech-101" / "101_ObjectCategories",
+                required_folder=folder,
+                slice_start=16,
+                slice_end=48,
             ),
             DemoDataset(
                 id="images_l",
-                label="Caltech-101 Diverse Objects (L)",
+                label="Caltech-101 Object Mix (L)",
                 description=(
-                    "Photographs across 15 diverse categories including animals,"
-                    " instruments, vehicles, and objects from Caltech-101."
+                    "256 photographs across 8 categories — animals, instruments,"
+                    " vehicles, and objects from the Caltech-101 dataset."
                 ),
-                categories=[
-                    "scorpion",
-                    "stop_sign",
-                    "chandelier",
-                    "rhino",
-                    "rooster",
-                    "soccer_ball",
-                    "yin_yang",
-                    "leopards",
-                    "hawksbill",
-                    "revolver",
-                    "schooner",
-                    "ibis",
-                    "trilobite",
-                    "ceiling_fan",
-                    "dalmatian",
-                ],
+                categories=cats,
                 source="caltech101",
-                required_folder=DATA_DIR / "caltech-101" / "101_ObjectCategories",
+                required_folder=folder,
+                slice_start=48,
+                slice_end=80,
             ),
         ]
 
@@ -240,14 +237,14 @@ class ImageMediaType(MediaType):
 
     def load_clip_data(self, file_path: Path) -> dict:
         with open(file_path, "rb") as f:
-            image_bytes = f.read()
+            clip_bytes = f.read()
         try:
             img = Image.open(file_path)
             width, height = img.width, img.height
         except Exception:
             width, height = None, None
         return {
-            "image_bytes": image_bytes,
+            "clip_bytes": clip_bytes,
             "duration": 0,
             "width": width,
             "height": height,
@@ -261,8 +258,11 @@ class ImageMediaType(MediaType):
         filename = clip.get("filename", "")
         ext = Path(filename).suffix.lower() if filename else ".jpg"
         mimetype = _IMAGE_MIME_TYPES.get(ext, "image/jpeg")
+        data = self._resolve_clip_bytes(clip)
+        if data is None:
+            return MediaResponse(data=b"", mimetype=mimetype, download_name=f"clip_{clip['id']}{ext}")
         return MediaResponse(
-            data=clip["image_bytes"],
+            data=data,
             mimetype=mimetype,
             download_name=f"clip_{clip['id']}{ext}",
         )

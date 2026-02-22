@@ -67,47 +67,57 @@ class TextMediaType(MediaType):
     # Demo datasets
     # ------------------------------------------------------------------
 
+    # Shared categories for all S/M/L text demo datasets.
+    # All three sizes use the same 6 categories; only the underlying
+    # articles differ (disjoint slices of each category's texts).
+    _DEMO_CATEGORIES = [
+        "sports",
+        "science",
+        "cars",
+        "hockey",
+        "electronics",
+        "religion",
+    ]
+
     @property
     def demo_datasets(self) -> list:
+        cats = self._DEMO_CATEGORIES
         return [
             DemoDataset(
                 id="paragraphs_s",
-                label="Newsgroup Sports & Science (S)",
+                label="Newsgroup Topic Mix (S)",
                 description=(
-                    "Short articles about sports and space science from the"
-                    " 20 Newsgroups collection."
+                    "60 articles across 6 topics — sports, science, cars, hockey,"
+                    " electronics, and religion from the 20 Newsgroups collection."
                 ),
-                categories=["sports", "science"],
+                categories=cats,
                 source="ag_news_sample",
+                slice_start=0,
+                slice_end=10,
             ),
             DemoDataset(
                 id="paragraphs_m",
-                label="Newsgroup World News & Tech (M)",
+                label="Newsgroup Topic Mix (M)",
                 description=(
-                    "Articles spanning world affairs, business, computer graphics,"
-                    " and medicine from the 20 Newsgroups collection."
+                    "120 articles across 6 topics — sports, science, cars, hockey,"
+                    " electronics, and religion from the 20 Newsgroups collection."
                 ),
-                categories=["world", "business", "technology", "medicine"],
+                categories=cats,
                 source="ag_news_sample",
+                slice_start=10,
+                slice_end=30,
             ),
             DemoDataset(
                 id="paragraphs_l",
-                label="Newsgroup 8-Topic Mix (L)",
+                label="Newsgroup Topic Mix (L)",
                 description=(
-                    "Articles across eight topics including cars, hockey,"
-                    " electronics, cryptography, and religion from 20 Newsgroups."
+                    "120 articles across 6 topics — sports, science, cars, hockey,"
+                    " electronics, and religion from the 20 Newsgroups collection."
                 ),
-                categories=[
-                    "cars",
-                    "hockey",
-                    "electronics",
-                    "crypto",
-                    "religion",
-                    "guns",
-                    "atheism",
-                    "mac",
-                ],
+                categories=cats,
                 source="ag_news_sample",
+                slice_start=30,
+                slice_end=50,
             ),
         ]
 
@@ -191,7 +201,7 @@ class TextMediaType(MediaType):
         except Exception:
             text_content = ""
         return {
-            "text_content": text_content,
+            "clip_string": text_content,
             "duration": 0,
             "word_count": len(text_content.split()),
             "character_count": len(text_content),
@@ -202,11 +212,12 @@ class TextMediaType(MediaType):
     # ------------------------------------------------------------------
 
     def clip_response(self, clip: dict) -> MediaResponse:
+        content = self._resolve_clip_string(clip)
         return MediaResponse(
             data={
-                "content": clip.get("text_content", ""),
-                "word_count": clip.get("word_count", 0),
-                "character_count": clip.get("character_count", 0),
+                "content": content,
+                "word_count": clip.get("word_count", 0) or len(content.split()),
+                "character_count": clip.get("character_count", 0) or len(content),
             },
             mimetype="application/json",
         )

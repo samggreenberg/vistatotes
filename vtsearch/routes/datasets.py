@@ -24,11 +24,9 @@ from vtsearch.models.progress import clear_progress_cache
 from vtsearch.utils import (
     bad_votes,
     clips,
-    get_dataset_creation_info,
     get_progress,
     good_votes,
     label_history,
-    set_dataset_creation_info,
     update_progress,
 )
 
@@ -47,6 +45,13 @@ def _load_embedder_for_clips() -> None:
     doesn't have to wait for the model download.  ``load_models()`` is
     idempotent, so this is a no-op when the model is already warm (e.g.
     after a folder import that already called ``embed_media()``).
+
+    After loading the model, a dummy text embedding is run to warm up the
+    text encoder branch.  Models like CLAP, CLIP, and X-CLIP have separate
+    media and text encoder sub-networks; data ingest only exercises the
+    media branch, leaving the text branch cold.  Without this warmup the
+    first user-initiated text sort would stall on PyTorch's lazy
+    initialisation for that branch.
     """
     if not clips:
         return
@@ -58,6 +63,12 @@ def _load_embedder_for_clips() -> None:
     except KeyError:
         return
     mt.load_models()
+    # Warm up the text encoder so the first text sort is instant.
+    update_progress("loading", "Warming up text encoder…", 0, 0)
+    try:
+        mt.embed_text("warmup")
+    except Exception:
+        pass
     update_progress("idle", "Ready")
 
 
@@ -67,7 +78,6 @@ def clear_dataset():
     good_votes.clear()
     bad_votes.clear()
     label_history.clear()
-    set_dataset_creation_info(None)
     clear_progress_cache()
 
 
@@ -93,7 +103,6 @@ def _run_importer_in_background(importer, field_values: dict) -> None:
             clear_dataset()
             importer.run(field_values, clips)
             _set_clip_origins(clips, importer.build_origin(field_values))
-            set_dataset_creation_info(importer.build_creation_info(field_values))
             _load_embedder_for_clips()
         except Exception as e:
             update_progress("idle", "", 0, 0, str(e))
@@ -119,7 +128,6 @@ def dataset_status():
             "num_clips": len(clips),
             "has_votes": len(good_votes) + len(bad_votes) > 0,
             "media_type": media_type,
-            "creation_info": get_dataset_creation_info(),
         }
     )
 
@@ -211,25 +219,42 @@ def import_dataset(importer_name: str):
 # ---------------------------------------------------------------------------
 
 
+def _folder_has_content(folder) -> bool:
+    """Return True if *folder* exists and contains at least one entry."""
+    return folder is not None and folder.exists() and any(folder.iterdir())
+
+
 @datasets_bp.route("/api/dataset/demo-list")
 def demo_dataset_list():
-    """List available demo datasets."""
+    """List available demo datasets.
+
+    Each dataset has a ``status`` field with one of three values:
+
+    * ``"ready"`` – embeddings are cached and source data is present.
+    * ``"needs_embedding"`` – source data is downloaded but not yet embedded.
+    * ``"needs_download"`` – source data must be downloaded (and then embedded).
+    """
     demos = []
     for name, dataset_info in DEMO_DATASETS.items():
         pkl_file = EMBEDDINGS_DIR / f"{name}.pkl"
-        is_ready = pkl_file.exists()
+        has_pkl = pkl_file.exists()
 
         media_type = dataset_info.get("media_type", "audio")
+        required_folder = dataset_info.get("required_folder")
+        has_source = _folder_has_content(required_folder)
 
-        # Some pkl files reference external media directories rather than
-        # inlining bytes.  If that directory has been removed since the pkl
-        # was created, the dataset can't actually be loaded — don't show it
-        # as ready.  Each demo dataset declares its own required_folder so
-        # this check stays generic as new demo datasets are added.
-        if is_ready:
-            required_folder = dataset_info.get("required_folder")
-            if required_folder is not None and (not required_folder.exists() or not any(required_folder.iterdir())):
-                is_ready = False
+        # Determine three-state status
+        if has_pkl:
+            if required_folder is not None and not has_source:
+                # Stale pkl – source data was removed since last embed
+                status = "needs_download"
+            else:
+                status = "ready"
+        else:
+            if required_folder is not None and has_source:
+                status = "needs_embedding"
+            else:
+                status = "needs_download"
 
         # Calculate number of files
         num_categories = len(dataset_info["categories"])
@@ -248,23 +273,16 @@ def demo_dataset_list():
             num_files = num_categories * CLIPS_PER_CATEGORY
 
         # Calculate download size
-        if is_ready:
-            # If ready, show the actual .pkl file size
+        if status == "ready":
             download_size_mb = pkl_file.stat().st_size / (1024 * 1024)
+        elif status == "needs_embedding":
+            download_size_mb = 0
         else:
-            # If not ready, estimate download size
+            # needs_download – estimate total download
             if media_type == "video":
-                # Check if video files exist
                 video_source = dataset_info.get("source", "ucf101")
                 if video_source == "ucf101":
-                    video_dir = VIDEO_DIR / "ucf101"
-                    if video_dir.exists():
-                        # Videos are present, just need to embed
-                        download_size_mb = 0
-                        is_ready = False  # Not embedded yet, but videos available
-                    else:
-                        # Need to download/obtain videos (manual process for UCF-101)
-                        download_size_mb = 0  # Manual download required
+                    download_size_mb = 0  # Manual download required
                 else:
                     download_size_mb = SAMPLE_VIDEOS_DOWNLOAD_SIZE_MB
             elif media_type == "image":
@@ -273,17 +291,16 @@ def demo_dataset_list():
                 else:
                     download_size_mb = CIFAR10_DOWNLOAD_SIZE_MB
             elif media_type == "paragraph":
-                # 20 Newsgroups is small (scikit-learn downloads automatically)
-                download_size_mb = 15  # Approximate size
+                download_size_mb = 15  # scikit-learn downloads automatically
             else:
-                # Audio dataset - ESC-50 download
                 download_size_mb = ESC50_DOWNLOAD_SIZE_MB
 
         demos.append(
             {
                 "name": name,
                 "label": dataset_info.get("label", name),
-                "ready": is_ready,
+                "status": status,
+                "ready": status == "ready",
                 "num_files": num_files,
                 "download_size_mb": round(download_size_mb, 1),
                 "description": dataset_info.get("description", ""),
@@ -311,14 +328,6 @@ def load_demo_dataset_route():
             load_demo_dataset(dataset_name, clips)
             demo_origin = {"importer": "demo", "params": {"name": dataset_name}}
             _set_clip_origins(clips, demo_origin)
-            set_dataset_creation_info(
-                {
-                    "importer": "demo",
-                    "display_name": "Demo Dataset",
-                    "field_values": {"name": dataset_name},
-                    "cli_args": None,
-                }
-            )
             _load_embedder_for_clips()
         except Exception as e:
             update_progress("idle", "", 0, 0, str(e))
@@ -392,7 +401,7 @@ def export_dataset():
         return jsonify({"error": "No dataset loaded"}), 400
 
     try:
-        dataset_bytes = export_dataset_to_file(clips, get_dataset_creation_info())
+        dataset_bytes = export_dataset_to_file(clips)
         return send_file(
             io.BytesIO(dataset_bytes),
             mimetype="application/octet-stream",

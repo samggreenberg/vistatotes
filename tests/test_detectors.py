@@ -470,12 +470,12 @@ class TestAutoDetect:
             for hit in result["hits"]:
                 assert "embedding" not in hit
 
-    def test_hits_do_not_contain_wav_bytes(self, client):
+    def test_hits_do_not_contain_clip_bytes(self, client):
         self._add_audio_detector(client)
         data = client.post("/api/auto-detect").get_json()
         for result in data["results"].values():
             for hit in result["hits"]:
-                assert "wav_bytes" not in hit
+                assert "clip_bytes" not in hit
 
     def test_hits_contain_score(self, client):
         self._add_audio_detector(client)

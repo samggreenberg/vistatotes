@@ -1,5 +1,6 @@
 """ML training utilities for learned sorting."""
 
+import math
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
@@ -54,7 +55,7 @@ def calculate_gmm_threshold(scores: list[float]) -> float:
         return float(np.median(scores))
 
 
-def build_model(input_dim: int) -> nn.Sequential:
+def build_model(input_dim: int, generator: torch.Generator | None = None) -> nn.Sequential:
     """Construct the MLP architecture (untrained).
 
     The model outputs raw logits (no sigmoid).  Apply ``torch.sigmoid``
@@ -62,16 +63,28 @@ def build_model(input_dim: int) -> nn.Sequential:
 
     Args:
         input_dim: Dimensionality of the input embeddings.
+        generator: Optional local RNG for weight initialisation.  When
+            provided the weights are re-initialised using this generator
+            instead of PyTorch's global RNG, making construction
+            thread-safe and deterministic.
 
     Returns:
         An ``nn.Sequential`` model with layers:
         ``Linear(input_dim, 64) -> ReLU -> Linear(64, 1)``.
     """
-    return nn.Sequential(
+    model = nn.Sequential(
         nn.Linear(input_dim, 64),
         nn.ReLU(),
         nn.Linear(64, 1),
     )
+    if generator is not None:
+        for module in model.modules():
+            if isinstance(module, nn.Linear):
+                nn.init.kaiming_uniform_(module.weight, a=math.sqrt(5), generator=generator)
+                fan_in, _ = nn.init._calculate_fan_in_and_fan_out(module.weight)
+                bound = 1 / math.sqrt(fan_in) if fan_in > 0 else 0
+                nn.init.uniform_(module.bias, -bound, bound, generator=generator)
+    return model
 
 
 def train_model(
@@ -79,6 +92,7 @@ def train_model(
     y_train: torch.Tensor,
     input_dim: int,
     inclusion_value: int = 0,
+    seed: int = 42,
 ) -> nn.Sequential:
     """Train a small MLP classifier and return the trained model.
 
@@ -87,9 +101,9 @@ def train_model(
     are adjusted based on ``inclusion_value`` to bias the classifier toward
     including more (positive) or fewer (positive) items.
 
-    A fixed seed (``torch.manual_seed(42)``) is set before model
-    construction so that the same inputs always produce the same trained
-    model.
+    A local ``torch.Generator`` seeded with *seed* is used for model-weight
+    initialisation, so the same inputs always produce the same trained model
+    without mutating PyTorch's global RNG (thread-safe).
 
     Args:
         X_train: Float tensor of shape ``(N, input_dim)`` containing training embeddings.
@@ -102,15 +116,17 @@ def train_model(
               causing the model to include more items.
             - Negative: increase weight for False samples by ``2 ** (-inclusion_value)``,
               causing the model to exclude more items.
+        seed: Seed for the local RNG used for weight initialisation (default 42).
 
     Returns:
         A trained ``nn.Sequential`` model in eval mode with layers:
         ``Linear(input_dim, 64) -> ReLU -> Linear(64, 1)``.
         The model outputs raw logits — apply ``torch.sigmoid`` at inference.
     """
-    torch.manual_seed(42)
+    g = torch.Generator()
+    g.manual_seed(seed)
 
-    model = build_model(input_dim)
+    model = build_model(input_dim, generator=g)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-4)
 

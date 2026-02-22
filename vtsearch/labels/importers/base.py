@@ -123,9 +123,9 @@ class LabelImporter:
 
     CLI support
     -----------
-    Every importer is automatically usable from the command line via::
-
-        python app.py --label-importer <name> [importer args]
+    Label importers are used via the web API (``POST /api/label-importers/import/<name>``).
+    From the CLI, labels can be applied indirectly by using the ``label_file``
+    processor importer in a settings file for the autodetect workflow.
 
     The default :meth:`add_cli_arguments` derives ``argparse`` arguments from
     :attr:`fields` and :meth:`run_cli` delegates to :meth:`run`.  Override

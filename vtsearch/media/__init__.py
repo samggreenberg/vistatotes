@@ -76,6 +76,8 @@ def all_demo_datasets() -> dict:
                 "description": ds.description,
                 "categories": ds.categories,
                 "media_type": mt.type_id,
+                "slice_start": ds.slice_start,
+                "slice_end": ds.slice_end,
             }
             if ds.source:
                 entry["source"] = ds.source

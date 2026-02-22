@@ -13,7 +13,7 @@ from vtsearch.config import NUM_CLIPS, SAMPLE_RATE
 from vtsearch.audio import generate_wav
 from vtsearch.models import initialize_models, train_and_score
 from vtsearch.models.progress import clear_progress_cache
-from vtsearch.utils import bad_votes, clips, good_votes, label_history
+from vtsearch.utils import bad_votes, clips, good_votes, label_history, textsort_suggestions
 
 # Attach to app_module for backward compatibility with existing tests
 app_module.NUM_CLIPS = NUM_CLIPS
@@ -37,6 +37,7 @@ def reset_votes():
     good_votes.clear()
     bad_votes.clear()
     label_history.clear()
+    textsort_suggestions.clear()
     _state.inclusion = None  # reset to "not loaded" so it re-reads from settings
     clear_progress_cache()
 

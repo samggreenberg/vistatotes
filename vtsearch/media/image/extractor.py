@@ -83,7 +83,7 @@ class ImageClassExtractor(Extractor):
     def extract(self, clip: dict[str, Any]) -> list[dict[str, Any]]:
         """Detect ``target_class`` objects in *clip* and return bounding boxes.
 
-        The *clip* dict must contain ``"image_bytes"`` (raw image bytes).
+        The *clip* dict must contain ``"clip_bytes"`` (raw image bytes).
 
         Returns a list of dicts, each with keys ``"confidence"``, ``"bbox"``
         (``[x1, y1, x2, y2]`` in pixels), and ``"label"``.
@@ -91,11 +91,11 @@ class ImageClassExtractor(Extractor):
         self.load_model()
         assert self._model is not None
 
-        image_bytes = clip.get("image_bytes")
-        if image_bytes is None:
+        clip_bytes = clip.get("clip_bytes")
+        if clip_bytes is None:
             return []
 
-        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        image = Image.open(io.BytesIO(clip_bytes)).convert("RGB")
         results = self._model(image, verbose=False)
 
         hits: list[dict[str, Any]] = []

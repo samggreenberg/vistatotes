@@ -110,26 +110,31 @@ class TestSettingsModule:
     def test_remove_nonexistent(self):
         assert settings_mod.remove_favorite_processor("nope") is False
 
-    def test_to_cli_command(self):
+    def test_to_settings_json(self):
         entry = {
             "processor_name": "my detector",
             "processor_importer": "detector_file",
             "field_values": {"file": "/path/to/det.json"},
         }
-        cmd = settings_mod.to_cli_command(entry)
-        assert "--import-processor" in cmd
-        assert "--processor-importer detector_file" in cmd
-        assert '--processor-name "my detector"' in cmd
-        assert "--file /path/to/det.json" in cmd
+        snippet = settings_mod.to_settings_json(entry)
+        import json
 
-    def test_to_cli_command_quotes_spaces(self):
+        parsed = json.loads(snippet)
+        assert parsed["processor_name"] == "my detector"
+        assert parsed["processor_importer"] == "detector_file"
+        assert parsed["field_values"]["file"] == "/path/to/det.json"
+
+    def test_to_settings_json_with_spaces(self):
         entry = {
             "processor_name": "det",
             "processor_importer": "detector_file",
             "field_values": {"file": "/my path/det.json"},
         }
-        cmd = settings_mod.to_cli_command(entry)
-        assert '"/my path/det.json"' in cmd
+        snippet = settings_mod.to_settings_json(entry)
+        import json
+
+        parsed = json.loads(snippet)
+        assert parsed["field_values"]["file"] == "/my path/det.json"
 
     def test_persistence_survives_reset(self, isolated_settings):
         settings_mod.set_volume(0.7)
@@ -294,7 +299,7 @@ class TestSettingsAPI:
         data = res.get_json()
         assert data["success"] is True
         assert data["processor_name"] == "api_test"
-        assert "cli_command" in data
+        assert "settings_json" in data
 
     def test_add_favorite_processor_missing_name(self, client):
         res = client.post(
@@ -348,7 +353,7 @@ class TestSettingsAPI:
         res = client.delete("/api/settings/favorite-processors/nope")
         assert res.status_code == 404
 
-    def test_get_settings_includes_cli_command(self, client):
+    def test_get_settings_includes_settings_json(self, client):
         client.post(
             "/api/settings/favorite-processors",
             json={
@@ -361,4 +366,8 @@ class TestSettingsAPI:
         res = client.get("/api/settings")
         data = res.get_json()
         proc = next(p for p in data["favorite_processors"] if p["processor_name"] == "cmd_test")
-        assert "--import-processor" in proc["cli_command"]
+        import json
+
+        parsed = json.loads(proc["settings_json"])
+        assert parsed["processor_name"] == "cmd_test"
+        assert parsed["processor_importer"] == "detector_file"

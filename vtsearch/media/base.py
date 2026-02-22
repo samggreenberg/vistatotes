@@ -93,6 +93,17 @@ class DemoDataset:
     ``DATA_DIR / "ESC-50-master" / "audio"``).  Leave ``None`` for datasets
     whose ``.pkl`` is entirely self-contained (images, text)."""
 
+    slice_start: int = 0
+    """Per-category start index for element slicing (inclusive).
+
+    When multiple datasets share the same categories, this allows them to
+    use disjoint subsets of elements within each category."""
+
+    slice_end: Optional[int] = None
+    """Per-category end index for element slicing (exclusive).
+
+    ``None`` means take all remaining elements after ``slice_start``."""
+
 
 class MediaType(ABC):
     """Abstract base class that every media type must implement.
@@ -259,16 +270,52 @@ class MediaType(ABC):
 
         Example return value for audio::
 
-            {"wav_bytes": b"...", "duration": 3.2}
+            {"clip_bytes": b"...", "duration": 3.2}
 
         Example return value for images::
 
-            {"image_bytes": b"...", "duration": 0, "width": 32, "height": 32}
+            {"clip_bytes": b"...", "duration": 0, "width": 32, "height": 32}
         """
 
     # ------------------------------------------------------------------
     # HTTP serving
     # ------------------------------------------------------------------
+
+    def _resolve_clip_bytes(self, clip: dict) -> bytes | None:
+        """Return binary media data, lazy-loading from ``media_path`` if needed.
+
+        In thin mode, ``clip_bytes`` is ``None`` but ``media_path`` points to
+        the source file on disk.  This helper transparently loads the bytes on
+        demand so that :meth:`clip_response` works regardless of how the clip
+        was loaded.
+        """
+        clip_bytes = clip.get("clip_bytes")
+        if clip_bytes is not None:
+            return clip_bytes
+        media_path = clip.get("media_path")
+        if media_path:
+            path = Path(media_path)
+            if path.exists():
+                with open(path, "rb") as f:
+                    return f.read()
+        return None
+
+    def _resolve_clip_string(self, clip: dict) -> str:
+        """Return text content, lazy-loading from ``media_path`` if needed.
+
+        Same lazy-loading pattern as :meth:`_resolve_clip_bytes` but for
+        text media types that store ``clip_string`` instead of ``clip_bytes``.
+        """
+        clip_string = clip.get("clip_string")
+        if clip_string is not None:
+            return clip_string
+        media_path = clip.get("media_path")
+        if media_path:
+            path = Path(media_path)
+            if path.exists():
+                with open(path, "r", encoding="utf-8") as f:
+                    return f.read().strip()
+        return ""
 
     @abstractmethod
     def clip_response(self, clip: dict) -> MediaResponse:
@@ -277,6 +324,10 @@ class MediaType(ABC):
         For binary media, set ``data`` to raw bytes with an appropriate
         ``mimetype``.  For structured data (e.g. text paragraphs), set
         ``data`` to a JSON-serialisable dict with ``mimetype="application/json"``.
+
+        Implementations should use :meth:`_resolve_clip_bytes` or
+        :meth:`_resolve_clip_string` to transparently support both preloaded
+        clips and thin (lazy-loaded) clips.
         """
 
 

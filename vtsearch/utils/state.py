@@ -3,7 +3,7 @@
 import json
 from typing import Any
 
-# Clips storage: id -> {id, type, duration, file_size, embedding, wav_bytes, video_bytes}
+# Clips storage: id -> {id, type, duration, file_size, embedding, clip_bytes, clip_string, ...}
 clips: dict[int, dict[str, Any]] = {}
 
 # Voting storage (OrderedDict behavior via dict in Python 3.7+)
@@ -19,15 +19,14 @@ label_history: list[tuple[int, str, float]] = []
 # persisted settings file so that it survives restarts.
 inclusion: int | None = None
 
+# Text-sort suggestions: text queries that received a Good vote, most recent last.
+textsort_suggestions: list[str] = []
+
 # Favorite detectors: name -> {name, media_type, weights, threshold, created_at}
 favorite_detectors: dict[str, dict[str, Any]] = {}
 
 # Favorite extractors: name -> {name, extractor_type, media_type, config, created_at}
 favorite_extractors: dict[str, dict[str, Any]] = {}
-
-# Dataset creation info: records how the current dataset was created
-# (importer name, field values, CLI args).  ``None`` when no dataset is loaded.
-dataset_creation_info: dict[str, Any] | None = None
 
 
 def clear_votes() -> None:
@@ -42,6 +41,7 @@ def clear_votes() -> None:
     good_votes.clear()
     bad_votes.clear()
     label_history.clear()
+    textsort_suggestions.clear()
     clear_progress_cache()
 
 
@@ -50,14 +50,11 @@ def clear_clips() -> None:
 
     Removes all entries from the ``clips`` dict in place. Does not affect
     votes or label history. Also clears the progress model cache since
-    cached models reference clip embeddings.  Also clears
-    :data:`dataset_creation_info`.
+    cached models reference clip embeddings.
     """
-    global dataset_creation_info
     from vtsearch.models.progress import clear_progress_cache
 
     clips.clear()
-    dataset_creation_info = None
     clear_progress_cache()
 
 
@@ -123,6 +120,27 @@ def add_label_to_history(clip_id: int, label: str) -> None:
     import time
 
     label_history.append((clip_id, label, time.time()))
+
+
+def add_textsort_suggestion(text: str) -> None:
+    """Record a text-sort query as a suggested detector/labelset name.
+
+    Duplicates are moved to the end so the most-recently-voted query is last.
+
+    Args:
+        text: The text-sort query string to store.
+    """
+    # Remove existing occurrence so it moves to the end
+    try:
+        textsort_suggestions.remove(text)
+    except ValueError:
+        pass
+    textsort_suggestions.append(text)
+
+
+def get_textsort_suggestions() -> list[str]:
+    """Return stored text-sort suggestions, most recent last."""
+    return list(textsort_suggestions)
 
 
 def add_favorite_detector(name: str, media_type: str, weights: dict[str, Any], threshold: float) -> None:
@@ -274,27 +292,6 @@ def get_favorite_extractors() -> dict[str, dict[str, Any]]:
 def get_favorite_extractors_by_media(media_type: str) -> dict[str, dict[str, Any]]:
     """Return all favorite extractors matching a given media type."""
     return {name: ext for name, ext in favorite_extractors.items() if ext["media_type"] == media_type}
-
-
-# ---------------------------------------------------------------------------
-# Dataset Creation Info
-# ---------------------------------------------------------------------------
-
-
-def set_dataset_creation_info(info: dict[str, Any] | None) -> None:
-    """Set the creation info for the currently loaded dataset.
-
-    Args:
-        info: A dict with keys ``"importer"``, ``"display_name"``,
-            ``"field_values"``, and ``"cli_args"``, or ``None`` to clear.
-    """
-    global dataset_creation_info
-    dataset_creation_info = info
-
-
-def get_dataset_creation_info() -> dict[str, Any] | None:
-    """Return the creation info for the currently loaded dataset, or ``None``."""
-    return dataset_creation_info
 
 
 # ---------------------------------------------------------------------------

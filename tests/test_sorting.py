@@ -181,9 +181,11 @@ class TestTrainModelConfig:
 
             model = train_model(X, y, 16)
 
-            # Train without weight decay for comparison
-            torch.manual_seed(42)
-            model_no_wd = build_model(16)
+            # Train without weight decay for comparison (use same local
+            # generator approach as train_model for identical init weights)
+            g = torch.Generator()
+            g.manual_seed(42)
+            model_no_wd = build_model(16, generator=g)
             optimizer = torch.optim.Adam(model_no_wd.parameters(), lr=0.001, weight_decay=0.0)
             loss_fn = torch.nn.BCEWithLogitsLoss()
             model_no_wd.train()
@@ -314,3 +316,59 @@ class TestExampleSort:
         data = {"file": (io.BytesIO(b""), "")}
         resp = client.post("/api/example-sort", data=data, content_type="multipart/form-data")
         assert resp.status_code == 400
+
+
+class TestTextsortSuggestions:
+    def test_get_empty(self, client):
+        resp = client.get("/api/textsort-suggestions")
+        assert resp.status_code == 200
+        assert resp.get_json() == {"suggestions": []}
+
+    def test_add_and_get(self, client):
+        resp = client.post("/api/textsort-suggestions", json={"text": "dog barking"})
+        assert resp.status_code == 200
+        assert resp.get_json() == {"ok": True}
+
+        resp = client.get("/api/textsort-suggestions")
+        assert resp.get_json()["suggestions"] == ["dog barking"]
+
+    def test_multiple_suggestions_ordered(self, client):
+        client.post("/api/textsort-suggestions", json={"text": "birds"})
+        client.post("/api/textsort-suggestions", json={"text": "rain"})
+        client.post("/api/textsort-suggestions", json={"text": "thunder"})
+
+        resp = client.get("/api/textsort-suggestions")
+        assert resp.get_json()["suggestions"] == ["birds", "rain", "thunder"]
+
+    def test_duplicate_moves_to_end(self, client):
+        client.post("/api/textsort-suggestions", json={"text": "birds"})
+        client.post("/api/textsort-suggestions", json={"text": "rain"})
+        client.post("/api/textsort-suggestions", json={"text": "birds"})
+
+        resp = client.get("/api/textsort-suggestions")
+        assert resp.get_json()["suggestions"] == ["rain", "birds"]
+
+    def test_empty_text_returns_400(self, client):
+        resp = client.post("/api/textsort-suggestions", json={"text": ""})
+        assert resp.status_code == 400
+
+    def test_missing_text_returns_400(self, client):
+        resp = client.post("/api/textsort-suggestions", json={"other": "x"})
+        assert resp.status_code == 400
+
+    def test_whitespace_only_returns_400(self, client):
+        resp = client.post("/api/textsort-suggestions", json={"text": "   "})
+        assert resp.status_code == 400
+
+    def test_cleared_with_votes(self, client):
+        """Suggestions are cleared when votes are cleared."""
+        client.post("/api/textsort-suggestions", json={"text": "cat meowing"})
+        resp = client.get("/api/textsort-suggestions")
+        assert len(resp.get_json()["suggestions"]) == 1
+
+        from vtsearch.utils import clear_votes
+
+        clear_votes()
+
+        resp = client.get("/api/textsort-suggestions")
+        assert resp.get_json()["suggestions"] == []

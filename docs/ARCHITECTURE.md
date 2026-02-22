@@ -255,7 +255,7 @@ load_dataset_from_folder(
     clips=clips,
     on_progress=lambda s, m, c, t: print(f"{m} {c}/{t}"),
 )
-# clips is now {1: {"id": 1, "embedding": ..., "wav_bytes": ..., ...}, ...}
+# clips is now {1: {"id": 1, "embedding": ..., "clip_bytes": ..., ...}, ...}
 ```
 
 ### Progress tracking
@@ -346,7 +346,7 @@ Origins are set automatically when data is loaded:
   `DatasetImporter.build_origin(field_values)`.
 - **Demo datasets** get `Origin("demo", {"name": dataset_name})`.
 - **Pickle loads** preserve the per-element origins stored in the file.
-  Old pickles without origins fall back to the dataset's `creation_info`.
+  Old pickles without origins fall back to the legacy `creation_info` stored in the pickle (if any).
 
 ### LabelSet (`vtsearch/datasets/labelset.py`)
 

@@ -87,7 +87,7 @@ class TestDemoDatasetReadiness:
         """Audio pkl exists but ESC-50 audio dir is absent → needs_download (stale pkl)."""
         import pickle
 
-        from config import DATA_DIR, EMBEDDINGS_DIR
+        from vtsearch.config import DATA_DIR, EMBEDDINGS_DIR
 
         esc50_dir = DATA_DIR / "ESC-50-master" / "audio"
         if esc50_dir.exists():
@@ -114,7 +114,7 @@ class TestDemoDatasetReadiness:
         """Audio pkl exists and ESC-50 audio dir exists but is empty → needs_download."""
         import pickle
 
-        from config import DATA_DIR, EMBEDDINGS_DIR
+        from vtsearch.config import DATA_DIR, EMBEDDINGS_DIR
 
         esc50_dir = DATA_DIR / "ESC-50-master" / "audio"
         if esc50_dir.exists() and any(esc50_dir.iterdir()):
@@ -147,7 +147,7 @@ class TestDemoDatasetReadiness:
         """Video pkl exists but UCF-101 dir is absent → needs_download (stale pkl)."""
         import pickle
 
-        from config import EMBEDDINGS_DIR, VIDEO_DIR
+        from vtsearch.config import EMBEDDINGS_DIR, VIDEO_DIR
 
         ucf101_dir = VIDEO_DIR / "ucf101"
         if ucf101_dir.exists():
@@ -176,7 +176,7 @@ class TestDemoDatasetReadiness:
         import struct
         import wave
 
-        from config import DATA_DIR, EMBEDDINGS_DIR
+        from vtsearch.config import DATA_DIR, EMBEDDINGS_DIR
 
         esc50_dir = DATA_DIR / "ESC-50-master" / "audio"
         # Ensure no pkl exists for sounds_s
@@ -213,7 +213,7 @@ class TestDemoDatasetReadiness:
 
     def test_no_pkl_no_source_shows_needs_download(self, client):
         """No pkl and no required_folder → needs_download."""
-        from config import DATA_DIR, EMBEDDINGS_DIR
+        from vtsearch.config import DATA_DIR, EMBEDDINGS_DIR
 
         esc50_dir = DATA_DIR / "ESC-50-master" / "audio"
         pkl_file = EMBEDDINGS_DIR / "sounds_s.pkl"

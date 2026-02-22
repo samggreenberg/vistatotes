@@ -18,8 +18,9 @@ Media explorer web app for browsing/voting on audio, images, or text. Semantic s
 
 ## Architecture
 - `app.py` — Flask entry point, registers blueprints, startup logic, CLI argument parsing
+- `vtsearch/config.py` — Constants (SAMPLE_RATE, NUM_CLIPS, paths, model IDs)
+- `vtsearch/clips.py` — Test clip generation and embedding cache management
 - `vtsearch/cli.py` — CLI utilities: autodetect (load dataset + detectors from settings, run inference, export results)
-- `config.py` — Constants (SAMPLE_RATE, NUM_CLIPS, paths, model IDs)
 - `vtsearch/routes/` — Flask blueprints: `main.py`, `clips.py`, `sorting.py`, `detectors.py`, `datasets.py`, `exporters.py`, `label_importers.py`, `processor_importers.py`
 - `vtsearch/models/` — Embeddings, training, model loading, progress tracking
 - `vtsearch/datasets/` — Dataset loading, downloading, origin tracking, labelsets, importers (folder/pickle/http_zip/rss_feed/youtube_playlist)
@@ -28,9 +29,8 @@ Media explorer web app for browsing/voting on audio, images, or text. Semantic s
 - `vtsearch/processors/importers/` — Processor importers (detector_file/label_file); auto-discovered via `PROCESSOR_IMPORTER` sentinel
 - `vtsearch/media/` — Media type plugins: audio, image, text, video
 - `vtsearch/utils/` — Global state (`clips` dict, votes), progress utilities
-- `static/index.html` — HTML structure (270 lines)
-- `static/styles.css` — All CSS styles
-- `static/app.js` — All frontend JavaScript
+- `static/` — Frontend (index.html, app.js, styles.css) and assets (favicons, logo.svg)
+- `docs/` — Extended docs (ARCHITECTURE.md, EXTENDING.md, EVAL.md, CLI.md, ML.md, SETUP.md)
 - `tests/` — Test suite split by module:
   - `conftest.py` — Shared fixtures (client, vote reset, model init)
   - `test_audio.py` — WAV generation

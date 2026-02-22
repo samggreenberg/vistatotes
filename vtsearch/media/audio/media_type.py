@@ -10,7 +10,7 @@ import numpy as np
 import torch
 from transformers import ClapModel, ClapProcessor
 
-from config import CLAP_MODEL_ID, DATA_DIR, MODELS_CACHE_DIR, SAMPLE_RATE
+from vtsearch.config import CLAP_MODEL_ID, DATA_DIR, MODELS_CACHE_DIR, SAMPLE_RATE
 from vtsearch.media.base import DemoDataset, MediaResponse, MediaType, ProgressCallback, _noop_progress
 
 

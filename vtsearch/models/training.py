@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 from sklearn.mixture import GaussianMixture
 
-from config import TRAIN_EPOCHS
+from vtsearch.config import TRAIN_EPOCHS
 
 
 def calculate_gmm_threshold(scores: list[float]) -> float:

@@ -10,7 +10,7 @@ import torch
 from PIL import Image
 from transformers import CLIPModel, CLIPProcessor
 
-from config import CLIP_MODEL_ID, DATA_DIR, MODELS_CACHE_DIR
+from vtsearch.config import CLIP_MODEL_ID, DATA_DIR, MODELS_CACHE_DIR
 from vtsearch.media.base import DemoDataset, MediaResponse, MediaType, ProgressCallback, _noop_progress
 
 

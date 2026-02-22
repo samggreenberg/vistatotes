@@ -286,7 +286,7 @@ follow the same pattern:
    missing, a warning is emitted but the app continues.
 
 To add a new plugin, create a package directory, implement the base
-class, and expose the sentinel.  See `EXTENDING.md` for full examples.
+class, and expose the sentinel.  See `EXTENDING.md` (in this directory) for full examples.
 
 ---
 

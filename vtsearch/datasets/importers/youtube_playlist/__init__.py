@@ -8,7 +8,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Callable
 
-from config import DATA_DIR
+from vtsearch.config import DATA_DIR
 from vtsearch.datasets.importers.base import DatasetImporter, ImporterField
 
 ProgressCallback = Callable[[str, str, int, int], None]

@@ -12,7 +12,7 @@ to work unchanged.
 
 import gc
 
-from config import MODELS_CACHE_DIR
+from vtsearch.config import MODELS_CACHE_DIR
 
 
 def initialize_models() -> None:

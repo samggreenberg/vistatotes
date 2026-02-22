@@ -5,7 +5,7 @@ import math
 import struct
 import wave
 
-from config import SAMPLE_RATE
+from vtsearch.config import SAMPLE_RATE
 
 
 def generate_wav(frequency: float, duration: float) -> bytes:

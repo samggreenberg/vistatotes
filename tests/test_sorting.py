@@ -166,7 +166,7 @@ class TestTrainModelConfig:
 
     def test_weight_decay_is_applied(self):
         """Weight decay should keep weights smaller than without it."""
-        import config
+        import vtsearch.config as config
         from vtsearch.models.training import build_model
 
         saved = config.TRAIN_EPOCHS

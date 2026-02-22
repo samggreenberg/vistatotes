@@ -12,7 +12,7 @@ from typing import Any, Callable
 
 import requests
 
-from config import DATA_DIR
+from vtsearch.config import DATA_DIR
 from vtsearch.datasets.importers.base import DatasetImporter, ImporterField
 
 ProgressCallback = Callable[[str, str, int, int], None]

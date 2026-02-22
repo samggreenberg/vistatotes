@@ -103,7 +103,7 @@ class TestTrainModelGPU:
 
     def test_gpu_model_separates_classes(self, device):
         """Good examples should score higher than bad examples on average."""
-        import config
+        import vtsearch.config as config
 
         saved = config.TRAIN_EPOCHS
         config.TRAIN_EPOCHS = 100
@@ -128,7 +128,7 @@ class TestTrainModelGPU:
             config.TRAIN_EPOCHS = saved
 
     def test_inclusion_positive_biases_toward_good(self, device):
-        import config
+        import vtsearch.config as config
 
         saved = config.TRAIN_EPOCHS
         config.TRAIN_EPOCHS = 100
@@ -165,7 +165,7 @@ class TestCrossCalibrationGPU:
     threshold when the underlying training happens on a GPU-capable system."""
 
     def test_threshold_is_valid_float(self):
-        import config
+        import vtsearch.config as config
 
         saved = config.TRAIN_EPOCHS
         config.TRAIN_EPOCHS = 30
@@ -183,7 +183,7 @@ class TestCrossCalibrationGPU:
             config.TRAIN_EPOCHS = saved
 
     def test_threshold_with_inclusion(self):
-        import config
+        import vtsearch.config as config
 
         saved = config.TRAIN_EPOCHS
         config.TRAIN_EPOCHS = 30
@@ -213,7 +213,7 @@ class TestTrainAndScoreGPU:
     learned-sort endpoint) works on a system with a GPU."""
 
     def test_returns_all_clips_scored(self):
-        import config
+        import vtsearch.config as config
 
         saved = config.TRAIN_EPOCHS
         config.TRAIN_EPOCHS = 30
@@ -233,7 +233,7 @@ class TestTrainAndScoreGPU:
             config.TRAIN_EPOCHS = saved
 
     def test_scores_between_zero_and_one(self):
-        import config
+        import vtsearch.config as config
 
         saved = config.TRAIN_EPOCHS
         config.TRAIN_EPOCHS = 30
@@ -249,7 +249,7 @@ class TestTrainAndScoreGPU:
             config.TRAIN_EPOCHS = saved
 
     def test_results_sorted_descending(self):
-        import config
+        import vtsearch.config as config
 
         saved = config.TRAIN_EPOCHS
         config.TRAIN_EPOCHS = 30
@@ -265,7 +265,7 @@ class TestTrainAndScoreGPU:
             config.TRAIN_EPOCHS = saved
 
     def test_good_clips_scored_higher_than_bad(self):
-        import config
+        import vtsearch.config as config
 
         saved = config.TRAIN_EPOCHS
         config.TRAIN_EPOCHS = 50
@@ -290,7 +290,7 @@ class TestTrainAndScoreGPU:
             config.TRAIN_EPOCHS = saved
 
     def test_with_inclusion_value(self):
-        import config
+        import vtsearch.config as config
 
         saved = config.TRAIN_EPOCHS
         config.TRAIN_EPOCHS = 30
@@ -315,7 +315,7 @@ class TestDetectorGPU:
     """Verify detector model reconstruction and scoring on GPU."""
 
     def test_reconstruct_and_score_on_gpu(self, device):
-        import config
+        import vtsearch.config as config
 
         saved = config.TRAIN_EPOCHS
         config.TRAIN_EPOCHS = 30
@@ -368,7 +368,7 @@ class TestDetectorGPU:
 
     def test_gpu_cpu_scores_match(self, device):
         """Scores from GPU and CPU model should be numerically close."""
-        import config
+        import vtsearch.config as config
 
         saved = config.TRAIN_EPOCHS
         config.TRAIN_EPOCHS = 30
@@ -412,7 +412,7 @@ class TestDetectorGPU:
 
     def test_multiple_detectors_on_gpu(self, device):
         """Simulate auto-detect: run multiple detectors on GPU sequentially."""
-        import config
+        import vtsearch.config as config
 
         saved = config.TRAIN_EPOCHS
         config.TRAIN_EPOCHS = 30
@@ -480,7 +480,7 @@ class TestCLAPEmbeddingGPU:
     def test_clap_text_embedding_on_gpu(self, device):
         from transformers import ClapModel, ClapProcessor
 
-        from config import CLAP_MODEL_ID, MODELS_CACHE_DIR
+        from vtsearch.config import CLAP_MODEL_ID, MODELS_CACHE_DIR
 
         cache_dir = str(MODELS_CACHE_DIR)
         model = ClapModel.from_pretrained(CLAP_MODEL_ID, low_cpu_mem_usage=True, cache_dir=cache_dir).to(device)
@@ -499,7 +499,7 @@ class TestCLAPEmbeddingGPU:
         import soundfile as sf
         from transformers import ClapModel, ClapProcessor
 
-        from config import CLAP_MODEL_ID, MODELS_CACHE_DIR, SAMPLE_RATE
+        from vtsearch.config import CLAP_MODEL_ID, MODELS_CACHE_DIR, SAMPLE_RATE
 
         # Generate a short sine wave
         duration = 1.0
@@ -545,7 +545,7 @@ class TestCLIPEmbeddingGPU:
     def test_clip_text_embedding_on_gpu(self, device):
         from transformers import CLIPModel, CLIPProcessor
 
-        from config import CLIP_MODEL_ID, MODELS_CACHE_DIR
+        from vtsearch.config import CLIP_MODEL_ID, MODELS_CACHE_DIR
 
         cache_dir = str(MODELS_CACHE_DIR)
         CLIPModel._keys_to_ignore_on_load_unexpected = [r".*position_ids.*"]
@@ -566,7 +566,7 @@ class TestCLIPEmbeddingGPU:
         from PIL import Image
         from transformers import CLIPModel, CLIPProcessor
 
-        from config import CLIP_MODEL_ID, MODELS_CACHE_DIR
+        from vtsearch.config import CLIP_MODEL_ID, MODELS_CACHE_DIR
 
         cache_dir = str(MODELS_CACHE_DIR)
         CLIPModel._keys_to_ignore_on_load_unexpected = [r".*position_ids.*"]
@@ -602,7 +602,7 @@ class TestXCLIPEmbeddingGPU:
     def test_xclip_text_embedding_on_gpu(self, device):
         from transformers import XCLIPModel, XCLIPProcessor
 
-        from config import MODELS_CACHE_DIR, XCLIP_MODEL_ID
+        from vtsearch.config import MODELS_CACHE_DIR, XCLIP_MODEL_ID
 
         cache_dir = str(MODELS_CACHE_DIR)
         model = XCLIPModel.from_pretrained(XCLIP_MODEL_ID, low_cpu_mem_usage=True, cache_dir=cache_dir).to(device)
@@ -622,7 +622,7 @@ class TestXCLIPEmbeddingGPU:
         from PIL import Image
         from transformers import XCLIPModel, XCLIPProcessor
 
-        from config import MODELS_CACHE_DIR, XCLIP_MODEL_ID
+        from vtsearch.config import MODELS_CACHE_DIR, XCLIP_MODEL_ID
 
         cache_dir = str(MODELS_CACHE_DIR)
         model = XCLIPModel.from_pretrained(XCLIP_MODEL_ID, low_cpu_mem_usage=True, cache_dir=cache_dir).to(device)
@@ -647,7 +647,7 @@ class TestE5EmbeddingGPU:
     def test_e5_model_loads_on_gpu(self, device):
         from sentence_transformers import SentenceTransformer
 
-        from config import E5_MODEL_ID, MODELS_CACHE_DIR
+        from vtsearch.config import E5_MODEL_ID, MODELS_CACHE_DIR
 
         model = SentenceTransformer(E5_MODEL_ID, cache_folder=str(MODELS_CACHE_DIR), device=str(device))
         vec = model.encode("query: test sentence", normalize_embeddings=True)
@@ -657,7 +657,7 @@ class TestE5EmbeddingGPU:
     def test_e5_passage_embedding_on_gpu(self, device):
         from sentence_transformers import SentenceTransformer
 
-        from config import E5_MODEL_ID, MODELS_CACHE_DIR
+        from vtsearch.config import E5_MODEL_ID, MODELS_CACHE_DIR
 
         model = SentenceTransformer(E5_MODEL_ID, cache_folder=str(MODELS_CACHE_DIR), device=str(device))
         vec = model.encode("passage: The quick brown fox jumps over the lazy dog.", normalize_embeddings=True)
@@ -668,7 +668,7 @@ class TestE5EmbeddingGPU:
         """Query and passage embeddings should have the same dimensionality."""
         from sentence_transformers import SentenceTransformer
 
-        from config import E5_MODEL_ID, MODELS_CACHE_DIR
+        from vtsearch.config import E5_MODEL_ID, MODELS_CACHE_DIR
 
         model = SentenceTransformer(E5_MODEL_ID, cache_folder=str(MODELS_CACHE_DIR), device=str(device))
         q_vec = model.encode("query: animals", normalize_embeddings=True)
@@ -690,7 +690,7 @@ class TestEmbeddingEquivalence:
     def test_clip_text_cpu_gpu_match(self, device):
         from transformers import CLIPModel, CLIPProcessor
 
-        from config import CLIP_MODEL_ID, MODELS_CACHE_DIR
+        from vtsearch.config import CLIP_MODEL_ID, MODELS_CACHE_DIR
 
         cache_dir = str(MODELS_CACHE_DIR)
         CLIPModel._keys_to_ignore_on_load_unexpected = [r".*position_ids.*"]
@@ -718,7 +718,7 @@ class TestEmbeddingEquivalence:
     def test_e5_cpu_gpu_match(self, device):
         from sentence_transformers import SentenceTransformer
 
-        from config import E5_MODEL_ID, MODELS_CACHE_DIR
+        from vtsearch.config import E5_MODEL_ID, MODELS_CACHE_DIR
 
         text = "query: machine learning algorithms"
 
@@ -740,7 +740,7 @@ class TestGPUMemoryCleanup:
     """Verify that GPU memory is freed after model use."""
 
     def test_training_frees_gpu_memory(self, device):
-        import config
+        import vtsearch.config as config
 
         saved = config.TRAIN_EPOCHS
         config.TRAIN_EPOCHS = 30
@@ -776,7 +776,7 @@ class TestGPUMemoryCleanup:
 
         from sentence_transformers import SentenceTransformer
 
-        from config import E5_MODEL_ID, MODELS_CACHE_DIR
+        from vtsearch.config import E5_MODEL_ID, MODELS_CACHE_DIR
 
         model = SentenceTransformer(E5_MODEL_ID, cache_folder=str(MODELS_CACHE_DIR), device=str(device))
         _ = model.encode("query: test", normalize_embeddings=True)

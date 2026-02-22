@@ -13,7 +13,7 @@ import zipfile
 from pathlib import Path
 from typing import Any, Callable, Optional
 
-from config import DATA_DIR
+from vtsearch.config import DATA_DIR
 from vtsearch.datasets.downloader import download_file_with_progress
 from vtsearch.datasets.importers.base import DatasetImporter, ImporterField
 from vtsearch.datasets.loader import load_dataset_from_folder

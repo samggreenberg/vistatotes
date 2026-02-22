@@ -110,7 +110,7 @@ class S3Importer(DatasetImporter):
         """
         import boto3
         from pathlib import Path
-        from config import DATA_DIR
+        from vtsearch.config import DATA_DIR
         from vtsearch.utils import update_progress
 
         bucket = field_values["bucket"]

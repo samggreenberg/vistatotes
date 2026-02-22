@@ -29,7 +29,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from config import DATA_DIR
+from vtsearch.config import DATA_DIR
 
 logger = logging.getLogger(__name__)
 

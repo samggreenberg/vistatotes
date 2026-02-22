@@ -17,47 +17,47 @@ def index() -> Response:
     return current_app.send_static_file("index.html")
 
 
-def _project_root() -> Path:
-    """Return the project root directory."""
-    return Path(current_app.root_path)
+def _static_dir() -> Path:
+    """Return the static directory path."""
+    return Path(current_app.root_path) / "static"
 
 
 @main_bp.route("/favicon.ico")
 def favicon() -> tuple[str, int] | Response:
-    """Serve the site favicon from the project root.
+    """Serve the site favicon from the static directory.
 
     Returns:
-        The ``favicon.ico`` file from the project root if it exists,
+        The ``favicon.ico`` file from ``static/`` if it exists,
         otherwise an empty ``(str, int)`` tuple with HTTP status 204.
     """
-    root = _project_root()
-    if not (root / "favicon.ico").exists():
+    static = _static_dir()
+    if not (static / "favicon.ico").exists():
         return "", 204
-    return send_from_directory(str(root), "favicon.ico", mimetype="image/x-icon")
+    return send_from_directory(str(static), "favicon.ico", mimetype="image/x-icon")
 
 
 @main_bp.route("/favicon-<variant>.ico")
 def favicon_variant(variant: str) -> tuple[str, int] | Response:
-    """Serve a favicon variant (smile, frown, surprised) from the project root."""
+    """Serve a favicon variant (smile, frown, surprised) from the static directory."""
     allowed = {"smile", "frown", "surprised"}
     if variant not in allowed:
         return "", 404
-    root = _project_root()
+    static = _static_dir()
     filename = f"favicon-{variant}.ico"
-    if not (root / filename).exists():
+    if not (static / filename).exists():
         return "", 204
-    return send_from_directory(str(root), filename, mimetype="image/x-icon")
+    return send_from_directory(str(static), filename, mimetype="image/x-icon")
 
 
 @main_bp.route("/logo.svg")
 def logo() -> tuple[str, int] | Response:
-    """Serve the site logo from the project root.
+    """Serve the site logo from the static directory.
 
     Returns:
-        The ``logo.svg`` file from the project root if it exists,
+        The ``logo.svg`` file from ``static/`` if it exists,
         otherwise an empty ``(str, int)`` tuple with HTTP status 204.
     """
-    root = _project_root()
-    if not (root / "logo.svg").exists():
+    static = _static_dir()
+    if not (static / "logo.svg").exists():
         return "", 204
-    return send_from_directory(str(root), "logo.svg", mimetype="image/svg+xml")
+    return send_from_directory(str(static), "logo.svg", mimetype="image/svg+xml")

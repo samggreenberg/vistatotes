@@ -4,7 +4,7 @@ A media explorer web app. Browse collections of audio clips, images, or text par
 
 ## Setup
 
-See [SETUP.md](SETUP.md) for prerequisites, getting the code, virtual environment setup, and installing dependencies.
+See [docs/SETUP.md](docs/SETUP.md) for prerequisites, getting the code, virtual environment setup, and installing dependencies.
 
 ## Running the app
 
@@ -24,7 +24,7 @@ Press **Ctrl+C** in the terminal to stop the server.
 
 ## Command-line interface
 
-VTSearch provides several CLI workflows for running detectors, importing labels, and importing processors — all without starting the web server. See [CLI.md](CLI.md) for the full CLI reference.
+VTSearch provides several CLI workflows for running detectors, importing labels, and importing processors — all without starting the web server. See [docs/CLI.md](docs/CLI.md) for the full CLI reference.
 
 ## Loading a demo dataset
 
@@ -65,88 +65,36 @@ python -m pytest tests/ -v
 ## Project structure
 
 ```
-vtsearch/
 ├── app.py                          # Flask entry point, registers blueprints, CLI arg parsing
-├── config.py                       # Constants (SAMPLE_RATE, paths, model IDs)
 ├── vtsearch/                       # Main application package
+│   ├── config.py                   # Constants (SAMPLE_RATE, paths, model IDs)
+│   ├── clips.py                    # Test clip generation & embedding cache
 │   ├── cli.py                      # CLI utilities: autodetect, label import, processor import
 │   ├── settings.py                 # Persistent settings & favorite processors
 │   ├── routes/                     # Flask blueprints
-│   │   ├── main.py                 #   Core routes
-│   │   ├── clips.py                #   Clip endpoints
-│   │   ├── sorting.py              #   Sorting & voting endpoints
-│   │   ├── detectors.py            #   Detector endpoints
-│   │   ├── datasets.py             #   Dataset management endpoints
-│   │   ├── exporters.py            #   Exporter endpoints
-│   │   ├── label_importers.py      #   Label importer endpoints
-│   │   ├── processor_importers.py  #   Processor importer endpoints
-│   │   └── settings.py             #   Settings endpoints
-│   ├── models/                     # ML models
-│   │   ├── embeddings.py           #   Embedding model wrappers
-│   │   ├── loader.py               #   Model loading
-│   │   ├── training.py             #   Neural net training
-│   │   └── progress.py             #   Progress tracking
-│   ├── media/                      # Media type plugins
-│   │   ├── base.py                 #   Abstract MediaType base class
-│   │   ├── audio/                  #   Audio plugin (LAION-CLAP embeddings)
-│   │   ├── image/                  #   Image plugin (CLIP embeddings)
-│   │   ├── text/                   #   Text plugin (E5-large-v2 embeddings)
-│   │   └── video/                  #   Video plugin (X-CLIP embeddings)
-│   ├── datasets/                   # Dataset loading & importing
-│   │   ├── loader.py               #   Dataset loading logic
-│   │   ├── downloader.py           #   Demo dataset downloads
-│   │   ├── config.py               #   Dataset configuration
-│   │   ├── origin.py               #   Per-element provenance tracking
-│   │   ├── labelset.py             #   LabelSet / LabeledElement classes
-│   │   ├── ingest.py               #   Ingest missing clips from origins
-│   │   └── importers/              #   Data importer plugins
-│   │       ├── base.py             #     Abstract DatasetImporter base class
-│   │       ├── folder/             #     Local folder importer
-│   │       ├── pickle/             #     Pickle file importer
-│   │       ├── http_zip/           #     HTTP archive importer (zip/tar/rar)
-│   │       ├── rss_feed/           #     RSS / podcast feed importer
-│   │       └── youtube_playlist/   #     YouTube playlist importer
+│   ├── models/                     # ML models (embeddings, training, progress)
+│   ├── media/                      # Media type plugins (audio, image, text, video)
+│   ├── datasets/                   # Dataset loading, downloading, importers
 │   ├── exporters/                  # Results exporter plugins
-│   │   ├── base.py                 #   Abstract exporter base class
-│   │   ├── file/                   #   JSON file exporter
-│   │   ├── csv_file/               #   CSV file exporter
-│   │   ├── webhook/                #   Webhook (HTTP POST) exporter
-│   │   ├── email_smtp/             #   Email (SMTP) exporter
-│   │   └── gui/                    #   Console / GUI exporter (default)
-│   ├── labels/                     # Label management
-│   │   └── importers/              #   Label importer plugins
-│   │       ├── base.py             #     Abstract label importer base class
-│   │       ├── json_file/          #     JSON label importer
-│   │       └── csv_file/           #     CSV label importer
-│   ├── processors/                 # Processor management
-│   │   └── importers/              #   Processor importer plugins
-│   │       ├── base.py             #     Abstract processor importer base class
-│   │       ├── detector_file/      #     Load detector from JSON file
-│   │       └── label_file/         #     Train detector from labeled media
-│   ├── audio/                      # Audio utilities
-│   │   └── generator.py            #   Audio generation
-│   └── utils/                      # Shared utilities
-│       ├── state.py                #   Global state (clips, votes)
-│       └── progress.py             #   Progress helpers
-├── static/                         # Frontend
-│   ├── index.html                  #   HTML structure
-│   ├── app.js                      #   All frontend JavaScript
-│   └── styles.css                  #   All CSS styles
+│   ├── labels/importers/           # Label importer plugins
+│   ├── processors/importers/       # Processor importer plugins
+│   ├── audio/                      # Audio generation utility
+│   └── utils/                      # Global state (clips, votes) & progress helpers
+├── static/                         # Frontend (HTML, JS, CSS, assets)
 ├── tests/                          # Test suite (pytest)
-├── requirements.txt                # Core Python dependencies
-├── requirements-cpu.txt            # CPU-only dependencies (PyTorch CPU wheel)
-├── requirements-gpu.txt            # GPU-enabled dependencies (PyTorch with CUDA)
-├── requirements-dev.txt            # Dev dependencies (requirements.txt + pytest)
-├── requirements-importers.txt      # Aggregated importer dependencies
-├── requirements-exporters.txt      # Aggregated exporter dependencies
-├── EVAL.md                         # Evaluation guide
-├── EXTENDING.md                    # Guide for writing plugins
-└── README.md
+├── docs/                           # Extended documentation
+│   ├── ARCHITECTURE.md             # Architecture deep-dive
+│   ├── EXTENDING.md                # Plugin authoring guide
+│   ├── EVAL.md                     # Evaluation framework guide
+│   ├── CLI.md                      # CLI reference
+│   ├── ML.md                       # ML model details
+│   └── SETUP.md                    # Setup instructions
+└── requirements*.txt               # Dependency files (cpu, gpu, dev, importers, exporters)
 ```
 
 ## Machine learning
 
-VTSearch trains a small MLP neural network on user votes to learn a binary classifier over pretrained embeddings. See [ML.md](ML.md) for full details on the model architecture, training configuration, PyTorch settings, and embedding models.
+VTSearch trains a small MLP neural network on user votes to learn a binary classifier over pretrained embeddings. See [docs/ML.md](docs/ML.md) for full details on the model architecture, training configuration, PyTorch settings, and embedding models.
 
 ## Evaluation
 
@@ -156,18 +104,18 @@ VTSearch includes an evaluation framework that measures sorting quality on demo 
 python -m vtsearch.eval --plot-dir eval_output
 ```
 
-This runs text-sort and learned-sort evaluations across all demo datasets, prints a summary, and saves visualisation charts as PNGs. See [EVAL.md](EVAL.md) for the full guide, including:
+This runs text-sort and learned-sort evaluations across all demo datasets, prints a summary, and saves visualisation charts as PNGs. See [docs/EVAL.md](docs/EVAL.md) for the full guide, including:
 
-- **[CLI reference](EVAL.md#cli-reference)** — All flags and options for the eval runner.
-- **[Understanding the metrics](EVAL.md#understanding-the-metrics)** — What mAP, P@k, R@k, F1, and other metrics mean.
-- **[Visualisations](EVAL.md#visualisations)** — Charts generated by the eval framework.
-- **[Writing a custom evaluation script](EVAL.md#writing-a-custom-evaluation-script)** — How to sweep over parameters, run voting-iteration simulations, and use the Python API directly.
+- **[CLI reference](docs/EVAL.md#cli-reference)** — All flags and options for the eval runner.
+- **[Understanding the metrics](docs/EVAL.md#understanding-the-metrics)** — What mAP, P@k, R@k, F1, and other metrics mean.
+- **[Visualisations](docs/EVAL.md#visualisations)** — Charts generated by the eval framework.
+- **[Writing a custom evaluation script](docs/EVAL.md#writing-a-custom-evaluation-script)** — How to sweep over parameters, run voting-iteration simulations, and use the Python API directly.
 
 ## Extending with plugins
 
-VTSearch has a plugin architecture for media types, data importers, and results exporters. See [EXTENDING.md](EXTENDING.md) for full documentation, including:
+VTSearch has a plugin architecture for media types, data importers, and results exporters. See [docs/EXTENDING.md](docs/EXTENDING.md) for full documentation, including:
 
-- **[Adding a Data Importer](EXTENDING.md#adding-a-data-importer)** — Auto-discovered plugins that load datasets from new sources (S3, databases, APIs, etc.). Subclass `DatasetImporter`, expose an `IMPORTER` instance, and the system wires up API routes and UI forms automatically.
-- **[Adding a Results Exporter](EXTENDING.md#adding-a-results-exporter)** — Export votes, labels, or detector weights in new formats by adding routes to the appropriate blueprint.
-- **[Adding a Media Type](EXTENDING.md#adding-a-media-type)** — Support new content types (code, 3D models, etc.) by subclassing `MediaType` with embedding, serving, and clip-loading methods.
-- **[Dependency Management](EXTENDING.md#dependency-management)** — How the layered requirements file structure works and where to add new dependencies.
+- **[Adding a Data Importer](docs/EXTENDING.md#adding-a-data-importer)** — Auto-discovered plugins that load datasets from new sources (S3, databases, APIs, etc.). Subclass `DatasetImporter`, expose an `IMPORTER` instance, and the system wires up API routes and UI forms automatically.
+- **[Adding a Results Exporter](docs/EXTENDING.md#adding-a-results-exporter)** — Export votes, labels, or detector weights in new formats by adding routes to the appropriate blueprint.
+- **[Adding a Media Type](docs/EXTENDING.md#adding-a-media-type)** — Support new content types (code, 3D models, etc.) by subclassing `MediaType` with embedding, serving, and clip-loading methods.
+- **[Dependency Management](docs/EXTENDING.md#dependency-management)** — How the layered requirements file structure works and where to add new dependencies.

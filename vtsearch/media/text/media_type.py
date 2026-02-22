@@ -8,7 +8,7 @@ from typing import Optional
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
-from config import E5_MODEL_ID, MODELS_CACHE_DIR
+from vtsearch.config import E5_MODEL_ID, MODELS_CACHE_DIR
 from vtsearch.media.base import DemoDataset, MediaResponse, MediaType, ProgressCallback, _noop_progress
 
 

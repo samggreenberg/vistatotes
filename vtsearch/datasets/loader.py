@@ -18,7 +18,7 @@ from typing import Any, Callable, Optional
 import numpy as np
 from PIL import Image
 
-from config import EMBEDDINGS_DIR, IMAGES_PER_CALTECH101_CATEGORY, IMAGES_PER_CIFAR10_CATEGORY, TEXTS_PER_CATEGORY
+from vtsearch.config import EMBEDDINGS_DIR, IMAGES_PER_CALTECH101_CATEGORY, IMAGES_PER_CIFAR10_CATEGORY, TEXTS_PER_CATEGORY
 from vtsearch.datasets.config import DEMO_DATASETS
 from vtsearch.datasets.downloader import (
     download_20newsgroups,

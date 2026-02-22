@@ -13,7 +13,7 @@ from typing import Callable, Optional
 
 import requests
 
-from config import (
+from vtsearch.config import (
     CALTECH101_DOWNLOAD_SIZE_MB,
     CALTECH101_URL,
     CIFAR10_DOWNLOAD_SIZE_MB,

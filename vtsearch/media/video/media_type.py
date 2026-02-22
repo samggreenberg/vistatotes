@@ -10,7 +10,7 @@ import torch
 from PIL import Image
 from transformers import XCLIPModel, XCLIPProcessor
 
-from config import MODELS_CACHE_DIR, VIDEO_DIR, XCLIP_MODEL_ID
+from vtsearch.config import MODELS_CACHE_DIR, VIDEO_DIR, XCLIP_MODEL_ID
 from vtsearch.media.base import DemoDataset, MediaResponse, MediaType, ProgressCallback, _noop_progress
 
 

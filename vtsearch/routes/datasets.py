@@ -6,7 +6,7 @@ from pathlib import Path
 
 from flask import Blueprint, jsonify, request, send_file
 
-from config import (
+from vtsearch.config import (
     CALTECH101_DOWNLOAD_SIZE_MB,
     CIFAR10_DOWNLOAD_SIZE_MB,
     CLIPS_PER_CATEGORY,

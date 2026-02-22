@@ -212,11 +212,12 @@ class TextMediaType(MediaType):
     # ------------------------------------------------------------------
 
     def clip_response(self, clip: dict) -> MediaResponse:
+        content = self._resolve_clip_string(clip)
         return MediaResponse(
             data={
-                "content": clip.get("clip_string", ""),
-                "word_count": clip.get("word_count", 0),
-                "character_count": clip.get("character_count", 0),
+                "content": content,
+                "word_count": clip.get("word_count", 0) or len(content.split()),
+                "character_count": clip.get("character_count", 0) or len(content),
             },
             mimetype="application/json",
         )

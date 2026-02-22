@@ -141,7 +141,7 @@ class DatasetImporter:
         #: skip the embedding model for any file whose name appears here.
         self.content_vectors: dict[str, Any] = {}
 
-    def run(self, field_values: dict[str, Any], clips: dict) -> None:
+    def run(self, field_values: dict[str, Any], clips: dict, thin: bool = False) -> None:
         """Perform the import, populating *clips* in-place.
 
         Args:
@@ -151,6 +151,9 @@ class DatasetImporter:
                 other fields receive plain strings.
             clips: The global clips dict to populate.  Modify it in-place;
                 do not replace the reference.
+            thin: When ``True``, store a ``media_path`` file reference
+                instead of loading media bytes into ``clip_bytes``.  This
+                saves memory for CLI workflows that only need embeddings.
 
         Raises:
             NotImplementedError: If the subclass has not implemented this.
@@ -186,15 +189,21 @@ class DatasetImporter:
                 kwargs["choices"] = f.options
             parser.add_argument(arg_name, **kwargs)
 
-    def run_cli(self, field_values: dict[str, Any], clips: dict) -> None:
+    def run_cli(self, field_values: dict[str, Any], clips: dict, thin: bool = False) -> None:
         """Load a dataset from CLI-provided *field_values* into *clips*.
 
         The default implementation simply delegates to :meth:`run`, which
         works for importers whose ``run()`` only expects plain string values.
         Importers that expect non-string objects (e.g. ``FileStorage``) must
         override this method to handle file-path strings appropriately.
+
+        Args:
+            field_values: Mapping of importer field keys to their CLI values.
+            clips: The global clips dict to populate.
+            thin: When ``True``, store file path references instead of
+                loading media bytes.  Passed through to :meth:`run`.
         """
-        self.run(field_values, clips)
+        self.run(field_values, clips, thin=thin)
 
     def validate_cli_field_values(self, field_values: dict[str, Any]) -> None:
         """Raise ``ValueError`` if any required field is missing or empty."""

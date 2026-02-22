@@ -281,6 +281,42 @@ class MediaType(ABC):
     # HTTP serving
     # ------------------------------------------------------------------
 
+    def _resolve_clip_bytes(self, clip: dict) -> bytes | None:
+        """Return binary media data, lazy-loading from ``media_path`` if needed.
+
+        In thin mode, ``clip_bytes`` is ``None`` but ``media_path`` points to
+        the source file on disk.  This helper transparently loads the bytes on
+        demand so that :meth:`clip_response` works regardless of how the clip
+        was loaded.
+        """
+        clip_bytes = clip.get("clip_bytes")
+        if clip_bytes is not None:
+            return clip_bytes
+        media_path = clip.get("media_path")
+        if media_path:
+            path = Path(media_path)
+            if path.exists():
+                with open(path, "rb") as f:
+                    return f.read()
+        return None
+
+    def _resolve_clip_string(self, clip: dict) -> str:
+        """Return text content, lazy-loading from ``media_path`` if needed.
+
+        Same lazy-loading pattern as :meth:`_resolve_clip_bytes` but for
+        text media types that store ``clip_string`` instead of ``clip_bytes``.
+        """
+        clip_string = clip.get("clip_string")
+        if clip_string is not None:
+            return clip_string
+        media_path = clip.get("media_path")
+        if media_path:
+            path = Path(media_path)
+            if path.exists():
+                with open(path, "r", encoding="utf-8") as f:
+                    return f.read().strip()
+        return ""
+
     @abstractmethod
     def clip_response(self, clip: dict) -> MediaResponse:
         """Return a :class:`MediaResponse` with the clip's media content.
@@ -288,6 +324,10 @@ class MediaType(ABC):
         For binary media, set ``data`` to raw bytes with an appropriate
         ``mimetype``.  For structured data (e.g. text paragraphs), set
         ``data`` to a JSON-serialisable dict with ``mimetype="application/json"``.
+
+        Implementations should use :meth:`_resolve_clip_bytes` or
+        :meth:`_resolve_clip_string` to transparently support both preloaded
+        clips and thin (lazy-loaded) clips.
         """
 
 

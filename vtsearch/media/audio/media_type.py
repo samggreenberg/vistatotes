@@ -215,8 +215,11 @@ class AudioMediaType(MediaType):
     # ------------------------------------------------------------------
 
     def clip_response(self, clip: dict) -> MediaResponse:
+        data = self._resolve_clip_bytes(clip)
+        if data is None:
+            return MediaResponse(data=b"", mimetype="audio/wav", download_name=f"clip_{clip['id']}.wav")
         return MediaResponse(
-            data=clip["clip_bytes"],
+            data=data,
             mimetype="audio/wav",
             download_name=f"clip_{clip['id']}.wav",
         )

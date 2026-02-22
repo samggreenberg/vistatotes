@@ -41,7 +41,7 @@ class PickleDatasetImporter(DatasetImporter):
         ),
     ]
 
-    def run(self, field_values: dict, clips: dict) -> None:
+    def run(self, field_values: dict, clips: dict, thin: bool = False) -> None:
         file_obj = field_values["file"]  # werkzeug FileStorage
         progress = _get_progress()
         progress("loading", "Loading dataset from file...", 0, 0)
@@ -49,17 +49,17 @@ class PickleDatasetImporter(DatasetImporter):
         DATA_DIR.mkdir(exist_ok=True)
         file_obj.save(temp_path)
         try:
-            load_dataset_from_pickle(temp_path, clips)
+            load_dataset_from_pickle(temp_path, clips, thin=thin)
         finally:
             temp_path.unlink(missing_ok=True)
         progress("idle", f"Loaded {len(clips)} clips from file")
 
-    def run_cli(self, field_values: dict[str, Any], clips: dict) -> None:
+    def run_cli(self, field_values: dict[str, Any], clips: dict, thin: bool = False) -> None:
         """Load from a pickle file path (string) instead of FileStorage."""
         file_path = Path(field_values["file"])
         if not file_path.exists():
             raise FileNotFoundError(f"Dataset file not found: {file_path}")
-        load_dataset_from_pickle(file_path, clips)
+        load_dataset_from_pickle(file_path, clips, thin=thin)
 
 
 IMPORTER = PickleDatasetImporter()

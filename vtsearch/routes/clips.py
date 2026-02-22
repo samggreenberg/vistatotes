@@ -12,6 +12,34 @@ from vtsearch.utils import add_label_to_history, bad_votes, clips, good_votes
 clips_bp = Blueprint("clips", __name__)
 
 
+def _resolve_bytes(clip: dict) -> bytes | None:
+    """Return clip bytes, lazy-loading from media_path if needed."""
+    clip_bytes = clip.get("clip_bytes")
+    if clip_bytes is not None:
+        return clip_bytes
+    media_path = clip.get("media_path")
+    if media_path:
+        p = Path(media_path)
+        if p.exists():
+            with open(p, "rb") as f:
+                return f.read()
+    return None
+
+
+def _resolve_string(clip: dict) -> str | None:
+    """Return clip string, lazy-loading from media_path if needed."""
+    clip_string = clip.get("clip_string")
+    if clip_string is not None:
+        return clip_string
+    media_path = clip.get("media_path")
+    if media_path:
+        p = Path(media_path)
+        if p.exists():
+            with open(p, "r", encoding="utf-8") as f:
+                return f.read().strip()
+    return None
+
+
 def _flask_response(mr: MediaResponse) -> Response:
     """Convert a framework-agnostic :class:`MediaResponse` to a Flask response."""
     if isinstance(mr.data, dict):
@@ -64,8 +92,11 @@ def clip_audio(clip_id: int) -> tuple[Response, int] | Response:
     c = clips.get(clip_id)
     if not c:
         return jsonify({"error": "not found"}), 404
+    clip_bytes = _resolve_bytes(c)
+    if clip_bytes is None:
+        return jsonify({"error": "media not available"}), 404
     return send_file(
-        io.BytesIO(c["clip_bytes"]),
+        io.BytesIO(clip_bytes),
         mimetype="audio/wav",
         download_name=f"clip_{clip_id}.wav",
     )
@@ -89,8 +120,12 @@ def clip_video(clip_id: int) -> tuple[Response, int] | Response:
     c = clips.get(clip_id)
     if not c:
         return jsonify({"error": "not found"}), 404
-    if c.get("type") != "video" or not c.get("clip_bytes"):
+    if c.get("type") != "video":
         return jsonify({"error": "not a video clip"}), 400
+
+    clip_bytes = _resolve_bytes(c)
+    if clip_bytes is None:
+        return jsonify({"error": "media not available"}), 404
 
     # Determine mimetype based on filename extension
     filename = c.get("filename", "")
@@ -105,7 +140,7 @@ def clip_video(clip_id: int) -> tuple[Response, int] | Response:
 
     ext = Path(filename).suffix if filename else ".mp4"
     return send_file(
-        io.BytesIO(c["clip_bytes"]),
+        io.BytesIO(clip_bytes),
         mimetype=mimetype,
         download_name=f"clip_{clip_id}{ext}",
     )
@@ -129,8 +164,12 @@ def clip_image(clip_id: int) -> tuple[Response, int] | Response:
     c = clips.get(clip_id)
     if not c:
         return jsonify({"error": "not found"}), 404
-    if c.get("type") != "image" or not c.get("clip_bytes"):
+    if c.get("type") != "image":
         return jsonify({"error": "not an image clip"}), 400
+
+    clip_bytes = _resolve_bytes(c)
+    if clip_bytes is None:
+        return jsonify({"error": "media not available"}), 404
 
     # Determine mimetype based on filename extension
     filename = c.get("filename", "")
@@ -146,7 +185,7 @@ def clip_image(clip_id: int) -> tuple[Response, int] | Response:
         mimetype = "image/jpeg"
 
     return send_file(
-        io.BytesIO(c["clip_bytes"]),
+        io.BytesIO(clip_bytes),
         mimetype=mimetype,
         download_name=f"clip_{clip_id}.jpg",
     )
@@ -168,14 +207,18 @@ def clip_paragraph(clip_id: int) -> tuple[Response, int] | Response:
     c = clips.get(clip_id)
     if not c:
         return jsonify({"error": "not found"}), 404
-    if c.get("type") != "paragraph" or not c.get("clip_string"):
+    if c.get("type") != "paragraph":
         return jsonify({"error": "not a paragraph clip"}), 400
+
+    content = _resolve_string(c)
+    if content is None:
+        return jsonify({"error": "media not available"}), 404
 
     return jsonify(
         {
-            "content": c.get("clip_string", ""),
-            "word_count": c.get("word_count", 0),
-            "character_count": c.get("character_count", 0),
+            "content": content,
+            "word_count": c.get("word_count", 0) or len(content.split()),
+            "character_count": c.get("character_count", 0) or len(content),
         }
     )
 

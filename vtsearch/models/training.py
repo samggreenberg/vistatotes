@@ -245,19 +245,21 @@ def calculate_cross_calibration_threshold(
     input_dim: int,
     inclusion_value: int = 0,
     rng: np.random.RandomState | None = None,
+    calibrate_count: int = 2,
 ) -> float:
-    """Estimate a decision threshold using cross-calibration.
+    """Estimate a decision threshold using k-fold calibration.
 
-    Splits the labelled data into two halves (D1, D2), trains one model on each
-    half, and uses each model to find an optimal threshold on the *other* half.
-    The returned threshold is the mean of the two per-half thresholds, which
-    reduces overfitting to the training split.
+    Performs ``calibrate_count`` independent random Train/Calibrate splits.
+    For each split, trains a model on the Train portion and finds the
+    optimal threshold on the Calibrate portion. Returns the mean of all
+    thresholds.
 
     Algorithm:
-        1. Randomly split data into D1 and D2.
-        2. Train M1 on D1; find threshold t1 by evaluating M1 on D2.
-        3. Train M2 on D2; find threshold t2 by evaluating M2 on D1.
-        4. Return ``(t1 + t2) / 2``.
+        For each of *k* = ``calibrate_count`` rounds:
+        1. Randomly split data into Train and Calibrate (50/50).
+        2. Train a model on Train.
+        3. Find optimal threshold on Calibrate.
+        Return mean of all *k* thresholds.
 
     Args:
         X_list: List of embedding arrays (one per labelled example).
@@ -268,47 +270,41 @@ def calculate_cross_calibration_threshold(
             and :func:`find_optimal_threshold` to control the FPR/FNR trade-off.
         rng: Optional seeded RandomState for reproducible splits. Falls back
             to the global ``np.random`` state when ``None``.
+        calibrate_count: Number of random Train/Calibrate splits (default 2).
 
     Returns:
         A float threshold. Returns 0.5 if fewer than 4 examples are provided
-        (insufficient data for cross-calibration).
+        (insufficient data for calibration).
     """
     n = len(X_list)
     if n < 4:
-        # Not enough data for cross-calibration
         return 0.5
 
-    # Split data in half
-    mid = n // 2
     _rng = rng if rng is not None else np.random
-    indices = _rng.permutation(n)
-    idx1 = indices[:mid]
-    idx2 = indices[mid:]
-
     X_np = np.array(X_list)
     y_np = np.array(y_list)
+    mid = n // 2
 
-    X1 = torch.tensor(X_np[idx1], dtype=torch.float32)
-    y1 = torch.tensor(y_np[idx1], dtype=torch.float32).unsqueeze(1)
-    X2 = torch.tensor(X_np[idx2], dtype=torch.float32)
-    y2 = torch.tensor(y_np[idx2], dtype=torch.float32).unsqueeze(1)
+    calibrate_count = max(1, calibrate_count)
+    thresholds: list[float] = []
 
-    # Train M1 and M2 in parallel (PyTorch releases the GIL during tensor ops)
-    with ThreadPoolExecutor(max_workers=2) as pool:
-        future_m1 = pool.submit(train_model, X1, y1, input_dim, inclusion_value)
-        future_m2 = pool.submit(train_model, X2, y2, input_dim, inclusion_value)
-        M1 = future_m1.result()
-        M2 = future_m2.result()
+    for _ in range(calibrate_count):
+        indices = _rng.permutation(n)
+        train_idx = indices[:mid]
+        cal_idx = indices[mid:]
 
-    # Find thresholds: use each model on the opposite split
-    with torch.no_grad():
-        scores1_on_2 = torch.sigmoid(M1(X2)).squeeze(1).tolist()
-        scores2_on_1 = torch.sigmoid(M2(X1)).squeeze(1).tolist()
-    t1 = find_optimal_threshold(scores1_on_2, y_np[idx2].tolist(), inclusion_value)
-    t2 = find_optimal_threshold(scores2_on_1, y_np[idx1].tolist(), inclusion_value)
+        X_train = torch.tensor(X_np[train_idx], dtype=torch.float32)
+        y_train = torch.tensor(y_np[train_idx], dtype=torch.float32).unsqueeze(1)
+        X_cal = torch.tensor(X_np[cal_idx], dtype=torch.float32)
 
-    # Return mean
-    return (t1 + t2) / 2.0
+        model = train_model(X_train, y_train, input_dim, inclusion_value)
+
+        with torch.no_grad():
+            scores = torch.sigmoid(model(X_cal)).squeeze(1).tolist()
+        t = find_optimal_threshold(scores, y_np[cal_idx].tolist(), inclusion_value)
+        thresholds.append(t)
+
+    return sum(thresholds) / len(thresholds)
 
 
 def calculate_safe_threshold(
@@ -352,11 +348,12 @@ def train_and_score(
     bad_votes: dict[int, None],
     inclusion_value: int = 0,
     safe_thresholds: bool = False,
+    calibrate_count: int = 2,
 ) -> tuple[list[dict[str, Any]], float]:
     """Train a small MLP on voted clip embeddings and score every clip.
 
-    Uses cross-calibration to determine an appropriate decision threshold, then
-    trains a final model on all labelled data and scores every clip in
+    Uses k-fold calibration to determine an appropriate decision threshold,
+    then trains a final model on all labelled data and scores every clip in
     ``clips_dict``.
 
     Args:
@@ -368,6 +365,8 @@ def train_and_score(
             threshold-finding functions to control the inclusion/exclusion bias.
         safe_thresholds: When ``True``, blend the cross-calibration threshold with
             a GMM-based threshold for robustness when few labels are available.
+        calibrate_count: Number of random Train/Calibrate splits for threshold
+            calibration (default 2).
 
     Returns:
         A tuple ``(results, threshold)`` where:
@@ -393,8 +392,10 @@ def train_and_score(
 
     input_dim = X.shape[1]
 
-    # Calculate threshold using cross-calibration
-    threshold = calculate_cross_calibration_threshold(X_list, y_list, input_dim, inclusion_value)
+    # Calculate threshold using k-fold calibration
+    threshold = calculate_cross_calibration_threshold(
+        X_list, y_list, input_dim, inclusion_value, calibrate_count=calibrate_count
+    )
 
     # Train final model on all data
     model = train_model(X, y, input_dim, inclusion_value)

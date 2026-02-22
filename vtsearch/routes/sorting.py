@@ -26,6 +26,7 @@ from vtsearch.utils import (
     bad_votes,
     build_clip_lookup,
     clips,
+    get_calibrate_count,
     get_inclusion,
     get_safe_thresholds,
     get_sort_progress,
@@ -133,7 +134,12 @@ def learned_sort():
     if not good_votes or not bad_votes:
         return jsonify({"error": "need at least one good and one bad vote"}), 400
     results, threshold = train_and_score(
-        clips, good_votes, bad_votes, get_inclusion(), safe_thresholds=get_safe_thresholds()
+        clips,
+        good_votes,
+        bad_votes,
+        get_inclusion(),
+        safe_thresholds=get_safe_thresholds(),
+        calibrate_count=get_calibrate_count(),
     )
     return jsonify({"results": results, "threshold": round(threshold, 4)})
 
@@ -406,8 +412,10 @@ def label_file_sort():
 
         input_dim = X.shape[1]
 
-        # Calculate threshold using cross-calibration
-        threshold = calculate_cross_calibration_threshold(X_list, y_list, input_dim, get_inclusion())
+        # Calculate threshold using k-fold calibration
+        threshold = calculate_cross_calibration_threshold(
+            X_list, y_list, input_dim, get_inclusion(), calibrate_count=get_calibrate_count()
+        )
 
         # Train final model on all data
         model = train_model(X, y, input_dim, get_inclusion())

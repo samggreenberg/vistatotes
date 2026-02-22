@@ -121,6 +121,7 @@ def simulate_voting_iterations(
     inclusion: int = 0,
     sim_fraction: float = 0.5,
     safe_thresholds: bool = False,
+    calibrate_count: int = 2,
 ) -> list[dict[str, Any]]:
     """Simulate voting on *clips_dict* and evaluate at every step.
 
@@ -133,6 +134,8 @@ def simulate_voting_iterations(
         sim_fraction: Fraction of clips used for simulated voting.
         safe_thresholds: When ``True``, blend the cross-calibration threshold
             with a GMM-based threshold for robustness with small label counts.
+        calibrate_count: Number of random Train/Calibrate splits for threshold
+            calibration (default 2).
 
     Returns:
         List of row dicts with keys
@@ -186,7 +189,9 @@ def simulate_voting_iterations(
         input_dim = X.shape[1]
 
         # Train and find threshold (mirrors train_and_score)
-        threshold = calculate_cross_calibration_threshold(X_list, y_list, input_dim, inclusion, rng=rng)
+        threshold = calculate_cross_calibration_threshold(
+            X_list, y_list, input_dim, inclusion, rng=rng, calibrate_count=calibrate_count
+        )
         model = train_model(X, y, input_dim, inclusion)
 
         # Apply safe threshold blending if enabled
@@ -224,6 +229,7 @@ def run_voting_iterations_eval(
     inclusion: int = 0,
     sim_fraction: float = 0.5,
     safe_thresholds: bool = False,
+    calibrate_count: int = 2,
 ) -> pd.DataFrame:
     """Run the voting-iterations evaluation over multiple seeds/datasets/categories.
 
@@ -239,6 +245,8 @@ def run_voting_iterations_eval(
         sim_fraction: Fraction of clips reserved for simulated voting.
         safe_thresholds: When ``True``, blend thresholds with GMM
             (see :func:`simulate_voting_iterations`).
+        calibrate_count: Number of random Train/Calibrate splits for threshold
+            calibration (default 2).
 
     Returns:
         A :class:`~pandas.DataFrame` with columns
@@ -263,6 +271,7 @@ def run_voting_iterations_eval(
                     inclusion=inclusion,
                     sim_fraction=sim_fraction,
                     safe_thresholds=safe_thresholds,
+                    calibrate_count=calibrate_count,
                 )
                 all_rows.extend(rows)
 
@@ -276,6 +285,7 @@ def run_voting_iterations_eval_from_pickles(
     inclusion: int = 0,
     sim_fraction: float = 0.5,
     safe_thresholds: bool = False,
+    calibrate_count: int = 2,
 ) -> pd.DataFrame:
     """Convenience wrapper that loads datasets from pickle files.
 
@@ -286,6 +296,8 @@ def run_voting_iterations_eval_from_pickles(
         inclusion: Inclusion setting in ``[-10, 10]``.
         sim_fraction: Fraction of clips for simulation.
         safe_thresholds: When ``True``, blend thresholds with GMM.
+        calibrate_count: Number of random Train/Calibrate splits for threshold
+            calibration (default 2).
 
     Returns:
         A :class:`~pandas.DataFrame` identical to :func:`run_voting_iterations_eval`.
@@ -305,4 +317,5 @@ def run_voting_iterations_eval_from_pickles(
         inclusion=inclusion,
         sim_fraction=sim_fraction,
         safe_thresholds=safe_thresholds,
+        calibrate_count=calibrate_count,
     )

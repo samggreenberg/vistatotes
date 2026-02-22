@@ -69,7 +69,7 @@ def init_clips():
             "file_size": len(wav_bytes),
             "md5": hashlib.md5(wav_bytes).hexdigest(),
             "embedding": embedding,
-            "wav_bytes": wav_bytes,
+            "clip_bytes": wav_bytes,
             "filename": fname,
             "category": "test",
             "origin": {"importer": "test", "params": {}},

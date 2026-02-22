@@ -176,7 +176,7 @@ class TestDemoDatasetReadiness:
         import struct
         import wave
 
-        from config import DATA_DIR, EMBEDDINGS_DIR
+        from vtsearch.config import DATA_DIR, EMBEDDINGS_DIR
 
         esc50_dir = DATA_DIR / "ESC-50-master" / "audio"
         # Ensure no pkl exists for sounds_s
@@ -213,7 +213,7 @@ class TestDemoDatasetReadiness:
 
     def test_no_pkl_no_source_shows_needs_download(self, client):
         """No pkl and no required_folder → needs_download."""
-        from config import DATA_DIR, EMBEDDINGS_DIR
+        from vtsearch.config import DATA_DIR, EMBEDDINGS_DIR
 
         esc50_dir = DATA_DIR / "ESC-50-master" / "audio"
         pkl_file = EMBEDDINGS_DIR / "sounds_s.pkl"

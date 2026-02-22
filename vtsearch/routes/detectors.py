@@ -1,6 +1,7 @@
 """Blueprint for detector and extractor routes."""
 
 import json
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import numpy as np
@@ -395,19 +396,17 @@ def auto_detect():
     if not detectors:
         return jsonify({"error": f"No favorite detectors found for media type: {media_type}"}), 400
 
-    # Run each detector and collect positive hits
-    results = {}
+    # Prepare shared data for all detectors
     all_ids = sorted(clips.keys())
     all_embs = np.array([clips[cid]["embedding"] for cid in all_ids])
     X_all = torch.tensor(all_embs, dtype=torch.float32)
 
-    for detector_name, detector_data in detectors.items():
+    def _run_single_detector(detector_name, detector_data):
+        """Run a single detector and return (name, result_dict)."""
         weights = detector_data["weights"]
         threshold = detector_data["threshold"]
 
-        # Reconstruct the model from weights
         input_dim = len(weights["0.weight"][0])
-
         model = nn.Sequential(
             nn.Linear(input_dim, 64),
             nn.ReLU(),
@@ -415,23 +414,19 @@ def auto_detect():
             nn.Sigmoid(),
         )
 
-        # Load weights
         state_dict = {}
         for key, value in weights.items():
             state_dict[key] = torch.tensor(value, dtype=torch.float32)
         model.load_state_dict(state_dict)
         model.eval()
 
-        # Score all clips
         with torch.no_grad():
             scores = model(X_all).squeeze(1).tolist()
 
-        # Collect positive hits (score >= threshold)
         positive_hits = []
         for cid, score in zip(all_ids, scores):
             if score >= threshold:
                 clip_info = clips[cid].copy()
-                # Don't include embedding or raw media in response
                 clip_info.pop("embedding", None)
                 clip_info.pop("wav_bytes", None)
                 clip_info.pop("video_bytes", None)
@@ -440,15 +435,22 @@ def auto_detect():
                 clip_info["score"] = round(score, 4)
                 positive_hits.append(clip_info)
 
-        # Sort by score descending
         positive_hits.sort(key=lambda x: x["score"], reverse=True)
 
-        results[detector_name] = {
+        return detector_name, {
             "detector_name": detector_name,
             "threshold": round(threshold, 4),
             "total_hits": len(positive_hits),
             "hits": positive_hits,
         }
+
+    # Run all detectors in parallel (PyTorch releases GIL during tensor ops)
+    results = {}
+    with ThreadPoolExecutor(max_workers=len(detectors)) as pool:
+        futures = [pool.submit(_run_single_detector, name, data) for name, data in detectors.items()]
+        for future in futures:
+            name, result = future.result()
+            results[name] = result
 
     response: dict = {
         "media_type": media_type,
@@ -616,15 +618,17 @@ def auto_extract():
     if not extractors:
         return jsonify({"error": f"No favorite extractors found for media type: {media_type}"}), 400
 
-    results = {}
-    for ext_name, ext_data in extractors.items():
+    sorted_clip_ids = sorted(clips.keys())
+
+    def _run_single_extractor(ext_name, ext_data):
+        """Run a single extractor on all clips and return (name, result_dict) or None."""
         try:
             extractor = _build_extractor(ext_name, ext_data["extractor_type"], ext_data["config"])
         except Exception:
-            continue
+            return None
 
         ext_results = []
-        for clip_id in sorted(clips.keys()):
+        for clip_id in sorted_clip_ids:
             clip = clips[clip_id]
             extractions = extractor.extract(clip)
             if extractions:
@@ -636,11 +640,21 @@ def auto_extract():
                 clip_info["extractions"] = extractions
                 ext_results.append(clip_info)
 
-        results[ext_name] = {
+        return ext_name, {
             "extractor_name": ext_name,
             "total_clips_with_hits": len(ext_results),
             "results": ext_results,
         }
+
+    # Run all extractors in parallel
+    results = {}
+    with ThreadPoolExecutor(max_workers=len(extractors)) as pool:
+        futures = [pool.submit(_run_single_extractor, name, data) for name, data in extractors.items()]
+        for future in futures:
+            outcome = future.result()
+            if outcome is not None:
+                name, result = outcome
+                results[name] = result
 
     return jsonify(
         {

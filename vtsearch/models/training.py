@@ -1,5 +1,6 @@
 """ML training utilities for learned sorting."""
 
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 import numpy as np
@@ -154,9 +155,23 @@ def find_optimal_threshold(
         The float threshold that achieves the lowest weighted cost.
         Defaults to 0.5 if the score list is empty.
     """
-    sorted_pairs = sorted(zip(scores, labels), reverse=True)
-    best_threshold = 0.5
-    best_cost = float("inf")
+    if not scores:
+        return 0.5
+
+    # Vectorized O(n log n) threshold search using cumulative sums
+    scores_arr = np.array(scores)
+    labels_arr = np.array(labels)
+
+    # Sort by score descending
+    order = np.argsort(-scores_arr)
+    sorted_scores = scores_arr[order]
+    sorted_labels = labels_arr[order]
+
+    total_positives = int(np.sum(sorted_labels == 1))
+    total_negatives = len(sorted_labels) - total_positives
+
+    if total_positives == 0 or total_negatives == 0:
+        return 0.5
 
     # Calculate weights based on inclusion
     if inclusion_value >= 0:
@@ -166,41 +181,22 @@ def find_optimal_threshold(
         fpr_weight = 2.0 ** (-inclusion_value)
         fnr_weight = 1.0
 
-    for i in range(len(sorted_pairs)):
-        threshold = sorted_pairs[i][0]
+    # Cumulative counts as we move the threshold down the sorted list.
+    # At position i, threshold = sorted_scores[i], so items 0..i are predicted positive.
+    cum_positives = np.cumsum(sorted_labels == 1)  # TP at each threshold
+    cum_negatives = np.cumsum(sorted_labels == 0)  # FP at each threshold
 
-        # Calculate FPR and FNR at this threshold
-        fp = 0  # false positives
-        fn = 0  # false negatives
-        tp = 0  # true positives
-        tn = 0  # true negatives
+    # FP = cum_negatives, FN = total_positives - cum_positives
+    fp = cum_negatives
+    fn = total_positives - cum_positives
 
-        for score, label in sorted_pairs:
-            predicted = 1 if score >= threshold else 0
-            if predicted == 1 and label == 0:
-                fp += 1
-            elif predicted == 0 and label == 1:
-                fn += 1
-            elif predicted == 1 and label == 1:
-                tp += 1
-            else:  # predicted == 0 and label == 0
-                tn += 1
+    fpr = fp / total_negatives
+    fnr = fn / total_positives
 
-        # Calculate rates
-        total_positives = sum(1 for _, label in sorted_pairs if label == 1)
-        total_negatives = len(sorted_pairs) - total_positives
+    costs = fpr_weight * fpr + fnr_weight * fnr
 
-        fpr = fp / total_negatives if total_negatives > 0 else 0
-        fnr = fn / total_positives if total_positives > 0 else 0
-
-        # Calculate weighted cost
-        cost = fpr_weight * fpr + fnr_weight * fnr
-
-        if cost < best_cost:
-            best_cost = cost
-            best_threshold = threshold
-
-    return best_threshold
+    best_idx = int(np.argmin(costs))
+    return float(sorted_scores[best_idx])
 
 
 def calculate_cross_calibration_threshold(
@@ -252,24 +248,23 @@ def calculate_cross_calibration_threshold(
     X_np = np.array(X_list)
     y_np = np.array(y_list)
 
-    # Train M1 on D1
     X1 = torch.tensor(X_np[idx1], dtype=torch.float32)
     y1 = torch.tensor(y_np[idx1], dtype=torch.float32).unsqueeze(1)
-    M1 = train_model(X1, y1, input_dim, inclusion_value)
-
-    # Train M2 on D2
     X2 = torch.tensor(X_np[idx2], dtype=torch.float32)
     y2 = torch.tensor(y_np[idx2], dtype=torch.float32).unsqueeze(1)
-    M2 = train_model(X2, y2, input_dim, inclusion_value)
 
-    # Find t1: use M1 on D2
+    # Train M1 and M2 in parallel (PyTorch releases the GIL during tensor ops)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        future_m1 = pool.submit(train_model, X1, y1, input_dim, inclusion_value)
+        future_m2 = pool.submit(train_model, X2, y2, input_dim, inclusion_value)
+        M1 = future_m1.result()
+        M2 = future_m2.result()
+
+    # Find thresholds: use each model on the opposite split
     with torch.no_grad():
         scores1_on_2 = M1(X2).squeeze(1).tolist()
-    t1 = find_optimal_threshold(scores1_on_2, y_np[idx2].tolist(), inclusion_value)
-
-    # Find t2: use M2 on D1
-    with torch.no_grad():
         scores2_on_1 = M2(X1).squeeze(1).tolist()
+    t1 = find_optimal_threshold(scores1_on_2, y_np[idx2].tolist(), inclusion_value)
     t2 = find_optimal_threshold(scores2_on_1, y_np[idx1].tolist(), inclusion_value)
 
     # Return mean

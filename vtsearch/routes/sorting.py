@@ -96,19 +96,20 @@ def sort_clips():
 
     update_sort_progress("sorting", "Computing similarities…", 1, total_steps)
 
-    results = []
-    scores = []
-    for i, (clip_id, clip) in enumerate(clips.items()):
-        media_vec = clip["embedding"]
-        norm_product = np.linalg.norm(media_vec) * np.linalg.norm(text_vec)
-        if norm_product == 0:
-            similarity = 0.0
-        else:
-            similarity = float(np.dot(media_vec, text_vec) / norm_product)
-        results.append({"id": clip_id, "similarity": round(similarity, 4)})
-        scores.append(similarity)
-        if (i + 1) % 50 == 0 or i + 1 == len(clips):
-            update_sort_progress("sorting", "Computing similarities…", 1 + i + 1, total_steps)
+    # Vectorized cosine similarity: batch all embeddings into a matrix
+    all_ids = list(clips.keys())
+    all_embs = np.array([clips[cid]["embedding"] for cid in all_ids])
+    text_norm = np.linalg.norm(text_vec)
+    emb_norms = np.linalg.norm(all_embs, axis=1)
+    norm_products = emb_norms * text_norm
+    # Avoid division by zero
+    safe_norms = np.where(norm_products == 0, 1.0, norm_products)
+    similarities = np.dot(all_embs, text_vec) / safe_norms
+    similarities = np.where(norm_products == 0, 0.0, similarities)
+
+    results = [{"id": cid, "similarity": round(float(sim), 4)} for cid, sim in zip(all_ids, similarities)]
+    scores = similarities.tolist()
+    update_sort_progress("sorting", "Computing similarities…", 1 + len(clips), total_steps)
 
     # Calculate GMM-based threshold
     update_sort_progress("sorting", "Calculating threshold…", total_steps - 1, total_steps)
@@ -252,18 +253,18 @@ def example_sort():
         if example_embedding is None:
             return jsonify({"error": "Failed to embed audio file"}), 500
 
-        # Calculate cosine similarity with all clips
-        results = []
-        scores = []
-        for clip_id, clip in clips.items():
-            audio_vec = clip["embedding"]
-            norm_product = np.linalg.norm(audio_vec) * np.linalg.norm(example_embedding)
-            if norm_product == 0:
-                similarity = 0.0
-            else:
-                similarity = float(np.dot(audio_vec, example_embedding) / norm_product)
-            results.append({"id": clip_id, "similarity": round(similarity, 4)})
-            scores.append(similarity)
+        # Vectorized cosine similarity with all clips
+        all_ids = list(clips.keys())
+        all_embs = np.array([clips[cid]["embedding"] for cid in all_ids])
+        example_norm = np.linalg.norm(example_embedding)
+        emb_norms = np.linalg.norm(all_embs, axis=1)
+        norm_products = emb_norms * example_norm
+        safe_norms = np.where(norm_products == 0, 1.0, norm_products)
+        similarities = np.dot(all_embs, example_embedding) / safe_norms
+        similarities = np.where(norm_products == 0, 0.0, similarities)
+
+        results = [{"id": cid, "similarity": round(float(sim), 4)} for cid, sim in zip(all_ids, similarities)]
+        scores = similarities.tolist()
 
         # Calculate GMM-based threshold
         threshold = calculate_gmm_threshold(scores)

@@ -81,10 +81,10 @@ class TestStartupState:
 
 
 class TestDemoDatasetReadiness:
-    """A dataset with a stale pkl (source data removed) must not show as ready."""
+    """Demo datasets report three-state status: ready / needs_embedding / needs_download."""
 
-    def test_audio_pkl_without_esc50_shows_not_ready(self, client):
-        """Audio pkl exists but ESC-50 audio dir is absent → not ready."""
+    def test_audio_pkl_without_esc50_shows_needs_download(self, client):
+        """Audio pkl exists but ESC-50 audio dir is absent → needs_download (stale pkl)."""
         import pickle
 
         from config import DATA_DIR, EMBEDDINGS_DIR
@@ -101,7 +101,8 @@ class TestDemoDatasetReadiness:
             data = resp.get_json()
             ds = next((d for d in data["datasets"] if d["name"] == "sounds_s"), None)
             assert ds is not None
-            assert ds["ready"] is False, "Stale audio pkl without ESC-50 dir must not be ready"
+            assert ds["status"] == "needs_download", "Stale audio pkl without ESC-50 dir must be needs_download"
+            assert ds["ready"] is False
         finally:
             pkl_file.unlink(missing_ok=True)
             try:
@@ -109,8 +110,8 @@ class TestDemoDatasetReadiness:
             except OSError:
                 pass
 
-    def test_audio_pkl_with_empty_esc50_shows_not_ready(self, client):
-        """Audio pkl exists and ESC-50 audio dir exists but is empty → not ready."""
+    def test_audio_pkl_with_empty_esc50_shows_needs_download(self, client):
+        """Audio pkl exists and ESC-50 audio dir exists but is empty → needs_download."""
         import pickle
 
         from config import DATA_DIR, EMBEDDINGS_DIR
@@ -129,7 +130,8 @@ class TestDemoDatasetReadiness:
             data = resp.get_json()
             ds = next((d for d in data["datasets"] if d["name"] == "sounds_s"), None)
             assert ds is not None
-            assert ds["ready"] is False, "Audio pkl with empty ESC-50 dir must not be ready"
+            assert ds["status"] == "needs_download", "Audio pkl with empty ESC-50 dir must be needs_download"
+            assert ds["ready"] is False
         finally:
             pkl_file.unlink(missing_ok=True)
             try:
@@ -141,8 +143,8 @@ class TestDemoDatasetReadiness:
             except OSError:
                 pass
 
-    def test_video_pkl_without_ucf101_shows_not_ready(self, client):
-        """Video pkl exists but UCF-101 dir is absent → not ready."""
+    def test_video_pkl_without_ucf101_shows_needs_download(self, client):
+        """Video pkl exists but UCF-101 dir is absent → needs_download (stale pkl)."""
         import pickle
 
         from config import EMBEDDINGS_DIR, VIDEO_DIR
@@ -159,13 +161,81 @@ class TestDemoDatasetReadiness:
             data = resp.get_json()
             ds = next((d for d in data["datasets"] if d["name"] == "activities_video"), None)
             assert ds is not None
-            assert ds["ready"] is False, "Stale video pkl without UCF-101 dir must not be ready"
+            assert ds["status"] == "needs_download", "Stale video pkl without UCF-101 dir must be needs_download"
+            assert ds["ready"] is False
         finally:
             pkl_file.unlink(missing_ok=True)
             try:
                 EMBEDDINGS_DIR.rmdir()
             except OSError:
                 pass
+
+    def test_no_pkl_with_source_folder_shows_needs_embedding(self, client):
+        """No pkl but required_folder exists with content → needs_embedding."""
+        import pickle
+        import struct
+        import wave
+
+        from config import DATA_DIR, EMBEDDINGS_DIR
+
+        esc50_dir = DATA_DIR / "ESC-50-master" / "audio"
+        # Ensure no pkl exists for sounds_s
+        pkl_file = EMBEDDINGS_DIR / "sounds_s.pkl"
+        if pkl_file.exists():
+            pytest.skip("sounds_s.pkl exists; cannot test needs_embedding scenario")
+
+        # Create the ESC-50 audio dir with a dummy file
+        esc50_dir.mkdir(parents=True, exist_ok=True)
+        dummy_wav = esc50_dir / "_test_dummy.wav"
+        already_populated = any(f.name != "_test_dummy.wav" for f in esc50_dir.iterdir()) if esc50_dir.exists() else False
+        buf = io.BytesIO()
+        with wave.open(buf, "wb") as wf:
+            wf.setnchannels(1)
+            wf.setsampwidth(2)
+            wf.setframerate(44100)
+            wf.writeframes(struct.pack("<h", 0) * 100)
+        dummy_wav.write_bytes(buf.getvalue())
+        try:
+            resp = client.get("/api/dataset/demo-list")
+            data = resp.get_json()
+            ds = next((d for d in data["datasets"] if d["name"] == "sounds_s"), None)
+            assert ds is not None
+            assert ds["status"] == "needs_embedding", "No pkl with source folder should be needs_embedding"
+            assert ds["ready"] is False
+            assert ds["download_size_mb"] == 0, "needs_embedding should report 0 MB download"
+        finally:
+            dummy_wav.unlink(missing_ok=True)
+            if not already_populated:
+                try:
+                    esc50_dir.rmdir()
+                except OSError:
+                    pass
+
+    def test_no_pkl_no_source_shows_needs_download(self, client):
+        """No pkl and no required_folder → needs_download."""
+        from config import DATA_DIR, EMBEDDINGS_DIR
+
+        esc50_dir = DATA_DIR / "ESC-50-master" / "audio"
+        pkl_file = EMBEDDINGS_DIR / "sounds_s.pkl"
+        if pkl_file.exists():
+            pytest.skip("sounds_s.pkl exists; cannot test needs_download scenario")
+        if esc50_dir.exists() and any(esc50_dir.iterdir()):
+            pytest.skip("ESC-50 is present; cannot test needs_download scenario")
+
+        resp = client.get("/api/dataset/demo-list")
+        data = resp.get_json()
+        ds = next((d for d in data["datasets"] if d["name"] == "sounds_s"), None)
+        assert ds is not None
+        assert ds["status"] == "needs_download"
+        assert ds["ready"] is False
+
+    def test_status_field_always_present(self, client):
+        """Every demo dataset must include a status field."""
+        resp = client.get("/api/dataset/demo-list")
+        data = resp.get_json()
+        for ds in data["datasets"]:
+            assert "status" in ds, f"Dataset '{ds['name']}' missing status field"
+            assert ds["status"] in ("ready", "needs_embedding", "needs_download")
 
 
 class TestImporterMetadata:

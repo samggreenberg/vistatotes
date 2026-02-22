@@ -206,25 +206,42 @@ def import_dataset(importer_name: str):
 # ---------------------------------------------------------------------------
 
 
+def _folder_has_content(folder) -> bool:
+    """Return True if *folder* exists and contains at least one entry."""
+    return folder is not None and folder.exists() and any(folder.iterdir())
+
+
 @datasets_bp.route("/api/dataset/demo-list")
 def demo_dataset_list():
-    """List available demo datasets."""
+    """List available demo datasets.
+
+    Each dataset has a ``status`` field with one of three values:
+
+    * ``"ready"`` – embeddings are cached and source data is present.
+    * ``"needs_embedding"`` – source data is downloaded but not yet embedded.
+    * ``"needs_download"`` – source data must be downloaded (and then embedded).
+    """
     demos = []
     for name, dataset_info in DEMO_DATASETS.items():
         pkl_file = EMBEDDINGS_DIR / f"{name}.pkl"
-        is_ready = pkl_file.exists()
+        has_pkl = pkl_file.exists()
 
         media_type = dataset_info.get("media_type", "audio")
+        required_folder = dataset_info.get("required_folder")
+        has_source = _folder_has_content(required_folder)
 
-        # Some pkl files reference external media directories rather than
-        # inlining bytes.  If that directory has been removed since the pkl
-        # was created, the dataset can't actually be loaded — don't show it
-        # as ready.  Each demo dataset declares its own required_folder so
-        # this check stays generic as new demo datasets are added.
-        if is_ready:
-            required_folder = dataset_info.get("required_folder")
-            if required_folder is not None and (not required_folder.exists() or not any(required_folder.iterdir())):
-                is_ready = False
+        # Determine three-state status
+        if has_pkl:
+            if required_folder is not None and not has_source:
+                # Stale pkl – source data was removed since last embed
+                status = "needs_download"
+            else:
+                status = "ready"
+        else:
+            if required_folder is not None and has_source:
+                status = "needs_embedding"
+            else:
+                status = "needs_download"
 
         # Calculate number of files
         num_categories = len(dataset_info["categories"])
@@ -243,23 +260,16 @@ def demo_dataset_list():
             num_files = num_categories * CLIPS_PER_CATEGORY
 
         # Calculate download size
-        if is_ready:
-            # If ready, show the actual .pkl file size
+        if status == "ready":
             download_size_mb = pkl_file.stat().st_size / (1024 * 1024)
+        elif status == "needs_embedding":
+            download_size_mb = 0
         else:
-            # If not ready, estimate download size
+            # needs_download – estimate total download
             if media_type == "video":
-                # Check if video files exist
                 video_source = dataset_info.get("source", "ucf101")
                 if video_source == "ucf101":
-                    video_dir = VIDEO_DIR / "ucf101"
-                    if video_dir.exists():
-                        # Videos are present, just need to embed
-                        download_size_mb = 0
-                        is_ready = False  # Not embedded yet, but videos available
-                    else:
-                        # Need to download/obtain videos (manual process for UCF-101)
-                        download_size_mb = 0  # Manual download required
+                    download_size_mb = 0  # Manual download required
                 else:
                     download_size_mb = SAMPLE_VIDEOS_DOWNLOAD_SIZE_MB
             elif media_type == "image":
@@ -268,17 +278,16 @@ def demo_dataset_list():
                 else:
                     download_size_mb = CIFAR10_DOWNLOAD_SIZE_MB
             elif media_type == "paragraph":
-                # 20 Newsgroups is small (scikit-learn downloads automatically)
-                download_size_mb = 15  # Approximate size
+                download_size_mb = 15  # scikit-learn downloads automatically
             else:
-                # Audio dataset - ESC-50 download
                 download_size_mb = ESC50_DOWNLOAD_SIZE_MB
 
         demos.append(
             {
                 "name": name,
                 "label": dataset_info.get("label", name),
-                "ready": is_ready,
+                "status": status,
+                "ready": status == "ready",
                 "num_files": num_files,
                 "download_size_mb": round(download_size_mb, 1),
                 "description": dataset_info.get("description", ""),

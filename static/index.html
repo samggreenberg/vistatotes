@@ -213,9 +213,8 @@
         </div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
           <button id="fav-add-from-votes-btn" style="flex: 1; padding: 8px 12px; background: var(--accent); color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">From Current Labels</button>
-          <button id="fav-add-from-detector-btn" style="flex: 1; padding: 8px 12px; background: var(--bg-secondary-btn); color: var(--text-btn-secondary); border: 1px solid var(--border-secondary); border-radius: 4px; cursor: pointer; font-size: 0.8rem;">From Detector File (.json)</button>
-          <button id="fav-add-from-labels-btn" style="flex: 1; padding: 8px 12px; background: var(--bg-secondary-btn); color: var(--text-btn-secondary); border: 1px solid var(--border-secondary); border-radius: 4px; cursor: pointer; font-size: 0.8rem;">From Label File (.json)</button>
         </div>
+        <div id="fav-importer-buttons" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;"></div>
         <div id="fav-add-status" style="font-size: 0.78rem; color: var(--text-muted); margin-top: 8px; min-height: 1.2em;"></div>
       </div>
       <!-- Saved Detectors List -->
@@ -226,9 +225,7 @@
     </div>
   </div>
 </div>
-<!-- Hidden file inputs for favorites modal -->
-<input type="file" id="fav-detector-file-input" accept=".json" style="display:none">
-<input type="file" id="fav-labels-file-input" accept=".json" style="display:none">
+<!-- Hidden file inputs for favorites modal (created dynamically by app.js) -->
 
 <!-- Auto-Detect Results Modal -->
 <div id="autodetect-modal" class="modal">

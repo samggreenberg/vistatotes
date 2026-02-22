@@ -120,9 +120,9 @@ def run_autodetect(dataset_path: str, detector_path: str) -> list[dict[str, Any]
     if not dataset_file.exists():
         raise FileNotFoundError(f"Dataset file not found: {dataset_path}")
 
-    # Load dataset
+    # Load dataset in thin mode — CLI only needs embeddings, not media bytes
     clips: dict[int, dict[str, Any]] = {}
-    load_dataset_from_pickle(dataset_file, clips)
+    load_dataset_from_pickle(dataset_file, clips, thin=True)
 
     if not clips:
         raise ValueError(f"No clips loaded from dataset: {dataset_path}")
@@ -162,8 +162,9 @@ def run_autodetect_with_importer(
 
     importer.validate_cli_field_values(field_values)
 
+    # Use thin mode — CLI only needs embeddings for scoring, not media bytes
     clips: dict[int, dict[str, Any]] = {}
-    importer.run_cli(field_values, clips)
+    importer.run_cli(field_values, clips, thin=True)
 
     if not clips:
         raise ValueError(f"No clips loaded by importer '{importer_name}'")
@@ -415,8 +416,9 @@ def autodetect_main(
         if not dataset_file.exists():
             raise FileNotFoundError(f"Dataset file not found: {dataset_path}")
 
+        # Thin mode — CLI only needs embeddings for scoring, not media bytes
         clips: dict[int, dict[str, Any]] = {}
-        load_dataset_from_pickle(dataset_file, clips)
+        load_dataset_from_pickle(dataset_file, clips, thin=True)
         if not clips:
             raise ValueError(f"No clips loaded from dataset: {dataset_path}")
 
@@ -478,8 +480,9 @@ def autodetect_importer_main(
 
         importer.validate_cli_field_values(field_values)
 
+        # Thin mode — CLI only needs embeddings for scoring, not media bytes
         clips: dict[int, dict[str, Any]] = {}
-        importer.run_cli(field_values, clips)
+        importer.run_cli(field_values, clips, thin=True)
         if not clips:
             raise ValueError(f"No clips loaded by importer '{importer_name}'")
 

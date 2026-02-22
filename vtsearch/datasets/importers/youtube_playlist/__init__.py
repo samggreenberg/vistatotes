@@ -57,7 +57,7 @@ class YouTubePlaylistDatasetImporter(DatasetImporter):
         ),
     ]
 
-    def run(self, field_values: dict[str, Any], clips: dict) -> None:
+    def run(self, field_values: dict[str, Any], clips: dict, thin: bool = False) -> None:
         try:
             import yt_dlp  # noqa: F401
         except ImportError as exc:
@@ -129,13 +129,13 @@ class YouTubePlaylistDatasetImporter(DatasetImporter):
         if not any_files:
             raise ValueError("No videos were downloaded. Check the URL and try again.")
 
-        load_dataset_from_folder(download_dir, media_type, clips, on_progress=progress)
+        load_dataset_from_folder(download_dir, media_type, clips, on_progress=progress, thin=thin)
 
-    def run_cli(self, field_values: dict[str, Any], clips: dict) -> None:
+    def run_cli(self, field_values: dict[str, Any], clips: dict, thin: bool = False) -> None:
         url = field_values.get("url", "")
         if not url.startswith(("http://", "https://")):
             raise ValueError(f"Invalid URL (must start with http:// or https://): {url}")
-        self.run(field_values, clips)
+        self.run(field_values, clips, thin=thin)
 
 
 IMPORTER = YouTubePlaylistDatasetImporter()

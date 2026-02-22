@@ -242,8 +242,11 @@ class VideoMediaType(MediaType):
         filename = clip.get("filename", "")
         ext = Path(filename).suffix.lower() if filename else ".mp4"
         mimetype = _VIDEO_MIME_TYPES.get(ext, "video/mp4")
+        data = self._resolve_clip_bytes(clip)
+        if data is None:
+            return MediaResponse(data=b"", mimetype=mimetype, download_name=f"clip_{clip['id']}{ext}")
         return MediaResponse(
-            data=clip["clip_bytes"],
+            data=data,
             mimetype=mimetype,
             download_name=f"clip_{clip['id']}{ext}",
         )

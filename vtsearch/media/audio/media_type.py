@@ -68,76 +68,62 @@ class AudioMediaType(MediaType):
     # Demo datasets
     # ------------------------------------------------------------------
 
+    # Shared categories for all S/M/L audio demo datasets.
+    # All three sizes use the same 10 categories; only the underlying
+    # clips differ (disjoint slices of each category's 40 ESC-50 clips).
+    _DEMO_CATEGORIES = [
+        "dog",
+        "cat",
+        "rooster",
+        "chirping_birds",
+        "rain",
+        "thunderstorm",
+        "car_horn",
+        "chainsaw",
+        "crackling_fire",
+        "clock_alarm",
+    ]
+
     @property
     def demo_datasets(self) -> list:
+        cats = self._DEMO_CATEGORIES
+        folder = DATA_DIR / "ESC-50-master" / "audio"
         return [
             DemoDataset(
                 id="sounds_s",
-                label="ESC-50 Animals & Fireside (S)",
+                label="ESC-50 Sound Mix (S)",
                 description=(
-                    "200 clips of dogs, cats, roosters, church bells, and crackling"
-                    " fire from the ESC-50 collection."
+                    "80 clips across 10 sound categories — animals, nature, urban,"
+                    " and household sounds from the ESC-50 collection."
                 ),
-                categories=[
-                    "dog",
-                    "cat",
-                    "rooster",
-                    "church_bells",
-                    "crackling_fire",
-                ],
-                required_folder=DATA_DIR / "ESC-50-master" / "audio",
+                categories=cats,
+                required_folder=folder,
+                slice_start=0,
+                slice_end=8,
             ),
             DemoDataset(
                 id="sounds_m",
-                label="ESC-50 Everyday Sounds (M)",
+                label="ESC-50 Sound Mix (M)",
                 description=(
-                    "400 clips of babies, laughter, clapping, footsteps, chainsaws,"
-                    " airplanes, and more from the ESC-50 collection."
+                    "160 clips across 10 sound categories — animals, nature, urban,"
+                    " and household sounds from the ESC-50 collection."
                 ),
-                categories=[
-                    "crying_baby",
-                    "laughing",
-                    "clapping",
-                    "footsteps",
-                    "sneezing",
-                    "chainsaw",
-                    "airplane",
-                    "fireworks",
-                    "pig",
-                    "cow",
-                ],
-                required_folder=DATA_DIR / "ESC-50-master" / "audio",
+                categories=cats,
+                required_folder=folder,
+                slice_start=8,
+                slice_end=24,
             ),
             DemoDataset(
                 id="sounds_l",
-                label="ESC-50 Environmental Mix (L)",
+                label="ESC-50 Sound Mix (L)",
                 description=(
-                    "800 clips spanning nature, animals, weather, traffic, and"
-                    " household sounds from the ESC-50 collection."
+                    "160 clips across 10 sound categories — animals, nature, urban,"
+                    " and household sounds from the ESC-50 collection."
                 ),
-                categories=[
-                    "chirping_birds",
-                    "crow",
-                    "frog",
-                    "insects",
-                    "rain",
-                    "sea_waves",
-                    "thunderstorm",
-                    "wind",
-                    "water_drops",
-                    "crickets",
-                    "car_horn",
-                    "siren",
-                    "engine",
-                    "train",
-                    "helicopter",
-                    "vacuum_cleaner",
-                    "washing_machine",
-                    "clock_alarm",
-                    "keyboard_typing",
-                    "door_wood_knock",
-                ],
-                required_folder=DATA_DIR / "ESC-50-master" / "audio",
+                categories=cats,
+                required_folder=folder,
+                slice_start=24,
+                slice_end=40,
             ),
         ]
 
@@ -229,8 +215,11 @@ class AudioMediaType(MediaType):
     # ------------------------------------------------------------------
 
     def clip_response(self, clip: dict) -> MediaResponse:
+        data = self._resolve_clip_bytes(clip)
+        if data is None:
+            return MediaResponse(data=b"", mimetype="audio/wav", download_name=f"clip_{clip['id']}.wav")
         return MediaResponse(
-            data=clip["clip_bytes"],
+            data=data,
             mimetype="audio/wav",
             download_name=f"clip_{clip['id']}.wav",
         )

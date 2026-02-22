@@ -237,6 +237,15 @@ def load_paragraph_metadata_from_folders(text_dir: Path, categories: list[str]) 
     return metadata
 
 
+def _streaming_md5(file_path: Path) -> str:
+    """Compute MD5 hash of a file using constant memory."""
+    h = hashlib.md5()
+    with open(file_path, "rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
 def load_dataset_from_folder(
     folder_path: Path,
     media_type: str,
@@ -244,6 +253,7 @@ def load_dataset_from_folder(
     content_vectors: dict[str, Any] | None = None,
     on_progress: Optional[ProgressCallback] = None,
     origin: dict[str, Any] | None = None,
+    thin: bool = False,
 ) -> None:
     """Generate a dataset in-place from a flat folder of media files.
 
@@ -276,6 +286,10 @@ def load_dataset_from_folder(
             :class:`~vtsearch.datasets.origin.Origin` dict to attach to each
             clip (as ``clip["origin"]``).  When ``None`` no origin is set
             and the caller is expected to set it afterwards.
+        thin: When ``True``, store a ``media_path`` reference to the file on
+            disk instead of reading all bytes into ``clip_bytes``.  This saves
+            memory for CLI workflows that only need embeddings for scoring.
+            MD5 is still computed via streaming (constant memory).
 
     Raises:
         ValueError: If ``media_type`` is not recognised, or if no matching
@@ -320,29 +334,49 @@ def load_dataset_from_folder(
             if embedding is None:
                 continue
 
-        with open(file_path, "rb") as f:
-            file_bytes = f.read()
+        if thin:
+            # Thin mode: store file path reference, skip loading bytes.
+            # Use stat for file_size and streaming hash for MD5.
+            clip_data: dict[str, Any] = {
+                "id": clip_id,
+                "type": mt.type_id,
+                "file_size": file_path.stat().st_size,
+                "md5": _streaming_md5(file_path),
+                "embedding": embedding,
+                "filename": file_path.name,
+                "category": "custom",
+                "origin": origin,
+                "origin_name": file_path.name,
+                "clip_bytes": None,
+                "clip_string": None,
+                "media_path": str(file_path.resolve()),
+                "duration": 0,
+            }
+        else:
+            with open(file_path, "rb") as f:
+                file_bytes = f.read()
 
-        # Build the base clip dict
-        clip_data: dict[str, Any] = {
-            "id": clip_id,
-            "type": mt.type_id,
-            "file_size": len(file_bytes),
-            "md5": hashlib.md5(file_bytes).hexdigest(),
-            "embedding": embedding,
-            "filename": file_path.name,
-            "category": "custom",
-            "origin": origin,
-            "origin_name": file_path.name,
-            # Null-out optional media fields so clips from different types
-            # stored in the same dict have consistent keys.
-            "clip_bytes": None,
-            "clip_string": None,
-            "duration": 0,
-        }
+            # Build the base clip dict
+            clip_data = {
+                "id": clip_id,
+                "type": mt.type_id,
+                "file_size": len(file_bytes),
+                "md5": hashlib.md5(file_bytes).hexdigest(),
+                "embedding": embedding,
+                "filename": file_path.name,
+                "category": "custom",
+                "origin": origin,
+                "origin_name": file_path.name,
+                # Null-out optional media fields so clips from different types
+                # stored in the same dict have consistent keys.
+                "clip_bytes": None,
+                "clip_string": None,
+                "media_path": str(file_path.resolve()),
+                "duration": 0,
+            }
 
-        # Merge in media-specific fields from the media type
-        clip_data.update(mt.load_clip_data(file_path))
+            # Merge in media-specific fields from the media type
+            clip_data.update(mt.load_clip_data(file_path))
 
         clips[clip_id] = clip_data
         clip_id += 1
@@ -353,6 +387,7 @@ def load_dataset_from_folder(
 def load_dataset_from_pickle(
     file_path: Path,
     clips: dict[int, dict[str, Any]],
+    thin: bool = False,
 ) -> dict[str, Any] | None:
     """Load a dataset from a pickle file into the clips dict in-place.
 
@@ -377,6 +412,10 @@ def load_dataset_from_pickle(
             :func:`export_dataset_to_file` or :func:`load_demo_dataset`.
         clips: Dict to populate in-place. Existing entries are removed before
             loading. Keys are clip IDs (int); values are clip data dicts.
+        thin: When ``True``, skip loading media bytes into memory.  Inline
+            bytes from the pickle are discarded and external-dir files are
+            referenced by ``media_path`` instead of read.  Useful for CLI
+            workflows that only need embeddings for scoring.
 
     Returns:
         ``None``.  (Formerly returned ``creation_info``; that field has been
@@ -404,12 +443,64 @@ def load_dataset_from_pickle(
             "params": creation_info.get("field_values", {}),
         }
 
+    # Map media type to the pickle key that holds the external directory.
+    _dir_keys = {
+        "audio": "audio_dir",
+        "video": "video_dir",
+        "image": "image_dir",
+        "paragraph": "text_dir",
+    }
+
     # Convert to the app's clip format
     missing_media = 0
     for clip_id, clip_info in clips_data.items():
         # Determine media type
         media_type = clip_info.get("type", "audio")
 
+        if thin:
+            # ── Thin mode: skip bytes, store media_path if available ──
+            media_path: str | None = clip_info.get("media_path")
+
+            # Try to resolve a media_path from the external directory
+            if not media_path:
+                dir_key = _dir_keys.get(media_type)
+                if dir_key and dir_key in data and "filename" in clip_info:
+                    candidate = Path(data[dir_key]) / clip_info["filename"]
+                    if candidate.exists():
+                        media_path = str(candidate.resolve())
+
+            # We still need the embedding to be useful
+            if "embedding" not in clip_info:
+                missing_media += 1
+                continue
+
+            fname = clip_info.get("filename", f"clip_{clip_id}.{media_type}")
+            clip_data: dict[str, Any] = {
+                "id": clip_id,
+                "type": media_type,
+                "duration": clip_info.get("duration", 0),
+                "file_size": clip_info.get("file_size", 0),
+                "md5": clip_info.get("md5", ""),
+                "embedding": np.array(clip_info["embedding"]),
+                "clip_bytes": None,
+                "clip_string": None,
+                "media_path": media_path,
+                "filename": fname,
+                "category": clip_info.get("category", "unknown"),
+                "origin": clip_info.get("origin", fallback_origin),
+                "origin_name": clip_info.get("origin_name", fname),
+            }
+            if media_type == "image":
+                clip_data["width"] = clip_info.get("width")
+                clip_data["height"] = clip_info.get("height")
+            elif media_type == "paragraph":
+                clip_data["word_count"] = clip_info.get("word_count")
+                clip_data["character_count"] = clip_info.get("character_count")
+
+            clips[clip_id] = clip_data
+            continue
+
+        # ── Full mode (original behaviour) ──
         # Load the actual media content.
         # Support both new key names (clip_bytes/clip_string) and legacy
         # per-media-type key names (wav_bytes/video_bytes/image_bytes/
@@ -417,6 +508,7 @@ def load_dataset_from_pickle(
         clip_bytes = None
         clip_string = None
         media_bytes = None
+        media_path = None
 
         if media_type == "audio":
             clip_bytes = clip_info.get("clip_bytes") or clip_info.get("wav_bytes")
@@ -428,6 +520,7 @@ def load_dataset_from_pickle(
                     with open(audio_path, "rb") as f:
                         clip_bytes = f.read()
                         media_bytes = clip_bytes
+                    media_path = str(audio_path.resolve())
                 else:
                     missing_media += 1
 
@@ -441,6 +534,7 @@ def load_dataset_from_pickle(
                     with open(video_path, "rb") as f:
                         clip_bytes = f.read()
                         media_bytes = clip_bytes
+                    media_path = str(video_path.resolve())
                 else:
                     missing_media += 1
 
@@ -454,6 +548,7 @@ def load_dataset_from_pickle(
                     with open(image_path, "rb") as f:
                         clip_bytes = f.read()
                         media_bytes = clip_bytes
+                    media_path = str(image_path.resolve())
                 else:
                     missing_media += 1
 
@@ -467,6 +562,7 @@ def load_dataset_from_pickle(
                     with open(text_path, "r", encoding="utf-8") as f:
                         clip_string = f.read()
                         media_bytes = clip_string.encode("utf-8")
+                    media_path = str(text_path.resolve())
                 else:
                     missing_media += 1
 
@@ -481,6 +577,7 @@ def load_dataset_from_pickle(
                 "embedding": np.array(clip_info["embedding"]),
                 "clip_bytes": clip_bytes,
                 "clip_string": clip_string,
+                "media_path": media_path or clip_info.get("media_path"),
                 "filename": fname,
                 "category": clip_info.get("category", "unknown"),
                 "origin": clip_info.get("origin", fallback_origin),
@@ -602,16 +699,17 @@ def load_demo_dataset(
             category_indices = {label_names[i]: i for i in range(len(label_names))}
             requested_categories = dataset_info["categories"]
 
-            # Collect images for requested categories
+            # Collect images for requested categories, applying per-category slicing
+            slice_start = dataset_info.get("slice_start", 0)
+            slice_end = dataset_info.get("slice_end", IMAGES_PER_CIFAR10_CATEGORY)
             selected_images = []
             selected_labels = []
 
             for cat in requested_categories:
                 if cat in category_indices:
                     cat_idx = category_indices[cat]
-                    # Get first N images of this category
                     cat_mask = [i for i, lbl in enumerate(labels) if lbl == cat_idx]
-                    for idx in cat_mask[:IMAGES_PER_CIFAR10_CATEGORY]:
+                    for idx in cat_mask[slice_start:slice_end]:
                         selected_images.append(images[idx])
                         selected_labels.append(cat)
 
@@ -668,10 +766,7 @@ def load_demo_dataset(
                     {
                         "name": dataset_name,
                         "clips": {
-                            cid: {
-                                k: v.tolist() if isinstance(v, np.ndarray) else v
-                                for k, v in clip.items()
-                            }
+                            cid: {k: v.tolist() if isinstance(v, np.ndarray) else v for k, v in clip.items()}
                             for cid, clip in clips.items()
                         },
                     },
@@ -688,15 +783,17 @@ def load_demo_dataset(
             # Scan category folders for images
             metadata = load_image_metadata_from_folders(caltech_dir, dataset_info["categories"])
 
-            # Limit per category
-            cat_counts: dict[str, int] = {}
-            selected: list[tuple[Path, str]] = []
+            # Group by category (sorted order within each), then slice
+            slice_start = dataset_info.get("slice_start", 0)
+            slice_end = dataset_info.get("slice_end", IMAGES_PER_CALTECH101_CATEGORY)
+            by_cat: dict[str, list[tuple[Path, str]]] = {}
             for fname, meta in sorted(metadata.items()):
                 cat = meta["category"]
-                cat_counts.setdefault(cat, 0)
-                if cat_counts[cat] < IMAGES_PER_CALTECH101_CATEGORY:
-                    selected.append((meta["path"], cat))
-                    cat_counts[cat] += 1
+                by_cat.setdefault(cat, []).append((meta["path"], cat))
+
+            selected: list[tuple[Path, str]] = []
+            for cat in dataset_info["categories"]:
+                selected.extend(by_cat.get(cat, [])[slice_start:slice_end])
 
             from vtsearch.media import get as media_get
 
@@ -753,10 +850,7 @@ def load_demo_dataset(
                     {
                         "name": dataset_name,
                         "clips": {
-                            cid: {
-                                k: v.tolist() if isinstance(v, np.ndarray) else v
-                                for k, v in clip.items()
-                            }
+                            cid: {k: v.tolist() if isinstance(v, np.ndarray) else v for k, v in clip.items()}
                             for cid, clip in clips.items()
                         },
                     },
@@ -778,8 +872,9 @@ def load_demo_dataset(
             # Use 20 Newsgroups dataset from scikit-learn
             texts, labels, category_names = download_20newsgroups(dataset_info["categories"])
 
-            # Limit number of texts per category for demo
-            max_per_category = TEXTS_PER_CATEGORY
+            # Slice per category for disjoint S/M/L demo datasets
+            slice_start = dataset_info.get("slice_start", 0)
+            slice_end = dataset_info.get("slice_end", TEXTS_PER_CATEGORY)
             selected_texts = []
             selected_categories = []
 
@@ -787,8 +882,7 @@ def load_demo_dataset(
                 if cat_name in category_names:
                     cat_idx = category_names.index(cat_name)
                     cat_texts = [texts[i] for i, lbl in enumerate(labels) if lbl == cat_idx]
-                    # Limit to max_per_category
-                    for text in cat_texts[:max_per_category]:
+                    for text in cat_texts[slice_start:slice_end]:
                         selected_texts.append(text)
                         selected_categories.append(cat_name)
 
@@ -856,10 +950,7 @@ def load_demo_dataset(
                     {
                         "name": dataset_name,
                         "clips": {
-                            cid: {
-                                k: v.tolist() if isinstance(v, np.ndarray) else v
-                                for k, v in clip.items()
-                            }
+                            cid: {k: v.tolist() if isinstance(v, np.ndarray) else v for k, v in clip.items()}
                             for cid, clip in clips.items()
                         },
                     },
@@ -956,13 +1047,23 @@ def load_demo_dataset(
     audio_dir = download_esc50()
     metadata = load_esc50_metadata(audio_dir.parent)
 
-    # Filter files for this dataset
+    # Filter files for this dataset, applying per-category slicing
     categories = DEMO_DATASETS[dataset_name]["categories"]
-    audio_files = []
+    slice_start = dataset_info.get("slice_start", 0)
+    slice_end = dataset_info.get("slice_end")
+
+    # Group files by category (sorted order within each)
+    by_cat: dict[str, list] = {}
     for audio_path in sorted(audio_dir.glob("*.wav")):
         if audio_path.name in metadata:
-            if metadata[audio_path.name]["category"] in categories:
-                audio_files.append((audio_path, metadata[audio_path.name]))
+            cat = metadata[audio_path.name]["category"]
+            if cat in categories:
+                by_cat.setdefault(cat, []).append((audio_path, metadata[audio_path.name]))
+
+    # Slice each category and flatten
+    audio_files = []
+    for cat in categories:
+        audio_files.extend(by_cat.get(cat, [])[slice_start:slice_end])
 
     # Generate embeddings
     clips.clear()
@@ -1010,9 +1111,7 @@ def load_demo_dataset(
                 "name": dataset_name,
                 "clips": {
                     cid: {
-                        k: v.tolist() if isinstance(v, np.ndarray) else v
-                        for k, v in clip.items()
-                        if k != "clip_bytes"
+                        k: v.tolist() if isinstance(v, np.ndarray) else v for k, v in clip.items() if k != "clip_bytes"
                     }
                     for cid, clip in clips.items()
                 },
@@ -1058,6 +1157,7 @@ def export_dataset_to_file(
                 "origin_name": clip.get("origin_name", clip.get("filename", "")),
                 "clip_bytes": clip.get("clip_bytes"),
                 "clip_string": clip.get("clip_string"),
+                "media_path": clip.get("media_path"),
                 "word_count": clip.get("word_count"),
                 "character_count": clip.get("character_count"),
                 "width": clip.get("width"),

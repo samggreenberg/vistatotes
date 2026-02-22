@@ -108,6 +108,13 @@ def main() -> None:
         action="store_true",
         help="Blend cross-calibration threshold with GMM for robustness with few labels.",
     )
+    parser.add_argument(
+        "--calibrate-count",
+        type=int,
+        default=2,
+        metavar="K",
+        help="Number of random Train/Calibrate splits for threshold calibration (default: 2).",
+    )
 
     args = parser.parse_args()
 
@@ -131,6 +138,7 @@ def main() -> None:
         seed=args.seed,
         enrich=args.enrich_descriptions,
         safe_thresholds=args.safe_thresholds,
+        calibrate_count=args.calibrate_count,
     )
 
     # Print summary

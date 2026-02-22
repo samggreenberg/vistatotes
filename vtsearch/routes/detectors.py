@@ -22,6 +22,7 @@ from vtsearch.utils import (
     add_favorite_detector,
     add_favorite_extractor,
     clips,
+    get_calibrate_count,
     get_favorite_detectors,
     get_favorite_detectors_by_media,
     get_favorite_extractors,
@@ -67,8 +68,10 @@ def export_detector():
 
     input_dim = X.shape[1]
 
-    # Calculate threshold using cross-calibration with inclusion
-    threshold = calculate_cross_calibration_threshold(X_list, y_list, input_dim, get_inclusion())
+    # Calculate threshold using k-fold calibration with inclusion
+    threshold = calculate_cross_calibration_threshold(
+        X_list, y_list, input_dim, get_inclusion(), calibrate_count=get_calibrate_count()
+    )
 
     # Train final model on all data with inclusion
     model = train_model(X, y, input_dim, get_inclusion())

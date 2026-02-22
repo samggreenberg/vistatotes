@@ -148,6 +148,29 @@ class TestSettingsModule:
         assert len(procs) == 1
         assert procs[0]["processor_name"] == "p"
 
+    def test_get_set_calibrate_count(self, isolated_settings):
+        settings_mod.set_calibrate_count(5)
+        assert settings_mod.get_calibrate_count() == 5
+
+        # Persisted to disk
+        raw = json.loads(isolated_settings.read_text())
+        assert raw["calibrate_count"] == 5
+
+    def test_calibrate_count_clamped(self):
+        settings_mod.set_calibrate_count(200)
+        assert settings_mod.get_calibrate_count() == 100
+
+        settings_mod.set_calibrate_count(0)
+        assert settings_mod.get_calibrate_count() == 1
+
+    def test_calibrate_count_default(self):
+        assert settings_mod.get_calibrate_count() == 2
+
+    def test_calibrate_count_persists_across_reset(self, isolated_settings):
+        settings_mod.set_calibrate_count(10)
+        settings_mod.reset()
+        assert settings_mod.get_calibrate_count() == 10
+
     def test_corrupt_settings_file(self, isolated_settings):
         isolated_settings.write_text("not json!!!")
         settings_mod.reset()
@@ -276,6 +299,25 @@ class TestSettingsAPI:
             "/api/settings",
             json={"volume": "not a number"},
         )
+        assert res.status_code == 400
+
+    def test_update_calibrate_count(self, client):
+        res = client.put("/api/settings", json={"calibrate_count": 5})
+        assert res.status_code == 200
+        data = res.get_json()
+        assert data["calibrate_count"] == 5
+
+        # Verify it persisted
+        res2 = client.get("/api/settings")
+        assert res2.get_json()["calibrate_count"] == 5
+
+    def test_update_calibrate_count_clamped(self, client):
+        res = client.put("/api/settings", json={"calibrate_count": 999})
+        assert res.status_code == 200
+        assert res.get_json()["calibrate_count"] == 100
+
+    def test_update_calibrate_count_invalid(self, client):
+        res = client.put("/api/settings", json={"calibrate_count": "not a number"})
         assert res.status_code == 400
 
     def test_update_empty_body(self, client):

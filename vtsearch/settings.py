@@ -41,6 +41,7 @@ _DEFAULTS: dict[str, Any] = {
     "theme": "dark",
     "enrich_descriptions": False,
     "safe_thresholds": False,
+    "calibrate_count": 2,
     "favorite_processors": [],
 }
 
@@ -134,6 +135,18 @@ def set_enrich_descriptions(value: bool) -> None:
     """Set and persist the enrich_descriptions flag."""
     s = _ensure_loaded()
     s["enrich_descriptions"] = bool(value)
+    _save(s)
+
+
+def get_calibrate_count() -> int:
+    """Return the number of random Train/Calibrate splits for threshold calibration."""
+    return int(_ensure_loaded().get("calibrate_count", _DEFAULTS["calibrate_count"]))
+
+
+def set_calibrate_count(value: int) -> None:
+    """Set and persist the calibrate_count (clamped to 1–100)."""
+    s = _ensure_loaded()
+    s["calibrate_count"] = int(max(1, min(100, int(value))))
     _save(s)
 
 

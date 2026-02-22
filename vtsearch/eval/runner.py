@@ -103,6 +103,7 @@ def eval_learned_sort(
     train_fraction: float = 0.5,
     seed: int = 42,
     safe_thresholds: bool = False,
+    calibrate_count: int = 2,
 ) -> list[LearnedSortMetrics]:
     """Run learned-sort evaluation via simulated voting.
 
@@ -122,6 +123,8 @@ def eval_learned_sort(
         seed: Random seed for reproducible splits.
         safe_thresholds: When ``True``, blend the cross-calibration threshold
             with a GMM-based threshold for robustness with small label counts.
+        calibrate_count: Number of random Train/Calibrate splits for threshold
+            calibration (default 2).
 
     Returns:
         List of :class:`LearnedSortMetrics`, one per query.
@@ -159,7 +162,9 @@ def eval_learned_sort(
         bad_votes: dict[int, None] = {cid: None for cid in train_bad}
 
         # Run train_and_score
-        scored, threshold = train_and_score(clips, good_votes, bad_votes, safe_thresholds=safe_thresholds)
+        scored, threshold = train_and_score(
+            clips, good_votes, bad_votes, safe_thresholds=safe_thresholds, calibrate_count=calibrate_count
+        )
 
         # Evaluate on test set
         score_map = {r["id"]: r["score"] for r in scored}
@@ -192,6 +197,7 @@ def run_eval(
     seed: int = 42,
     enrich: bool = False,
     safe_thresholds: bool = False,
+    calibrate_count: int = 2,
 ) -> list[DatasetResult]:
     """Run evaluation on one or more eval datasets.
 
@@ -210,6 +216,8 @@ def run_eval(
             for text-sort evaluation.
         safe_thresholds: When ``True``, blend the cross-calibration threshold
             with a GMM-based threshold in learned-sort evaluation.
+        calibrate_count: Number of random Train/Calibrate splits for threshold
+            calibration (default 2).
 
     Returns:
         List of :class:`DatasetResult`, one per evaluated dataset.
@@ -275,7 +283,9 @@ def run_eval(
         # --- Learned sort ---
         if mode in ("learned", "both"):
             print(f"\n--- Learned Sort Evaluation ({len(queries)} categories) ---")
-            learned_results = eval_learned_sort(clips, queries, train_fraction, seed, safe_thresholds=safe_thresholds)
+            learned_results = eval_learned_sort(
+                clips, queries, train_fraction, seed, safe_thresholds=safe_thresholds, calibrate_count=calibrate_count
+            )
             ds_result.learned_sort = learned_results
 
             for lm in learned_results:

@@ -208,6 +208,7 @@
   const inclusionSlider = document.getElementById("inclusion-slider");
   const inclusionValue = document.getElementById("inclusion-value");
   const enrichDescCheckbox = document.getElementById("enrich-descriptions-checkbox");
+  const calibrateCountInput = document.getElementById("calibrate-count-input");
 
   // Dataset management elements
   const datasetWelcome = document.getElementById("dataset-welcome");
@@ -1522,6 +1523,20 @@
       if (sortMode === "text") {
         onTextSortInput();
       }
+    });
+  }
+
+  // ---- Calibrate Count ----
+
+  if (calibrateCountInput) {
+    calibrateCountInput.addEventListener("change", () => {
+      const val = Math.max(1, Math.min(100, parseInt(calibrateCountInput.value) || 2));
+      calibrateCountInput.value = val;
+      fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ calibrate_count: val }),
+      }).catch(() => {});
     });
   }
 
@@ -3162,6 +3177,9 @@
         inclusion = data.inclusion;
         inclusionSlider.value = inclusion;
         inclusionValue.textContent = inclusion;
+      }
+      if (calibrateCountInput && typeof data.calibrate_count === "number") {
+        calibrateCountInput.value = data.calibrate_count;
       }
     } catch (_) {
       // Settings not available yet; use defaults

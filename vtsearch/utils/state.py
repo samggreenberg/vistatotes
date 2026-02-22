@@ -124,6 +124,20 @@ def set_inclusion(value: int) -> None:
     settings.set_inclusion(value)
 
 
+def get_calibrate_count() -> int:
+    """Return the number of calibration splits from settings."""
+    from vtsearch import settings
+
+    return settings.get_calibrate_count()
+
+
+def set_calibrate_count(value: int) -> None:
+    """Set the calibrate count and persist it to the settings file."""
+    from vtsearch import settings
+
+    settings.set_calibrate_count(value)
+
+
 def get_safe_thresholds() -> bool:
     """Return whether safe thresholds blending is enabled.
 

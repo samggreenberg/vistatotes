@@ -104,6 +104,7 @@ def eval_learned_sort(
     seed: int = 42,
     safe_thresholds: bool = False,
     calibrate_count: int = 2,
+    calibration_fraction: float = 0.5,
 ) -> list[LearnedSortMetrics]:
     """Run learned-sort evaluation via simulated voting.
 
@@ -125,6 +126,8 @@ def eval_learned_sort(
             with a GMM-based threshold for robustness with small label counts.
         calibrate_count: Number of random Train/Calibrate splits for threshold
             calibration (default 2).
+        calibration_fraction: Fraction of labelled data reserved for
+            calibration in each split (default 0.5).
 
     Returns:
         List of :class:`LearnedSortMetrics`, one per query.
@@ -163,7 +166,12 @@ def eval_learned_sort(
 
         # Run train_and_score
         scored, threshold = train_and_score(
-            clips, good_votes, bad_votes, safe_thresholds=safe_thresholds, calibrate_count=calibrate_count
+            clips,
+            good_votes,
+            bad_votes,
+            safe_thresholds=safe_thresholds,
+            calibrate_count=calibrate_count,
+            calibration_fraction=calibration_fraction,
         )
 
         # Evaluate on test set
@@ -198,6 +206,7 @@ def run_eval(
     enrich: bool = False,
     safe_thresholds: bool = False,
     calibrate_count: int = 2,
+    calibration_fraction: float = 0.5,
 ) -> list[DatasetResult]:
     """Run evaluation on one or more eval datasets.
 
@@ -218,6 +227,8 @@ def run_eval(
             with a GMM-based threshold in learned-sort evaluation.
         calibrate_count: Number of random Train/Calibrate splits for threshold
             calibration (default 2).
+        calibration_fraction: Fraction of labelled data reserved for
+            calibration in each split (default 0.5).
 
     Returns:
         List of :class:`DatasetResult`, one per evaluated dataset.
@@ -284,7 +295,13 @@ def run_eval(
         if mode in ("learned", "both"):
             print(f"\n--- Learned Sort Evaluation ({len(queries)} categories) ---")
             learned_results = eval_learned_sort(
-                clips, queries, train_fraction, seed, safe_thresholds=safe_thresholds, calibrate_count=calibrate_count
+                clips,
+                queries,
+                train_fraction,
+                seed,
+                safe_thresholds=safe_thresholds,
+                calibrate_count=calibrate_count,
+                calibration_fraction=calibration_fraction,
             )
             ds_result.learned_sort = learned_results
 

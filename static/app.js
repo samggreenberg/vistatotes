@@ -209,6 +209,7 @@
   const inclusionValue = document.getElementById("inclusion-value");
   const enrichDescCheckbox = document.getElementById("enrich-descriptions-checkbox");
   const calibrateCountInput = document.getElementById("calibrate-count-input");
+  const calibrationFractionInput = document.getElementById("calibration-fraction-input");
 
   // Dataset management elements
   const datasetWelcome = document.getElementById("dataset-welcome");
@@ -1536,6 +1537,20 @@
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ calibrate_count: val }),
+      }).catch(() => {});
+    });
+  }
+
+  // ---- Calibration Fraction ----
+
+  if (calibrationFractionInput) {
+    calibrationFractionInput.addEventListener("change", () => {
+      const val = Math.max(0, Math.min(1, parseFloat(calibrationFractionInput.value) || 0.5));
+      calibrationFractionInput.value = val;
+      fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ calibration_fraction: val }),
       }).catch(() => {});
     });
   }
@@ -3180,6 +3195,9 @@
       }
       if (calibrateCountInput && typeof data.calibrate_count === "number") {
         calibrateCountInput.value = data.calibrate_count;
+      }
+      if (calibrationFractionInput && typeof data.calibration_fraction === "number") {
+        calibrationFractionInput.value = data.calibration_fraction;
       }
     } catch (_) {
       // Settings not available yet; use defaults

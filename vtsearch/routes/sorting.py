@@ -27,6 +27,7 @@ from vtsearch.utils import (
     build_clip_lookup,
     clips,
     get_calibrate_count,
+    get_calibration_fraction,
     get_inclusion,
     get_learned_scores,
     get_safe_thresholds,
@@ -143,6 +144,7 @@ def learned_sort():
         get_inclusion(),
         safe_thresholds=get_safe_thresholds(),
         calibrate_count=get_calibrate_count(),
+        calibration_fraction=get_calibration_fraction(),
     )
     # Store scores so the /api/votes endpoint can provide confidence info.
     update_learned_scores({r["id"]: r["score"] for r in results})
@@ -423,7 +425,12 @@ def label_file_sort():
 
         # Calculate threshold using k-fold calibration
         threshold = calculate_cross_calibration_threshold(
-            X_list, y_list, input_dim, get_inclusion(), calibrate_count=get_calibrate_count()
+            X_list,
+            y_list,
+            input_dim,
+            get_inclusion(),
+            calibrate_count=get_calibrate_count(),
+            calibration_fraction=get_calibration_fraction(),
         )
 
         # Train final model on all data

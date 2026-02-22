@@ -138,6 +138,20 @@ def set_calibrate_count(value: int) -> None:
     settings.set_calibrate_count(value)
 
 
+def get_calibration_fraction() -> float:
+    """Return the calibration fraction from settings."""
+    from vtsearch import settings
+
+    return settings.get_calibration_fraction()
+
+
+def set_calibration_fraction(value: float) -> None:
+    """Set the calibration fraction and persist it to the settings file."""
+    from vtsearch import settings
+
+    settings.set_calibration_fraction(value)
+
+
 def get_safe_thresholds() -> bool:
     """Return whether safe thresholds blending is enabled.
 

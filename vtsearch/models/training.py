@@ -245,6 +245,7 @@ def calculate_cross_calibration_threshold(
     inclusion_value: int = 0,
     rng: np.random.RandomState | None = None,
     calibrate_count: int = 2,
+    calibration_fraction: float = 0.5,
 ) -> float:
     """Estimate a decision threshold using k-fold calibration.
 
@@ -255,7 +256,8 @@ def calculate_cross_calibration_threshold(
 
     Algorithm:
         For each of *k* = ``calibrate_count`` rounds:
-        1. Randomly split data into Train and Calibrate (50/50).
+        1. Randomly split data into Train (``1 - calibration_fraction``)
+           and Calibrate (``calibration_fraction``).
         2. Train a model on Train.
         3. Find optimal threshold on Calibrate.
         Return mean of all *k* thresholds.
@@ -270,10 +272,17 @@ def calculate_cross_calibration_threshold(
         rng: Optional seeded RandomState for reproducible splits. Falls back
             to the global ``np.random`` state when ``None``.
         calibrate_count: Number of random Train/Calibrate splits (default 2).
+        calibration_fraction: Fraction of data used for calibration in each
+            split (default 0.5).  For example, 0.2 means 80% Train / 20%
+            Calibrate.  If the fraction is so extreme that a valid split
+            cannot be formed (fewer than 2 training or 1 calibration
+            examples), returns ``float('inf')`` so that nothing is
+            predicted as Good.
 
     Returns:
         A float threshold. Returns 0.5 if fewer than 4 examples are provided
-        (insufficient data for calibration).
+        (insufficient data for calibration).  Returns ``float('inf')`` if
+        ``calibration_fraction`` makes a valid split impossible.
     """
     n = len(X_list)
     if n < 4:
@@ -282,15 +291,20 @@ def calculate_cross_calibration_threshold(
     _rng = rng if rng is not None else np.random
     X_np = np.array(X_list)
     y_np = np.array(y_list)
-    mid = n // 2
+
+    # Split sizes: calibration_fraction of n goes to calibrate, rest to train
+    n_cal = max(1, round(n * calibration_fraction))
+    n_train = n - n_cal
+    if n_train < 2 or n_cal < 1:
+        return float("inf")
 
     calibrate_count = max(1, calibrate_count)
     thresholds: list[float] = []
 
     for _ in range(calibrate_count):
         indices = _rng.permutation(n)
-        train_idx = indices[:mid]
-        cal_idx = indices[mid:]
+        train_idx = indices[:n_train]
+        cal_idx = indices[n_train:]
 
         X_train = torch.tensor(X_np[train_idx], dtype=torch.float32)
         y_train = torch.tensor(y_np[train_idx], dtype=torch.float32).unsqueeze(1)
@@ -348,6 +362,7 @@ def train_and_score(
     inclusion_value: int = 0,
     safe_thresholds: bool = False,
     calibrate_count: int = 2,
+    calibration_fraction: float = 0.5,
 ) -> tuple[list[dict[str, Any]], float]:
     """Train a small MLP on voted clip embeddings and score every clip.
 
@@ -366,6 +381,9 @@ def train_and_score(
             a GMM-based threshold for robustness when few labels are available.
         calibrate_count: Number of random Train/Calibrate splits for threshold
             calibration (default 2).
+        calibration_fraction: Fraction of labelled data reserved for calibration
+            in each split (default 0.5).  For example, 0.2 means 80% Train /
+            20% Calibrate.
 
     Returns:
         A tuple ``(results, threshold)`` where:
@@ -393,7 +411,12 @@ def train_and_score(
 
     # Calculate threshold using k-fold calibration
     threshold = calculate_cross_calibration_threshold(
-        X_list, y_list, input_dim, inclusion_value, calibrate_count=calibrate_count
+        X_list,
+        y_list,
+        input_dim,
+        inclusion_value,
+        calibrate_count=calibrate_count,
+        calibration_fraction=calibration_fraction,
     )
 
     # Train final model on all data

@@ -114,18 +114,13 @@ class TestCalculateSafeThreshold:
 class TestTrainAndScoreWithSafeThresholds:
     """Integration tests: train_and_score with safe_thresholds flag."""
 
-    def test_safe_thresholds_off_matches_baseline(self):
-        """With safe_thresholds=False, result is identical to the default."""
-        app_module.good_votes.update({k: None for k in [1, 2, 3]})
-        app_module.bad_votes.update({k: None for k in [18, 19, 20]})
-        results_off, thresh_off = train_and_score(
-            app_module.clips, app_module.good_votes, app_module.bad_votes, safe_thresholds=False
-        )
-        results_default, thresh_default = train_and_score(
-            app_module.clips, app_module.good_votes, app_module.bad_votes
-        )
-        assert thresh_off == thresh_default
-        assert [r["id"] for r in results_off] == [r["id"] for r in results_default]
+    def test_safe_thresholds_default_is_false(self):
+        """The default value for safe_thresholds should be False."""
+        import inspect
+
+        sig = inspect.signature(train_and_score)
+        default = sig.parameters["safe_thresholds"].default
+        assert default is False
 
     def test_safe_thresholds_on_returns_valid_threshold(self):
         """With safe_thresholds=True, threshold is still in [0, 1]."""

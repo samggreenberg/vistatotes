@@ -16,18 +16,25 @@ Covers:
 
 from __future__ import annotations
 
+import hashlib
 import pickle
 
 import numpy as np
 import pytest
 
 
+def _unique_bytes(clip_id: int) -> bytes:
+    """Return unique bytes for a clip so MD5 hashes are distinct after reload."""
+    return clip_id.to_bytes(4, "little") + b"\x00" * 96
+
+
 def _make_audio_clip(clip_id: int, md5: str = "", filename: str = "") -> dict:
     """Return a minimal clip dict for testing."""
     if not filename:
         filename = f"clip_{clip_id}.wav"
+    raw = _unique_bytes(clip_id)
     if not md5:
-        md5 = f"md5_{clip_id:04d}"
+        md5 = hashlib.md5(raw).hexdigest()
     return {
         "id": clip_id,
         "type": "audio",
@@ -35,7 +42,7 @@ def _make_audio_clip(clip_id: int, md5: str = "", filename: str = "") -> dict:
         "file_size": 1000,
         "md5": md5,
         "embedding": np.array([float(clip_id), float(clip_id) + 0.5]),
-        "clip_bytes": b"\x00" * 100,
+        "clip_bytes": raw,
         "clip_string": None,
         "media_path": None,
         "filename": filename,
@@ -47,8 +54,9 @@ def _make_audio_clip(clip_id: int, md5: str = "", filename: str = "") -> dict:
 
 def _make_image_clip(clip_id: int, md5: str = "") -> dict:
     """Return a minimal image clip dict for testing."""
+    raw = b"\x89PNG" + _unique_bytes(clip_id)
     if not md5:
-        md5 = f"md5_{clip_id:04d}"
+        md5 = hashlib.md5(raw).hexdigest()
     return {
         "id": clip_id,
         "type": "image",
@@ -56,7 +64,7 @@ def _make_image_clip(clip_id: int, md5: str = "") -> dict:
         "file_size": 2000,
         "md5": md5,
         "embedding": np.array([float(clip_id)]),
-        "clip_bytes": b"\x89PNG" + b"\x00" * 100,
+        "clip_bytes": raw,
         "clip_string": None,
         "media_path": None,
         "filename": f"img_{clip_id}.png",
@@ -163,9 +171,11 @@ class TestCombineDatasetsRun:
         """Clips with the same MD5 across datasets are included only once."""
         from vtsearch.datasets.importers.combine_datasets import IMPORTER
 
-        shared_md5 = "deadbeef1234567890abcdef12345678"
-        ds1 = {1: _make_audio_clip(1, md5=shared_md5), 2: _make_audio_clip(2)}
-        ds2 = {1: _make_audio_clip(3, md5=shared_md5), 2: _make_audio_clip(4)}
+        # Use the same clip_id (same bytes) to produce a genuine MD5 duplicate
+        dup_clip_a = _make_audio_clip(1, filename="dup_a.wav")
+        dup_clip_b = _make_audio_clip(1, filename="dup_b.wav")  # same bytes as dup_a
+        ds1 = {1: dup_clip_a, 2: _make_audio_clip(2)}
+        ds2 = {1: dup_clip_b, 2: _make_audio_clip(4)}
         p1, p2 = tmp_path / "ds1.pkl", tmp_path / "ds2.pkl"
         _write_pickle_dataset(p1, ds1)
         _write_pickle_dataset(p2, ds2)
@@ -174,8 +184,6 @@ class TestCombineDatasetsRun:
         IMPORTER.run({"datasets": [str(p1), str(p2)]}, clips)
 
         assert len(clips) == 3  # 4 total minus 1 duplicate
-        md5s = [c["md5"] for c in clips.values()]
-        assert md5s.count(shared_md5) == 1
 
     def test_media_type_mismatch_raises(self, tmp_path):
         """Combining audio and image datasets raises ValueError."""

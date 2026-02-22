@@ -1,6 +1,6 @@
 # VTSearch
 
-Media explorer web app for browsing/voting on audio, images, or text. Semantic sorting (LAION-CLAP, CLIP, E5 embeddings) and learned sorting (neural net trained on votes). Flask + vanilla JS + PyTorch.
+Media explorer web app for browsing/voting on audio, images, text, or video. Semantic sorting (LAION-CLAP, CLIP, X-CLIP, E5 embeddings) and learned sorting (neural net trained on votes). Flask + vanilla JS + PyTorch.
 
 ## Commands
 - **Run tests (CPU, fast)**: `bash .claude/hooks/ensure-test-deps.sh && python -m pytest tests/ -v`
@@ -21,12 +21,14 @@ Media explorer web app for browsing/voting on audio, images, or text. Semantic s
 - `vtsearch/config.py` — Constants (SAMPLE_RATE, NUM_CLIPS, paths, model IDs)
 - `vtsearch/clips.py` — Test clip generation and embedding cache management
 - `vtsearch/cli.py` — CLI utilities: autodetect (load dataset + detectors from settings, run inference, export results)
-- `vtsearch/routes/` — Flask blueprints: `main.py`, `clips.py`, `sorting.py`, `detectors.py`, `datasets.py`, `exporters.py`, `label_importers.py`, `processor_importers.py`
+- `vtsearch/settings.py` — Persistent settings (volume, inclusion, theme, favorite processors); auto-saves to `data/settings.json`
+- `vtsearch/routes/` — Flask blueprints: `main.py`, `clips.py`, `sorting.py`, `detectors.py`, `datasets.py`, `exporters.py`, `label_importers.py`, `processor_importers.py`, `settings.py`
 - `vtsearch/models/` — Embeddings, training, model loading, progress tracking
-- `vtsearch/datasets/` — Dataset loading, downloading, origin tracking, labelsets, importers (folder/pickle/http_zip/rss_feed/youtube_playlist)
-- `vtsearch/exporters/` — Results exporters (file/gui/email_smtp/csv_file/webhook)
+- `vtsearch/datasets/` — Dataset loading, downloading, ingestion, origin tracking, labelsets, splitting, importers (folder/pickle/http_zip/rss_feed/youtube_playlist)
+- `vtsearch/eval/` — Evaluation framework: runner, metrics, visualisation, voting iterations
+- `vtsearch/exporters/` — Results exporters (file/gui/email_smtp/csv_file/webhook); auto-discovered via `EXPORTER` sentinel
 - `vtsearch/labels/importers/` — Label importers (json_file/csv_file); auto-discovered via `LABEL_IMPORTER` sentinel
-- `vtsearch/processors/importers/` — Processor importers (detector_file/label_file); auto-discovered via `PROCESSOR_IMPORTER` sentinel
+- `vtsearch/processors/importers/` — Processor importers (detector_file/label_file/csv_label_file); auto-discovered via `PROCESSOR_IMPORTER` sentinel
 - `vtsearch/media/` — Media type plugins: audio, image, text, video
 - `vtsearch/utils/` — Global state (`clips` dict, votes), progress utilities
 - `static/` — Frontend (index.html, app.js, styles.css) and assets (favicons, logo.svg)
@@ -43,6 +45,7 @@ Media explorer web app for browsing/voting on audio, images, or text. Semantic s
   - `test_detectors.py` — Detector export, detector sort, favorites, auto-detect
   - `test_cli_autodetect.py` — CLI autodetect: run_autodetect function, --autodetect flag, --exporter flag. Subprocess tests marked `slow` (~16s each, excluded from default run)
   - `test_datasets.py` — Dataset endpoints, startup state, importers, archive extraction
+  - `test_dataset_split.py` — Train/test dataset splitting
   - `test_rss_youtube_importers.py` — RSS feed and YouTube playlist importer metadata, CLI args, run logic
   - `test_csv_webhook_exporters.py` — CSV and Webhook exporter metadata, CLI args, export logic
   - `test_exporters.py` — Results exporter base classes, registry, built-in exporters, API routes
@@ -51,6 +54,14 @@ Media explorer web app for browsing/voting on audio, images, or text. Semantic s
   - `test_processors.py` — Media processor tests
   - `test_processor_importers.py` — Processor importer base class, registry, detector_file/label_file importers, API routes
   - `test_origin_labelset.py` — Origin class, LabeledElement, LabelSet, build_origin(), label export/import with origins, integration
+  - `test_creation_info.py` — Legacy creation_info handling in pickle datasets
+  - `test_enrich_descriptions.py` — Enriched text-sort description embedding
+  - `test_eval.py` — Evaluation framework runner and metrics
+  - `test_eval_visualize.py` — Evaluation visualisation chart generation
+  - `test_eval_voting_iterations.py` — Voting iterations evaluation
+  - `test_safe_thresholds.py` — Safe threshold blending
+  - `test_settings.py` — Settings persistence (volume, inclusion, theme, favorites)
+  - `test_thin_loading.py` — Thin (lazy) dataset loading mode for CLI
   - `test_gpu.py` — GPU tests: training, cross-calibration, detectors, embedding models (CLAP/CLIP/X-CLIP/E5), CPU↔GPU equivalence, memory cleanup (skipped without CUDA)
 
 ## Test Markers
@@ -71,11 +82,12 @@ Testing can crash the session. To avoid losing work, follow this workflow:
 This ensures work is recoverable if the session crashes during a test run.
 
 ## Key Details
-- Global state lives in `vtsearch/utils/state.py`: `clips`, `good_votes`, `bad_votes` are module-level dicts
+- Global state lives in `vtsearch/utils/state.py`: `clips`, `good_votes`, `bad_votes`, `label_history`, `inclusion`, `textsort_suggestions`, `favorite_detectors`, `favorite_extractors` are module-level dicts/lists
 - Votes are `dict[int, None]` (not sets) — use `votes[id] = None` syntax
+- Persistent settings live in `vtsearch/settings.py` (auto-saves to `data/settings.json`): volume, inclusion, theme, enrich_descriptions, safe_thresholds, favorite_processors
 - Each clip has `origin` (dict or None) and `origin_name` (str) for per-element provenance tracking
 - `Origin` class in `vtsearch/datasets/origin.py`; `LabelSet`/`LabeledElement` in `vtsearch/datasets/labelset.py`
 - Label export (`/api/labels/export`) returns a `LabelSet` with per-element origin info (superset of legacy format)
 - `data/` dir created at runtime for embeddings, model cache, media files
 - OMP_NUM_THREADS and MKL_NUM_THREADS set to 1 for memory optimization
-- Linter/formatter: ruff (E402 ignored, line-length 120, see pyproject.toml)
+- Linter/formatter: ruff (E402 ignored, line-length 120, target-version py310, see pyproject.toml)

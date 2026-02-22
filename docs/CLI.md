@@ -18,12 +18,12 @@ python app.py --autodetect --dataset path/to/dataset.pkl --settings settings.jso
 
 ```bash
 python app.py --autodetect --importer folder --path /data/sounds --media-type sounds --settings settings.json
-python app.py --autodetect --importer http_archive --url https://example.com/data.zip --settings settings.json
+python app.py --autodetect --importer http_zip --url https://example.com/data.zip --settings settings.json
 python app.py --autodetect --importer rss_feed --url https://example.com/feed.xml --settings settings.json
 python app.py --autodetect --importer youtube_playlist --url https://youtube.com/playlist?list=... --settings settings.json
 ```
 
-Available importers: `folder`, `pickle`, `http_archive`, `rss_feed`, `youtube_playlist`. Each importer adds its own flags — run `python app.py --autodetect --importer <name> --help` to see them (e.g. `--max-episodes` for RSS, `--max-videos` for YouTube).
+Available importers: `folder`, `pickle`, `http_zip`, `rss_feed`, `youtube_playlist`. Each importer adds its own flags — run `python app.py --autodetect --importer <name> --help` to see them (e.g. `--max-episodes` for RSS, `--max-videos` for YouTube).
 
 **Exporting results** — by default results are printed to the console. Add `--exporter <name>` to send them elsewhere:
 
@@ -80,10 +80,23 @@ Predicted Good (5 items):
   1-77445-A-1.wav  (score: 0.6204, category: cat)
 ```
 
-## Development mode
+## Web server modes
 
-Run the server bound to `0.0.0.0` for access from other devices on the network:
+**Default (production) mode** — loads all embedding models eagerly at startup,
+then starts the server.  The app is fully ready when the startup message
+appears:
+
+```bash
+python app.py
+```
+
+**Development mode** (`--local`) — skips eager model loading; models load
+lazily the first time a dataset of that media type is opened.  Faster to
+start, but the first dataset load is slower:
 
 ```bash
 python app.py --local
 ```
+
+Both modes bind to `0.0.0.0:5000` (accessible from other devices on the
+network).

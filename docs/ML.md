@@ -94,4 +94,4 @@ To reconstruct a model from saved weights, use `build_model(input_dim)` followed
 - `vtsearch/models/progress.py` — Cached per-step training and stability analysis
 - `vtsearch/models/loader.py` — Model initialization and thread configuration
 - `vtsearch/eval/voting_iterations.py` — Voting simulation evaluation
-- `config.py` — `TRAIN_EPOCHS` and model IDs
+- `vtsearch/config.py` — `TRAIN_EPOCHS` and model IDs

@@ -1,6 +1,6 @@
 # VTSearch
 
-A media explorer web app. Browse collections of audio clips, images, or text paragraphs — listen/view them in the browser and vote items as "good" or "bad." Supports text-based semantic sorting (via LAION-CLAP, CLIP, or E5-large-v2 embeddings depending on media type) and learned sorting (via a small neural network trained on your votes). Several demo datasets can be loaded directly from the UI. Built with Flask (Python) and vanilla JavaScript.
+A media explorer web app. Browse collections of audio clips, images, text paragraphs, or videos — listen/view them in the browser and vote items as "good" or "bad." Supports text-based semantic sorting (via LAION-CLAP, CLIP, X-CLIP, or E5-base-v2 embeddings depending on media type) and learned sorting (via a small neural network trained on your votes). Several demo datasets can be loaded directly from the UI. Built with Flask (Python) and vanilla JavaScript.
 
 ## Setup
 
@@ -69,12 +69,13 @@ python -m pytest tests/ -v
 ├── vtsearch/                       # Main application package
 │   ├── config.py                   # Constants (SAMPLE_RATE, paths, model IDs)
 │   ├── clips.py                    # Test clip generation & embedding cache
-│   ├── cli.py                      # CLI utilities: autodetect, label import, processor import
+│   ├── cli.py                      # CLI utilities: autodetect workflow
 │   ├── settings.py                 # Persistent settings & favorite processors
 │   ├── routes/                     # Flask blueprints
 │   ├── models/                     # ML models (embeddings, training, progress)
 │   ├── media/                      # Media type plugins (audio, image, text, video)
 │   ├── datasets/                   # Dataset loading, downloading, importers
+│   ├── eval/                       # Evaluation framework (metrics, runner, visualisation)
 │   ├── exporters/                  # Results exporter plugins
 │   ├── labels/importers/           # Label importer plugins
 │   ├── processors/importers/       # Processor importer plugins
@@ -113,9 +114,11 @@ This runs text-sort and learned-sort evaluations across all demo datasets, print
 
 ## Extending with plugins
 
-VTSearch has a plugin architecture for media types, data importers, and results exporters. See [docs/EXTENDING.md](docs/EXTENDING.md) for full documentation, including:
+VTSearch has a plugin architecture for media types, data importers, results exporters, label importers, and processor importers. See [docs/EXTENDING.md](docs/EXTENDING.md) for full documentation, including:
 
 - **[Adding a Data Importer](docs/EXTENDING.md#adding-a-data-importer)** — Auto-discovered plugins that load datasets from new sources (S3, databases, APIs, etc.). Subclass `DatasetImporter`, expose an `IMPORTER` instance, and the system wires up API routes and UI forms automatically.
-- **[Adding a Results Exporter](docs/EXTENDING.md#adding-a-results-exporter)** — Export votes, labels, or detector weights in new formats by adding routes to the appropriate blueprint.
+- **[Adding a Results Exporter](docs/EXTENDING.md#adding-a-results-exporter)** — Auto-discovered plugins that export autodetect results to new destinations (files, webhooks, email, etc.). Subclass `LabelsetExporter` and expose an `EXPORTER` instance.
+- **[Adding a Label Importer](docs/EXTENDING.md#adding-a-label-importer)** — Auto-discovered plugins that import pre-existing labels from external sources (JSON, CSV, databases). Subclass `LabelImporter` and expose a `LABEL_IMPORTER` instance.
+- **[Adding a Processor Importer](docs/EXTENDING.md#adding-a-processor-importer)** — Auto-discovered plugins that import processors (detectors/extractors) from external sources. Subclass `ProcessorImporter` and expose a `PROCESSOR_IMPORTER` instance.
 - **[Adding a Media Type](docs/EXTENDING.md#adding-a-media-type)** — Support new content types (code, 3D models, etc.) by subclassing `MediaType` with embedding, serving, and clip-loading methods.
 - **[Dependency Management](docs/EXTENDING.md#dependency-management)** — How the layered requirements file structure works and where to add new dependencies.

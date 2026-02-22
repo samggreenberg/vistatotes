@@ -72,6 +72,15 @@ def update_settings():
     if "enrich_descriptions" in body:
         settings.set_enrich_descriptions(bool(body["enrich_descriptions"]))
 
+    if "calibration_fraction" in body:
+        try:
+            val = body["calibration_fraction"]
+            if not isinstance(val, (int, float)):
+                return jsonify({"error": "calibration_fraction must be a number"}), 400
+            settings.set_calibration_fraction(float(val))
+        except (TypeError, ValueError):
+            return jsonify({"error": "calibration_fraction must be a number"}), 400
+
     if "calibrate_count" in body:
         try:
             val = body["calibrate_count"]

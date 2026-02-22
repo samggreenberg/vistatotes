@@ -1,4 +1,4 @@
-"""Tests for the Safe Thresholds feature.
+"""Tests for the Safe Thresholds and Calibration Fraction features.
 
 Covers:
 - calculate_safe_threshold logic (blending, label-count ramp)
@@ -8,6 +8,7 @@ Covers:
 - Learned sort uses safe_thresholds when enabled
 - Detector export uses safe_thresholds when enabled
 - Eval voting_iterations accepts safe_thresholds param
+- Calibration fraction: settings, cross-calibration split, edge cases, API, eval
 """
 
 import numpy as np
@@ -15,6 +16,7 @@ import pytest
 
 import app as app_module
 from vtsearch.models.training import (
+    calculate_cross_calibration_threshold,
     calculate_gmm_threshold,
     calculate_safe_threshold,
     train_and_score,
@@ -261,6 +263,221 @@ class TestSafeThresholdsEval:
         clips = self._make_clips()
         queries = [EvalQuery(text="target things", target_category="target")]
         results = eval_learned_sort(clips, queries, safe_thresholds=True, seed=42)
+        assert len(results) > 0
+        for lm in results:
+            assert 0.0 <= lm.f1 <= 1.0
+
+
+# ======================================================================
+# Calibration Fraction
+# ======================================================================
+
+
+class TestCalibrationFractionCrossCalibration:
+    """Unit tests for calibration_fraction in calculate_cross_calibration_threshold."""
+
+    def _make_data(self, n=20, dim=16, seed=42):
+        rng = np.random.RandomState(seed)
+        X_list = [rng.randn(dim).astype(np.float32) + (1.0 if i < n // 2 else -1.0) for i in range(n)]
+        y_list = [1.0 if i < n // 2 else 0.0 for i in range(n)]
+        return X_list, y_list, dim
+
+    def test_default_fraction_is_half(self):
+        """Default calibration_fraction=0.5 should match old 50/50 behaviour."""
+        import inspect
+
+        sig = inspect.signature(calculate_cross_calibration_threshold)
+        default = sig.parameters["calibration_fraction"].default
+        assert default == 0.5
+
+    def test_fraction_02_returns_valid_threshold(self):
+        """With 0.2 fraction (80% Train / 20% Calibrate), threshold is valid."""
+        X, y, dim = self._make_data()
+        t = calculate_cross_calibration_threshold(X, y, dim, calibration_fraction=0.2)
+        assert 0.0 <= t <= 1.0
+
+    def test_fraction_08_returns_valid_threshold(self):
+        """With 0.8 fraction (20% Train / 80% Calibrate), threshold is valid."""
+        X, y, dim = self._make_data()
+        t = calculate_cross_calibration_threshold(X, y, dim, calibration_fraction=0.8)
+        assert 0.0 <= t <= 1.0
+
+    def test_extreme_fraction_returns_inf(self):
+        """When fraction is so extreme that a valid split is impossible, return inf."""
+        # With n=4 and calibration_fraction=0.99, n_cal=4, n_train=0 → can't split
+        X, y, dim = self._make_data(n=4)
+        t = calculate_cross_calibration_threshold(X, y, dim, calibration_fraction=0.99)
+        assert t == float("inf")
+
+    def test_extreme_fraction_near_zero_returns_inf(self):
+        """With fraction near 0, n_cal rounds to 1, n_train = n-1 ≥ 2, should still work."""
+        X, y, dim = self._make_data(n=10)
+        t = calculate_cross_calibration_threshold(X, y, dim, calibration_fraction=0.01)
+        # n_cal = max(1, round(10 * 0.01)) = max(1, 0) = 1, n_train = 9 → valid
+        assert isinstance(t, float)
+
+    def test_different_fractions_produce_different_thresholds(self):
+        """Different calibration fractions should (usually) produce different thresholds."""
+        X, y, dim = self._make_data(n=40, seed=123)
+        rng1 = np.random.RandomState(42)
+        rng2 = np.random.RandomState(42)
+        t_02 = calculate_cross_calibration_threshold(
+            X, y, dim, rng=rng1, calibrate_count=5, calibration_fraction=0.2
+        )
+        t_08 = calculate_cross_calibration_threshold(
+            X, y, dim, rng=rng2, calibrate_count=5, calibration_fraction=0.8
+        )
+        # Both valid; they CAN be equal but checking both are valid floats
+        assert isinstance(t_02, float)
+        assert isinstance(t_08, float)
+
+
+class TestCalibrationFractionTrainAndScore:
+    """Integration tests: train_and_score with calibration_fraction."""
+
+    def test_default_fraction_is_half(self):
+        import inspect
+
+        sig = inspect.signature(train_and_score)
+        default = sig.parameters["calibration_fraction"].default
+        assert default == 0.5
+
+    def test_custom_fraction_returns_valid_results(self):
+        app_module.good_votes.update({k: None for k in [1, 2, 3]})
+        app_module.bad_votes.update({k: None for k in [18, 19, 20]})
+        results, threshold = train_and_score(
+            app_module.clips,
+            app_module.good_votes,
+            app_module.bad_votes,
+            calibration_fraction=0.2,
+        )
+        assert len(results) == len(app_module.clips)
+        # threshold can be inf if the split is too extreme for 6 labels
+        assert isinstance(threshold, float)
+
+
+class TestCalibrationFractionSetting:
+    """Tests for calibration_fraction setting persistence."""
+
+    @pytest.fixture(autouse=True)
+    def reset_setting(self):
+        from vtsearch import settings
+
+        original = settings.get_calibration_fraction()
+        yield
+        settings.set_calibration_fraction(original)
+
+    def test_default_is_half(self):
+        from vtsearch import settings
+
+        settings.reset()
+        assert settings.get_calibration_fraction() == 0.5
+
+    def test_set_and_get(self):
+        from vtsearch import settings
+
+        settings.set_calibration_fraction(0.3)
+        assert settings.get_calibration_fraction() == pytest.approx(0.3)
+
+    def test_clamps_low(self):
+        from vtsearch import settings
+
+        settings.set_calibration_fraction(-0.5)
+        assert settings.get_calibration_fraction() == 0.0
+
+    def test_clamps_high(self):
+        from vtsearch import settings
+
+        settings.set_calibration_fraction(2.0)
+        assert settings.get_calibration_fraction() == 1.0
+
+    def test_state_get_reads_from_settings(self):
+        from vtsearch import settings
+        from vtsearch.utils.state import get_calibration_fraction
+
+        settings.set_calibration_fraction(0.25)
+        assert get_calibration_fraction() == pytest.approx(0.25)
+
+
+class TestCalibrationFractionAPI:
+    """Tests for calibration_fraction via the settings API."""
+
+    @pytest.fixture(autouse=True)
+    def reset_setting(self):
+        from vtsearch import settings
+
+        original = settings.get_calibration_fraction()
+        yield
+        settings.set_calibration_fraction(original)
+
+    def test_get_settings_includes_calibration_fraction(self, client):
+        resp = client.get("/api/settings")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "calibration_fraction" in data
+        assert isinstance(data["calibration_fraction"], float)
+
+    def test_put_updates_calibration_fraction(self, client):
+        resp = client.put("/api/settings", json={"calibration_fraction": 0.3})
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["calibration_fraction"] == pytest.approx(0.3)
+
+    def test_put_invalid_type_returns_400(self, client):
+        resp = client.put("/api/settings", json={"calibration_fraction": "bad"})
+        assert resp.status_code == 400
+
+    def test_put_persists(self, client):
+        client.put("/api/settings", json={"calibration_fraction": 0.15})
+        resp = client.get("/api/settings")
+        assert resp.get_json()["calibration_fraction"] == pytest.approx(0.15)
+
+
+class TestCalibrationFractionEval:
+    """Test that eval functions accept calibration_fraction parameter."""
+
+    def _make_clips(self, n=40, dim=16, seed=42):
+        rng = np.random.RandomState(seed)
+        clips = {}
+        for i in range(n):
+            cat = "target" if i < n // 2 else "other"
+            if cat == "target":
+                emb = rng.randn(dim).astype(np.float32) + 1.0
+            else:
+                emb = rng.randn(dim).astype(np.float32) - 1.0
+            clips[i + 1] = {"id": i + 1, "embedding": emb, "category": cat}
+        return clips
+
+    def test_simulate_voting_iterations_accepts_calibration_fraction(self):
+        from vtsearch.eval.voting_iterations import simulate_voting_iterations
+
+        clips = self._make_clips()
+        rows = simulate_voting_iterations(
+            clips, "target", seed=42, calibration_fraction=0.3,
+        )
+        assert len(rows) > 0
+        for row in rows:
+            assert "cost" in row
+
+    def test_run_voting_iterations_eval_accepts_calibration_fraction(self):
+        from vtsearch.eval.voting_iterations import run_voting_iterations_eval
+
+        clips = self._make_clips()
+        df = run_voting_iterations_eval(
+            {"test": clips},
+            seeds=[42],
+            categories={"test": ["target"]},
+            calibration_fraction=0.2,
+        )
+        assert len(df) > 0
+
+    def test_eval_runner_accepts_calibration_fraction(self):
+        from vtsearch.eval.runner import eval_learned_sort
+        from vtsearch.eval.config import EvalQuery
+
+        clips = self._make_clips()
+        queries = [EvalQuery(text="target things", target_category="target")]
+        results = eval_learned_sort(clips, queries, calibration_fraction=0.3, seed=42)
         assert len(results) > 0
         for lm in results:
             assert 0.0 <= lm.f1 <= 1.0

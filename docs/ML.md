@@ -39,10 +39,12 @@ Training uses inverse-frequency weighting to balance classes, with an additional
 
 A decision threshold separating "good" from "bad" predictions is computed via **cross-calibration**:
 
-1. Split labeled data into two halves (D1, D2).
-2. Train model M1 on D1, find optimal threshold t1 by evaluating M1 on D2.
-3. Train model M2 on D2, find optimal threshold t2 by evaluating M2 on D1.
-4. Return `(t1 + t2) / 2`.
+1. Split labeled data into Train (1 − `calibration_fraction`) and Calibrate (`calibration_fraction`).
+2. Train a model on Train, find the optimal threshold by evaluating on Calibrate.
+3. Repeat for `calibrate_count` independent random splits.
+4. Return the mean of all thresholds.
+
+The **Calibration Fraction** setting (0–1, default 0.5) controls how much data is reserved for threshold calibration vs. model training in each split. For example, a value of 0.2 means 80% Train / 20% Calibrate. If the fraction is so extreme that a valid Train/Calibrate split cannot be formed (fewer than 2 training examples or fewer than 1 calibration example), the system returns a maximum threshold so that nothing is predicted as Good.
 
 The optimal threshold at each split minimizes a weighted combination of false-positive rate and false-negative rate, governed by the same `inclusion_value`.
 

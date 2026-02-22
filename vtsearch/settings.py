@@ -42,6 +42,7 @@ _DEFAULTS: dict[str, Any] = {
     "enrich_descriptions": False,
     "safe_thresholds": False,
     "calibrate_count": 2,
+    "calibration_fraction": 0.5,
     "favorite_processors": [],
 }
 
@@ -147,6 +148,18 @@ def set_calibrate_count(value: int) -> None:
     """Set and persist the calibrate_count (clamped to 1–100)."""
     s = _ensure_loaded()
     s["calibrate_count"] = int(max(1, min(100, int(value))))
+    _save(s)
+
+
+def get_calibration_fraction() -> float:
+    """Return the calibration fraction (0.0–1.0) for Train/Calibrate splits."""
+    return float(_ensure_loaded().get("calibration_fraction", _DEFAULTS["calibration_fraction"]))
+
+
+def set_calibration_fraction(value: float) -> None:
+    """Set and persist the calibration_fraction (clamped to 0.0–1.0)."""
+    s = _ensure_loaded()
+    s["calibration_fraction"] = max(0.0, min(1.0, float(value)))
     _save(s)
 
 

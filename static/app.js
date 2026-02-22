@@ -14,6 +14,7 @@
   let audioVolume = 1.0; // Persisted volume across clip loads
   let volumeSaveTimer = null;
   let progressTimer = null;
+  let progressEtaState = null; // { startTime, lastCurrent, lastTime } for ETA calculation
   let learnedSortController = null; // AbortController for in-flight background training
   let learnedSortDebounce = null;   // Debounce timer for background training
   const clipList = document.getElementById("clip-list");
@@ -32,6 +33,7 @@
   const sortProgressLabel = document.getElementById("sort-progress-label");
   const sortProgressFill = document.querySelector(".sort-progress-fill");
   let sortProgressTimer = null;
+  let sortEtaState = null;
 
   // --- Theme helper: read CSS custom property values for canvas drawing ---
   function themeColor(varName) {
@@ -127,6 +129,7 @@
     sortProgressFill.style.width = "";
     sortProgressFill.classList.remove("determinate");
     sortProgress.classList.add("active");
+    sortEtaState = null;
   }
 
   function showSortProgressWithPolling(label) {
@@ -137,6 +140,7 @@
   function hideSortProgress() {
     stopSortProgressPolling();
     sortProgress.classList.remove("active");
+    sortEtaState = null;
   }
 
   async function pollSortProgress() {
@@ -148,6 +152,20 @@
         const pct = Math.round((progress.current / progress.total) * 100);
         sortProgressFill.classList.add("determinate");
         sortProgressFill.style.width = `${pct}%`;
+
+        // Calculate ETA for sort operations with many items
+        const now = Date.now();
+        if (!sortEtaState || sortEtaState.total !== progress.total) {
+          sortEtaState = { startTime: now, startCurrent: progress.current, total: progress.total };
+        }
+        const elapsed = (now - sortEtaState.startTime) / 1000;
+        const done = progress.current - sortEtaState.startCurrent;
+        if (done > 0 && elapsed > 1 && progress.current < progress.total && progress.total >= 20) {
+          const rate = done / elapsed;
+          const remaining = (progress.total - progress.current) / rate;
+          sortProgressLabel.textContent = `${pct}% — ${formatETA(remaining)}`;
+          return;
+        }
       }
       if (progress.message) {
         sortProgressLabel.textContent = progress.message;
@@ -168,6 +186,21 @@
       sortProgressTimer = null;
     }
   }
+
+  // ---- ETA formatting helper ----
+  function formatETA(secondsRemaining) {
+    if (secondsRemaining < 5) return "Less than 5 seconds remaining";
+    if (secondsRemaining < 30) return "Less than 30 seconds remaining";
+    if (secondsRemaining < 60) return "Less than a minute remaining";
+    if (secondsRemaining < 90) return "About a minute remaining";
+    if (secondsRemaining < 300) return `About ${Math.round(secondsRemaining / 60)} minutes remaining`;
+    if (secondsRemaining < 3600) return `About ${Math.round(secondsRemaining / 60)} minutes remaining`;
+    const hours = Math.floor(secondsRemaining / 3600);
+    const mins = Math.round((secondsRemaining % 3600) / 60);
+    if (hours === 1) return mins > 0 ? `About 1 hour ${mins} minutes remaining` : "About 1 hour remaining";
+    return `About ${hours} hours remaining`;
+  }
+
   const stripeOverview = document.getElementById("stripe-overview");
   const stripeContainer = document.getElementById("stripe-container");
   const inclusionSlider = document.getElementById("inclusion-slider");
@@ -181,6 +214,7 @@
   const progressFill = document.getElementById("progress-fill");
   const progressText = document.getElementById("progress-text");
   const progressMessage = document.getElementById("progress-message");
+  const progressEta = document.getElementById("progress-eta");
   const demoDatasetsDiv = document.getElementById("demo-datasets");
   const extendedImporterForm = document.getElementById("extended-importer-form");
   const backButton = document.getElementById("back-button");
@@ -296,6 +330,8 @@
     progressText.textContent = "";
     progressMessage.textContent = "Loading...";
     progressMessage.style.color = "var(--text-secondary)";
+    progressEta.textContent = "";
+    progressEtaState = null;
   }
 
   async function pollProgress() {
@@ -342,10 +378,26 @@
       progressFill.classList.remove("indeterminate");
       progressFill.style.width = `${percentage}%`;
       progressText.textContent = `${percentage}%`;
+
+      // Calculate ETA
+      const now = Date.now();
+      if (!progressEtaState || progressEtaState.total !== progress.total) {
+        progressEtaState = { startTime: now, startCurrent: progress.current, total: progress.total };
+      }
+      const elapsed = (now - progressEtaState.startTime) / 1000;
+      const done = progress.current - progressEtaState.startCurrent;
+      if (done > 0 && elapsed > 1 && progress.current < progress.total) {
+        const rate = done / elapsed;
+        const remaining = (progress.total - progress.current) / rate;
+        progressEta.textContent = formatETA(remaining);
+      } else if (progress.current >= progress.total) {
+        progressEta.textContent = "";
+      }
     } else {
       // Indeterminate state - no total known yet
       progressFill.classList.add("indeterminate");
       progressText.textContent = "";
+      progressEta.textContent = "";
     }
     progressMessage.textContent = progress.message || "Loading...";
     progressMessage.style.color = "var(--text-secondary)";
@@ -363,6 +415,8 @@
       progressTimer = null;
     }
     progressFill.classList.remove("indeterminate");
+    progressEta.textContent = "";
+    progressEtaState = null;
   }
 
   // Load from file

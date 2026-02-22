@@ -93,6 +93,17 @@ class DemoDataset:
     ``DATA_DIR / "ESC-50-master" / "audio"``).  Leave ``None`` for datasets
     whose ``.pkl`` is entirely self-contained (images, text)."""
 
+    slice_start: int = 0
+    """Per-category start index for element slicing (inclusive).
+
+    When multiple datasets share the same categories, this allows them to
+    use disjoint subsets of elements within each category."""
+
+    slice_end: Optional[int] = None
+    """Per-category end index for element slicing (exclusive).
+
+    ``None`` means take all remaining elements after ``slice_start``."""
+
 
 class MediaType(ABC):
     """Abstract base class that every media type must implement.

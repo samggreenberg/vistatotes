@@ -5,8 +5,10 @@ These tests verify:
 - Folder importer metadata (icon, description, field ordering)
 - _extract_archive helper (zip and tar)
 - DatasetImporter base class icon field and content_vectors attribute
+- DatasetImporter base class content_md5s attribute
 - Folder importer is not in _BUILTIN_IMPORTER_NAMES
 - load_dataset_from_folder content_vectors support
+- load_dataset_from_folder content_md5s support
 """
 
 from __future__ import annotations
@@ -103,6 +105,72 @@ class TestImporterBaseContentVectors:
         imp.run({}, {})
         assert "test.wav" in imp.content_vectors
         assert list(imp.content_vectors["test.wav"]) == [1.0, 2.0, 3.0]
+
+
+class TestImporterBaseContentMD5s:
+    def test_base_class_instance_has_content_md5s(self):
+        from vtsearch.datasets.importers.base import DatasetImporter
+
+        class MinimalImporter(DatasetImporter):
+            name = "minimal"
+            display_name = "Minimal"
+            description = "Minimal importer."
+            fields = []
+
+            def run(self, field_values, clips):
+                pass
+
+        imp = MinimalImporter()
+        assert hasattr(imp, "content_md5s")
+        assert imp.content_md5s == {}
+
+    def test_content_md5s_defaults_to_empty_dict(self):
+        from vtsearch.datasets.importers.base import DatasetImporter
+
+        class Imp(DatasetImporter):
+            name = "t"
+            display_name = "T"
+            description = "T"
+            fields = []
+
+            def run(self, field_values, clips):
+                pass
+
+        assert Imp().content_md5s == {}
+
+    def test_content_md5s_are_independent_across_instances(self):
+        from vtsearch.datasets.importers.base import DatasetImporter
+
+        class Imp(DatasetImporter):
+            name = "t"
+            display_name = "T"
+            description = "T"
+            fields = []
+
+            def run(self, field_values, clips):
+                pass
+
+        a = Imp()
+        b = Imp()
+        a.content_md5s["file.wav"] = "abc123"
+        assert b.content_md5s == {}
+
+    def test_subclass_can_populate_content_md5s_during_run(self):
+        from vtsearch.datasets.importers.base import DatasetImporter
+
+        class MD5Importer(DatasetImporter):
+            name = "md5"
+            display_name = "MD5"
+            description = "Provides MD5s."
+            fields = []
+
+            def run(self, field_values, clips):
+                self.content_md5s["test.wav"] = "d41d8cd98f00b204e9800998ecf8427e"
+
+        imp = MD5Importer()
+        imp.run({}, {})
+        assert "test.wav" in imp.content_md5s
+        assert imp.content_md5s["test.wav"] == "d41d8cd98f00b204e9800998ecf8427e"
 
 
 class TestImporterBaseIcon:
@@ -393,9 +461,14 @@ class TestLoadDatasetContentVectors:
         mt = self._make_fake_media_type(embed_return=np.zeros(3))
 
         clips: dict = {}
-        def _noop(*a): None
+
+        def _noop(*a):
+            None
+
         with mock.patch("vtsearch.media.get_by_folder_name", return_value=mt):
-            load_dataset_from_folder(tmp_path, "sounds", clips, content_vectors={"a.wav": pre_vector}, on_progress=_noop)
+            load_dataset_from_folder(
+                tmp_path, "sounds", clips, content_vectors={"a.wav": pre_vector}, on_progress=_noop
+            )
 
         assert len(clips) == 1
         np.testing.assert_array_equal(clips[1]["embedding"], pre_vector)
@@ -416,7 +489,10 @@ class TestLoadDatasetContentVectors:
         mt = self._make_fake_media_type(embed_return=model_vector)
 
         clips: dict = {}
-        def _noop(*a): None
+
+        def _noop(*a):
+            None
+
         with mock.patch("vtsearch.media.get_by_folder_name", return_value=mt):
             load_dataset_from_folder(tmp_path, "sounds", clips, content_vectors={}, on_progress=_noop)
 
@@ -442,9 +518,14 @@ class TestLoadDatasetContentVectors:
         mt = self._make_fake_media_type(embed_return=model_vector)
 
         clips: dict = {}
-        def _noop(*a): None
+
+        def _noop(*a):
+            None
+
         with mock.patch("vtsearch.media.get_by_folder_name", return_value=mt):
-            load_dataset_from_folder(tmp_path, "sounds", clips, content_vectors={"a.wav": pre_vector}, on_progress=_noop)
+            load_dataset_from_folder(
+                tmp_path, "sounds", clips, content_vectors={"a.wav": pre_vector}, on_progress=_noop
+            )
 
         assert len(clips) == 2
         # One clip should have the pre-computed vector, the other the model vector
@@ -467,7 +548,10 @@ class TestLoadDatasetContentVectors:
         mt = self._make_fake_media_type(embed_return=model_vector)
 
         clips: dict = {}
-        def _noop(*a): None
+
+        def _noop(*a):
+            None
+
         with mock.patch("vtsearch.media.get_by_folder_name", return_value=mt):
             load_dataset_from_folder(tmp_path, "sounds", clips, on_progress=_noop)
 
@@ -491,9 +575,172 @@ class TestLoadDatasetContentVectors:
         mt = self._make_fake_media_type(embed_return=None)
 
         clips: dict = {}
-        def _noop(*a): None
+
+        def _noop(*a):
+            None
+
         with mock.patch("vtsearch.media.get_by_folder_name", return_value=mt):
-            load_dataset_from_folder(tmp_path, "sounds", clips, content_vectors={"d.wav": pre_vector}, on_progress=_noop)
+            load_dataset_from_folder(
+                tmp_path, "sounds", clips, content_vectors={"d.wav": pre_vector}, on_progress=_noop
+            )
 
         assert len(clips) == 1
         np.testing.assert_array_equal(clips[1]["embedding"], pre_vector)
+
+
+# ---------------------------------------------------------------------------
+# load_dataset_from_folder – content_md5s support
+# ---------------------------------------------------------------------------
+
+
+class TestLoadDatasetContentMD5s:
+    """Verify that load_dataset_from_folder uses pre-computed MD5 hashes."""
+
+    def _write_wav(self, path):
+        """Write a minimal WAV file to *path*."""
+        path.write_bytes(_make_wav_bytes())
+
+    def _make_fake_media_type(self, embed_return):
+        import unittest.mock as mock
+
+        mt = mock.MagicMock()
+        mt.type_id = "audio"
+        mt.file_extensions = ["*.wav"]
+        mt.embed_media.return_value = embed_return
+        mt.load_clip_data.return_value = {"duration": 1.0}
+        return mt
+
+    def test_uses_content_md5_when_provided(self, tmp_path):
+        """A file whose name is in content_md5s should use that hash."""
+        import unittest.mock as mock
+
+        import numpy as np
+
+        from vtsearch.datasets.loader import load_dataset_from_folder
+
+        wav = tmp_path / "a.wav"
+        self._write_wav(wav)
+
+        pre_md5 = "0" * 32
+        mt = self._make_fake_media_type(embed_return=np.zeros(3))
+
+        clips: dict = {}
+
+        def _noop(*a):
+            None
+
+        with mock.patch("vtsearch.media.get_by_folder_name", return_value=mt):
+            load_dataset_from_folder(tmp_path, "sounds", clips, content_md5s={"a.wav": pre_md5}, on_progress=_noop)
+
+        assert len(clips) == 1
+        assert clips[1]["md5"] == pre_md5
+
+    def test_computes_md5_when_not_in_content_md5s(self, tmp_path):
+        """A file NOT in content_md5s falls back to computing the hash."""
+        import hashlib
+        import unittest.mock as mock
+
+        import numpy as np
+
+        from vtsearch.datasets.loader import load_dataset_from_folder
+
+        wav = tmp_path / "b.wav"
+        self._write_wav(wav)
+        expected_md5 = hashlib.md5(wav.read_bytes()).hexdigest()
+
+        mt = self._make_fake_media_type(embed_return=np.zeros(3))
+
+        clips: dict = {}
+
+        def _noop(*a):
+            None
+
+        with mock.patch("vtsearch.media.get_by_folder_name", return_value=mt):
+            load_dataset_from_folder(tmp_path, "sounds", clips, content_md5s={}, on_progress=_noop)
+
+        assert len(clips) == 1
+        assert clips[1]["md5"] == expected_md5
+
+    def test_mixed_content_md5s_and_computed(self, tmp_path):
+        """Only files in content_md5s skip MD5 computation; others are hashed."""
+        import hashlib
+        import unittest.mock as mock
+
+        import numpy as np
+
+        from vtsearch.datasets.loader import load_dataset_from_folder
+
+        wav_a = tmp_path / "a.wav"
+        wav_b = tmp_path / "b.wav"
+        self._write_wav(wav_a)
+        self._write_wav(wav_b)
+
+        pre_md5 = "f" * 32
+        computed_md5 = hashlib.md5(wav_b.read_bytes()).hexdigest()
+        mt = self._make_fake_media_type(embed_return=np.zeros(3))
+
+        clips: dict = {}
+
+        def _noop(*a):
+            None
+
+        with mock.patch("vtsearch.media.get_by_folder_name", return_value=mt):
+            load_dataset_from_folder(tmp_path, "sounds", clips, content_md5s={"a.wav": pre_md5}, on_progress=_noop)
+
+        assert len(clips) == 2
+        md5s = {c["filename"]: c["md5"] for c in clips.values()}
+        assert md5s["a.wav"] == pre_md5
+        assert md5s["b.wav"] == computed_md5
+
+    def test_no_content_md5s_param_computes_all(self, tmp_path):
+        """When content_md5s is None (default), all files are hashed."""
+        import hashlib
+        import unittest.mock as mock
+
+        import numpy as np
+
+        from vtsearch.datasets.loader import load_dataset_from_folder
+
+        wav = tmp_path / "c.wav"
+        self._write_wav(wav)
+        expected_md5 = hashlib.md5(wav.read_bytes()).hexdigest()
+
+        mt = self._make_fake_media_type(embed_return=np.zeros(3))
+
+        clips: dict = {}
+
+        def _noop(*a):
+            None
+
+        with mock.patch("vtsearch.media.get_by_folder_name", return_value=mt):
+            load_dataset_from_folder(tmp_path, "sounds", clips, on_progress=_noop)
+
+        assert len(clips) == 1
+        assert clips[1]["md5"] == expected_md5
+
+    def test_content_md5s_in_thin_mode(self, tmp_path):
+        """content_md5s should work in thin mode too."""
+        import unittest.mock as mock
+
+        import numpy as np
+
+        from vtsearch.datasets.loader import load_dataset_from_folder
+
+        wav = tmp_path / "a.wav"
+        self._write_wav(wav)
+
+        pre_md5 = "1" * 32
+        mt = self._make_fake_media_type(embed_return=np.zeros(3))
+
+        clips: dict = {}
+
+        def _noop(*a):
+            None
+
+        with mock.patch("vtsearch.media.get_by_folder_name", return_value=mt):
+            load_dataset_from_folder(
+                tmp_path, "sounds", clips, content_md5s={"a.wav": pre_md5}, on_progress=_noop, thin=True
+            )
+
+        assert len(clips) == 1
+        assert clips[1]["md5"] == pre_md5

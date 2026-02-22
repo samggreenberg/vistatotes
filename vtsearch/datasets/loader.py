@@ -251,6 +251,7 @@ def load_dataset_from_folder(
     media_type: str,
     clips: dict[int, dict[str, Any]],
     content_vectors: dict[str, Any] | None = None,
+    content_md5s: dict[str, str] | None = None,
     on_progress: Optional[ProgressCallback] = None,
     origin: dict[str, Any] | None = None,
     thin: bool = False,
@@ -264,6 +265,9 @@ def load_dataset_from_folder(
     Files whose basename appears in ``content_vectors`` will use the supplied
     embedding instead of running the embedding model.  This allows importers
     that already provide content vectors to avoid redundant computation.
+
+    Similarly, files whose basename appears in ``content_md5s`` will use the
+    supplied hash instead of computing it from the file contents.
 
     The ``clips`` dict is cleared before loading begins.
 
@@ -282,6 +286,10 @@ def load_dataset_from_folder(
             pre-computed embedding ``numpy.ndarray``.  When a file's name is
             found in this dict the supplied vector is used directly and the
             embedding model is not invoked for that file.
+        content_md5s: Optional mapping of filename (basename) to a
+            pre-computed MD5 hex digest string.  When a file's name is found
+            in this dict the supplied hash is used directly and no MD5
+            calculation is performed for that file.
         origin: Optional serialised
             :class:`~vtsearch.datasets.origin.Origin` dict to attach to each
             clip (as ``clip["origin"]``).  When ``None`` no origin is set
@@ -337,11 +345,15 @@ def load_dataset_from_folder(
         if thin:
             # Thin mode: store file path reference, skip loading bytes.
             # Use stat for file_size and streaming hash for MD5.
+            if content_md5s and file_path.name in content_md5s:
+                md5 = content_md5s[file_path.name]
+            else:
+                md5 = _streaming_md5(file_path)
             clip_data: dict[str, Any] = {
                 "id": clip_id,
                 "type": mt.type_id,
                 "file_size": file_path.stat().st_size,
-                "md5": _streaming_md5(file_path),
+                "md5": md5,
                 "embedding": embedding,
                 "filename": file_path.name,
                 "category": "custom",
@@ -356,12 +368,17 @@ def load_dataset_from_folder(
             with open(file_path, "rb") as f:
                 file_bytes = f.read()
 
+            if content_md5s and file_path.name in content_md5s:
+                md5 = content_md5s[file_path.name]
+            else:
+                md5 = hashlib.md5(file_bytes).hexdigest()
+
             # Build the base clip dict
             clip_data = {
                 "id": clip_id,
                 "type": mt.type_id,
                 "file_size": len(file_bytes),
-                "md5": hashlib.md5(file_bytes).hexdigest(),
+                "md5": md5,
                 "embedding": embedding,
                 "filename": file_path.name,
                 "category": "custom",
@@ -573,7 +590,7 @@ def load_dataset_from_pickle(
                 "type": media_type,
                 "duration": clip_info.get("duration", 0),
                 "file_size": clip_info.get("file_size", len(media_bytes)),
-                "md5": hashlib.md5(media_bytes).hexdigest(),
+                "md5": clip_info.get("md5") or hashlib.md5(media_bytes).hexdigest(),
                 "embedding": np.array(clip_info["embedding"]),
                 "clip_bytes": clip_bytes,
                 "clip_string": clip_string,

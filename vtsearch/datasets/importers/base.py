@@ -111,6 +111,14 @@ class DatasetImporter:
     files whose names appear in this mapping will reuse the supplied vector
     instead of running the embedding model.
 
+    Content MD5s
+    ------------
+    Similarly, importers that already know the MD5 hash of each file can
+    populate :attr:`content_md5s` with a mapping of ``filename`` to hex
+    digest string.  :func:`~vtsearch.datasets.loader.load_dataset_from_folder`
+    will skip its own MD5 calculation for any file whose name appears in
+    this mapping.
+
     CLI support
     -----------
     Every importer is automatically usable from the command line via
@@ -140,6 +148,13 @@ class DatasetImporter:
         #: :func:`~vtsearch.datasets.loader.load_dataset_from_folder` will
         #: skip the embedding model for any file whose name appears here.
         self.content_vectors: dict[str, Any] = {}
+
+        #: Mapping of filename to pre-computed MD5 hex digest string.
+        #: Importers that already know the hash of each file should populate
+        #: this dict during :meth:`run`.
+        #: :func:`~vtsearch.datasets.loader.load_dataset_from_folder` will
+        #: skip its own MD5 calculation for any file whose name appears here.
+        self.content_md5s: dict[str, str] = {}
 
     def run(self, field_values: dict[str, Any], clips: dict, thin: bool = False) -> None:
         """Perform the import, populating *clips* in-place.

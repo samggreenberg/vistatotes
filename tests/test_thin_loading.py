@@ -188,6 +188,90 @@ class TestThinLoadFromPickle:
         assert clips[1]["clip_bytes"] is not None
 
 
+class TestPickleMD5Preservation:
+    """Test that load_dataset_from_pickle uses pre-existing MD5 from pickle data."""
+
+    def test_full_mode_uses_md5_from_pickle_when_present(self, tmp_path):
+        """Full mode should use the MD5 stored in the pickle instead of recalculating."""
+        wav_bytes = _make_wav_bytes()
+        pre_md5 = "a" * 32  # A fake MD5 that differs from the real hash
+        pkl_data = {
+            "clips": {
+                1: {
+                    "id": 1,
+                    "type": "audio",
+                    "duration": 0.1,
+                    "file_size": len(wav_bytes),
+                    "md5": pre_md5,
+                    "embedding": np.zeros(512).tolist(),
+                    "filename": "test.wav",
+                    "category": "test",
+                    "clip_bytes": wav_bytes,
+                }
+            }
+        }
+        pkl_path = tmp_path / "test.pkl"
+        with open(pkl_path, "wb") as f:
+            pickle.dump(pkl_data, f)
+
+        clips: dict[int, dict[str, Any]] = {}
+        load_dataset_from_pickle(pkl_path, clips, thin=False)
+        assert clips[1]["md5"] == pre_md5
+
+    def test_full_mode_computes_md5_when_missing_from_pickle(self, tmp_path):
+        """Full mode should compute the MD5 if the pickle doesn't have one."""
+        wav_bytes = _make_wav_bytes()
+        pkl_data = {
+            "clips": {
+                1: {
+                    "id": 1,
+                    "type": "audio",
+                    "duration": 0.1,
+                    "file_size": len(wav_bytes),
+                    # no "md5" key
+                    "embedding": np.zeros(512).tolist(),
+                    "filename": "test.wav",
+                    "category": "test",
+                    "clip_bytes": wav_bytes,
+                }
+            }
+        }
+        pkl_path = tmp_path / "test.pkl"
+        with open(pkl_path, "wb") as f:
+            pickle.dump(pkl_data, f)
+
+        clips: dict[int, dict[str, Any]] = {}
+        load_dataset_from_pickle(pkl_path, clips, thin=False)
+        assert clips[1]["md5"] == hashlib.md5(wav_bytes).hexdigest()
+
+    def test_thin_mode_uses_md5_from_pickle(self, tmp_path):
+        """Thin mode should also preserve the MD5 from the pickle."""
+        wav_bytes = _make_wav_bytes()
+        pre_md5 = "b" * 32
+        pkl_data = {
+            "clips": {
+                1: {
+                    "id": 1,
+                    "type": "audio",
+                    "duration": 0.1,
+                    "file_size": len(wav_bytes),
+                    "md5": pre_md5,
+                    "embedding": np.zeros(512).tolist(),
+                    "filename": "test.wav",
+                    "category": "test",
+                    "clip_bytes": wav_bytes,
+                }
+            }
+        }
+        pkl_path = tmp_path / "test.pkl"
+        with open(pkl_path, "wb") as f:
+            pickle.dump(pkl_data, f)
+
+        clips: dict[int, dict[str, Any]] = {}
+        load_dataset_from_pickle(pkl_path, clips, thin=True)
+        assert clips[1]["md5"] == pre_md5
+
+
 class TestThinImporters:
     """Test that importers pass thin parameter through correctly."""
 

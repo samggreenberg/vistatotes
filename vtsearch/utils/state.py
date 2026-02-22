@@ -106,6 +106,30 @@ def set_inclusion(value: int) -> None:
     settings.set_inclusion(value)
 
 
+def get_safe_thresholds() -> bool:
+    """Return whether safe thresholds blending is enabled.
+
+    Reads the value from the persisted settings file.
+
+    Returns:
+        ``True`` if safe thresholds is enabled, ``False`` otherwise.
+    """
+    from vtsearch import settings
+
+    return settings.get_safe_thresholds()
+
+
+def set_safe_thresholds(value: bool) -> None:
+    """Set the safe thresholds flag and persist it to the settings file.
+
+    Args:
+        value: Whether to enable safe threshold blending.
+    """
+    from vtsearch import settings
+
+    settings.set_safe_thresholds(value)
+
+
 def add_label_to_history(clip_id: int, label: str) -> None:
     """Append a labelling event to the global label history with a timestamp.
 

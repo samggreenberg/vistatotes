@@ -13,6 +13,7 @@ from vtsearch.models.training import (
     build_model,
     calculate_cross_calibration_threshold,
     calculate_gmm_threshold,
+    calculate_safe_threshold,
     find_optimal_threshold,
     train_and_score,
     train_model,
@@ -36,6 +37,7 @@ __all__ = [
     "train_model",
     "train_and_score",
     "calculate_gmm_threshold",
+    "calculate_safe_threshold",
     "find_optimal_threshold",
     "calculate_cross_calibration_threshold",
     # Progress

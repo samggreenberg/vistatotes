@@ -19,6 +19,7 @@ from vtsearch.utils.state import (
     get_favorite_extractors,
     get_favorite_extractors_by_media,
     get_inclusion,
+    get_safe_thresholds,
     good_votes,
     inclusion,
     label_history,
@@ -29,6 +30,7 @@ from vtsearch.utils.state import (
     rename_favorite_extractor,
     resolve_clip_ids,
     set_inclusion,
+    set_safe_thresholds,
 )
 
 __all__ = [
@@ -50,6 +52,8 @@ __all__ = [
     "clear_all",
     "get_inclusion",
     "set_inclusion",
+    "get_safe_thresholds",
+    "set_safe_thresholds",
     "add_label_to_history",
     "add_favorite_detector",
     "remove_favorite_detector",

@@ -181,9 +181,11 @@ class TestTrainModelConfig:
 
             model = train_model(X, y, 16)
 
-            # Train without weight decay for comparison
-            torch.manual_seed(42)
-            model_no_wd = build_model(16)
+            # Train without weight decay for comparison (use same local
+            # generator approach as train_model for identical init weights)
+            g = torch.Generator()
+            g.manual_seed(42)
+            model_no_wd = build_model(16, generator=g)
             optimizer = torch.optim.Adam(model_no_wd.parameters(), lr=0.001, weight_decay=0.0)
             loss_fn = torch.nn.BCEWithLogitsLoss()
             model_no_wd.train()

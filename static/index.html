@@ -9,36 +9,36 @@
 </head>
 <body>
 <header>
-  <div class="burger-menu">
-    <button class="burger-btn" id="burger-btn">
-      <span></span>
-      <span></span>
-      <span></span>
+  <nav class="burger-menu" aria-label="Main menu">
+    <button class="burger-btn" id="burger-btn" aria-label="Menu" aria-expanded="false" aria-haspopup="true">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
     </button>
-    <div class="burger-dropdown" id="burger-dropdown">
-      <div class="burger-section">
-        <div class="burger-section-title">Dataset</div>
-        <div class="burger-item" id="menu-dataset-change">Change Dataset</div>
-        <div class="burger-item" id="menu-dataset-export">Export Dataset</div>
+    <div class="burger-dropdown" id="burger-dropdown" role="menu" aria-label="Main menu">
+      <div class="burger-section" role="group" aria-label="Dataset">
+        <div class="burger-section-title" id="menu-section-dataset">Dataset</div>
+        <div class="burger-item" id="menu-dataset-change" role="menuitem" tabindex="-1">Change Dataset</div>
+        <div class="burger-item" id="menu-dataset-export" role="menuitem" tabindex="-1">Export Dataset</div>
       </div>
-      <div class="burger-section">
-        <div class="burger-section-title">Labels</div>
-        <div class="burger-item" id="menu-labels-import">Import Labels</div>
-        <div class="burger-item" id="menu-labels-export">Export Labels</div>
-        <div class="burger-status" id="menu-labels-status"></div>
+      <div class="burger-section" role="group" aria-label="Labels">
+        <div class="burger-section-title" id="menu-section-labels">Labels</div>
+        <div class="burger-item" id="menu-labels-import" role="menuitem" tabindex="-1">Import Labels</div>
+        <div class="burger-item" id="menu-labels-export" role="menuitem" tabindex="-1">Export Labels</div>
+        <div class="burger-status" id="menu-labels-status" aria-live="polite"></div>
       </div>
-      <div class="burger-section">
-        <div class="burger-section-title">Detector</div>
-        <div class="burger-item" id="menu-detector-import">Load Sort</div>
-        <div class="burger-item" id="menu-detector-export">Export Detector</div>
-        <div class="burger-status" id="menu-detector-status"></div>
+      <div class="burger-section" role="group" aria-label="Detector">
+        <div class="burger-section-title" id="menu-section-detector">Detector</div>
+        <div class="burger-item" id="menu-detector-import" role="menuitem" tabindex="-1">Load Sort</div>
+        <div class="burger-item" id="menu-detector-export" role="menuitem" tabindex="-1">Export Detector</div>
+        <div class="burger-status" id="menu-detector-status" aria-live="polite"></div>
       </div>
-      <div class="burger-section">
-        <div class="burger-section-title">Favorite Detectors</div>
-        <div class="burger-item" id="menu-favorites-manage">Manage Favorites</div>
-        <div class="burger-item" id="menu-favorites-import">Import Detector</div>
-        <div class="burger-item" id="menu-favorites-autodetect">Run Auto-Detect</div>
-        <div class="burger-status" id="menu-favorites-status"></div>
+      <div class="burger-section" role="group" aria-label="Favorite Detectors">
+        <div class="burger-section-title" id="menu-section-favorites">Favorite Detectors</div>
+        <div class="burger-item" id="menu-favorites-manage" role="menuitem" tabindex="-1">Manage Favorites</div>
+        <div class="burger-item" id="menu-favorites-import" role="menuitem" tabindex="-1">Import Detector</div>
+        <div class="burger-item" id="menu-favorites-autodetect" role="menuitem" tabindex="-1">Run Auto-Detect</div>
+        <div class="burger-status" id="menu-favorites-status" aria-live="polite"></div>
       </div>
       <div class="burger-section">
         <div class="burger-section-title">Appearance</div>
@@ -58,13 +58,13 @@
         </div>
       </div>
     </div>
-  </div>
+  </nav>
   <h1>VTSearch</h1>
   <img src="/static/logo.png" alt="VTSearch logo" class="header-logo">
 </header>
-<div class="layout">
+<div class="layout" role="presentation">
   <!-- Left panel -->
-  <div class="panel-left" id="left-panel">
+  <div class="panel-left" id="left-panel" role="region" aria-label="Clip list">
     <div class="dataset-bar" id="dataset-bar" style="display:none">
       <span class="dataset-info" id="dataset-info">No dataset loaded</span>
     </div>
@@ -77,11 +77,12 @@
         <label><input type="radio" name="sort-mode" value="load" id="load-radio"> Load</label>
       </div>
       <div id="text-sort-wrap">
+        <label for="text-sort" class="sr-only">Text sort query</label>
         <input type="text" id="text-sort" placeholder='e.g. "high pitched beep"'>
       </div>
       <div id="load-sort-wrap" style="display:none">
         <button id="load-detector-btn" style="width:100%; padding:6px; background:var(--accent); color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:0.85rem;">Load Detector</button>
-        <input type="file" id="load-detector-file" accept=".json" style="display:none">
+        <input type="file" id="load-detector-file" accept=".json" style="display:none" aria-label="Detector file">
       </div>
       <span class="sort-label" style="margin-top:8px">Select</span>
       <div class="sort-mode">
@@ -91,7 +92,8 @@
       <span class="sort-label" style="margin-top:8px">Inclusion</span>
       <div style="display:flex; align-items:center; gap:8px; margin-top:4px">
         <span style="font-size:0.7rem; color:var(--text-muted)">-10</span>
-        <input type="range" id="inclusion-slider" min="-10" max="10" value="0" step="1" style="flex:1; accent-color:var(--accent)">
+        <label for="inclusion-slider" class="sr-only">Inclusion</label>
+        <input type="range" id="inclusion-slider" min="-10" max="10" value="0" step="1" aria-valuetext="0" style="flex:1; accent-color:var(--accent)">
         <span style="font-size:0.7rem; color:var(--text-muted)">+10</span>
       </div>
       <div style="text-align:center; font-size:0.75rem; color:var(--text-secondary); margin-top:2px">
@@ -101,22 +103,22 @@
         <input type="checkbox" id="enrich-descriptions-checkbox" style="accent-color:var(--accent)">
         <label for="enrich-descriptions-checkbox" style="font-size:0.78rem; color:var(--text-secondary); cursor:pointer">Enrich Sort Descriptions</label>
       </div>
-      <div id="sort-status" class="sort-status"></div>
-      <div id="sort-progress" class="sort-progress">
+      <div id="sort-status" class="sort-status" aria-live="polite"></div>
+      <div id="sort-progress" class="sort-progress" role="status" aria-live="polite">
         <div class="sort-progress-bar">
           <div class="sort-progress-fill"></div>
         </div>
         <div class="sort-progress-label" id="sort-progress-label">Searching and sorting...</div>
       </div>
     </div>
-    <div id="clip-list"></div>
-    <div class="stripe-overview" id="stripe-overview">
-      <div class="stripe-container" id="stripe-container"></div>
+    <div id="clip-list" role="listbox" aria-label="Clips"></div>
+    <div class="stripe-overview" id="stripe-overview" role="img" aria-label="Clip overview showing labeled clips and current position">
+      <div class="stripe-container" id="stripe-container" aria-hidden="true"></div>
     </div>
   </div>
 
   <!-- Center panel -->
-  <div class="panel-center" id="center">
+  <main class="panel-center" id="center">
     <div class="dataset-welcome" id="dataset-welcome">
       <div>
         <h2>Welcome to VTSearch</h2>
@@ -128,33 +130,34 @@
           <p>Load a previously saved dataset file (.pkl)</p>
         </button>
       </div>
-      <div class="dataset-progress" id="dataset-progress" style="display:none">
-        <div class="progress-bar">
+      <div class="dataset-progress" id="dataset-progress" style="display:none" role="status" aria-live="polite">
+        <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Dataset loading progress">
           <div class="progress-fill" id="progress-fill" style="width:0%"></div>
-          <div class="progress-text" id="progress-text">0%</div>
+          <div class="progress-text" id="progress-text" aria-hidden="true">0%</div>
         </div>
         <div class="progress-message" id="progress-message">Loading...</div>
         <div class="progress-eta" id="progress-eta"></div>
       </div>
       <div class="demo-datasets" id="demo-datasets" style="display:none"></div>
       <div id="extended-importer-form" style="display:none"></div>
-      <button class="back-button" id="back-button" style="display:none">Back</button>
+      <button class="back-button" id="back-button" style="display:none" aria-label="Back to dataset options">Back</button>
     </div>
-  </div>
-  <input type="file" id="file-input" accept=".pkl" style="display:none">
+  </main>
+  <input type="file" id="file-input" accept=".pkl" style="display:none" aria-label="Dataset file">
 
   <!-- Right panel -->
-  <div class="panel-right">
+  <aside class="panel-right" aria-label="Labels">
     <!-- import-file removed: label import now uses the label importer modal -->
     <div class="progress-check-bar">
-      <button id="check-progress-btn" class="labeling-indicator" data-status="">
-        <span class="indicator-dot"></span>
+      <button id="check-progress-btn" class="labeling-indicator" data-status="" aria-label="Check labeling progress">
+        <span class="indicator-dot" aria-hidden="true"></span>
         <span class="indicator-label">Progress</span>
         <span class="indicator-subtext" id="indicator-subtext"></span>
       </button>
     </div>
     <div class="label-sort-bar">
       <span class="sort-label" style="font-size:0.72rem; color:var(--text-dim);">Sort labels</span>
+      <label for="label-sort-select" class="sr-only">Sort labels</label>
       <select id="label-sort-select" style="padding:3px 6px; font-size:0.78rem; background:var(--bg-surface); color:var(--text-primary); border:1px solid var(--border); border-radius:4px;">
         <option value="time-desc">Newest first</option>
         <option value="time-asc">Oldest first</option>
@@ -173,15 +176,15 @@
       <h3 class="bad">Bad <span class="label-count" id="bad-count">(0)</span></h3>
       <div id="bad-list"></div>
     </div>
-  </div>
+  </aside>
 </div>
 
 <!-- Progress Modal -->
-<div id="progress-modal" class="modal">
+<div id="progress-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="progress-modal-title">
   <div class="modal-content">
     <div class="modal-header">
-      <h2>Labeling Progress Analysis</h2>
-      <button class="modal-close" id="modal-close">&times;</button>
+      <h2 id="progress-modal-title">Labeling Progress Analysis</h2>
+      <button class="modal-close" id="modal-close" aria-label="Close">&times;</button>
     </div>
     <div class="modal-body">
       <div class="progress-summary">
@@ -217,11 +220,11 @@
 </div>
 
 <!-- Favorite Detectors Management Modal -->
-<div id="favorites-modal" class="modal">
+<div id="favorites-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="favorites-modal-title">
   <div class="modal-content" style="max-width: 700px;">
     <div class="modal-header">
-      <h2>Manage Favorite Detectors</h2>
-      <button class="modal-close" id="favorites-modal-close">&times;</button>
+      <h2 id="favorites-modal-title">Manage Favorite Detectors</h2>
+      <button class="modal-close" id="favorites-modal-close" aria-label="Close">&times;</button>
     </div>
     <div class="modal-body">
       <!-- Add Detector Section -->
@@ -248,11 +251,11 @@
 <!-- Hidden file inputs for favorites modal (created dynamically by app.js) -->
 
 <!-- Auto-Detect Results Modal -->
-<div id="autodetect-modal" class="modal">
+<div id="autodetect-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="autodetect-modal-title">
   <div class="modal-content" style="max-width: 1000px;">
     <div class="modal-header">
-      <h2>Auto-Detect Results</h2>
-      <button class="modal-close" id="autodetect-modal-close">&times;</button>
+      <h2 id="autodetect-modal-title">Auto-Detect Results</h2>
+      <button class="modal-close" id="autodetect-modal-close" aria-label="Close">&times;</button>
     </div>
     <div class="modal-body">
       <div id="autodetect-summary" style="margin-bottom: 16px;"></div>
@@ -282,14 +285,14 @@
 </div>
 
 <!-- Auto-Detect Progress Modal -->
-<div id="autodetect-progress-modal" class="modal">
+<div id="autodetect-progress-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="autodetect-progress-title">
   <div class="modal-content">
     <div class="modal-header">
-      <h2>Running Auto-Detect</h2>
+      <h2 id="autodetect-progress-title">Running Auto-Detect</h2>
     </div>
     <div class="modal-body">
-      <div id="autodetect-progress-text" style="margin-bottom: 16px; color: var(--text-primary);">Initializing...</div>
-      <div style="background: var(--border); border-radius: 8px; overflow: hidden; height: 24px;">
+      <div id="autodetect-progress-text" style="margin-bottom: 16px; color: var(--text-primary);" aria-live="polite">Initializing...</div>
+      <div style="background: var(--border); border-radius: 8px; overflow: hidden; height: 24px;" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Auto-detect progress">
         <div id="autodetect-progress-bar" style="background: var(--accent); height: 100%; width: 0%; transition: width 0.3s;"></div>
       </div>
     </div>
@@ -297,37 +300,37 @@
 </div>
 
 <!-- Label Importer Picker Modal -->
-<div id="label-importer-modal" class="modal">
+<div id="label-importer-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="label-importer-modal-title">
   <div class="modal-content" style="max-width: 600px;">
     <div class="modal-header">
-      <h2>Import Labels</h2>
-      <button class="modal-close" id="label-importer-modal-close">&times;</button>
+      <h2 id="label-importer-modal-title">Import Labels</h2>
+      <button class="modal-close" id="label-importer-modal-close" aria-label="Close">&times;</button>
     </div>
     <div class="modal-body">
       <div id="label-importer-list"></div>
       <div id="label-importer-form" style="display:none"></div>
-      <button id="label-importer-back" style="display:none; margin-top:12px; padding:6px 14px; background:var(--bg-secondary-btn); color:var(--text-btn-secondary); border:1px solid var(--border-secondary); border-radius:4px; cursor:pointer;">&#8592; Back</button>
+      <button id="label-importer-back" aria-label="Back to importer list" style="display:none; margin-top:12px; padding:6px 14px; background:var(--bg-secondary-btn); color:var(--text-btn-secondary); border:1px solid var(--border-secondary); border-radius:4px; cursor:pointer;">&#8592; Back</button>
     </div>
   </div>
 </div>
 
 <!-- Processor Importer Picker Modal -->
-<div id="processor-importer-modal" class="modal">
+<div id="processor-importer-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="processor-importer-modal-title">
   <div class="modal-content" style="max-width: 600px;">
     <div class="modal-header">
-      <h2>Import Detector</h2>
-      <button class="modal-close" id="processor-importer-modal-close">&times;</button>
+      <h2 id="processor-importer-modal-title">Import Detector</h2>
+      <button class="modal-close" id="processor-importer-modal-close" aria-label="Close">&times;</button>
     </div>
     <div class="modal-body">
       <div id="processor-importer-list"></div>
       <div id="processor-importer-form" style="display:none"></div>
-      <button id="processor-importer-back" style="display:none; margin-top:12px; padding:6px 14px; background:var(--bg-secondary-btn); color:var(--text-btn-secondary); border:1px solid var(--border-secondary); border-radius:4px; cursor:pointer;">&#8592; Back</button>
+      <button id="processor-importer-back" aria-label="Back to importer list" style="display:none; margin-top:12px; padding:6px 14px; background:var(--bg-secondary-btn); color:var(--text-btn-secondary); border:1px solid var(--border-secondary); border-radius:4px; cursor:pointer;">&#8592; Back</button>
     </div>
   </div>
 </div>
 
 <!-- Custom VTSearch Dialog (replaces native alert/confirm/prompt) -->
-<div id="vt-dialog-modal" class="modal">
+<div id="vt-dialog-modal" class="modal" role="alertdialog" aria-modal="true" aria-labelledby="vt-dialog-message">
   <div class="modal-content vt-dialog-box">
     <div class="vt-dialog-header">
       <span class="vt-dialog-icon" id="vt-dialog-icon"></span>
@@ -342,16 +345,16 @@
 </div>
 
 <!-- Labeling Progress Analysis Loading Modal -->
-<div id="labeling-analysis-modal" class="modal">
+<div id="labeling-analysis-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="labeling-analysis-title">
   <div class="modal-content" style="min-width: 360px;">
     <div class="modal-header">
-      <h2>Analyzing Labeling Progress</h2>
+      <h2 id="labeling-analysis-title">Analyzing Labeling Progress</h2>
     </div>
     <div class="modal-body">
-      <div id="labeling-analysis-text" style="margin-bottom: 16px; color: var(--text-secondary); font-size: 0.9rem;">Training models over label history…</div>
-      <div style="background: var(--border); border-radius: 8px; overflow: hidden; height: 24px; position: relative;">
+      <div id="labeling-analysis-text" style="margin-bottom: 16px; color: var(--text-secondary); font-size: 0.9rem;" aria-live="polite">Training models over label history…</div>
+      <div style="background: var(--border); border-radius: 8px; overflow: hidden; height: 24px; position: relative;" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Analysis progress">
         <div id="labeling-analysis-bar" style="background: linear-gradient(90deg, var(--accent), var(--accent-light)); height: 100%; width: 0%; transition: width 0.3s;"></div>
-        <div id="labeling-analysis-pct" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.75rem; color: #fff; font-weight: bold;">0%</div>
+        <div id="labeling-analysis-pct" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.75rem; color: #fff; font-weight: bold;" aria-hidden="true">0%</div>
       </div>
     </div>
   </div>

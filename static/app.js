@@ -37,6 +37,20 @@
   let sortProgressTimer = null;
   let sortEtaState = null;
 
+  // --- Accessibility: screen reader announcer ---
+  const srAnnouncer = document.createElement("div");
+  srAnnouncer.setAttribute("aria-live", "polite");
+  srAnnouncer.setAttribute("aria-atomic", "true");
+  srAnnouncer.className = "sr-only";
+  srAnnouncer.id = "sr-announcer";
+  document.body.appendChild(srAnnouncer);
+
+  function announce(message) {
+    // Clear then set to ensure screen readers pick up repeated messages
+    srAnnouncer.textContent = "";
+    setTimeout(() => { srAnnouncer.textContent = message; }, 100);
+  }
+
   // --- Theme helper: read CSS custom property values for canvas drawing ---
   function themeColor(varName) {
     return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
@@ -317,7 +331,8 @@
     datasetBar.style.display = "flex";
     if (!selected) {
       center.className = "panel-center empty";
-      center.innerHTML = "<p>Select a clip from the left panel</p>";
+      center.innerHTML = '<p>Select a clip from the left panel</p>';
+      announce("Dataset loaded. Select a clip from the left panel to begin.");
     }
   }
 
@@ -572,7 +587,13 @@
               <p style="margin: 0; font-size: 0.72rem; color: #666;">${cfg.icon} ${dataset.num_files} ${cfg.fileLabel} &middot; ${sizeText}</p>
               ${badgeHtml}
             `;
+            div.setAttribute("role", "button");
+            div.setAttribute("tabindex", "0");
+            div.setAttribute("aria-label", `${dataset.label}: ${dataset.description}`);
             div.onclick = () => loadDemo(dataset.name);
+            div.addEventListener("keydown", (e) => {
+              if (e.key === "Enter" || e.key === " ") { e.preventDefault(); loadDemo(dataset.name); }
+            });
             col.appendChild(div);
           });
 
@@ -846,14 +867,67 @@
   }
 
   // Toggle burger menu
+  function closeBurgerMenu() {
+    burgerDropdown.classList.remove("show");
+    burgerBtn.setAttribute("aria-expanded", "false");
+    resumeActiveMedia();
+  }
+
+  function openBurgerMenu() {
+    burgerDropdown.classList.add("show");
+    burgerBtn.setAttribute("aria-expanded", "true");
+    pauseActiveMedia();
+    // Focus first menu item
+    const firstItem = burgerDropdown.querySelector('[role="menuitem"]');
+    if (firstItem) firstItem.focus();
+  }
+
   if (burgerBtn && burgerDropdown) {
     burgerBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      burgerDropdown.classList.toggle("show");
       if (burgerDropdown.classList.contains("show")) {
-        pauseActiveMedia();
+        closeBurgerMenu();
       } else {
-        resumeActiveMedia();
+        openBurgerMenu();
+      }
+    });
+
+    // Keyboard navigation within burger menu
+    burgerDropdown.addEventListener("keydown", (e) => {
+      const items = Array.from(burgerDropdown.querySelectorAll('[role="menuitem"]'));
+      const currentIndex = items.indexOf(document.activeElement);
+
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          if (currentIndex < items.length - 1) items[currentIndex + 1].focus();
+          else items[0].focus();
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          if (currentIndex > 0) items[currentIndex - 1].focus();
+          else items[items.length - 1].focus();
+          break;
+        case "Escape":
+          e.preventDefault();
+          closeBurgerMenu();
+          burgerBtn.focus();
+          break;
+        case "Enter":
+        case " ":
+          if (document.activeElement.getAttribute("role") === "menuitem") {
+            e.preventDefault();
+            document.activeElement.click();
+          }
+          break;
+        case "Home":
+          e.preventDefault();
+          items[0].focus();
+          break;
+        case "End":
+          e.preventDefault();
+          items[items.length - 1].focus();
+          break;
       }
     });
 
@@ -861,8 +935,7 @@
     document.addEventListener("click", (e) => {
       if (!burgerDropdown.contains(e.target) && !burgerBtn.contains(e.target)) {
         if (burgerDropdown.classList.contains("show")) {
-          burgerDropdown.classList.remove("show");
-          resumeActiveMedia();
+          closeBurgerMenu();
         }
       }
     });
@@ -872,7 +945,7 @@
   if (menuDatasetExport && burgerDropdown) {
     menuDatasetExport.addEventListener("click", () => {
       window.location.href = "/api/dataset/export";
-      burgerDropdown.classList.remove("show");
+      closeBurgerMenu();
     });
   }
 
@@ -887,10 +960,10 @@
             votes = { good: [], bad: [], click_times: {}, learned_scores: {} };
             selected = null;
             datasetLoaded = false;
-            burgerDropdown.classList.remove("show");
+            closeBurgerMenu();
           });
       } else {
-        burgerDropdown.classList.remove("show");
+        closeBurgerMenu();
       }
     });
   }
@@ -910,14 +983,14 @@
       URL.revokeObjectURL(url);
       menuLabelsStatus.textContent = `Exported ${data.labels.length} labels`;
       setTimeout(() => { menuLabelsStatus.textContent = ""; }, 3000);
-      burgerDropdown.classList.remove("show");
+      closeBurgerMenu();
     });
   }
 
   // Labels import – open the label importer picker modal
   if (menuLabelsImport && burgerDropdown) {
     menuLabelsImport.addEventListener("click", async () => {
-      burgerDropdown.classList.remove("show");
+      closeBurgerMenu();
       await openLabelImporterModal();
     });
   }
@@ -926,7 +999,7 @@
   if (menuDetectorImport && loadDetectorFile && burgerDropdown) {
     menuDetectorImport.addEventListener("click", () => {
       loadDetectorFile.click();
-      burgerDropdown.classList.remove("show");
+      closeBurgerMenu();
     });
   }
 
@@ -959,7 +1032,7 @@
       URL.revokeObjectURL(url);
       menuDetectorStatus.textContent = "Detector exported";
       setTimeout(() => { menuDetectorStatus.textContent = ""; }, 3000);
-      burgerDropdown.classList.remove("show");
+      closeBurgerMenu();
     });
   }
 
@@ -1054,7 +1127,7 @@
         } catch (_) {}
       }
       favoritesModal.classList.add("show");
-      burgerDropdown.classList.remove("show");
+      closeBurgerMenu();
     });
   }
 
@@ -1226,7 +1299,7 @@
         return;
       }
 
-      burgerDropdown.classList.remove("show");
+      closeBurgerMenu();
 
       // Show progress modal
       autodetectProgressModal.classList.add("show");
@@ -1497,7 +1570,9 @@
   }
 
   inclusionSlider.addEventListener("input", () => {
-    updateInclusion(parseInt(inclusionSlider.value));
+    const val = parseInt(inclusionSlider.value);
+    inclusionSlider.setAttribute("aria-valuetext", String(val));
+    updateInclusion(val);
   });
 
   // ---- Label sort dropdown ----
@@ -1884,7 +1959,16 @@
       if (isGood) className += " labeled-good";
       if (isBad) className += " labeled-bad";
       div.className = className;
-      let html = `<div style="font-weight: 500;">${c.filename || 'Clip #' + c.id}</div>`;
+      div.setAttribute("role", "option");
+      div.setAttribute("tabindex", "0");
+      div.setAttribute("aria-selected", selected === c.id ? "true" : "false");
+      const clipLabel = c.filename || 'Clip #' + c.id;
+      const labelParts = [clipLabel];
+      if (isGood) labelParts.push("labeled good");
+      if (isBad) labelParts.push("labeled bad");
+      if (scoreMap[c.id] !== undefined) labelParts.push(`score ${(scoreMap[c.id] * 100).toFixed(1)}%`);
+      div.setAttribute("aria-label", labelParts.join(", "));
+      let html = `<div style="font-weight: 500;">${clipLabel}</div>`;
       if (scoreMap[c.id] !== undefined) {
         html += `<span class="sim">${(scoreMap[c.id] * 100).toFixed(1)}%</span>`;
       }
@@ -1905,6 +1989,9 @@
       html += `<div class="sub">${subInfo.join(' &middot; ')}</div>`;
       div.innerHTML = html;
       div.onclick = () => selectClip(c.id);
+      div.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectClip(c.id); }
+      });
       clipList.appendChild(div);
     });
 
@@ -1919,6 +2006,11 @@
     const activeItem = clipList.querySelector(".clip-item.active");
     if (activeItem) {
       activeItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+
+    const c = clips.find(x => x.id === id);
+    if (c) {
+      announce(`Selected ${c.filename || 'Clip #' + c.id}`);
     }
   }
 
@@ -1951,9 +2043,9 @@
     // Render media player based on media type
     let playerHTML = '';
     if (mediaType === "video") {
-      playerHTML = `<video controls loop autoplay src="/api/clips/${c.id}/video" id="clip-video" style="width: 600px; max-height: 400px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-surface);"></video>`;
+      playerHTML = `<video controls loop autoplay src="/api/clips/${c.id}/video" id="clip-video" aria-label="${escapeHtml(c.filename || 'Video clip')}" style="width: 600px; max-height: 400px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-surface);"></video>`;
     } else if (mediaType === "image") {
-      playerHTML = `<div style="flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center;"><img src="/api/clips/${c.id}/image" id="clip-image" style="max-width: 100%; max-height: 100%; object-fit: contain; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-surface);"></div>`;
+      playerHTML = `<div style="flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center;"><img src="/api/clips/${c.id}/image" id="clip-image" alt="${escapeHtml(c.filename || 'Image clip')}" style="max-width: 100%; max-height: 100%; object-fit: contain; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-surface);"></div>`;
     } else if (mediaType === "paragraph") {
       playerHTML = `
         <div id="clip-paragraph" style="max-width: 600px; max-height: 400px; overflow-y: auto; padding: 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-surface); white-space: pre-wrap; line-height: 1.6; text-align: left;">
@@ -1962,8 +2054,8 @@
     } else {
       // Audio/Sound
       playerHTML = `
-        <canvas id="waveform-canvas" width="600" height="120"></canvas>
-        <audio controls controlslist="nodownload" loop autoplay src="/api/clips/${c.id}/audio" id="clip-audio"></audio>`;
+        <canvas id="waveform-canvas" width="600" height="120" role="img" aria-label="Audio waveform visualization"></canvas>
+        <audio controls controlslist="nodownload" loop autoplay src="/api/clips/${c.id}/audio" id="clip-audio" aria-label="${escapeHtml(c.filename || 'Audio clip')}"></audio>`;
     }
 
     center.innerHTML = `
@@ -2056,11 +2148,13 @@
   }
 
   async function castVote(id, vote) {
+    const clipName = (clips.find(c => c.id === id) || {}).filename || `Clip #${id}`;
     await fetch(`/api/clips/${id}/vote`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ vote }),
     });
+    announce(`Voted ${vote} on ${clipName}`);
     await fetchVotes();
 
     // When voting Good while a text-sort query is active, store the query
@@ -2216,12 +2310,18 @@
     sortedGood.forEach(entry => {
       const div = document.createElement("div");
       div.className = "vote-entry";
+      div.setAttribute("role", "button");
+      div.setAttribute("tabindex", "0");
+      div.setAttribute("aria-label", `Good: ${entry.name}`);
       const metaParts = [];
       if (entry.time >= 0) metaParts.push(`#${entry.time}`);
       else metaParts.push("imported");
       if (entry.confidence >= 0) metaParts.push(`${(entry.confidence * 100).toFixed(0)}%`);
       div.innerHTML = `<span class="vote-name">${entry.name}</span><span class="vote-meta">${metaParts.join(" \u00b7 ")}</span>`;
       div.onclick = () => selectClip(entry.id);
+      div.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectClip(entry.id); }
+      });
       goodList.appendChild(div);
     });
 
@@ -2230,12 +2330,18 @@
     sortedBad.forEach(entry => {
       const div = document.createElement("div");
       div.className = "vote-entry";
+      div.setAttribute("role", "button");
+      div.setAttribute("tabindex", "0");
+      div.setAttribute("aria-label", `Bad: ${entry.name}`);
       const metaParts = [];
       if (entry.time >= 0) metaParts.push(`#${entry.time}`);
       else metaParts.push("imported");
       if (entry.confidence >= 0) metaParts.push(`${(entry.confidence * 100).toFixed(0)}%`);
       div.innerHTML = `<span class="vote-name">${entry.name}</span><span class="vote-meta">${metaParts.join(" \u00b7 ")}</span>`;
       div.onclick = () => selectClip(entry.id);
+      div.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectClip(entry.id); }
+      });
       badList.appendChild(div);
     });
   }
@@ -2376,9 +2482,14 @@
       `).join("");
 
       labelImporterList.querySelectorAll(".label-importer-option").forEach(el => {
+        el.setAttribute("role", "button");
+        el.setAttribute("tabindex", "0");
         const name = el.dataset.name;
         const imp = importers.find(i => i.name === name);
         el.addEventListener("click", () => showLabelImporterForm(imp));
+        el.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); showLabelImporterForm(imp); }
+        });
       });
     }
 
@@ -2559,7 +2670,7 @@
 
   if (menuFavoritesImport && burgerDropdown) {
     menuFavoritesImport.addEventListener("click", async () => {
-      burgerDropdown.classList.remove("show");
+      closeBurgerMenu();
       await openProcessorImporterModal();
     });
   }
@@ -2593,9 +2704,14 @@
       `).join("");
 
       processorImporterList.querySelectorAll(".processor-importer-option").forEach(el => {
+        el.setAttribute("role", "button");
+        el.setAttribute("tabindex", "0");
         const name = el.dataset.name;
         const imp = importers.find(i => i.name === name);
         el.addEventListener("click", () => showProcessorImporterForm(imp));
+        el.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); showProcessorImporterForm(imp); }
+        });
       });
     }
 
@@ -2845,6 +2961,12 @@
     document.getElementById("stat-total-labels").textContent = data.total_labels;
     document.getElementById("stat-total-clips").textContent = data.total_clips;
 
+    // Add ARIA labels to chart canvases
+    const ecChart = document.getElementById("error-cost-chart");
+    if (ecChart) ecChart.setAttribute("role", "img");
+    const stChart = document.getElementById("stability-chart");
+    if (stChart) stChart.setAttribute("role", "img");
+
     // Render error cost chart
     renderErrorCostChart(data.error_cost_over_time);
 
@@ -2854,6 +2976,20 @@
     // Generate recommendation
     const recommendation = generateRecommendation(data);
     document.getElementById("recommendation-text").textContent = recommendation;
+
+    // Set chart descriptions for screen readers based on data
+    if (ecChart) {
+      const lastCost = data.error_cost_over_time.length > 0
+        ? data.error_cost_over_time[data.error_cost_over_time.length - 1].error_cost.toFixed(2)
+        : "N/A";
+      ecChart.setAttribute("aria-label", `Error cost chart with ${data.error_cost_over_time.length} data points. Latest error cost: ${lastCost}`);
+    }
+    if (stChart) {
+      const lastFlips = data.stability_over_time.length > 1
+        ? data.stability_over_time[data.stability_over_time.length - 1].num_flips
+        : "N/A";
+      stChart.setAttribute("aria-label", `Prediction stability chart with ${data.stability_over_time.length} data points. Latest prediction flips: ${lastFlips}`);
+    }
   }
 
   function renderErrorCostChart(errorCostData) {
@@ -3154,6 +3290,7 @@
       const theme = themeToggleCheckbox.checked ? "light" : "dark";
       applyTheme(theme);
       saveTheme(theme);
+      announce(`${theme === "light" ? "Light" : "Dark"} mode enabled`);
     });
   }
 
@@ -3190,6 +3327,31 @@
   loadFavoriteDetectors();
   fetchLabelingStatus();
   loadSettings();
+
+  // ---- Modal Escape key handler ----
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+
+    // VT dialog gets priority (it's an alertdialog)
+    if (vtDialogModal.classList.contains("show")) return;
+
+    // Close any open modal on Escape, from most specific to least
+    const modalClosePairs = [
+      [labelImporterModal, labelImporterModalClose],
+      [processorImporterModal, processorImporterModalClose],
+      [favoritesModal, favoritesModalClose],
+      [autodetectModal, autodetectModalClose],
+      [progressModal, modalClose],
+    ];
+    for (const [modal, closeBtn] of modalClosePairs) {
+      if (modal && modal.classList.contains("show")) {
+        e.preventDefault();
+        if (closeBtn) closeBtn.click();
+        else modal.classList.remove("show");
+        return;
+      }
+    }
+  });
 
   // ---- Keyboard shortcuts ----
   // Arrow Left / Right  = vote Bad / Good (like Tinder swipe)

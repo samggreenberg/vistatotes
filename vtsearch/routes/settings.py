@@ -8,6 +8,9 @@ GET  /api/settings
 PUT  /api/settings
     Update one or more settings fields.  Only supplied keys are changed.
 
+GET  /api/settings/defaults
+    Return the default values for all settings (excluding favorite_processors).
+
 GET  /api/settings/favorite-processors
     List all favorite processor recipes.
 
@@ -72,6 +75,9 @@ def update_settings():
     if "enrich_descriptions" in body:
         settings.set_enrich_descriptions(bool(body["enrich_descriptions"]))
 
+    if "safe_thresholds" in body:
+        settings.set_safe_thresholds(bool(body["safe_thresholds"]))
+
     if "calibration_fraction" in body:
         try:
             val = body["calibration_fraction"]
@@ -91,6 +97,12 @@ def update_settings():
             return jsonify({"error": "calibrate_count must be a number"}), 400
 
     return jsonify(settings.get_all())
+
+
+@settings_bp.route("/api/settings/defaults", methods=["GET"])
+def get_defaults():
+    """Return the default values for all settings (excluding favorite_processors)."""
+    return jsonify(settings.get_defaults())
 
 
 @settings_bp.route("/api/settings/favorite-processors", methods=["GET"])

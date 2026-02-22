@@ -81,6 +81,11 @@ def _ensure_loaded() -> dict[str, Any]:
 # -------------------------------------------------------------------
 
 
+def get_defaults() -> dict[str, Any]:
+    """Return a copy of the default settings (excluding favorite_processors)."""
+    return {k: v for k, v in _DEFAULTS.items() if k != "favorite_processors"}
+
+
 def get_all() -> dict[str, Any]:
     """Return the full settings dict (with defaults filled in)."""
     s = _ensure_loaded()

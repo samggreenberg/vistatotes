@@ -41,25 +41,7 @@
         <div class="burger-status" id="menu-favorites-status"></div>
       </div>
       <div class="burger-section">
-        <div class="burger-section-title">Appearance</div>
-        <div class="theme-toggle">
-          <span class="theme-toggle-label" id="theme-label">Light Mode</span>
-          <label class="theme-switch">
-            <input type="checkbox" id="theme-toggle-checkbox">
-            <span class="theme-switch-slider"></span>
-          </label>
-        </div>
-      </div>
-      <div class="burger-section">
-        <div class="burger-section-title">Calibration</div>
-        <div style="display:flex; align-items:center; gap:6px">
-          <label for="calibrate-count-input" style="font-size:0.78rem; color:var(--text-secondary); cursor:pointer; white-space:nowrap">Calibrate Count</label>
-          <input type="number" id="calibrate-count-input" min="1" max="100" value="2" step="1" style="width:56px; padding:4px 6px; border:1px solid var(--border); border-radius:4px; background:var(--bg-surface); color:var(--text-primary); font-size:0.85rem; text-align:center; outline:none">
-        </div>
-        <div style="display:flex; align-items:center; gap:6px; margin-top:6px">
-          <label for="calibration-fraction-input" style="font-size:0.78rem; color:var(--text-secondary); cursor:pointer; white-space:nowrap">Calibration Fraction</label>
-          <input type="number" id="calibration-fraction-input" min="0" max="1" value="0.5" step="0.05" style="width:56px; padding:4px 6px; border:1px solid var(--border); border-radius:4px; background:var(--bg-surface); color:var(--text-primary); font-size:0.85rem; text-align:center; outline:none">
-        </div>
+        <div class="burger-item" id="menu-settings">Settings</div>
       </div>
     </div>
   </div>
@@ -356,6 +338,52 @@
       <div style="background: var(--border); border-radius: 8px; overflow: hidden; height: 24px; position: relative;">
         <div id="labeling-analysis-bar" style="background: linear-gradient(90deg, var(--accent), var(--accent-light)); height: 100%; width: 0%; transition: width 0.3s;"></div>
         <div id="labeling-analysis-pct" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.75rem; color: #fff; font-weight: bold;">0%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div id="settings-modal" class="modal">
+  <div class="modal-content" style="max-width: 520px;">
+    <div class="modal-header">
+      <h2>Settings</h2>
+      <button class="modal-close" id="settings-modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <!-- Appearance -->
+      <div class="settings-section">
+        <div class="settings-section-title">Appearance</div>
+        <div class="settings-row">
+          <span class="settings-label" id="theme-label">Light Mode</span>
+          <label class="theme-switch">
+            <input type="checkbox" id="theme-toggle-checkbox">
+            <span class="theme-switch-slider"></span>
+          </label>
+        </div>
+      </div>
+      <!-- Calibration -->
+      <div class="settings-section">
+        <div class="settings-section-title">Calibration</div>
+        <div class="settings-row">
+          <label for="calibrate-count-input" class="settings-label">Calibrate Count</label>
+          <input type="number" id="calibrate-count-input" min="1" max="100" value="2" step="1" class="settings-number-input">
+        </div>
+        <div class="settings-row">
+          <label for="calibration-fraction-input" class="settings-label">Calibration Fraction</label>
+          <input type="number" id="calibration-fraction-input" min="0" max="1" value="0.5" step="0.05" class="settings-number-input">
+        </div>
+        <div class="settings-row">
+          <label for="safe-thresholds-checkbox" class="settings-label">Safe Thresholds</label>
+          <input type="checkbox" id="safe-thresholds-checkbox" style="accent-color:var(--accent)">
+        </div>
+      </div>
+      <!-- Actions -->
+      <div class="settings-actions">
+        <button id="settings-default-btn" class="settings-btn secondary">Default</button>
+        <input type="file" id="settings-import-file" accept=".json" style="display:none">
+        <button id="settings-import-btn" class="settings-btn secondary">Import</button>
+        <button id="settings-export-btn" class="settings-btn secondary">Export</button>
       </div>
     </div>
   </div>

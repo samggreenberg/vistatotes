@@ -332,5 +332,18 @@ video { max-width: 600px; max-height: 400px; }
 .vt-dialog-btn.secondary { background: var(--bg-surface); color: var(--text-secondary); }
 .vt-dialog-btn.secondary:hover { background: var(--bg-hover); color: var(--text-primary); }
 
+/* Settings modal */
+.settings-section { margin-bottom: 20px; }
+.settings-section-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); margin-bottom: 10px; }
+.settings-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
+.settings-row + .settings-row { border-top: 1px solid var(--border-subtle); }
+.settings-label { font-size: 0.85rem; color: var(--text-secondary); cursor: pointer; }
+.settings-number-input { width: 72px; padding: 5px 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg-panel); color: var(--text-primary); font-size: 0.85rem; text-align: center; outline: none; }
+.settings-number-input:focus { border-color: var(--accent); }
+.settings-actions { display: flex; gap: 8px; padding-top: 16px; border-top: 1px solid var(--border); }
+.settings-btn { flex: 1; padding: 8px 12px; border-radius: 4px; font-size: 0.82rem; cursor: pointer; transition: all 0.15s; border: 1px solid var(--border); }
+.settings-btn.secondary { background: var(--bg-surface); color: var(--text-secondary); }
+.settings-btn.secondary:hover { background: var(--bg-hover); color: var(--text-primary); }
+
 /* Label count display */
 .label-count { font-size: 0.75rem; color: var(--text-muted); font-weight: normal; }

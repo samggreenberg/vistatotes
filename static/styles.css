@@ -290,7 +290,7 @@ video { max-width: 600px; max-height: 400px; }
 .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: var(--modal-backdrop); }
 .modal.show { display: flex; align-items: center; justify-content: center; }
 .modal-content { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; max-width: 800px; max-height: 80vh; overflow-y: auto; }
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; position: sticky; top: -24px; background: var(--bg-surface); padding: 24px 0 8px 0; z-index: 1; }
 .modal-header h2 { font-size: 1.3rem; color: var(--accent); margin: 0; }
 .modal-close { background: transparent; border: none; color: var(--text-secondary); font-size: 1.5rem; cursor: pointer; padding: 0; width: 32px; height: 32px; }
 .modal-close:hover { color: var(--text-primary); }

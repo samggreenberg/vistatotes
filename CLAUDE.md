@@ -54,6 +54,7 @@ Media explorer web app for browsing/voting on audio, images, text, or video. Sem
   - `test_processors.py` — Media processor tests
   - `test_processor_importers.py` — Processor importer base class, registry, detector_file/label_file importers, API routes
   - `test_origin_labelset.py` — Origin class, LabeledElement, LabelSet, build_origin(), label export/import with origins, integration
+  - `test_combine_datasets.py` — Combine-datasets importer: metadata, dedup, media type validation, CLI, API routes
   - `test_creation_info.py` — Legacy creation_info handling in pickle datasets
   - `test_enrich_descriptions.py` — Enriched text-sort description embedding
   - `test_eval.py` — Evaluation framework runner and metrics

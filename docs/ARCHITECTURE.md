@@ -336,6 +336,7 @@ dicts:
 Persistent settings (volume, theme, inclusion, `enrich_descriptions`,
 `safe_thresholds`, favorite processor recipes) live separately in
 `vtsearch/settings.py` and are auto-saved to `data/settings.json`.
+Theme supports three modes: `dark`, `light`, and `highviz` (high-contrast).
 
 **Only Flask routes mutate this state.**  All ML and dataset functions
 accept state as parameters — they never import it directly.  This means

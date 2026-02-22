@@ -72,7 +72,7 @@ def download_file_with_progress(
         for chunk in response.iter_content(chunk_size=8192):
             size = f.write(chunk)
             downloaded += size
-            on_progress("downloading", "Downloading ESC-50...", downloaded, total_size)
+            on_progress("downloading", f"Downloading {dest_path.name}...", downloaded, total_size)
 
 
 def download_esc50(on_progress: Optional[ProgressCallback] = None) -> Path:
@@ -151,7 +151,7 @@ def download_cifar10(on_progress: Optional[ProgressCallback] = None) -> Path:
 
         on_progress("downloading", "Extracting CIFAR-10...", 0, 0)
         with tarfile.open(tar_path, "r:gz") as tar_ref:
-            tar_ref.extractall(DATA_DIR)
+            tar_ref.extractall(DATA_DIR, filter="data")
 
         tar_path.unlink(missing_ok=True)
 

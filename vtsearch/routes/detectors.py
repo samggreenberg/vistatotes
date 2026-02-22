@@ -54,11 +54,13 @@ def export_detector():
     X_list = []
     y_list = []
     for cid in good_votes:
-        X_list.append(clips[cid]["embedding"])
-        y_list.append(1.0)
+        if cid in clips:
+            X_list.append(clips[cid]["embedding"])
+            y_list.append(1.0)
     for cid in bad_votes:
-        X_list.append(clips[cid]["embedding"])
-        y_list.append(0.0)
+        if cid in clips:
+            X_list.append(clips[cid]["embedding"])
+            y_list.append(0.0)
 
     X = torch.tensor(np.array(X_list), dtype=torch.float32)
     y = torch.tensor(y_list, dtype=torch.float32).unsqueeze(1)
@@ -421,12 +423,12 @@ def train_from_label_import(importer_name: str):
             if f.field_type == "file":
                 field_values[f.key] = request.files.get(f.key)
             else:
-                field_values[f.key] = request.form.get(f.key, f.default or "")
+                field_values[f.key] = request.form.get(f.key, f.default if f.default is not None else "")
         name = request.form.get("name", "").strip()
     else:
         body = request.get_json(force=True, silent=True) or {}
         for f in importer.fields:
-            field_values[f.key] = body.get(f.key, f.default or "")
+            field_values[f.key] = body.get(f.key, f.default if f.default is not None else "")
         name = body.get("name", "").strip()
 
     if not name:
@@ -575,7 +577,7 @@ def auto_detect():
 
     # Run all detectors in parallel (PyTorch releases GIL during tensor ops)
     results = {}
-    with ThreadPoolExecutor(max_workers=len(detectors)) as pool:
+    with ThreadPoolExecutor(max_workers=min(len(detectors), 8)) as pool:
         futures = [pool.submit(_run_single_detector, name, data) for name, data in detectors.items()]
         for future in futures:
             name, result = future.result()
@@ -777,7 +779,7 @@ def auto_extract():
 
     # Run all extractors in parallel
     results = {}
-    with ThreadPoolExecutor(max_workers=len(extractors)) as pool:
+    with ThreadPoolExecutor(max_workers=min(len(extractors), 8)) as pool:
         futures = [pool.submit(_run_single_extractor, name, data) for name, data in extractors.items()]
         for future in futures:
             outcome = future.result()

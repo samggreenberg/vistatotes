@@ -593,31 +593,31 @@
 
     const inputStyle = "width:100%;padding:8px;background:var(--bg-hover);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);box-sizing:border-box;";
     let html = `<div style="max-width:420px;width:100%;margin:0 auto;">`;
-    html += `<h3 style="margin-bottom:16px;color:var(--text-primary);">${importer.display_name}</h3>`;
+    html += `<h3 style="margin-bottom:16px;color:var(--text-primary);">${escapeHtml(importer.display_name)}</h3>`;
     html += `<form id="ext-imp-form">`;
     for (const field of importer.fields) {
       html += `<div style="margin-bottom:14px;">`;
-      html += `<label style="display:block;margin-bottom:5px;color:var(--text-secondary);font-size:0.85rem;">${field.label}${field.required ? " *" : ""}</label>`;
+      html += `<label style="display:block;margin-bottom:5px;color:var(--text-secondary);font-size:0.85rem;">${escapeHtml(field.label)}${field.required ? " *" : ""}</label>`;
       if (field.field_type === "file") {
-        html += `<input type="file" name="${field.key}" accept="${field.accept}" style="color:var(--text-primary);width:100%;" ${field.required ? "required" : ""}>`;
+        html += `<input type="file" name="${escapeHtml(field.key)}" accept="${escapeHtml(field.accept)}" style="color:var(--text-primary);width:100%;" ${field.required ? "required" : ""}>`;
       } else if (field.field_type === "select") {
-        html += `<select name="${field.key}" style="${inputStyle}">`;
+        html += `<select name="${escapeHtml(field.key)}" style="${inputStyle}">`;
         for (const opt of field.options) {
-          html += `<option value="${opt}"${opt === field.default ? " selected" : ""}>${opt}</option>`;
+          html += `<option value="${escapeHtml(opt)}"${opt === field.default ? " selected" : ""}>${escapeHtml(opt)}</option>`;
         }
         html += `</select>`;
       } else if (field.field_type === "folder") {
         html += `<div style="display:flex;gap:8px;align-items:center;">`;
-        html += `<input type="text" name="${field.key}" placeholder="${field.description}" style="${inputStyle}flex:1;" data-folder-input="true" ${field.required ? "required" : ""}>`;
+        html += `<input type="text" name="${escapeHtml(field.key)}" placeholder="${escapeHtml(field.description)}" style="${inputStyle}flex:1;" data-folder-input="true" ${field.required ? "required" : ""}>`;
         html += `<button type="button" data-browse-btn="true" style="padding:8px 14px;background:var(--bg-hover);border:1px solid var(--border);border-radius:4px;color:var(--text-secondary);cursor:pointer;white-space:nowrap;">Browse…</button>`;
         html += `</div>`;
         html += `<input type="file" data-folder-picker="true" webkitdirectory style="display:none;">`;
       } else {
         const itype = field.field_type === "url" ? "url" : "text";
-        html += `<input type="${itype}" name="${field.key}" value="${field.default}" placeholder="${field.description}" style="${inputStyle}" ${field.required ? "required" : ""}>`;
+        html += `<input type="${itype}" name="${escapeHtml(field.key)}" value="${escapeHtml(field.default)}" placeholder="${escapeHtml(field.description)}" style="${inputStyle}" ${field.required ? "required" : ""}>`;
       }
       if (field.description) {
-        html += `<div style="margin-top:4px;font-size:0.75rem;color:var(--text-dim);">${field.description}</div>`;
+        html += `<div style="margin-top:4px;font-size:0.75rem;color:var(--text-dim);">${escapeHtml(field.description)}</div>`;
       }
       html += `</div>`;
     }
@@ -862,7 +862,7 @@
   function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
-    return div.innerHTML;
+    return div.innerHTML.replace(/'/g, '&#39;');
   }
 
   window.renameDetector = async function(oldName) {
@@ -2052,7 +2052,7 @@
     // Render threshold line if available
     if (threshold !== null) {
       // Find the index where score crosses threshold
-      let thresholdIndex = 0;
+      let thresholdIndex = sortOrder.length;
       for (let i = 0; i < sortOrder.length; i++) {
         if (sortOrder[i].score < threshold) {
           thresholdIndex = i;
@@ -2906,7 +2906,7 @@
     } else {
       document.documentElement.removeAttribute("data-theme");
       if (themeToggleCheckbox) themeToggleCheckbox.checked = false;
-      if (themeLabel) themeLabel.textContent = "Light Mode";
+      if (themeLabel) themeLabel.textContent = "Dark Mode";
     }
   }
 

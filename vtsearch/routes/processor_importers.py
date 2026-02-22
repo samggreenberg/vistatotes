@@ -75,13 +75,13 @@ def run_processor_import(importer_name: str):
             if f.field_type == "file":
                 field_values[f.key] = request.files.get(f.key)
             else:
-                field_values[f.key] = request.form.get(f.key, f.default or "")
+                field_values[f.key] = request.form.get(f.key, f.default if f.default is not None else "")
         # name comes from form data
         name = request.form.get("name", "").strip()
     else:
         body = request.get_json(force=True, silent=True) or {}
         for f in importer.fields:
-            field_values[f.key] = body.get(f.key, f.default or "")
+            field_values[f.key] = body.get(f.key, f.default if f.default is not None else "")
         name = body.get("name", "").strip()
 
     if not name:

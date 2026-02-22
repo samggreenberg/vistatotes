@@ -359,7 +359,11 @@ def load_dataset_file():
         return jsonify({"error": "No file selected"}), 400
 
     importer = get_importer("pickle")
-    _run_importer_in_background(importer, {"file": file})
+    # Read file contents before passing to background thread, since the
+    # Flask FileStorage stream is only valid during the request lifecycle.
+    file_bytes = io.BytesIO(file.read())
+    file_bytes.name = file.filename
+    _run_importer_in_background(importer, {"file": file_bytes})
     return jsonify({"ok": True, "message": "Loading started"})
 
 

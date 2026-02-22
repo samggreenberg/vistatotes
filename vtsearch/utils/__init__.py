@@ -5,6 +5,7 @@ from vtsearch.utils.state import (
     add_favorite_detector,
     add_favorite_extractor,
     add_label_to_history,
+    add_textsort_suggestion,
     bad_votes,
     build_clip_lookup,
     clear_all,
@@ -19,6 +20,7 @@ from vtsearch.utils.state import (
     get_favorite_extractors,
     get_favorite_extractors_by_media,
     get_inclusion,
+    get_textsort_suggestions,
     good_votes,
     inclusion,
     label_history,
@@ -29,6 +31,7 @@ from vtsearch.utils.state import (
     rename_favorite_extractor,
     resolve_clip_ids,
     set_inclusion,
+    textsort_suggestions,
 )
 
 __all__ = [
@@ -51,6 +54,9 @@ __all__ = [
     "get_inclusion",
     "set_inclusion",
     "add_label_to_history",
+    "textsort_suggestions",
+    "add_textsort_suggestion",
+    "get_textsort_suggestions",
     "add_favorite_detector",
     "remove_favorite_detector",
     "rename_favorite_detector",

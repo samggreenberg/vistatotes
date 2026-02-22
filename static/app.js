@@ -840,6 +840,16 @@
   if (menuFavoritesManage) {
     menuFavoritesManage.addEventListener("click", async () => {
       await loadFavoriteDetectors();
+      // Pre-fill name input with most recent text-sort suggestion
+      if (favAddName && !favAddName.value.trim()) {
+        try {
+          const sugRes = await fetch("/api/textsort-suggestions");
+          const sugData = await sugRes.json();
+          if (sugData.suggestions && sugData.suggestions.length > 0) {
+            favAddName.value = sugData.suggestions[sugData.suggestions.length - 1];
+          }
+        } catch (_) {}
+      }
       favoritesModal.classList.add("show");
       burgerDropdown.classList.remove("show");
     });
@@ -1790,6 +1800,19 @@
       body: JSON.stringify({ vote }),
     });
     await fetchVotes();
+
+    // When voting Good while a text-sort query is active, store the query
+    // as a suggested name for saving detectors / labelsets later.
+    if (vote === "good" && sortMode === "text") {
+      const textQuery = textSortInput.value.trim();
+      if (textQuery) {
+        fetch("/api/textsort-suggestions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: textQuery }),
+        }).catch(() => {}); // fire-and-forget
+      }
+    }
 
     // Auto-advance to next clip IMMEDIATELY using the current sort order,
     // so the user isn't blocked waiting for model training to finish.

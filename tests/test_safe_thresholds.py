@@ -12,7 +12,6 @@ Covers:
 
 import numpy as np
 import pytest
-import torch
 
 import app as app_module
 from vtsearch.models.training import (

@@ -88,7 +88,16 @@ def export_detector():
     for key, value in state_dict.items():
         weights[key] = value.tolist()
 
-    return jsonify({"weights": weights, "threshold": round(threshold, 4)})
+    training_samples = len(X_list)
+
+    return jsonify(
+        {
+            "weights": weights,
+            "threshold": round(threshold, 4),
+            "training_samples": training_samples,
+            "embedding_dim": input_dim,
+        }
+    )
 
 
 @detectors_bp.route("/api/detector-sort", methods=["POST"])
@@ -111,6 +120,20 @@ def detector_sort():
     # Reconstruct the model from weights
     # Determine input_dim from the first layer weights
     input_dim = len(weights["0.weight"][0])
+
+    # Check embedding dimension compatibility
+    if clips:
+        clip_dim = len(next(iter(clips.values()))["embedding"])
+        if input_dim != clip_dim:
+            return jsonify(
+                {
+                    "error": (
+                        f"Detector embedding dimension ({input_dim}) does not match "
+                        f"clip embedding dimension ({clip_dim}). The detector may have "
+                        f"been trained with a different embedding model."
+                    ),
+                }
+            ), 400
 
     model = build_model(input_dim)
 
@@ -378,7 +401,7 @@ def import_detector_labels():
             weights[key] = value.tolist()
 
         final_media_type = detected_media_type or "audio"
-        add_favorite_detector(name, final_media_type, weights, threshold)
+        add_favorite_detector(name, final_media_type, weights, threshold, training_samples=loaded_count)
         return jsonify(
             {
                 "success": True,
@@ -500,7 +523,7 @@ def train_from_label_import(importer_name: str):
         weights[key] = value.tolist()
 
     media_type = next(iter(clips.values())).get("type", "audio")
-    add_favorite_detector(name, media_type, weights, threshold)
+    add_favorite_detector(name, media_type, weights, threshold, training_samples=loaded_count)
 
     return jsonify(
         {
@@ -538,6 +561,11 @@ def auto_detect():
     all_embs = np.array([clips[cid]["embedding"] for cid in all_ids])
     X_all = torch.tensor(all_embs, dtype=torch.float32)
 
+    # Determine clip embedding dimension for compatibility checking
+    clip_dim = len(next(iter(clips.values()))["embedding"]) if clips else None
+
+    skipped_detectors: list[dict] = []
+
     def _run_single_detector(detector_name, detector_data):
         """Run a single detector and return (name, result_dict)."""
         weights = detector_data["weights"]
@@ -568,28 +596,58 @@ def auto_detect():
 
         positive_hits.sort(key=lambda x: x["score"], reverse=True)
 
-        return detector_name, {
+        result_dict: dict = {
             "detector_name": detector_name,
             "threshold": round(threshold, 4),
             "total_hits": len(positive_hits),
             "hits": positive_hits,
         }
+        version = detector_data.get("version")
+        if version is not None:
+            result_dict["version"] = version
 
-    # Run all detectors in parallel (PyTorch releases GIL during tensor ops)
+        return detector_name, result_dict
+
+    # Filter out detectors with incompatible embedding dimensions
+    compatible_detectors: dict = {}
+    for det_name, det_data in detectors.items():
+        det_dim = det_data.get("embedding_dim")
+        if det_dim is not None and clip_dim is not None and det_dim != clip_dim:
+            skipped_detectors.append(
+                {
+                    "name": det_name,
+                    "reason": f"embedding dimension mismatch (detector: {det_dim}, clips: {clip_dim})",
+                    "version": det_data.get("version"),
+                }
+            )
+        else:
+            compatible_detectors[det_name] = det_data
+
+    if not compatible_detectors:
+        return jsonify(
+            {
+                "error": f"No compatible detectors for media type: {media_type}",
+                "skipped_detectors": skipped_detectors,
+            }
+        ), 400
+
+    # Run all compatible detectors in parallel (PyTorch releases GIL during tensor ops)
     results = {}
-    with ThreadPoolExecutor(max_workers=min(len(detectors), 8)) as pool:
-        futures = [pool.submit(_run_single_detector, name, data) for name, data in detectors.items()]
+    with ThreadPoolExecutor(max_workers=min(len(compatible_detectors), 8)) as pool:
+        futures = [pool.submit(_run_single_detector, name, data) for name, data in compatible_detectors.items()]
         for future in futures:
             name, result = future.result()
             results[name] = result
 
     response: dict = {
         "media_type": media_type,
-        "detectors_run": len(detectors),
+        "detectors_run": len(compatible_detectors),
         "results": results,
     }
     if newly_imported:
         response["newly_imported"] = newly_imported
+    if skipped_detectors:
+        response["skipped_detectors"] = skipped_detectors
 
     return jsonify(response)
 
@@ -719,11 +777,7 @@ def run_extract():
         clip = clips[clip_id]
         extractions = extractor.extract(clip)
         if extractions:
-            clip_info = {
-                k: v
-                for k, v in clip.items()
-                if k not in ("embedding", "clip_bytes", "clip_string")
-            }
+            clip_info = {k: v for k, v in clip.items() if k not in ("embedding", "clip_bytes", "clip_string")}
             clip_info["extractions"] = extractions
             results.append(clip_info)
 
@@ -763,11 +817,7 @@ def auto_extract():
             clip = clips[clip_id]
             extractions = extractor.extract(clip)
             if extractions:
-                clip_info = {
-                    k: v
-                    for k, v in clip.items()
-                    if k not in ("embedding", "clip_bytes", "clip_string")
-                }
+                clip_info = {k: v for k, v in clip.items() if k not in ("embedding", "clip_bytes", "clip_string")}
                 clip_info["extractions"] = extractions
                 ext_results.append(clip_info)
 

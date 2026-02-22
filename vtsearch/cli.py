@@ -260,8 +260,25 @@ def _score_clips_with_detectors(
     all_embs = np.array([clips[cid]["embedding"] for cid in all_ids])
     X_all = torch.tensor(all_embs, dtype=torch.float32)
 
+    # Check embedding dimension compatibility and skip mismatched detectors
+    clip_dim = all_embs.shape[1] if len(all_embs) > 0 else None
+    compatible: dict[str, dict[str, Any]] = {}
+    for det_name, det_data in detectors.items():
+        det_dim = det_data.get("embedding_dim")
+        if det_dim is not None and clip_dim is not None and det_dim != clip_dim:
+            print(
+                f"Warning: skipping detector '{det_name}' — embedding dimension "
+                f"mismatch (detector: {det_dim}, clips: {clip_dim})",
+                file=sys.stderr,
+            )
+        else:
+            compatible[det_name] = det_data
+
+    if not compatible:
+        raise ValueError("No compatible processors found (all had embedding dimension mismatches)")
+
     results: dict[str, dict[str, Any]] = {}
-    for detector_name, detector_data in detectors.items():
+    for detector_name, detector_data in compatible.items():
         weights = detector_data["weights"]
         threshold = detector_data["threshold"]
 
@@ -503,5 +520,3 @@ def autodetect_importer_main(
     except (FileNotFoundError, ValueError, NotADirectoryError) as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
-
-

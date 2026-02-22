@@ -118,7 +118,8 @@ def run_processor_import(importer_name: str):
 
     # Use suggested name from the importer if the user didn't provide one
     # (already checked above that name is non-empty, but importer may suggest)
-    add_favorite_detector(name, media_type, weights, threshold)
+    training_samples = result.get("training_samples") or result.get("loaded")
+    add_favorite_detector(name, media_type, weights, threshold, training_samples=training_samples)
 
     response: dict = {
         "success": True,

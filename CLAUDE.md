@@ -53,6 +53,7 @@ Media explorer web app for browsing/voting on audio, images, text, or video. Sem
   - `test_extractors.py` — Image class extractor
   - `test_processors.py` — Media processor tests
   - `test_processor_importers.py` — Processor importer base class, registry, detector_file/label_file importers, API routes
+  - `test_processor_versioning.py` — Processor versioning: version auto-increment, embedding_dim tracking, compatibility checks, round-trip
   - `test_origin_labelset.py` — Origin class, LabeledElement, LabelSet, build_origin(), label export/import with origins, integration
   - `test_creation_info.py` — Legacy creation_info handling in pickle datasets
   - `test_enrich_descriptions.py` — Enriched text-sort description embedding

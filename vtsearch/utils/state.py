@@ -167,10 +167,34 @@ def get_textsort_suggestions() -> list[str]:
     return list(textsort_suggestions)
 
 
-def add_favorite_detector(name: str, media_type: str, weights: dict[str, Any], threshold: float) -> None:
+def _embedding_dim_from_weights(weights: dict[str, Any]) -> int | None:
+    """Extract the embedding dimension from MLP weights.
+
+    Returns the number of input features (columns) of the first layer, or
+    ``None`` if the weights dict doesn't contain ``"0.weight"`` or the
+    format is unexpected.
+    """
+    first_layer = weights.get("0.weight")
+    if isinstance(first_layer, list) and first_layer:
+        row = first_layer[0]
+        if isinstance(row, list):
+            return len(row)
+    return None
+
+
+def add_favorite_detector(
+    name: str,
+    media_type: str,
+    weights: dict[str, Any],
+    threshold: float,
+    *,
+    training_samples: int | None = None,
+) -> None:
     """Add or overwrite a named favorite detector in the global store.
 
-    If a detector with the same ``name`` already exists it is replaced.
+    If a detector with the same ``name`` already exists, the version is
+    incremented and ``parent_version`` is set to the previous version number.
+    New detectors start at version 1.
 
     Args:
         name: Unique human-readable name for the detector (e.g. ``"dog barks"``).
@@ -180,8 +204,22 @@ def add_favorite_detector(name: str, media_type: str, weights: dict[str, Any], t
             lists of float values, representing the serialised MLP state dict.
         threshold: Decision boundary score in ``[0, 1]``. Clips scoring at or
             above this value are classified as positive.
+        training_samples: Optional number of labeled examples used to train
+            this detector.  ``None`` when the count is unknown (e.g. imported
+            from a file that didn't record it).
     """
     import time
+
+    # Version tracking: increment if a detector with this name already exists
+    existing = favorite_detectors.get(name)
+    if existing is not None:
+        parent_version = existing.get("version", 1)
+        version = parent_version + 1
+    else:
+        parent_version = None
+        version = 1
+
+    embedding_dim = _embedding_dim_from_weights(weights)
 
     favorite_detectors[name] = {
         "name": name,
@@ -189,6 +227,10 @@ def add_favorite_detector(name: str, media_type: str, weights: dict[str, Any], t
         "weights": weights,
         "threshold": threshold,
         "created_at": time.time(),
+        "version": version,
+        "embedding_dim": embedding_dim,
+        "parent_version": parent_version,
+        "training_samples": training_samples,
     }
 
 
@@ -235,7 +277,9 @@ def get_favorite_detectors() -> dict[str, dict[str, Any]]:
 
     Returns:
         A dict mapping detector name to its data dict (with keys ``"name"``,
-        ``"media_type"``, ``"weights"``, ``"threshold"``, ``"created_at"``).
+        ``"media_type"``, ``"weights"``, ``"threshold"``, ``"created_at"``,
+        ``"version"``, ``"embedding_dim"``, ``"parent_version"``,
+        ``"training_samples"``).
         The returned dict is a copy; mutations to it do not affect the global store.
     """
     return favorite_detectors.copy()

@@ -79,7 +79,12 @@ class DetectorFileProcessorImporter(ProcessorImporter):
 
 
 def _parse_detector_json(raw: bytes) -> dict[str, Any]:
-    """Decode *raw* bytes as JSON and extract detector data."""
+    """Decode *raw* bytes as JSON and extract detector data.
+
+    Version fields (``version``, ``embedding_dim``, ``training_samples``)
+    are preserved if present in the file so they survive export → re-import
+    round-trips.
+    """
     try:
         data = json.loads(raw.decode("utf-8"))
     except Exception as exc:
@@ -100,6 +105,12 @@ def _parse_detector_json(raw: bytes) -> dict[str, Any]:
     }
     if suggested_name:
         result["name"] = suggested_name
+
+    # Preserve version metadata if present in the file
+    for key in ("training_samples", "embedding_dim"):
+        if key in data:
+            result[key] = data[key]
+
     return result
 
 

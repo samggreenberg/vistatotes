@@ -12,6 +12,14 @@ It drives the shipped code rather than a copy of it (that is what the `tip`
 argument on both functions is for), so a change to the signal shows up here
 instead of quietly diverging from a stale reimplementation.
 
+**A squash-merged PR cannot be swept.** Both signals need the branch and the
+base it landed on, and take them from a merge's two parents; a squash has one
+parent and no surviving branch tip, so there is nothing to replay. That is a
+limit of this sweep, not of the gate -- `check-phantom-base.py` compares a
+working tree against `origin/dev` and never cared how anything merged. The
+count of unsweepable commits is printed alongside the swept total so the
+coverage this sweep claims stays honest as squashes accumulate.
+
 Takes about a minute for ~300 merges. Run from the repo root:
 
     python scripts/sweep-phantom-base.py
@@ -64,6 +72,8 @@ def _pr_number(subject: str) -> str:
 def main() -> int:
     gate = _load_gate()
     merges = _git("log", "--first-parent", "--merges", "--format=%H", BASE_REF).split()
+    landed = _git("log", "--first-parent", "--format=%H", BASE_REF).split()
+    unsweepable = len(landed) - len(merges)
     if not merges:
         print(f"No merges on {BASE_REF}; nothing to sweep.")
         return 1
@@ -92,7 +102,11 @@ def main() -> int:
             reverts.append(f"  #{pr:<6} {len(reverted):3d} path(s) over {span} commit(s)   {verdict}")
 
     elapsed = time.time() - started
-    print(f"{swept} two-parent merges on {BASE_REF} in {elapsed:.0f}s\n")
+    print(f"{swept} two-parent merges on {BASE_REF} in {elapsed:.0f}s")
+    print(
+        f"{unsweepable} first-parent commit(s) not sweepable "
+        f"(squash merges and direct pushes have no branch tip to replay)\n"
+    )
     for name, hits in (("deletion", deletions), ("reverted-window", reverts)):
         caught = sorted(c for c in CLOBBERS if any(f"#{c} " in h for h in hits))
         false_positives = sum(1 for h in hits if "FALSE POSITIVE" in h)

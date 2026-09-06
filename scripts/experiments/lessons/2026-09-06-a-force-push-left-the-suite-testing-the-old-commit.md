@@ -32,13 +32,23 @@ whenever the grid clone is legitimately *ahead* of origin, it would silently
 test older code and discard the commit somebody made here — which is
 [the #3292 failure](2026-09-05-a-commit-made-during-the-suite-job-was-orphaned.md),
 already in this log. Both directions are mistakes and only a human knows which,
-so the script names the direction and stops. A ref with no `origin/` counterpart
-(a bare SHA, a local-only branch) is not compared, and every run now prints a
-`=== ref` line beside `=== HEAD` saying which of the three it was.
+so the script names the direction and stops. Every run now prints a `=== ref`
+line beside `=== HEAD` saying which state it was in.
 
-Both refusal paths were verified against the real script before this was
-written — a branch deliberately left behind, then one deliberately left ahead —
-each exiting 2 with SLURM reporting `FAILED`.
+**Testing the guard found a second defect in the same line.** `git checkout
+--detach <name>` *refuses* a name that exists only on the remote: git's DWIM
+wants to create a tracking branch, `--detach` forbids it, and the job dies on
+`'--detach' cannot be used with '-b/-B/--orphan'` — a message about nothing to
+do with the situation. That is every branch pushed from the laptop and not yet
+checked out on the grid, and it had been hidden by the habit of running
+`git worktree add <path> <branch>` first, which creates the local branch as a
+side effect. The script now falls back to `origin/$REF` when **no** local ref
+exists — safe there and nowhere else, because with no local ref there is no
+local commit to discard.
+
+All four states were exercised against the live script before this was written:
+behind and ahead each exit 2 with SLURM reporting `FAILED`; in-sync and
+remote-only run the suite and say which they were.
 
 Two things still follow from it, because the guard covers one script and not the
 habit:

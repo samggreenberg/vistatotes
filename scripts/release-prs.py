@@ -139,8 +139,7 @@ def main() -> int:
 
     squashed = sum(1 for row in prs if not str(row["subject"]).startswith("Merge pull request #"))
     print(
-        f"{len(prs)} PR(s) in {args.rev_range}: "
-        f"{len(prs) - squashed} merge commit(s), {squashed} squashed.",
+        f"{len(prs)} PR(s) in {args.rev_range}: {len(prs) - squashed} merge commit(s), {squashed} squashed.",
         file=sys.stderr,
     )
     if other:

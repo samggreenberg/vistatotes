@@ -69,7 +69,7 @@ Now that the release PR is open, close the GitHub issues whose fixes are include
 
 **Find the candidate issues** from this release's PRs:
 
-- List the pull requests merged into `dev` within this release range — the same `origin/main..origin/dev` window used for the summary in step 3 (inspect the merge commits in that range to get the PR numbers).
+- List the pull requests merged into `dev` within this release range — the same `origin/main..origin/dev` window used for the summary in step 3 (inspect the merge commits in that range to get the PR numbers). **This walk is why PRs here are merged and not squashed** (CLAUDE.md, "Merging a PR"): a squashed PR lands as an ordinary commit, so `git log --merges` does not list it and only the orphan backstop below can still find it.
 - For each such PR, read its body and collect **every** issue it references, keeping track of which keyword introduced each reference. Sort them into two buckets:
   - **Closing** — `Closes #N`, `Fixes #N`, `Resolves #N` (case-insensitive).
   - **Non-closing** — `Refs #N`, `Part of #N`, or a bare `#N` mention.

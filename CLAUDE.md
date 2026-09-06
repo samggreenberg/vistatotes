@@ -70,6 +70,46 @@ When you're done with your changes, open a PR targeting `dev`. Do not ask; just 
 
 This standing instruction **is** the explicit request that the remote-environment harness rule ("do not create a pull request unless the user explicitly asks for one") defers to. The harness rule only suppresses *unsolicited* PRs; a durable, repo-committed instruction to auto-open one satisfies its "unless the user explicitly asks" carve-out. So the two do not conflict: in this repo, finishing your changes is your cue to open the PR (base `dev`) without further prompting.
 
+## Merging a PR
+
+**Use a normal merge commit: `gh pr merge <n> --merge`.** Never `--squash`, never
+`--rebase`.
+
+This is not a style preference — [`docs/RELEASE.md`](docs/RELEASE.md) finds what
+shipped by walking **merge commits**. Steps 4 and 6 both say to *inspect the
+merge commits in that range to get the PR numbers*, and a squashed PR is not a
+merge commit: it lands as an ordinary commit whose subject ends `(#N)`, so
+`git log --merges origin/main..origin/dev` never lists it. Measured on a live
+window (197 commits, 52 of them merges): a PR squashed by mistake was **absent**
+from that walk while one merged normally an hour later was present. The issue
+sweep has a second net — step 6's orphan backstop reads `Addressed in #M`
+comments, which is PR data rather than git — but the release summary and the
+punch-card data (`scripts/punchcard/pr_merges.txt`) have none, so a squashed PR
+can drop out of both without anything saying so.
+
+Two smaller costs, both paid at merge time:
+
+- **Ancestry.** A squash-merged branch is no longer an ancestor of `dev`, so a
+  follow-up PR from it re-shows its *entire* diff rather than the new commits.
+  Sessions here routinely keep working on a branch after its PR lands, which is
+  exactly when that bites.
+- **Structure.** Every commit collapses into one. The messages survive in the
+  squash body, but `cherry picked from` provenance and the shape of the work do
+  not.
+
+None of it is repairable afterwards: fixing the history means rewriting a shared,
+protected branch. So the check belongs **before** the merge. If you are ever
+unsure what this repo does, ask the repo rather than the last commit you happened
+to read — a two-commit sample is not a convention:
+
+```
+git log --pretty=%s -100 origin/dev | grep -c "^Merge pull request"   # 21
+git log --pretty=%s -100 origin/dev | grep -cE "\(#[0-9]+\) \(#[0-9]+\)$"  # 3
+```
+
+**Merging is not part of Auto-PR.** Open the PR without being asked; merge it
+only when the user says so.
+
 ## Linking a fix PR to its GitHub issue
 
 When your change resolves a GitHub issue, **link the PR back to that issue** so the two are connected on GitHub:

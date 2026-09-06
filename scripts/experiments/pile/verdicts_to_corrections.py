@@ -24,6 +24,20 @@ builder therefore drops it from every cell of that class: not a positive, and no
 longer a negative either. That is the whole point of the three-valued design --
 the alternative is inventing a box to keep the arithmetic tidy.
 
+**A `present` the class cannot hold is refused, and refusing it is not the same
+as ignoring it.** A boxless `present` on a negative excludes the image; a boxed
+one turns it into a positive. Both are wrong when the object the reviewer
+correctly saw is one the class's own construction would never have admitted --
+a wristwatch for `clock`, a pop-up canopy for `umbrella` -- because the class
+then loses a good negative, or gains a positive it does not believe in, on the
+strength of a reading it does not use. #3666 adjudicated nine such finds and
+**four** were exactly this. The gate is the same adjudication file the positive
+side already reads, with the same two fields (``"claude": "absent"`` plus
+``"reason": "definition"``), because it is the same sentence pointed the other
+way: *what the object is* settles it, and no amount of looking changes the
+answer. It is a table of decided cases and never a heuristic -- a verdict
+carries no object identity, so nothing here can infer one.
+
 **A rebox can move an image between bands, and that is reported, not refused.**
 An image entered a `class@band` cell because of the box it arrived with, so a
 reviewer who retargets the box to a different instance of the same class moves
@@ -123,6 +137,8 @@ def main() -> int:
     stats: Counter = Counter()
     # (class, image_id, band sampled, band the redrawn box implies) -- #3616.
     moves: list[tuple[str, int, str, str]] = []
+    # (class, image_id, carried a box, the adjudicator's note) -- #3676.
+    kept: list[tuple[str, int, bool, str]] = []
 
     # --- adjudications first, so a later source cannot silently overrule them
     adj = {}
@@ -151,6 +167,15 @@ def main() -> int:
         # changed (`make_definition_reslate.py`).
         if v["stratum"] in ("boundary", "random", "flag", "audit", "redef", "redef_fresh"):
             if v["human"] == "present":
+                # Refused only where an adjudication names the object and says
+                # the class cannot hold it -- see the module docstring. The
+                # reviewer is not being overruled about the pixels; the class is
+                # being held to its own vocabulary.
+                a = adj.get(key)
+                if a and a.get("claude") == "absent" and a.get("reason") == "definition":
+                    stats["negative_kept_definitional"] += 1
+                    kept.append((key[1], key[0], bool(v.get("box")), a.get("note", "")))
+                    continue
                 box = v.get("box")
                 out[key] = {
                     "image_id": key[0],
@@ -267,7 +292,33 @@ def main() -> int:
     print(f"\n   {'of which carry a box':<32}{boxed:>6}  (can move an image between bands)")
     print(f"   {'excluded, no box':<32}{len(rows) - boxed:>6}  (dropped from every cell of that class)")
     _report_moves(moves, stats)
+    _report_kept(kept)
     return 0
+
+
+def _report_kept(kept: list[tuple[str, int, bool, str]]) -> None:
+    """Name every correction refused because the class cannot hold the object (#3676).
+
+    Printed rather than silent for the same reason the band moves are: a
+    correction that does not happen is invisible in the output file, and this
+    one is a *decision* about what the class means. The line also says whether
+    the class has a written rule at all -- an unruled class here is a ruling
+    somebody owes (#3673), not a defect in this script.
+    """
+    if not kept:
+        return
+    print(f"\n=== {len(kept)} `present` verdicts REFUSED: the class cannot hold the object ===")
+    print("   The reviewer saw what they say they saw. The class's own names do not")
+    print("   admit it, so applying the correction would spend a good negative (no box)")
+    print("   or manufacture a positive (box) on a reading the build does not use.\n")
+    print("   %-12s %-10s %-6s %s" % ("class", "image_id", "boxed", "why"))
+    for cls, iid, boxed, note in sorted(kept):
+        print("   %-12s %-10d %-6s %s" % (cls, iid, "yes" if boxed else "no", note or "(no note)"))
+    unruled = sorted({c for c, _, _, _ in kept if c not in pc.SCALE_CLASS_RULES})
+    if unruled:
+        print("\n   NO WRITTEN RULE for: " + ", ".join(unruled))
+        print("   Each of those is a sentence owed to `SCALE_CLASS_RULES` (#3673); until it")
+        print("   exists the next reviewer re-derives the same call from scratch.")
 
 
 def _report_moves(moves: list[tuple[str, int, str, str]], stats: Counter) -> None:

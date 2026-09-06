@@ -379,6 +379,13 @@ def main() -> int:
     ap.add_argument("--verdicts", default=str(STUDY / "verdicts.csv"))
     ap.add_argument("--rebank", action="store_true", help="re-distil verdicts.csv from the passes on scratch")
     ap.add_argument("--figures", action="store_true", help="also emit the report's figures")
+    ap.add_argument(
+        "--adjudication-out",
+        default="",
+        help="write the `no` rows as a verdicts_to_corrections.py adjudication file (#3676): the "
+        "finds whose object the class provably cannot hold, so a `present` on them must not "
+        "spend a negative or manufacture a positive",
+    )
     ap.add_argument("--out", default="")
     args = ap.parse_args()
 
@@ -532,6 +539,28 @@ def main() -> int:
             )
     swing = 100 * (table["clock"]["random_hits"] - table["clock"]["random_admissible"]) / len(rand)
     print(f"  one ruling on `clock` (is a wristwatch a clock?) moves it {swing:.1f}pp, for one sentence")
+
+    if args.adjudication_out:
+        # Only the `no` rows. `unverifiable` is exactly the case an adjudication
+        # must NOT be written for -- it would assert from the pixels what the
+        # pixels do not say -- and a `yes` row is a correction to apply, not one
+        # to refuse.
+        rows = [
+            {
+                "image_id": iid,
+                "class": a["cls"],
+                "claude": "absent",
+                "reason": "definition",
+                "note": f"{a['what']} -- {a['why']}",
+                "source": "shipped_pool_error #3666",
+            }
+            for iid, a in sorted(ADJUDICATION.items())
+            if a["admits"] == "no" and a["cls"] and "+" not in a["cls"]
+        ]
+        Path(args.adjudication_out).write_text(json.dumps(rows, indent=1) + "\n")
+        print(f"\nwrote {len(rows)} definitional adjudications to {args.adjudication_out}")
+        for r in rows:
+            print(f"   {r['class']:<12}{r['image_id']:<10}{r['note'][:88]}")
 
     if args.out:
         Path(args.out).write_text(json.dumps({"classes": table, "candidates": cand}, indent=1) + "\n")

@@ -15,7 +15,33 @@ Force-fetching the ref by hand was not enough either: the local branch is
 whatever the *working* worktree's HEAD is, so the fix was
 `git reset --hard origin/<branch>` in the worktree that owns the branch.
 
-**Prevented?** *Advice only.* Two things follow from it:
+**Prevented?** **Yes**, by a guard in `suite.sbatch` (#3677). After its
+`checkout --detach "$REF"` the script compares `HEAD` against `origin/$REF` and
+refuses the run when they differ, naming which way:
+
+```
+FATAL: checked out 22fe41c12… for 'claude/tmp-3677-guard', but origin/… is f206d7048…
+  The local branch is BEHIND origin -- a force-push, or a fetch that could
+  not fast-forward it. …
+    git -C <that worktree> fetch -f origin && git reset --hard origin/<branch>
+```
+
+It **refuses rather than auto-corrects**, and that is the whole design decision.
+Checking out `origin/$REF` would fix this incident and cause the opposite one:
+whenever the grid clone is legitimately *ahead* of origin, it would silently
+test older code and discard the commit somebody made here — which is
+[the #3292 failure](2026-09-05-a-commit-made-during-the-suite-job-was-orphaned.md),
+already in this log. Both directions are mistakes and only a human knows which,
+so the script names the direction and stops. A ref with no `origin/` counterpart
+(a bare SHA, a local-only branch) is not compared, and every run now prints a
+`=== ref` line beside `=== HEAD` saying which of the three it was.
+
+Both refusal paths were verified against the real script before this was
+written — a branch deliberately left behind, then one deliberately left ahead —
+each exiting 2 with SLURM reporting `FAILED`.
+
+Two things still follow from it, because the guard covers one script and not the
+habit:
 
 - **Read the job's `=== HEAD` line before reading its verdict.** A suite result
   is about a commit, not about a branch name, and this is the same failure
@@ -26,6 +52,7 @@ whatever the *working* worktree's HEAD is, so the fix was
   fetched the branch. A squash before the first suite run costs nothing; a
   squash after it costs a job and can be read as a test failure.
 
-The mechanical version — `suite.sbatch` refusing to run when the checked-out SHA
-is not `origin/<ref>` — belongs in that script, which lives outside this repo at
-`/exp/sgreenberg/suite.sbatch`; filed as **#3677**.
+The guard lives in `/exp/sgreenberg/suite.sbatch`, **outside this repository**, so
+nothing here reviews it, tests it, or notices if it is edited away — the previous
+version is kept beside it as `suite.sbatch.bak.20260906`. That gap is filed as
+**#3694**.

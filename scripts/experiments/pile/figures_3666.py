@@ -22,7 +22,7 @@ VG = Path("/exp/scale26/datasets/external/vtsearch-demos/visual_genome")
 
 #: One colour per verdict of the admissibility column, used in both the forest
 #: plot and the photograph borders so the two read as one argument.
-COL = {"yes": "#ab3a2a", "split": "#a8742a", "no": "#2f7d55", "unverifiable": "#8a8f98"}
+COL = {"yes": "#ab3a2a", "no": "#2f7d55", "unverifiable": "#8a8f98"}
 
 
 def _image(iid: int):
@@ -120,14 +120,7 @@ def what_the_finds_are(adjudication: dict, out: Path, ids: list[int], name: str,
         ax.axis("off")
     handles = [
         plt.Line2D([], [], color=COL["yes"], lw=3, label="the class's own names admit it — real pool error"),
-        plt.Line2D(
-            [],
-            [],
-            color=COL["split"],
-            lw=3,
-            label="COCO folds it in and no VG name the class reads does — a ruling is owed",
-        ),
-        plt.Line2D([], [], color=COL["no"], lw=3, label="neither vocabulary admits it — the pool is right"),
+        plt.Line2D([], [], color=COL["no"], lw=3, label="neither vocabulary admits it, measured — the pool is right"),
         plt.Line2D([], [], color=COL["unverifiable"], lw=3, label="the pixels do not settle it"),
     ]
     fig.legend(handles=handles, fontsize=9, loc="lower center", frameon=False, ncol=1, bbox_to_anchor=(0.5, -0.005))

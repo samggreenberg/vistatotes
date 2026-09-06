@@ -51,10 +51,20 @@ def pc():
 
 
 def test_review_name_falls_back_to_the_bare_class(pc):
-    """A class without a rule is its own definition, and keeps the old name."""
-    assert "clock" not in pc.SCALE_CLASS_RULES
-    assert pc.review_name("clock") == "clock"
-    assert pc.review_name("clock", "positives") == "clock positives"
+    """A class without a rule is its own definition, and keeps the old name.
+
+    `dog` is the example because it is the *measured* one: of the shipped
+    twelve it has the cleanest reading of its own name -- 87.7% of COCO's dog
+    boxes carry a VG box called `dog`, and only 9.9% of VG `dog` boxes land on
+    no COCO class at all, against `book`'s 43.1% -- and its one near-miss is a
+    hot dog, at 8 boxes in the whole overlap. Every other class of the
+    twenty-five now carries a rule (#3673), so if a rule is added for `dog`
+    this test needs a new example rather than a deletion: the fallback branch
+    of `review_name` is what it exists to hold.
+    """
+    assert "dog" not in pc.SCALE_CLASS_RULES
+    assert pc.review_name("dog") == "dog"
+    assert pc.review_name("dog", "positives") == "dog positives"
 
 
 def test_review_name_carries_the_rule_through_every_pass(pc):

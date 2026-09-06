@@ -80,27 +80,34 @@ PREDICTED_3635 = Path("/expscratch/sgreenberg/stopsign-3635/contam-sign.json")
 #: *would this object have become a positive?*
 #:
 #: `admits` is read off `pile_config` and off what COCO's annotators actually
-#: did (`coco_folds.py`, run over the twelve for #3673) -- never off English:
+#: did -- never off English:
 #:   yes          -- a VG name the class reads, or COCO's own box, covers it
-#:   split        -- the two halves of the dataset ALREADY disagree: COCO's
-#:                   annotators fold the object in, and no VG name the class
-#:                   reads denotes it, so it is a positive on the COCO half and
-#:                   invisible on the other. This is the `book`/magazine failure
-#:                   shape, and it is what #3673 has to rule on
 #:   no           -- neither vocabulary admits it, so an image holding it is a
 #:                   negative by construction and finding it cannot be an error
 #:   unverifiable -- the pixels do not settle it
+#:
+#: **A fold-in count is not admission, and reading one as admission mis-ruled two
+#: of these nine.** `coco_folds.py` (run over the twelve for #3673) shows COCO's
+#: annotators landing `watch` on a COCO clock box 35 times, and `canopy` 32 +
+#: `tent` 26 on umbrella boxes -- which looks like the `book`/magazine split, and
+#: is not. Fold-in is a BOX test conditioned the wrong way round (#3618): the
+#: question the pool asks is the image one, and `name_evidence.py` answers it.
+#: On the images where `watch` is the ONLY evidence, COCO finds a clock 11% of
+#: the time against a 4.5% base; `canopy` scores 7% and `tent` 10% against
+#: umbrella's 3.7%, all far under the 1/3 cut and all verdict `neither`. The
+#: fold-in tail is COCO's own inconsistency, not a definition, so both are `no`.
 ADJUDICATION: dict[int, dict] = {
     # ---- asked as their own question -------------------------------------
     2408671: {
         "cls": "clock",
         "what": "a wristwatch on a bystander's wrist, at a skate spot",
         "crop": (0.60, 0.55, 0.80, 0.95),
-        "admits": "split",
-        "why": "`watch` is not in clock's names or its ambiguous list, so on the VG half a "
-        "watch never becomes a clock positive -- but COCO's annotators land `watch` on a "
-        "COCO clock box 35 times (1.1% of the class), so on the COCO half it sometimes "
-        "is one. The halves already disagree; COCO declined this particular watch",
+        "admits": "no",
+        "why": "`watch` is not in clock's names or its ambiguous list, and it was measured "
+        "for this study rather than assumed: over the 970 overlap images where `watch` is "
+        "the SOLE evidence, COCO finds a clock 11% of the time (Wilson lower 0.09) against "
+        "a 4.5% base and a 1/3 cut, with 3% box agreement -- verdict `neither`. The 35 "
+        "COCO clock boxes a VG `watch` box lands on are the tail, not the rule",
     },
     2393325: {
         "cls": "clock",
@@ -117,8 +124,9 @@ ADJUDICATION: dict[int, dict] = {
         "what": "the digital time on a railway platform's departure board",
         "crop": (0.02, 0.18, 0.26, 0.44),
         "admits": "no",
-        "why": "not a clock face; VG names a departure board `sign` or `board`, neither "
-        "of which clock reads, and COCO listed no clock on this exhaustive image",
+        "why": "not a clock face; VG names a departure board `sign`, `board` or `display`, "
+        "none of which clock reads, and `display` scores 2% repair precision over 338 sole "
+        "images. COCO listed no clock on this exhaustive image",
     },
     2327535: {
         "cls": "book",
@@ -155,11 +163,12 @@ ADJUDICATION: dict[int, dict] = {
         "cls": "umbrella",
         "what": "square pop-up canopy tents along the rail of a skate park",
         "crop": (0.55, 0.25, 1.00, 0.52),
-        "admits": "split",
+        "admits": "no",
         "why": "umbrella reads `parasol` and four umbrella spellings and no canopy or tent "
-        "name -- but COCO's annotators land `canopy` on a COCO umbrella box 32 times and "
-        "`tent` 26, together more than `parasol`'s 38. So a canopy is an umbrella on the "
-        "COCO half and nothing on the other: the same gap `book`/magazine was (#3673)",
+        "name, and both were measured: `canopy` scores 7% repair precision over 225 sole "
+        "images and `tent` 10% over 265, against a 3.7% base -- verdict `neither` for both, "
+        "as for `awning` (4%) and `shade` (1%). COCO's 32 canopy and 26 tent boxes on "
+        "umbrella boxes are a box-level tail the image test refutes",
     },
     2343839: {
         "cls": "stop sign",
@@ -418,7 +427,7 @@ def main() -> int:
         kr = len(finds & rand)
         kb = len(finds & bound)
         ok = len({i for i in finds & rand if admits.get(i) == "yes"})
-        maybe = len({i for i in finds & rand if admits.get(i) in ("unverifiable", "split")})
+        maybe = len({i for i in finds & rand if admits.get(i) == "unverifiable"})
         lo, hi = wilson(kr, len(rand))
         p3635 = 100 * pred.get(c, {}).get("per_class", {}).get("rate", float("nan")) if pred else float("nan")
         print(
@@ -476,7 +485,7 @@ def main() -> int:
         v = passes[carrier[c]]
         union |= v["present"] if len(v["members"]) == 1 else adj_for.get(c, set()) & v["present"]
     yes = {i for i in union if admits.get(i) == "yes"}
-    unv = {i for i in union if admits.get(i) in ("unverifiable", "split")}
+    unv = {i for i in union if admits.get(i) == "unverifiable"}
     scored = {i for i, e in exhaustive.items() if e}
     for label, frame in (
         ("whole uniform stratum", rand),

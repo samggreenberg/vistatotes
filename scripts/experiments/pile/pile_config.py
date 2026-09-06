@@ -1292,14 +1292,6 @@ SCALE_CLASS_RULES: dict[str, ClassRule] = {
     # while the human pass applied the narrower English reading -- leaving 21
     # verdicts on one definition and 49 on another. The dataset takes COCO's,
     # since that is the half with an exhaustive reference.
-    "book": ClassRule(
-        name="book incl magazines",
-        test=(
-            "Good: a bound book, and also a magazine -- COCO has no magazine class and "
-            "annotates magazines as `book`, which is the reading this dataset uses. "
-            "Bad: newspapers, loose paper, a screen showing text."
-        ),
-    ),
     # The class's whole risk is landlines: VG `phone` lands on no COCO class
     # 46.2% of the time, worse than `book`'s 43.3%. The first slate's test read
     # "anything with a cord or a base station is Bad", which discriminates on a
@@ -1312,6 +1304,177 @@ SCALE_CLASS_RULES: dict[str, ClassRule] = {
             "Bad if the handset needs the base to work -- landline handsets, desk phones, "
             "payphones, wall phones, intercoms. A mobile phone resting in a charging dock "
             "or cradle is still Good."
+        ),
+    ),
+    # ------------------------------------------------------------------
+    # The SHIPPED twelve (#3673). #3666 measured what their absence costs:
+    # six of the nine pool-error finds in the negative pass were boundary
+    # calls on rules that did not exist, and at a 1% rate one ruling moves a
+    # class further than 3,000 extra uniform draws would.
+    #
+    # Every entry below was measured before it was written, with BOTH tests,
+    # because the cheaper one gets two of them wrong. `coco_folds.py` gives the
+    # box test -- which VG names land on a COCO box of the class -- and it says
+    # COCO's annotators call a wristwatch a `clock` 35 times and a `canopy` or
+    # `tent` an `umbrella` 58 times, more than `parasol`. Read alone it would
+    # have folded both in. `name_evidence.py` gives the image test the pool
+    # actually asks -- where the name is the SOLE evidence, does COCO find the
+    # class? -- and refutes both: `watch` 11% against a 4.5% base, `canopy` 7%
+    # and `tent` 10% against 3.7%, all under the 1/3 cut, all verdict
+    # `neither`. A fold-in tail is COCO's inconsistency; it is not a definition.
+    "clock": ClassRule(
+        name="clock not watches",
+        test=(
+            "Good: a device whose job is showing the time and which stands, hangs or is "
+            "mounted -- wall, tower, station, mantel, alarm and desk clocks, analogue or "
+            "digital, and a bare clock face on a building. Bad: a WRISTWATCH or a watch on "
+            "a table (`watch` was measured for this class and refused: over the 970 overlap "
+            "images where it is the only evidence COCO finds a clock 11% of the time "
+            "against a 4.5% base, with 3% box agreement -- the 35 COCO clock boxes a VG "
+            "`watch` box lands on are a tail, and admitting them would define the class one "
+            "way on the COCO half and another way on the half VG names alone). Also Bad: a "
+            "departure board or scoreboard that happens to show the time (`display` scores "
+            "2%), a clock drawn on a screen or printed on a page -- the depiction rule "
+            "applies to every class -- and a sundial. The near-miss this settles is a "
+            "wristwatch worn by a bystander, which is what the negative pass found (#3666)."
+        ),
+    ),
+    "umbrella": ClassRule(
+        name="umbrella incl parasols not canopies",
+        test=(
+            "Good: a hand-held umbrella open or furled, a parasol, and a beach or patio "
+            "umbrella -- one central pole carrying a round canopy. Bad: a pop-up CANOPY or "
+            "market stall, a tent, an awning over a shopfront, a sunshade sail. The test is "
+            "the frame, not the shade it casts: ONE POLE AND A ROUND TOP is an umbrella, "
+            "FOUR LEGS OR A WALL FIXING is not. Measured, and the box test disagrees with "
+            "the image test here: COCO's annotators land `canopy` on a COCO umbrella box 32 "
+            "times and `tent` 26, together more than `parasol`'s 38 -- but over the images "
+            "where those names are the only evidence COCO finds an umbrella 7% and 10% of "
+            "the time against a 3.7% base (`awning` 4%, `shade` 1%), all verdict `neither`. "
+            "The near-miss this settles is a rank of pop-up canopies at a skate park (#3666)."
+        ),
+    ),
+    "backpack": ClassRule(
+        name="backpack not handbags or luggage",
+        test=(
+            "Good: a bag made to be carried on the back on shoulder straps -- rucksacks, "
+            "daypacks, school bags, hiking packs -- whether worn, held or set down. Bad: a "
+            "handbag, a shoulder or messenger bag, a suitcase, a duffel, a camera bag. COCO "
+            "carries `handbag` and `suitcase` as their own classes, so this line is COCO's "
+            "too. Two straps over two shoulders is the cue; a single diagonal strap is a "
+            "shoulder bag. `bookbag` is on the ambiguous list (85% precision, 88% box) and "
+            "`pack` is not a name for anything (38%). The near-miss this settles is the "
+            "hump under a motorcyclist's leathers, which the pass could not call (#3666)."
+        ),
+    ),
+    "stop sign": ClassRule(
+        name="stop sign not other signs",
+        test=(
+            "Good: the octagonal red STOP sign, on a post, on a school bus arm, or held; "
+            "from behind ONLY when the octagon is readable in the silhouette. Bad: every "
+            "other traffic and street sign -- yield, one way, speed limit, street names -- "
+            "a stop sign painted on the road, a pictogram, and a blank sign back whose "
+            "shape you cannot read. `sign` is deliberately NOT a name for this class even "
+            "though it carries 46.6% of COCO's stop-sign boxes: a VG `sign` box is a stop "
+            "sign 7.9% of the time, which would withhold 12.7 pool images per contaminated "
+            "negative retired (#3618, #3635). The near-miss this settles is the blank "
+            "aluminium back of a sign on a street-name pole (#3666)."
+        ),
+    ),
+    "book": ClassRule(
+        name="book incl magazines",
+        test=(
+            "Good: a bound book, and also a magazine, a notebook and a bound pamphlet -- "
+            "COCO has no magazine class and annotates magazines as `book`, which is the "
+            "reading this dataset uses. Bad: newspapers, loose paper, letters, posters, "
+            "menus, printouts, and a screen showing text. ONE TEST: IS IT BOUND ALONG A "
+            "SPINE? Bound is a book; folded or loose sheets are not. Measured on the "
+            "overlap, and read against `book`'s own 13% self-match rather than against "
+            "100%: `magazines` 11% and `magazine` 10% land on a COCO book box at the same "
+            "rate as `book` itself, `newspaper` 3% at a quarter of it, `menu` and `paper` "
+            "at ~1%. This class is the study's calibration failure -- 43% of its VG boxes "
+            "land on no COCO class, the worst of the twenty-five -- and the bound test "
+            "narrows it without repairing that."
+        ),
+    ),
+    "bird": ClassRule(
+        name="bird any species not cooked",
+        test=(
+            "Good: any live bird, wild or domestic, of any species -- ducks, geese, gulls, "
+            "pigeons, swans, parrots, ostriches, owls, eagles, flamingos, peacocks, hens "
+            "and roosters. Bad: a COOKED bird on a plate, a feather or a wing on its own, a "
+            "bird figurine, a bird on a sign or a logo. The cooked clause is not "
+            "hypothetical: `chicken` names 428 overlap images and COCO finds a bird on 10% "
+            "of them, `turkey` 53 images at 12% -- in VG both words are usually food. "
+            "`crane` is the other trap and it is a machine: 308 images, 2%. None of the "
+            "three can be a name for this class, but a reviewer looking at a live one "
+            "should vote Good."
+        ),
+    ),
+    "boat": ClassRule(
+        name="boat any watercraft",
+        test=(
+            "Good: anything built to travel on water and carrying its own hull -- ships, "
+            "ferries, yachts, sailboats, canoes, kayaks, rafts, rowboats, gondolas, barges, "
+            "tugs, pedal boats, jet skis. On a trailer or in dry dock still counts. Bad: a "
+            "surfboard or paddleboard (COCO carries `surfboard` separately), a sail or a "
+            "mast on its own, a dock, a buoy, a boat on a sign. `sailboat`, `canoe`, "
+            "`kayak`, `raft` and `ship` are already folded in; `yacht`, `ferry`, `rowboat` "
+            "and `barge` all measure 88-100% precision on small samples and are candidates "
+            "for the same treatment."
+        ),
+    ),
+    "bus": ClassRule(
+        name="bus incl coaches not trams",
+        test=(
+            "Good: a road vehicle built to carry passengers in rows and boarded through "
+            "its own door -- city buses, coaches, school buses, double-deckers, minibuses, "
+            "tour buses, trolleybuses on tyres. Bad: a TRAM or train on rails, a cargo van, "
+            "a truck, an RV or camper, a bus shelter. The boundary that costs verdicts is "
+            "the van: `van` names three different vehicles and COCO splits it 261 truck / "
+            "318 car / 37 bus, so read the BODY -- rows of seats and a passenger door is a "
+            "Bus, a cargo box is a Truck. Two VG words are traps for a NAME and not for a "
+            "reviewer: `coach` is usually a person -- 0% precision over its 50 sole images -- "
+            "and `trolley` is usually a shopping cart (31% over 32)."
+        ),
+    ),
+    "bicycle": ClassRule(
+        name="bicycle incl trikes not motorcycles",
+        test=(
+            "Good: a human-powered pedal cycle -- road, mountain, BMX, folding, cargo and "
+            "children's bicycles, ridden, parked or on a rack; a tricycle counts (71% "
+            "precision, and COCO boxes six as `bicycle`). Bad: a MOTORCYCLE, moped or "
+            "scooter (COCO carries `motorcycle` separately, and `motorcycle` measured as an "
+            "alias of `bike` at 0.38 box IoU), an exercise bike, a wheel or a bike rack "
+            "alone, and a bicycle PICTOGRAM on a road sign -- three of the ten "
+            "`bicycle@small` positives in #3156 are exactly that, boxed as `bicycle` by "
+            "COCO, and the depiction rule wins over COCO's box (#3614). The class is built "
+            "from the spelling `bicycle` alone while `bike` carries 638 of COCO's 3,683 "
+            "boxes against `bicycle`'s 775, so it is missing roughly half its positives on "
+            "the non-COCO half (#3605)."
+        ),
+    ),
+    "kite": ClassRule(
+        name="kite incl parasails and parachutes",
+        test=(
+            "Good: a kite flown on a line, and -- this is the surprise, and it is COCO's "
+            "reading, not ours -- a PARASAIL, a paraglider and a PARACHUTE: `parasail` "
+            "lands on a COCO kite box 57 times and `parachute` 26, and both are already "
+            "folded into this class. Bad: a flag, a banner, a balloon, a bird, a windsock, "
+            "a kite tail or string on its own. A kite lying on the ground still counts."
+        ),
+    ),
+    "knife": ClassRule(
+        name="knife incl butter knives and servers",
+        test=(
+            "Good: a bladed cutting or spreading implement at the table or in the kitchen "
+            "-- table, steak, butter, bread, chef's, paring and pocket knives, cleavers, "
+            "and cake or pizza servers. Bad: SCISSORS (COCO carries its own class, and VG "
+            "`scissors` finds a COCO knife on 3% of its 196 sole images), a spatula, a "
+            "peeler, a knife block or a drawer with nothing visible, and a whole "
+            "`silverware` or `utensil` box covering a place setting -- vote Good only when "
+            "the boxed object IS the knife, the same rule `fork` carries. Where only the "
+            "handle shows, read the blade line, not the food."
         ),
     ),
     # The remaining rules were measured as names before ``test`` existed

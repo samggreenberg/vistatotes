@@ -575,6 +575,16 @@ That rule then travels in `pile_config.SCALE_CLASS_RULES`, whose value is the
 **dataset and detector name** — the only string the app shows while voting. A
 rule in a manifest is a rule the reviewer never reads.
 
+**All twenty-five classes now carry one, and the long form for the shipped
+twelve is [`ANNOTATION-GUIDE.md`](ANNOTATION-GUIDE.md)** (#3673). Read it before
+issuing any slate of those classes: #3666 measured that six of the nine pool
+errors found in the negative pass were boundary calls on rules that did not
+exist, and at a ~1% rate one ruling moves a class further than 3,000 extra
+uniform draws would. It also records the trap that nearly wrote two of those
+rules the wrong way — a fold-in count is a *box* test and the pool asks an
+*image* question, so `watch` (11% against a 4.5% base) and `canopy` (7% against
+3.7%) are refused despite landing on 35 and 32 COCO boxes.
+
 A candidate's measured spellings go in `SCALE_CANDIDATE_VG_NAMES`, not in the
 `SCALE_VG_NAMES` table above: that one widens the `vg_scale` **read** and is
 folded on every build, so an entry there for a class outside *C* would change the

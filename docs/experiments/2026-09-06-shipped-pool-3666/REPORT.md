@@ -20,7 +20,7 @@ It prices the fix at **840 uniform draws**, 70 per shipped class.
 | "nobody has ever measured its error the same way" | the negative pass did, at **100 uniform draws per class** against the thirteen's 70. Five of the twelve were asked as their own question; the other seven needed an **attribution**, not another pass |
 | the cheap version is 70 uniform draws per shipped class (840 judgements) | the attribution cost **9 images**: COCO settles every group find on its own half for free, and only the off-COCO ones need an eye |
 | "if shipped pool error is of the same order, every vg_scale number carries an unquantified bias" | it is of the same order and *slightly lower*: **1.40%** [0.68, 2.86] pooled against the candidates' **2.09%** [1.34, 3.24] — a difference of **−0.69 ± 1.39** pp. The two tiers are not separable |
-| the worry is that the twelve are dirtier than the thirteen | the finds are **6 of 9 boundary calls on definitions that do not exist for these classes** (2 neither vocabulary admits, 2 where COCO and our name tables *already disagree*, 2 the pixels do not settle) — a wristwatch, a clock drawn on a monitor, a station departure board, a pop-up canopy, the blank back of a sign. Ruling those out moves the union from **7.0%** to **3.0–5.0%** |
+| the worry is that the twelve are dirtier than the thirteen | the finds are **6 of 9 boundary calls on definitions that do not exist for these classes** (4 that neither vocabulary admits, once the names are measured; 2 the pixels do not settle) — a wristwatch, a clock drawn on a monitor, a station departure board, a pop-up canopy, the blank back of a sign. Ruling those out moves the union from **7.0%** to **3.0–4.0%** |
 | — (not asked) | on the **45%** of the pool COCO scores, COCO reports a shipped class present in **0 of 1,888** images and a *candidate* class in **692**. The shipped 0.0% there is by construction, so a uniform draw spends 45% of a reviewer's attention on rows already settled |
 
 **Recommendation: do not buy the 840 draws.** At a 1% rate, 380 extra uniform
@@ -54,7 +54,7 @@ is what §4's second figure is.
 
 | class | asked as | uniform stratum | 95% CI | admissible | ranked | #3635 predicted |
 |---|---|---:|---|---:|---:|---:|
-| `clock` | per-class | 3/100 = 3.0% | [1.0, 8.5] | 0–1 | 0 | 1.10% |
+| `clock` | per-class | 3/100 = 3.0% | [1.0, 8.5] | 0 | 0 | 1.10% |
 | `book` | per-class | 2/100 = 2.0% | [0.6, 7.0] | 2 | 0 | 1.65% |
 | `backpack` | per-class | 2/100 = 2.0% | [0.6, 7.0] | 1–2 | 0 | 2.87% |
 | `umbrella` | per-class | 0/100 = 0.0% | [0.0, 3.7] | 0 | 1 | 0.71% |
@@ -68,7 +68,7 @@ is what §4's second figure is.
 | `kite` | group of 4 | 0/100 = 0.0% | [0.0, 3.7] | 0 | 0 | 0.28% |
 
 *`admissible` is §4's column: the finds the class's own name tables would have
-accepted as a positive, given as a range because two of the nine are
+accepted as a positive, given as a range where one of the class's finds is
 unverifiable from the pixels. `ranked` is the text-ranked stratum, which is
 chosen to be wrong and estimates nothing — it is reported because what it found
 is the subject of §5.*
@@ -120,24 +120,28 @@ colour is not the reviewer's verdict — it is a mechanical question asked of
 
 | find | what it is | does the class admit it? |
 |---|---|---|
-| `clock` 2408671 | a wristwatch on a bystander's wrist | **split** — no VG name the class reads denotes a watch, and COCO's annotators box one as a `clock` **35 times** |
-| `clock` 2392807 | the digital time on a railway departure board | **no** — VG names that `sign` or `board`, and COCO has no class for it |
+| `clock` 2408671 | a wristwatch on a bystander's wrist | **no** — measured, not assumed: where `watch` is the only evidence, COCO finds a clock **11%** of the time against a **4.5%** base, 3% box agreement, verdict `neither` |
+| `clock` 2392807 | the digital time on a railway departure board | **no** — VG names that `sign`, `board` or `display`; `display` scores **2%** |
 | `clock` 2393325 | an analog clock *widget* drawn on a monitor | **no** — #3588's guide already rules on depictions for every class: *vote on the object, not a depiction of it* |
-| `umbrella` 2398287 | square pop-up canopy tents at a skate park | **split** — `umbrella` reads `parasol` and four umbrella spellings and no canopy; COCO folds `canopy` (**32**) and `tent` (**26**) in, together more than `parasol` (38) |
+| `umbrella` 2398287 | square pop-up canopy tents at a skate park | **no** — `canopy` **7%** and `tent` **10%** against a **3.7%** base (`awning` 4%, `shade` 1%), all verdict `neither` |
 | `stop sign` 2343839 | the blank aluminium **back** of a sign | unverifiable — COCO's annotators do box backs (VG `back`, 11 boxes), so the question is the pixels, not the vocabulary |
 | `backpack` 2315796 | a pack or back-protector under a motorcyclist's leathers | unverifiable |
 | `backpack` 2368984 | a black backpack worn on a passenger's back | **yes** — the one find of the nine that needs no ruling |
 | `book` 2327535 | an open magazine on a desk | **yes** — `magazine` is a *shipped fold-in* for `book`, because COCO has no magazine class |
 | `book` 1593184 | a printed booklet standing in an open box | **yes** — same fold-in, and COCO scored this image and missed it |
 
-**Two of the six are worse than a missing ruling: the two vocabularies already
-answer differently.** COCO's annotators fold a wristwatch into `clock` and a
-canopy or tent into `umbrella` — 35, and 32 + 26 against `parasol`'s 38 — while
-neither name is in the class's VG tables, so on the COCO half those objects are
-positives and on the other half they are invisible. That is the `book`/magazine
-split exactly, two classes further on, and it is measurable before anyone
-labels: the fold-in counts above are `coco_folds.py` output, produced for #3673
-after this pass rather than before it.
+**A fold-in count is not admission, and reading one as admission mis-ruled two
+of these nine.** `coco_folds.py`, run over the twelve for #3673 after this pass,
+shows COCO's annotators landing `watch` on a COCO clock box **35** times and
+`canopy` **32** + `tent` **26** on umbrella boxes — more, for umbrella, than
+`parasol`'s 38. That looks exactly like the `book`/magazine split, and both were
+written up here as one before the image-level test was run. It is not.
+**Fold-in is a box test conditioned the wrong way round** (#3618), and the pool
+asks an image question: over the images where the name is the *only* evidence,
+does COCO find the class? `watch` scores **11%** against a 4.5% base, `canopy`
+**7%** and `tent` **10%** against 3.7% — all far under the 1/3 cut, all verdict
+`neither`. The fold-in tail is COCO's own inconsistency, and the two rows are
+`no`.
 
 `book` is the instructive pair. Its two finds look like the softest calls in the
 table and are the two hardest: `SCALE_VG_NAMES["book"]` contains `magazine`
@@ -148,15 +152,14 @@ claimed a wristwatch.
 
 > **Pool error is only a defect relative to the class's own definition.** Scored
 > against English it is 7 finds per 100 uniform draws; scored against the names
-> the build actually reads, 3 to 5.
+> the build actually reads — and measures — 3 to 4.
 
 This has a concrete consequence before anything is rebuilt. A boxless *present*
 verdict is ingested as `negative_excluded` — the image leaves that class's pool
 without becoming a positive (`verdicts_to_corrections.py`). Ingesting these nine
-as they stand would spend two good negatives on a departure board and a clock
-drawn on a monitor, which neither vocabulary admits, and three more on cases
-where the answer is owed rather than known — a watch, a canopy, and the back of
-a sign nobody can read. Filed as **#3676**.
+as they stand would spend four good negatives on objects neither vocabulary
+admits — a wristwatch, a departure board, a clock drawn on a monitor and a
+canopy — and a fifth on the back of a sign nobody can read. Filed as **#3676**.
 
 ## 5. The ranked stratum finds a different *kind* of contamination
 
@@ -207,8 +210,8 @@ after it to confirm.) So:
 
 | the uniform stratum | as read | admissible |
 |---|---|---|
-| whole (n=100) | 7 = 7.0% [3.4, 13.7] | 3–5 = 3.0–5.0% |
-| COCO-scored half (n=41) | 4 = 9.8% [3.9, 22.5] | 1–2 = 2.4–4.9% |
+| whole (n=100) | 7 = 7.0% [3.4, 13.7] | 3–4 = 3.0–4.0% |
+| COCO-scored half (n=41) | 4 = 9.8% [3.9, 22.5] | 1 = 2.4% |
 | off-COCO half (n=59) | 3 = 5.1% [1.7, 13.9] | 2–3 = 3.4–5.1% |
 
 Four of the seven uniform finds sit on a COCO-scored image, where the pool label
@@ -235,8 +238,9 @@ uniform draw lands on a row already settled, so the same 70 judgements buy about
 
 The negative pass already spent 100. #3666's 70 would *lower* the precision it
 already has. And the comparison that decides it is the one drawn on the figure:
-**a single ruling on whether a wristwatch is a `clock` moved that class by
-3.0 pp** — more than 3,000 extra draws per class would buy at this rate.
+**one ruling — is a wristwatch a `clock`? — took that class from 3.0% to 0.0%**,
+a 3.0 pp move, which is more than 3,000 extra draws per class would buy at this
+rate.
 
 > At a 1% rate, the definition is the measurement. Buy the ruling first.
 
@@ -264,8 +268,7 @@ touched here:
 - **#3675** — draw the next shipped-class negative slate from the off-COCO half
   only; 45% of a uniform draw is spent on rows COCO already settles.
 - **#3676** — `verdicts_to_corrections.py` should not spend a negative on a find
-  neither vocabulary admits; two of these nine are that, and three more are
-  owed a ruling before they can be scored either way.
+  neither vocabulary admits; four of these nine are that, measured.
 - **#3677** — `suite.sbatch` ran the stale local branch after a force-push and
   reported it as a test failure, twice, during this study; recorded in
   [`LESSONS.md`](../../../scripts/experiments/LESSONS.md) and mechanically

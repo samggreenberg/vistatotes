@@ -42,7 +42,7 @@ Two further arms separate them, and neither needs new labelling:
 
   What that buys instead is better than what it cost: under PURE contamination
   the two arms must satisfy **forward + reverse = 2**, for any contamination rate
-  and any TPR (verified by simulation: 2.00-2.02 for rates up to 2.5%). The sum
+  and any TPR (`contamination_identity.py`: 2.00-2.02 for rates up to 2.5%). The sum
   is therefore a **contamination-free diagnostic**. It does not size the
   asymmetry -- `1/reverse` is a lower bound, and a Gaussian shift model that
   reproduces the forward arm gives reverse 0.65 against a measured 0.895, so the

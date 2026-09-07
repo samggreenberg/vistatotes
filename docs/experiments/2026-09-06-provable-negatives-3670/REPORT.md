@@ -64,7 +64,9 @@ the pool can be made of),
 [`provenance_shortcut.py`](../../../scripts/experiments/pile/provenance_shortcut.py)
 (would a head use it),
 [`negpool_coverage.py`](../../../scripts/experiments/pile/negpool_coverage.py)
-(what it costs the review, and the realised prevalence).
+(what it costs the review, and the realised prevalence),
+[`contamination_identity.py`](../../../scripts/experiments/pile/contamination_identity.py)
+(why the two probe arms are one route).
 Figures from
 [`figures_3670.py`](../../../scripts/experiments/pile/figures_3670.py) over
 [`measurements/`](measurements).
@@ -178,9 +180,13 @@ contamination the two arms must satisfy
 
 > forward + reverse = 2
 
-for any contamination rate and any TPR. Simulation confirms it: 2.00–2.02 for
-rates up to 2.5%, drifting to 2.1 only at an implausible 5%. So the **sum is a
-contamination-free diagnostic**, and the measured sums are **2.35** (`siglip`),
+for any contamination rate and any TPR.
+[`contamination_identity.py`](../../../scripts/experiments/pile/contamination_identity.py)
+confirms it with the answer planted — both negative strata drawn from the same
+distribution, so any departure from 2 is the first-order approximation's error
+and nothing else: 2.00–2.02 for rates up to 2.5%, drifting to 2.1 only at an
+implausible 5%. So the **sum is a contamination-free diagnostic**, and the
+measured sums are **2.35** (`siglip`),
 **2.36** (`clip`) and **2.42** (`siglip2_l`). Contamination alone is refuted: a
 real stratum asymmetry exists.
 

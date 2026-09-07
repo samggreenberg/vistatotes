@@ -25,8 +25,10 @@ text-tower call per class. For each class the medias split three ways:
 
 Ranked by the class's own text query, `AUC(positives, pool)` and
 `AUC(positives, cross-class)` say which stratum is harder **for that class**.
-The difference is the quantity #3680 is about: negative where the pool is the
-harder set (the indoor prediction), positive where the cross-class images are.
+The difference is the quantity #3680 is about. AUC falls as a stratum gets
+harder -- a perfectly separable negative set scores 1.0 -- so `delta` is
+POSITIVE where the pool is the harder set (the indoor prediction) and NEGATIVE
+where the cross-class images are.
 
 Deliberately prevalence-free. AUC does not move when a stratum merely gets
 bigger, which is what separates "these negatives are harder" from "there are
@@ -74,6 +76,23 @@ def auc(pos: np.ndarray, neg: np.ndarray) -> float:
     return float((r - len(pos) * (len(pos) + 1) / 2) / (len(pos) * len(neg)))
 
 
+def win_rates(pos: np.ndarray, neg: np.ndarray) -> np.ndarray:
+    """Per-positive win rate against *neg*, ties at half.
+
+    ``win_rates(p, n).mean()`` is exactly ``auc(p, n)``.  The vector form is
+    what makes an interval possible: both AUCs a class reports are means over
+    the SAME positives, so their difference is itself a per-positive quantity
+    and its standard error follows directly, with the pairing intact.  A
+    difference of two opaque scalars would have neither.
+    """
+    if not len(pos) or not len(neg):
+        return np.full(len(pos), np.nan)
+    order = np.sort(neg)
+    lo = np.searchsorted(order, pos, side="left")
+    hi = np.searchsorted(order, pos, side="right")
+    return (lo + (hi - lo) / 2.0) / len(neg)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--cell", default=str(pc.EMBEDDINGS / "vg_scale__siglip.pkl"))
@@ -86,7 +105,7 @@ def main() -> int:
     from vtscore.embedding.media_vectors import media_embedding  # noqa: PLC0415
 
     with Path(args.cell).open("rb") as fh:
-        medias = pickle.load(fh)
+        medias = pickle.load(fh)  # noqa: S301 - our own artefact
     if isinstance(medias, dict) and "medias" in medias:
         medias = medias["medias"]
     log(f"{Path(args.cell).name}: {len(medias)} medias")
@@ -118,8 +137,17 @@ def main() -> int:
         q = np.asarray(embed_text_query(text, "image", embedder_name=args.embedder), dtype=np.float32)
         q /= np.linalg.norm(q) + 1e-12
         s = vecs @ q
-        a_pool = auc(s[pos], s[pool])
-        a_cross = auc(s[pos], s[cross])
+        w_pool = win_rates(s[pos], s[pool])
+        w_cross = win_rates(s[pos], s[cross])
+        a_pool = float(w_pool.mean())
+        a_cross = float(w_cross.mean())
+        assert abs(a_pool - auc(s[pos], s[pool])) < 1e-9, "win_rates disagrees with auc()"
+        # Paired per-positive difference.  This is the POSITIVE-side sampling
+        # error only; at n_pos=300 against strata of 3,216+ it is the term that
+        # dominates, but the interval is not a full resample of the negatives.
+        per_pos = w_cross - w_pool
+        delta = float(per_pos.mean())
+        se = float(per_pos.std(ddof=1) / np.sqrt(len(per_pos))) if len(per_pos) > 1 else float("nan")
         rows.append(
             {
                 "class": cls,
@@ -129,25 +157,39 @@ def main() -> int:
                 "n_cross": len(cross),
                 "auc_vs_pool": a_pool,
                 "auc_vs_cross": a_cross,
-                # Negative => the POOL is the harder stratum for this class.
-                "delta": a_cross - a_pool,
+                # Positive => the POOL is the harder stratum for this class:
+                # a_pool is the LOWER AUC, so the pool separates less well.
+                "delta": delta,
+                "se": se,
+                "ci_lo": delta - 1.96 * se,
+                "ci_hi": delta + 1.96 * se,
             }
         )
 
-    rows.sort(key=lambda r: r["delta"])
-    print("\n" + "=" * 92)
+    rows.sort(key=lambda r: -r["delta"])
+    print("\n" + "=" * 107)
     print("WHICH NEGATIVES ARE HARDER, PER CLASS -- ranked by the class's own text query")
-    print("`delta` = AUC(vs cross-class) - AUC(vs pool). NEGATIVE means the shared POOL is harder.")
-    print("=" * 92)
-    print(f"{'class':<14}{'n_pos':>7}{'n_pool':>8}{'n_cross':>9}{'AUC vs pool':>13}{'AUC vs cross':>14}{'delta':>9}")
+    print("`delta` = AUC(vs cross-class) - AUC(vs pool). POSITIVE means the shared POOL is harder.")
+    print("95% CI on the paired per-positive difference; `*` marks an interval excluding 0.")
+    print("=" * 107)
+    print(
+        f"{'class':<14}{'n_pos':>7}{'n_pool':>8}{'n_cross':>9}"
+        f"{'AUC vs pool':>13}{'AUC vs cross':>14}{'delta':>9}{'95% CI':>19}{'':>3}"
+    )
     for r in rows:
+        ci = f"[{r['ci_lo']:+.3f}, {r['ci_hi']:+.3f}]"
+        sig = "*" if (r["ci_lo"] > 0 or r["ci_hi"] < 0) else ""
         print(
             f"{r['class']:<14}{r['n_pos']:>7}{r['n_pool']:>8}{r['n_cross']:>9}"
-            f"{r['auc_vs_pool']:>13.3f}{r['auc_vs_cross']:>14.3f}{r['delta']:>+9.3f}"
+            f"{r['auc_vs_pool']:>13.3f}{r['auc_vs_cross']:>14.3f}{r['delta']:>+9.3f}{ci:>19}{sig:>3}"
         )
     d = np.array([r["delta"] for r in rows])
+    pool_sig = [r["class"] for r in rows if r["ci_lo"] > 0]
+    cross_sig = [r["class"] for r in rows if r["ci_hi"] < 0]
     print(f"\nspread: {d.min():+.3f} to {d.max():+.3f}, mean {d.mean():+.3f}")
-    print(f"classes where the POOL is the harder set: {int((d < 0).sum())} of {len(d)}")
+    print(f"POOL harder by point estimate:  {int((d > 0).sum())} of {len(d)}")
+    print(f"  ...with a CI excluding 0:     {len(pool_sig)} -- {', '.join(pool_sig) or '(none)'}")
+    print(f"CROSS-CLASS harder, CI excl 0:  {len(cross_sig)} of {len(d)}")
 
     if args.json:
         Path(args.json).write_text(json.dumps({"cell": str(args.cell), "rows": rows}, indent=1) + "\n")

@@ -27,22 +27,22 @@ BOOK_MED = pc.scale_cell("book", "medium")
 
 
 def test_shared_negative_is_evaluable_everywhere():
-    assert _evaluable(1, [], CELLS, {1}, {}, set()) == CELLS
+    assert _evaluable(1, [], CELLS, {1}, {}, set(), set(), set()) == CELLS
 
 
 def test_image_that_is_neither_is_evaluable_nowhere():
-    assert _evaluable(1, [], CELLS, set(), {}, set()) == []
+    assert _evaluable(1, [], CELLS, set(), {}, set(), set(), set()) == []
 
 
 def test_positive_still_excluded_from_its_own_other_bands():
     """The exclusion #3156 exists for, which #3667 must not undo."""
-    out = _evaluable(1, [BUS_MED], CELLS, set(), {1: {"bus": BOX}}, {1})
+    out = _evaluable(1, [BUS_MED], CELLS, set(), {1: {"bus": BOX}}, {1}, set(), set())
     assert BUS_MED in out
     assert BUS_SMALL not in out, "a large-bus image must not be a small-bus negative"
 
 
 def test_positive_becomes_a_negative_for_classes_it_does_not_hold():
-    out = _evaluable(1, [BUS_MED], CELLS, set(), {1: {"bus": BOX}}, {1})
+    out = _evaluable(1, [BUS_MED], CELLS, set(), {1: {"bus": BOX}}, {1}, set(), set())
     for band in pc.BOX_BANDS:
         assert pc.scale_cell("book", band) in out
     assert len(out) > 1, "#3667: a bus image is a perfectly good book negative"
@@ -50,27 +50,83 @@ def test_positive_becomes_a_negative_for_classes_it_does_not_hold():
 
 def test_a_second_held_class_is_also_excluded():
     labels: dict[int, dict[str, list[list[float]]]] = {1: {"bus": BOX, "book": BOX}}
-    out = _evaluable(1, [BUS_MED], CELLS, set(), labels, {1})
+    out = _evaluable(1, [BUS_MED], CELLS, set(), labels, {1}, set(), set())
     assert BOOK_MED not in out, "it holds a book; it cannot be a book negative"
     assert pc.scale_cell("dog", "small") in out
 
 
 def test_off_coco_images_are_left_alone():
     """VG's silence is not a fact. Absence is only free on the exhaustive half."""
-    out = _evaluable(1, [BUS_MED], CELLS, set(), {1: {"bus": BOX}}, set())
+    out = _evaluable(1, [BUS_MED], CELLS, set(), {1: {"bus": BOX}}, set(), set(), set())
     assert out == [BUS_MED]
+
+
+class TestWhoActuallyAnswered:
+    """A one-class review is not an exhaustive answer (#3697).
+
+    `apply_corrections` adds every reviewed image to `exhaustive`, and #3667's
+    rule used to read that set -- so a reviewer asked *"does this hold a car?"*
+    promoted the image into cross-class negatives for the twenty-four classes
+    nobody asked about. Measured on the shipped pile: 467 images were exhaustive
+    by review alone, 322 of them designated positives, 4.5% of the designated
+    positive set. The error ran in the flattering direction, since an image
+    reviewed as holding a `car` scored as a *confirmed* negative for `truck`.
+    """
+
+    def test_a_review_of_one_class_does_not_answer_for_another(self):
+        """The regression: no anchor, one verdict, and it must not spread."""
+        reviewed_absent = {(1, "bus")}
+        out = _evaluable(1, [BUS_MED], CELLS, set(), {1: {"bus": BOX}}, set(), reviewed_absent, set())
+
+        assert out == [BUS_MED], "a `bus` verdict says nothing about `book`"
+
+    def test_a_review_that_did_answer_for_a_class_still_counts(self):
+        """The group pass asked "do you see NONE of these?" and really did answer.
+
+        Dropping human evidence wholesale would have been the easy fix and would
+        have thrown these away to correct the one-class case.
+        """
+        reviewed_absent = {(1, "book")}
+        out = _evaluable(1, [BUS_MED], CELLS, set(), {1: {"bus": BOX}}, set(), reviewed_absent, set())
+
+        for band in pc.BOX_BANDS:
+            assert pc.scale_cell("book", band) in out
+        assert pc.scale_cell("dog", "small") not in out, "nobody asked about `dog`"
+
+    def test_a_coco_anchor_still_answers_for_everything(self):
+        """The half the rule was written for is untouched."""
+        out = _evaluable(1, [BUS_MED], CELLS, set(), {1: {"bus": BOX}}, {1}, set(), set())
+
+        assert len(out) > 1
+        for band in pc.BOX_BANDS:
+            assert pc.scale_cell("book", band) in out
+
+    def test_a_boxless_present_is_never_read_as_absence(self):
+        """The second-order case, and the one that bites on the anchored half.
+
+        A boxless `present` -- "it is here, I cannot draw one box" -- makes
+        `apply_corrections` POP the class from `labels`, so the image then looks
+        exactly like one that does not hold it. On a COCO-anchored image that
+        would score it as a confirmed negative for a class a human just said was
+        present.
+        """
+        out = _evaluable(1, [BUS_MED], CELLS, set(), {1: {"bus": BOX}}, {1}, set(), {(1, "book")})
+
+        for band in pc.BOX_BANDS:
+            assert pc.scale_cell("book", band) not in out, "a human said the book IS there"
+        assert pc.scale_cell("dog", "small") in out, "and said nothing about `dog`"
 
 
 def test_the_knob_turns_it_off(monkeypatch):
     monkeypatch.setattr(pc, "SCALE_CROSS_CLASS_NEGATIVES", False)
-    out = _evaluable(1, [BUS_MED], CELLS, set(), {1: {"bus": BOX}}, {1})
+    out = _evaluable(1, [BUS_MED], CELLS, set(), {1: {"bus": BOX}}, {1}, set(), set())
     assert out == [BUS_MED]
 
 
 @pytest.mark.parametrize("held", [(), ("bus",), ("bus", "book"), tuple(pc.SCALE_CLASSES)])
 def test_never_evaluable_in_a_cell_of_a_class_it_holds(held):
     labels: dict[int, dict[str, list[list[float]]]] = {1: {c: BOX for c in held}}
-    out = set(_evaluable(1, [BUS_MED], CELLS, set(), labels, {1}))
+    out = set(_evaluable(1, [BUS_MED], CELLS, set(), labels, {1}, set(), set()))
     for c in held:
         if c == "bus":
             continue
@@ -89,11 +145,11 @@ class TestTheCellKeyingIsReadRatherThanSpelled:
 
     @pytest.mark.parametrize("cells", [CELLS, DEEP_CELLS], ids=["banded", "bare"])
     def test_no_name_outside_the_caller_s_own_cells_is_ever_emitted(self, cells):
-        out = _evaluable(1, [cells[0]], cells, set(), {1: {"bus": BOX}}, {1})
+        out = _evaluable(1, [cells[0]], cells, set(), {1: {"bus": BOX}}, {1}, set(), set())
         assert not set(out) - set(cells), "a cell of some other dataset's keying"
 
     def test_a_bare_cell_list_gets_bare_cross_class_negatives(self):
-        out = _evaluable(1, ["bus"], DEEP_CELLS, set(), {1: {"bus": BOX}}, {1})
+        out = _evaluable(1, ["bus"], DEEP_CELLS, set(), {1: {"bus": BOX}}, {1}, set(), set())
         assert "book" in out, "#3667 must reach the deep sibling too"
         assert not [c for c in out if "@" in c]
 
@@ -104,7 +160,7 @@ class TestTheCellKeyingIsReadRatherThanSpelled:
         exactly why it survived: `bus@small` on a bare-keyed pickle matches
         nothing, so the guarantee was written backwards and nothing failed.
         """
-        out = _evaluable(1, ["bus"], DEEP_CELLS, set(), {1: {"bus": BOX, "book": BOX}}, {1})
+        out = _evaluable(1, ["bus"], DEEP_CELLS, set(), {1: {"bus": BOX, "book": BOX}}, {1}, set(), set())
         assert "book" not in out
         assert [c for c in out if c.startswith("bus")] == ["bus"]
 

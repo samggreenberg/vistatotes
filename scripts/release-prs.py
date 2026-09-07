@@ -42,6 +42,12 @@ A number read off a subject is a claim, not a verified fact: both steps go on
 to read each PR from GitHub, so a mis-parse surfaces there as a lookup that
 does not match rather than as a silent omission.
 
+``CLAUDE.md``'s "Merging a PR" rule now forbids squashing outright, so in
+principle this only ever meets merge commits.  It reads both shapes anyway:
+the four squashes above are already on ``dev`` and no convention reaches
+backwards, and a rule that has been broken once is a thing to survive rather
+than to trust.
+
 Usage::
 
     python scripts/release-prs.py                  # origin/main..origin/dev

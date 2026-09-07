@@ -332,6 +332,26 @@ the sampled band was the error, not the redraw. What was wrong is that it
 happened silently, so `verdicts_to_corrections.py` now prints every
 band-changing rebox with the band it left and the band it lands in.
 
+## A `present` the class cannot hold is refused, and named
+
+A boxless `present` on a negative excludes the image from every cell of its
+class; a boxed one turns it into a positive. Both are the wrong answer when the
+object the reviewer correctly saw is one the class's construction would never
+have admitted — a wristwatch for `clock`, a pop-up canopy for `umbrella`. #3666
+adjudicated nine such finds in the negative pass and **four** were exactly that,
+so applying them would have spent four good negatives on readings the build does
+not use.
+
+The gate is the adjudication file the positive side already reads, with the same
+two fields (`"claude": "absent"` plus `"reason": "definition"`), because it is
+the same sentence pointed the other way: *what the object is* settles it, and no
+amount of looking changes the answer. It is a **table of decided cases** and
+never a heuristic — a verdict carries no object identity, so nothing in the
+script can infer one — and `shipped_pool_error.py --adjudication-out` writes that
+table from the study's own adjudication. Every refusal is printed with its note,
+and a refused class with no entry in `SCALE_CLASS_RULES` is named as a ruling
+somebody owes (#3673).
+
 `audit_band_drift.py` asks how much of the same error the *un*-reviewed half is
 still hiding, without spending a human on it. The COCO-anchored half has both
 readings available — VG's boxes and COCO's exhaustive ones — so banding each

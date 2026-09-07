@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -109,6 +110,9 @@ def _run(tmp_path: Path, adjudication: list[dict]) -> dict:
         capture_output=True,
         text=True,
         check=False,
+        # `pile_config.setup_env()` creates the pile dir at import, so without
+        # this the test needs the scratch mount and fails everywhere else.
+        env={**os.environ, "VTS_PILE": str(tmp_path / "pile")},
     )
     assert proc.returncode == 0, proc.stderr
     return {(r["image_id"], r["class"]): r for r in json.loads(out.read_text())}

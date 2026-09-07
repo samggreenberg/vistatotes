@@ -171,6 +171,48 @@ and the build said nothing. The fold ledger still printed `truck+273/23`,
 because `canonicalise` runs before `lift_ambiguous` and had already folded the
 boxes that were about to be deleted.
 
+### The zeroed supply is the visible half; the pool is the dangerous one
+
+The #3670 session, reconciling the two changes, pointed out that the supply
+collapse is not the worst of it. On a COCO-anchored image `anchor_to_coco` has
+already replaced VG's labels with COCO's, so for an exhaustive image whose only
+*C* label is a COCO-confirmed `truck`:
+
+- the box is popped;
+- **no** `unbanded` pair is added, because `iid in exhaustive` exempts it;
+- `by_name` is now empty, so `band_candidates` files the image as **clean**;
+- it is COCO-scored, so #3670's `provable` draw designates it.
+
+That puts COCO-confirmed trucks into the negative pool whose entire claim is
+that it holds none of *C* — and `--verify`'s composition check cannot catch it,
+because those images really do carry the `coco_scored` stamp it tests. Filed as
+**#3701**: the pool should be asked the question directly, by intersecting the
+designated negatives with COCO's own annotation, because that invariant holds
+regardless of which pass broke it.
+
+### Why the ban, and not a narrower fix
+
+`lift_ambiguous`'s condition is inverted rather than incomplete. It builds
+`reverse` with `if n != cls`, which implements the docstring's third exemption —
+*the name is the class name itself* — but asks "is this name its **own** class's
+name?" when the question is "is this name a class in *C* **at all**?". The same
+shape as #3618's fold-in being conditioned the wrong way round.
+
+A narrower fix is available: suppress the `(image, class)` pair without popping a
+box whose name is a class in *C*, which keeps the evidence and costs nothing in
+the pool. It is not taken, because there is no evidence here to keep. The
+ambiguous table is for names whose **referent is uncertain** — `bike` may be a
+bicycle or a motorcycle, `van` is split 261/318/37 across three classes — and
+neither is a class in *C*. A name that *is* a class has a certain referent; what
+it has with a third class is **co-occurrence**. The audit's precision for
+`truck`-as-evidence-for-`car` is measuring that trucks and cars share streets,
+and under #3667 a COCO-scored truck image is precisely what `car` should be
+scored against as a negative.
+
+The cut therefore lands between "uncertain referent" and "certain referent,
+correlated", and it costs no genuinely ambiguous name: `van` is not a class in
+*C* and stays ambiguous for both `car` and `truck`.
+
 `test_no_listed_spelling_is_itself_a_class_in_c` is the guard, and it is a suite
 test rather than a check inside `lift_ambiguous` because that function takes the
 table as an argument and is exercised with deliberately small ones.
@@ -242,3 +284,11 @@ a 45%-COCO pool and is redundant against a 100% one.
 
 - **#3700** — the VG-name audit is blind to `SCALE_CLASS_MERGES`, so it scores
   stemware as `neither` for `cup` and under-reports that class's coverage.
+- **#3701** — `--verify` should ask COCO directly whether the provable pool holds
+  any class of *C*, rather than testing the `coco_scored` stamp and trusting the
+  passes upstream of the draw.
+- **#3696** (#3670's) — an audit stratum drawn from `clean` measures VG's
+  silence-error on a population `lift_ambiguous` has already cleaned of its
+  hardest cases, so it under-estimates the rate that motivated `provable`. The
+  stratum has to be drawn before the lift, or from a frame recording which
+  suppressions it kept.

@@ -283,6 +283,25 @@ class TestVgNameTables:
         printed `truck+273/23` for a class that no longer existed. The pair test
         above cannot see it, because `truck` is a table KEY rather than one of
         its values (#3588).
+
+        **The zeroed supply is the visible half; the pool is the dangerous one.**
+        On a COCO-anchored image `anchor_to_coco` has already replaced VG's
+        labels with COCO's, so for an exhaustive image whose only *C* label is a
+        COCO-confirmed `truck`: the box is popped, no ``unbanded`` pair is added
+        because ``iid in exhaustive`` exempts it, ``by_name`` is now empty, and
+        `band_candidates` files the image as **clean**. It is COCO-scored, so
+        #3670's `provable` draw designates it -- putting COCO-confirmed trucks
+        into the negative pool whose entire claim is that it holds none of *C*.
+        `--verify`'s composition check cannot catch that: those images really do
+        carry `coco_scored`, which is the flag it tests.
+
+        The rule is also the right one semantically, not merely the safe one. The
+        ambiguous table is for names whose REFERENT is uncertain -- `bike` may be
+        a bicycle or a motorcycle, `van` is split 261/318/37 across three classes
+        -- and neither of those is a class in *C*. A name that IS a class has a
+        certain referent; what it has with a third class is co-occurrence, which
+        is not what this table means. Trucks and cars share streets, and that is
+        not a reason to withhold a truck.
         """
         classes = set(pc.SCALE_CLASSES)
         for table_name, table in (("SCALE_VG_NAMES", pc.SCALE_VG_NAMES), ("SCALE_VG_AMBIGUOUS", pc.SCALE_VG_AMBIGUOUS)):

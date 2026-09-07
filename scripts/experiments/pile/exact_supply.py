@@ -25,8 +25,8 @@ from pilebuild.loaders.vg_scale import (  # noqa: E402
 
 NEED = 300
 GROUPS = {
-    "shipped": (list(pc.SCALE_CLASSES), pc.SCALE_VG_NAMES),
-    "candidate": (list(pc.SCALE_CANDIDATES_3588), pc.SCALE_CANDIDATE_VG_NAMES),
+    "shipped": (list(pc.SCALE_CLASSES_ORIGINAL), pc.SCALE_VG_NAMES),
+    "candidate": (list(pc.SCALE_CANDIDATES_3588), pc.SCALE_VG_NAMES),
 }
 
 paths, records, dims = vg_source()

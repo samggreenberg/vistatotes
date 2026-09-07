@@ -16,7 +16,7 @@ import pile_config as pc  # noqa: E402
 from _cells_io import load_medias  # noqa: E402
 from coco_anchor import coco_truth, ensure_sources  # noqa: E402
 
-ALL = list(pc.SCALE_CANDIDATES_3588) + list(pc.SCALE_CLASSES)
+ALL = list(pc.SCALE_CANDIDATES_3588) + list(pc.SCALE_CLASSES_ORIGINAL)
 m = load_medias(pc.EMBEDDINGS / "vg_scale__siglip.pkl")
 anchor = Path(pc.PILE / "coco_anchor")
 image_data, instances = ensure_sources(anchor, False)
@@ -42,7 +42,7 @@ STREET = ["car", "truck", "bench", "fire hydrant"]
 print("For each SHIPPED class: which existing group does it sit with?")
 print(f"{'shipped':<12}{'n':>6}{'P(any table)':>14}{'P(any street)':>15}   verdict")
 print("-" * 62)
-for c in pc.SCALE_CLASSES:
+for c in pc.SCALE_CLASSES_ORIGINAL:
     have = [s for s in sets if c in s]
     if not have:
         print(f"{c:<12}{0:>6}")
@@ -53,6 +53,6 @@ for c in pc.SCALE_CLASSES:
     print(f"{c:<12}{len(have):>6}{100 * pt:>13.0f}%{100 * ps:>14.0f}%   {v}")
 
 print("\nAnd the reverse -- how often a shipped class is the ONLY thing present:")
-alone = {c: sum(1 for s in sets if s == {c}) for c in pc.SCALE_CLASSES}
+alone = {c: sum(1 for s in sets if s == {c}) for c in pc.SCALE_CLASSES_ORIGINAL}
 for c, k in sorted(alone.items(), key=lambda x: -x[1])[:12]:
     print(f"  {c:<12}{k:>5} images alone  ({100 * k / max(n[c], 1):.0f}% of its images)")

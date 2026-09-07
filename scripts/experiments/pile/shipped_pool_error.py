@@ -402,7 +402,7 @@ def main() -> int:
     # Which pass carries each shipped class, preferring one that asked about it
     # alone. A group pass answers a weaker question and is labelled as such.
     carrier: dict[str, str] = {}
-    for c in pc.SCALE_CLASSES:
+    for c in pc.SCALE_CLASSES_ORIGINAL:
         opts = [n for n, v in passes.items() if c in v["members"]]
         solo = [n for n in opts if len(passes[n]["members"]) == 1]
         carrier[c] = solo[0] if solo else (opts[0] if opts else "")
@@ -425,7 +425,7 @@ def main() -> int:
     print("%-11s %-13s %10s %14s %13s %7s %8s" % hdr)
     print("-" * 104)
     table = {}
-    for c in pc.SCALE_CLASSES:
+    for c in pc.SCALE_CLASSES_ORIGINAL:
         v = passes[carrier[c]]
         kind = "per-class" if len(v["members"]) == 1 else f"group/{len(v['members'])}"
         # As read: for a per-class pass every find is this class's. For a group
@@ -465,7 +465,7 @@ def main() -> int:
             "expected_false_negatives": kr / len(rand) * pc.SCALE_N_NEG,
         }
 
-    solo = [c for c in pc.SCALE_CLASSES if table[c]["kind"] == "per-class"]
+    solo = [c for c in pc.SCALE_CLASSES_ORIGINAL if table[c]["kind"] == "per-class"]
     kr = sum(table[c]["random_hits"] for c in solo)
     ok = sum(table[c]["random_admissible"] for c in solo)
     n = len(solo) * len(rand)
@@ -488,7 +488,7 @@ def main() -> int:
     # pool or only from the unverified half.
     print()
     union: set[int] = set()
-    for c in pc.SCALE_CLASSES:
+    for c in pc.SCALE_CLASSES_ORIGINAL:
         v = passes[carrier[c]]
         union |= v["present"] if len(v["members"]) == 1 else adj_for.get(c, set()) & v["present"]
     yes = {i for i in union if admits.get(i) == "yes"}

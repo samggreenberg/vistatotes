@@ -17,7 +17,7 @@ from _cells_io import load_medias  # noqa: E402
 
 from coco_anchor import coco_truth, ensure_sources  # noqa: E402
 
-SHIPPED, CAND = set(pc.SCALE_CLASSES), set(pc.SCALE_CANDIDATES_3588)
+SHIPPED, CAND = set(pc.SCALE_CLASSES_ORIGINAL), set(pc.SCALE_CANDIDATES_3588)
 medias = load_medias(pc.EMBEDDINGS / "vg_scale__siglip.pkl")
 ids = sorted(medias)
 pool = [i for i in ids if not medias[i].get("categories")]
@@ -64,8 +64,8 @@ print(
 )
 
 # --- the population the slate draws from ------------------------------------
-vg_names = {c: pc.SCALE_CANDIDATE_VG_NAMES.get(c, (c,)) for c in CAND}
-amb = {c: pc.SCALE_CANDIDATE_VG_AMBIGUOUS.get(c, ()) for c in CAND}
+vg_names = {c: pc.scale_names_for(c) for c in CAND}
+amb = {c: pc.scale_ambiguous_for(c) for c in CAND}
 wanted = {n for v in vg_names.values() for n in v} | {n for v in amb.values() for n in v}
 paths, records, dims = vg_source()
 labels = read_vg_labels(records, paths, dims, wanted)

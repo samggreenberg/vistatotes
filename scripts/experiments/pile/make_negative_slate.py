@@ -147,8 +147,8 @@ def main() -> int:
     # Two tables, because the candidates and the shipped twelve keep their
     # measured aliases in different places; falling back to the bare class name
     # for either is the spelling-split blindness this study found.
-    vg_names = {c: (pc.SCALE_CANDIDATE_VG_NAMES.get(c) or pc.SCALE_VG_NAMES.get(c) or (c,)) for c in classes}
-    ambiguous = {c: pc.SCALE_CANDIDATE_VG_AMBIGUOUS.get(c, ()) for c in classes}
+    vg_names = {c: pc.scale_names_for(c) for c in classes}
+    ambiguous = {c: pc.scale_ambiguous_for(c) for c in classes}
     wanted = {n for names in vg_names.values() for n in names}
     wanted |= {n for names in ambiguous.values() for n in names}
     log(

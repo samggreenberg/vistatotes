@@ -319,7 +319,63 @@ def scale_study_exclusion(name: str) -> str | None:
 #: Deliberately *not* derived at build time from the scan. Which classes a human
 #: can annotate consistently is a judgement, and re-deriving it would silently
 #: change what the study measures whenever the scan is re-run.
+#:
+#: **Twenty-five since #3588**, and the thirteen were added on the same terms as
+#: the first twelve: measured supply, a measured name audit, and a human review
+#: of every class before it shipped. What #3588 bought is the *context* axis --
+#: the original twelve sampled it by accident, with only `kite` and `boat`
+#: scene-exclusive, so within-band cost spanned 9.4x while the band effect it was
+#: built to measure spanned 4x. The thirteen add same-scene partners on purpose
+#: (`truck`/`car` beside `bus`, `fork`/`spoon` beside `knife`) and widen the hard
+#: end; the easy end could not be widened at all, because a class that owns its
+#: scene is photographed filling the frame and so fails the small band (#3603).
+#:
+#: The pre-#3588 twelve are kept as :data:`SCALE_CLASSES_ORIGINAL` -- not for the
+#: build, which reads this tuple, but because the published #3618 / #3635 / #3636
+#: / #3666 numbers are conditioned on that list, and re-running those scripts
+#: against twenty-five would silently restate what they measured.
 SCALE_CLASSES: tuple[str, ...] = (
+    "clock",
+    "bird",
+    "boat",
+    "umbrella",
+    "kite",
+    "book",
+    "dog",
+    "backpack",
+    "knife",
+    "bicycle",
+    "bus",
+    "stop sign",
+    # Added by #3588, in the order that issue ranked them: the four same-scene
+    # partners first, then the nine whose surroundings ARE their negative pool.
+    "truck",
+    "car",
+    "fork",
+    "spoon",
+    "cup",
+    "bowl",
+    "bottle",
+    "vase",
+    "bench",
+    "chair",
+    "sink",
+    "cell phone",
+    "fire hydrant",
+)
+
+#: The twelve *C* held before #3588, frozen as a historical roster.
+#:
+#: Every published measurement of the shared negative pool -- #3618's name
+#: coverage, #3635's contamination rates, #3636's pooled families, #3666's pool
+#: error for "the shipped twelve" -- is conditioned on a pool drawn as *holds
+#: none of these twelve*. Reading those scripts off :data:`SCALE_CLASSES` after
+#: the promotion would not re-measure them, it would answer a different question
+#: under the old numbers' names. So the scripts that compare *shipped* against
+#: *candidate* read this, and the builders read :data:`SCALE_CLASSES`.
+#:
+#: Not a table anyone should add to. A class joining *C* joins the tuple above.
+SCALE_CLASSES_ORIGINAL: tuple[str, ...] = (
     "clock",
     "bird",
     "boat",
@@ -391,14 +447,43 @@ SCALE_VG_NAMES: dict[str, tuple[str, ...]] = {
     # which carries the four route/deck spellings no one of which reached the
     # five-image floor on its own (#3636).
     "bus": ("buses", "city bus", "double-decker bus", "passenger bus", "school bus", "tour bus"),
+    # `phone` is the riskiest entry in this table and stays on measurement, not
+    # comfort: it carries 541 of COCO's `cell phone` boxes on the overlap, and
+    # `coco_folds.py` scores the class at 46% definition risk because VG's
+    # `phone` is nearly half landlines. What makes it foldable anyway is the
+    # direction that matters here -- a VG `phone` box that COCO adjudicates is a
+    # cell phone often enough to clear the cut, and the landlines it does drag in
+    # are what `SCALE_CLASS_RULES["cell phone"]` exists to settle (#3588).
+    "cell phone": ("cellphone", "phone"),
     # The face is the clock: 89% of `clock face` boxes land on COCO's clock box,
     # over 184 of them -- the best-supported fold in the study. `clockface` is
     # the same word without the space, and pooled with it scores 89% over 19
     # sole images and 89% over 194 boxes (#3636).
     "clock": ("clock face", "clockface", "clocks"),
+    # The stemware half of the merged `cup` (see SCALE_CLASS_MERGES), plus `mug`,
+    # which is the cup half's own missing spelling at 238 boxes. Measured against
+    # COCO `wine glass` boxes: `wine glasses` 16, `wineglass` 9, `goblet` 8,
+    # `champagne glass` 5, `champagne flute` 5.
+    #
+    # `glass` is NOT here, and the reasoning that briefly put it here is worth
+    # keeping because it was subtly wrong -- see SCALE_VG_AMBIGUOUS["cup"].
+    "cup": (
+        "champagne flute",
+        "champagne glass",
+        "goblet",
+        "mug",
+        "wine glass",
+        "wine glasses",
+        "wineglass",
+    ),
     # `dalmation` (VG's spelling) and `lab` come from the breed group, `white dog`
     # from the colour one: 74% and 91% pooled, both folding on box agreement (#3636).
     "dog": ("black dog", "brown dog", "dalmation", "dogs", "lab", "puppy", "white dog"),
+    # One object under two spellings (box IoU 0.77/0.74, `scan_name_overlap.py`),
+    # and the fold is not optional: `hydrant` alone carries 266 of the 835 COCO
+    # `fire hydrant` boxes on the overlap, so the long spelling on its own throws
+    # away a third of the class (#3588).
+    "fire hydrant": ("hydrant",),
     # COCO's `kite` covers parasails and parachutes, and VG names them so.
     # `para sail` is `parasail` with a space; the pair scores 83% over 24 sole
     # images and 84% over 74 boxes (#3636).
@@ -520,6 +605,18 @@ SCALE_VG_AMBIGUOUS: dict[str, tuple[str, ...]] = {
     "bus": ("blue bus", "busses"),
     # `numerals` and `clock faces` each inherit from their own singular (#3636).
     "clock": ("alarm clock", "clock faces", "numeral", "numerals", "roman numerals"),
+    # `glass` is the entry that named the candidate table this moved out of, and
+    # it is here because a FOLD-OUT RATE IS NOT A POSITIVE-PRECISION RATE. Its
+    # fold-out is 62.2% onto the merged class (1,146 of 3,224 VG boxes on COCO
+    # `cup`, 861 on `wine glass`), well clear of `bike`'s 40.1%, which reads as a
+    # usable alias -- and that reading was wrong. Fold-out is measured only on the
+    # COCO-annotated half, where a reference exists; POSITIVES are drawn from all
+    # of VG, and on the unchecked half the 35% of `glass` boxes that land on no
+    # COCO class -- windowpanes, eyeglasses -- arrive as positives unexamined.
+    # The review measured the damage: the merged `cup` slate rejected 9 of 30
+    # boxed positives, 30%, against 0-17% for every other class of the thirteen,
+    # and worst in the LARGE band at 40%, which is where a windowpane lands.
+    "cup": ("glass",),
     "dog": ("bulldog", "poodle"),
     "knife": ("butterknife", "knife block", "knives", "silverware"),
     # `sign` is the largest fold-in column anywhere in C -- 473 of COCO's 1,016
@@ -1760,10 +1857,12 @@ def setup_env() -> None:
 
 
 # --------------------------------------------------------------------------
-# #3588: candidate additions to C, and the definition each is reviewed under
+# #3588: the thirteen classes added to C, and the definition each was reviewed
+# under. PROMOTED -- every name below now lives in the shipped tables, and this
+# section is what the promotion was made of rather than a queue of pending work.
 # --------------------------------------------------------------------------
 
-#: Candidates for an expanded *C*, measured rather than proposed.
+#: The thirteen classes #3588 added to *C*, measured rather than proposed.
 #:
 #: Issue #3588 asks for the class list to sample *context exclusivity* on
 #: purpose instead of by accident. Its own proposal does not survive the gate
@@ -1784,6 +1883,14 @@ def setup_env() -> None:
 #: supply are anti-correlated in VG, so the easy end of the axis cannot be
 #: widened with this source at this floor. These additions widen the hard end
 #: and add same-scene partners; see the report for what that costs the design.
+#:
+#: **All thirteen are now in :data:`SCALE_CLASSES`** -- reviewed at 300 images
+#: each, cleared, and promoted on the owner's 12-vs-13 call (#3604). The tuple
+#: survives the promotion because the #3588-era analyses are conditioned on the
+#: split: `shipped_pool_error.py` and the negative pass both ask *shipped versus
+#: candidate*, and that question needs the two rosters to stay nameable after
+#: they became one class list. Read it as "the thirteen #3588 added", never as
+#: "classes still under consideration" -- nothing here is pending.
 SCALE_CANDIDATES_3588: tuple[str, ...] = (
     # Tier A -- a habitat partner of a class already in C, so the negative pool
     # is shared and the contrast is same-scene, different-object.
@@ -1803,59 +1910,27 @@ SCALE_CANDIDATES_3588: tuple[str, ...] = (
     "fire hydrant",
 )
 
-#: VG names that denote one of the CANDIDATES. VG's vocabulary is free text and
-#: :func:`pilebuild.vgsource.vg_boxes_by_name` matches the PRIMARY name only, so
-#: a class built from one spelling silently drops the others.
+#: VG names that denote a class NOT YET in *C*, held apart from the shipped read.
 #:
-#: Only merges measured as aliases are listed. `fire hydrant` / `hydrant` is one
-#: object under two spellings (box IoU 0.77/0.74, `scan_name_overlap.py`), and
-#: `hydrant` accounts for 266 of the 835 COCO `fire hydrant` boxes on the
-#: overlap -- taking `fire hydrant` alone would throw away a third of the class.
-#: `phone` is listed for `cell phone` on the same evidence (541 boxes) **and is
-#: the single riskiest entry here**: see `SCALE_CLASS_RULES`.
+#: **Empty since the #3588 promotion, and that is the table working, not rotting.**
+#: The two tables cannot be merged because they are read at different times by
+#: different code: :data:`SCALE_VG_NAMES` widens the ``vg_scale`` READ and is
+#: folded by :func:`pilebuild.loaders.vg_scale.canonicalise` on every build, so an
+#: entry there for a class outside *C* changes the built dataset on the strength
+#: of a name nobody has reviewed. This one is read only by the slate makers, which
+#: band a candidate without touching the pickle. When the candidate is promoted
+#: its row moves across, **minus the class name itself** -- entries here list the
+#: class name too, because the slate builder has no separate class-name read to
+#: add it to, and forgetting to strip it on the way over would list `cup` as one
+#: of `cup`'s own alternate spellings.
 #:
-#: **Deliberately not :data:`SCALE_VG_NAMES`**, which is the same measurement for
-#: a class already in *C*. The two cannot share a table because they are read at
-#: different times by different code: `SCALE_VG_NAMES` widens the ``vg_scale``
-#: READ and is folded by :func:`pilebuild.loaders.vg_scale.canonicalise` on every
-#: build, so an entry there for a class outside *C* would change the built
-#: dataset -- and nothing here has been decided yet (#3604). This table is read
-#: only by `make_class_slate.py`, which bands a candidate without touching the
-#: pickle. A candidate promoted into *C* moves its row across, minus the class
-#: name itself: the entries here list the class name too, because the slate
-#: builder has no separate class-name read to add it to.
-SCALE_CANDIDATE_VG_NAMES: dict[str, tuple[str, ...]] = {
-    "fire hydrant": ("fire hydrant", "hydrant"),
-    "cell phone": ("cell phone", "phone", "cellphone"),
-    # The stemware half of the merged `cup` (see SCALE_CLASS_MERGES). Measured
-    # against COCO `wine glass` boxes: `wine glasses` 16, `wineglass` 9,
-    # `goblet` 8, `champagne glass` 5, `champagne flute` 5; `mug` 238 is the
-    # cup half's own missing spelling.
-    #
-    # `glass` is NOT here, and the reasoning that briefly put it here is worth
-    # keeping because it was subtly wrong. Its fold-out is 62.2% onto the merged
-    # class (1,146 of 3,224 VG boxes on COCO `cup`, 861 on `wine glass`), well
-    # clear of `bike`'s 40.1%, which reads as a usable alias.
-    #
-    # But a fold-out rate is NOT a positive-precision rate. Fold-out is measured
-    # only on the COCO-annotated half, where a reference exists; POSITIVES are
-    # drawn from all of VG, including the half with no check, and there the 35%
-    # of `glass` boxes that land on no COCO class -- windowpanes, eyeglasses --
-    # arrive as positives unexamined. The review measured the damage: the merged
-    # `cup` slate rejected 9 of 30 boxed positives, 30%, against 0-17% for every
-    # other class, and worst in the LARGE band at 40%, which is where a
-    # windowpane lands. `glass` is in SCALE_CANDIDATE_VG_AMBIGUOUS instead.
-    "cup": (
-        "cup",
-        "mug",
-        "wine glass",
-        "wine glasses",
-        "wineglass",
-        "goblet",
-        "champagne glass",
-        "champagne flute",
-    ),
-}
+#: The three rows that lived here -- `fire hydrant`/`hydrant`, `cell phone`/`phone`,
+#: and the `cup` stemware merge -- are now in :data:`SCALE_VG_NAMES`, carrying
+#: their measurements with them. Read a candidate's names through
+#: :func:`scale_names_for`, never off this table directly: after a promotion the
+#: row is in the other table, and a bare ``.get(c, (c,))`` silently answers "this
+#: class has no alternate spellings" for a class that has seven.
+SCALE_CANDIDATE_VG_NAMES: dict[str, tuple[str, ...]] = {}
 
 #: Candidate-class spellings that MAY denote the class but also denote something
 #: else -- :data:`SCALE_VG_AMBIGUOUS` for classes not yet in *C*.
@@ -1866,19 +1941,39 @@ SCALE_CANDIDATE_VG_NAMES: dict[str, tuple[str, ...]] = {
 #: does both, and exempts any image COCO annotates exhaustively or a reviewer has
 #: ruled on -- there the question is already answered and the spelling is ignored.
 #:
-#: `glass` is the entry that named this table. It is 62.2% good by fold-out, which
-#: is why it was first tried as a plain alias, and the 35% that is windowpanes and
-#: eyeglasses still cost `cup` 30% of its boxed positives -- the measurement is in
-#: the comment on that table above.
-SCALE_CANDIDATE_VG_AMBIGUOUS: dict[str, tuple[str, ...]] = {
-    "cup": ("glass",),
-}
+#: Empty since the #3588 promotion; `glass`, the entry that named this table, is
+#: now :data:`SCALE_VG_AMBIGUOUS`\ ``["cup"]``.
+SCALE_CANDIDATE_VG_AMBIGUOUS: dict[str, tuple[str, ...]] = {}
+
+
+def scale_names_for(cls: str) -> tuple[str, ...]:
+    """Every VG spelling that IS *cls*, whichever side of promotion it sits on.
+
+    The class name first, then its measured alternate spellings from the shipped
+    table or the candidate one. Written because the slate makers read the
+    candidate table with a ``(cls,)`` default, which answers "no alternate
+    spellings" and "this class was promoted last week" identically -- and the
+    second answer is wrong in the expensive direction, since a slate built
+    without `hydrant` silently drops a third of `fire hydrant`'s boxes.
+    """
+    extra = SCALE_CANDIDATE_VG_NAMES.get(cls) or SCALE_VG_NAMES.get(cls) or ()
+    return (cls, *(n for n in extra if n != cls))
+
+
+def scale_ambiguous_for(cls: str) -> tuple[str, ...]:
+    """*cls*'s ambiguous spellings, whichever side of promotion it sits on.
+
+    The companion to :func:`scale_names_for`, and it matters for the same reason:
+    `glass` moved tables at the promotion, and a slate that stopped withholding
+    it would put windowpanes back among `cup`'s positives.
+    """
+    return SCALE_CANDIDATE_VG_AMBIGUOUS.get(cls) or SCALE_VG_AMBIGUOUS.get(cls) or ()
 
 
 #: Classes this project defines as the UNION of several COCO classes.
 #:
 #: Distinct from every other table here, and the distinction is the whole point:
-#: an alias merge (:data:`SCALE_CANDIDATE_VG_NAMES`) says two *names* denote one
+#: an alias merge (:data:`SCALE_VG_NAMES`) says two *names* denote one
 #: object, which is a measurement. This says we are choosing a class boundary
 #: COCO did not draw, which is a decision.
 #:

@@ -36,7 +36,7 @@ make the gap impossible to miss (§6).
 | **Realised** cell prevalence | 1.72% → **0.85%** (0.844–0.856 across 36 cells) |
 | Contamination from VG's silence | 1.40% [0.68, 2.86] → **0 by construction** |
 | Negative review still eligible | 743 → **147**; coverage of those, **100.0%** |
-| New images to embed | **~6,300** (≈15 GPU-minutes for all five embedders, measured) |
+| New images to embed | **6,000** (7,746 → 13,746 medias; 15.5 min for all five embedders, measured) |
 | `vg_scale_deep` | pinned at 11,700 negatives, deliberately (#3690) |
 
 Scripts:
@@ -333,4 +333,8 @@ asserts against the pinned value.
   longer be re-measured inside the dataset. Filed.
 - **`exhaustive` is still widened by a one-class review** where #3667's
   cross-class rule reads it, so the same over-promotion §4 removed from the pool
-  draw survives in the negatives a class inherits from its siblings. Filed.
+  draw survives in the negatives a class inherits from its siblings. Measured
+  here and small: **197 images** of 51,645 are exhaustive only because someone
+  looked (0.4%), of which **64 are designated positives** — 1.8% of them. Filed
+  rather than fixed, because tightening it changes which images #3667 admits and
+  that is a rebuild of its own.

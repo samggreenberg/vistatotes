@@ -123,12 +123,19 @@ def fig_supply(before: dict, after: dict, path: Path) -> None:
     )
     for i, (d, c) in enumerate(rows):
         pct = 100 * d / max(b[c]["union"], 1)
-        label = f"  +{d:,}  ({pct:.0f}%)" if d else "  0 -- no alias row"
+        if d > 0:
+            label = f"  +{d:,}  ({pct:.0f}%)"
+        elif d < 0:
+            # A fold can also un-band: the merged union scatters or outgrows a
+            # region and leaves every band (#3637, where `clock` nets -16).
+            label = f"  \u2212{-d:,}  (the scatter guard)"
+        else:
+            label = "  0 -- no alias row, so nothing could move"
         ax.text(max(d, 0) + 12, i, label, va="center", fontsize=8, color=INK if d else OWN)
     ax.set_yticks(list(ys))
     ax.set_yticklabels([f"`{c}`" for _, c in rows], fontsize=8.5)
     ax.set_xlabel("band-free positives the alias table adds, invisible to the old measurement", fontsize=9)
-    ax.set_xlim(0, max(d for d, _ in rows) * 1.42)
+    ax.set_xlim(min(0, min(d for d, _ in rows) * 4), max(d for d, _ in rows) * 1.42)
     ax.grid(axis="x", color=GRID, lw=0.6)
     ax.invert_yaxis()
     _frame(ax)

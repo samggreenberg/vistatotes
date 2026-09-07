@@ -2024,17 +2024,24 @@ SCALE_N_NEG = int(os.environ.get("VTS_SCALE_N_NEG", "9900"))
 #: verdict can retire a contaminated negative later; re-designating from a spare
 #: is a relabel, while drawing a fresh one would mean re-embedding every cell.
 #:
-#: **1,000 since the #3588 promotion, up from 300, because the pool is shared and
-#: C is now twenty-five classes.** A shared negative is evaluable in *every* cell
+#: **1,000 since the #3588 promotion, up from 300 — and the reason is no longer
+#: the one that raised it.** It was raised to survive a correction pass over a
+#: contaminated pool: a shared negative is evaluable in *every* cell
 #: (:func:`pilebuild.loaders.vg_scale._evaluable` returns the whole cell list for
-#: an image with no categories), so a verdict that finds a car in a pool image
-#: does not retire it from `car` alone -- the image stops being clean and leaves
-#: all twenty-five. The budget therefore has to cover the **joint** rate, not the
-#: worst class's: the negative pass measured 14% +/- 7 on its random stratum
-#: (n=100, #3588), which is ~550 of 3,900, and the spares are contaminated at the
-#: same rate. 300 was sized when *C* was twelve classes at 1-2% each and would be
-#: spent by a single correction pass, at which point the cheap relabel becomes a
-#: re-embed of every cell -- the exact trade this constant exists to avoid.
+#: an image with no categories), so a verdict finding a car in a pool image does
+#: not retire it from `car` alone — the image stops being clean and leaves all
+#: twenty-five. Against the negative pass's measured **14% ± 7** joint rate that
+#: is ~550 retirements per 3,900 negatives, and 300 would be spent by one pass.
+#:
+#: #3670 landed in the same window and made that arithmetic moot: the pool is now
+#: drawn entirely from the COCO-scored half, where "holds none of *C*" is a fact,
+#: so contamination is **0 by construction** and a verdict retires a negative only
+#: where a human finds what COCO's exhaustive annotation missed. What the number
+#: buys today is therefore headroom rather than a budget — for `vg_scale_deep`,
+#: whose composition #3690 pinned separately, and for any future pass over either.
+#: It is kept at 1,000 because 1,000 images out of ~14,000 medias is noise against
+#: a rebuild, while running out mid-pass turns a relabel into a re-embed of every
+#: cell. Do not read the size as evidence that the pool is dirty.
 SCALE_N_NEG_SPARE = int(os.environ.get("VTS_SCALE_N_NEG_SPARE", "1000"))
 
 #: What the shared negative pool is made of (#3670).

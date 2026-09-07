@@ -660,13 +660,16 @@ def coverage():
     return check_review_coverage
 
 
-def _pool_media(*, exhaustive: bool = True, designated: bool = True) -> dict:
+def _pool_media(*, coco_scored: bool = True, designated: bool = True, stamped: bool = True) -> dict:
     """A shared negative as the loader writes one: no categories, scorable everywhere."""
-    return {
+    media = {
         "categories": [],
         "evaluable_categories": ["bus@small"] if designated else [],
-        "labels_exhaustive": exhaustive,
+        "labels_exhaustive": True,
     }
+    if stamped:
+        media["coco_scored"] = coco_scored
+    return media
 
 
 class TestNegativePoolProblems:
@@ -677,7 +680,7 @@ class TestNegativePoolProblems:
     """
 
     def _pool(self, pc, n: int, silent: int = 0) -> dict:
-        medias = {i: _pool_media(exhaustive=i >= silent) for i in range(n)}
+        medias = {i: _pool_media(coco_scored=i >= silent) for i in range(n)}
         # One positive, so the cell is not all-negative and the pool filter has
         # something to exclude.
         medias[-1] = {"categories": ["bus@small"], "evaluable_categories": ["bus@small"]}
@@ -689,7 +692,24 @@ class TestNegativePoolProblems:
     def test_an_off_coco_negative_is_named_under_provable(self, audit, pc):
         problems = audit.negative_pool_problems("vg_scale", self._pool(pc, pc.SCALE_N_NEG, silent=7))
 
-        assert any("rest on VG's silence" in p and "7 of" in p for p in problems)
+        assert any("not COCO-scored" in p and "7 of" in p for p in problems)
+
+    def test_a_reviewed_image_does_not_count_as_provable(self, audit, pc):
+        """`labels_exhaustive` is also set by a one-class review, so it is the wrong flag."""
+        medias = self._pool(pc, pc.SCALE_N_NEG)
+        for i in range(5):
+            medias[i]["coco_scored"] = False
+            medias[i]["labels_exhaustive"] = True  # a human looked -- at one class
+
+        assert any("not COCO-scored" in p for p in audit.negative_pool_problems("vg_scale", medias))
+
+    def test_a_cell_predating_the_stamp_is_told_to_rebuild(self, audit, pc):
+        """An unstamped cell cannot answer the question; it must not pass by default."""
+        medias = {i: _pool_media(stamped=False) for i in range(pc.SCALE_N_NEG)}
+
+        problems = audit.negative_pool_problems("vg_scale", medias)
+
+        assert any("built before the flag existed" in p for p in problems)
 
     def test_the_pre_3670_pool_size_is_caught(self, audit, pc):
         """The exact shape of a deferred rebuild: right cells, stale pool."""
@@ -709,7 +729,7 @@ class TestNegativePoolProblems:
 
     def test_deep_is_exempt_from_the_composition_rule(self, audit, pc):
         """`vg_scale_deep` is pinned to the pre-#3670 construction on purpose (#3690)."""
-        medias = {i: _pool_media(exhaustive=False) for i in range(pc.SCALE_DEEP_N_NEG)}
+        medias = {i: _pool_media(coco_scored=False) for i in range(pc.SCALE_DEEP_N_NEG)}
 
         assert audit.negative_pool_problems("vg_scale_deep", medias) == []
 
@@ -750,3 +770,50 @@ class TestCoverageRow:
         eligible = coverage.eligible_under("matched")
 
         assert all(eligible(i) for i in (1, 2, 424242))
+
+
+class TestCorrectionsOutsideC:
+    """A shared verdict file holds classes this build does not have (#3670)."""
+
+    def test_a_verdict_for_a_class_outside_c_is_skipped(self, vgs):
+        """`corrections.json` is shared; #3588's pass added thirteen classes to it.
+
+        Without the skip the label is written anyway and `band_candidates` dies
+        on `supply['car']` -- a shared file making the shipped twelve-class
+        construction unbuildable, reported as a dict lookup three passes later.
+        """
+        labels = {7: {}}
+
+        vgs.apply_corrections(labels, {(7, "car"): _verdict(True, [[0.0, 0.0, 0.5, 0.5]])}, {7: (640, 480)}, set())
+
+        assert labels[7] == {}
+
+    def test_a_verdict_outside_c_does_not_make_the_image_exhaustive(self, vgs):
+        """The half that decides pool membership under #3670.
+
+        Marking an image exhaustive claims absence is a fact for every class in
+        C. A human who looked for a `car` established nothing about `bus`.
+        """
+        exhaustive: set[int] = set()
+
+        vgs.apply_corrections({7: {}}, {(7, "car"): _verdict(False)}, {7: (640, 480)}, exhaustive)
+
+        assert exhaustive == set()
+
+    def test_a_verdict_inside_c_still_applies(self, vgs):
+        exhaustive: set[int] = set()
+        labels = {7: {"bus": [[1.0, 1.0, 2.0, 2.0]]}}
+
+        vgs.apply_corrections(labels, {(7, "bus"): _verdict(False)}, {7: (640, 480)}, exhaustive)
+
+        assert labels[7] == {} and exhaustive == {7}
+
+    def test_a_widened_class_list_is_honoured(self, vgs):
+        """#3588's expansion passes its own C rather than editing the module."""
+        labels = {7: {}}
+
+        vgs.apply_corrections(
+            labels, {(7, "car"): _verdict(True, [[0.0, 0.0, 0.5, 0.5]])}, {7: (640, 480)}, set(), classes=("car",)
+        )
+
+        assert "car" in labels[7]

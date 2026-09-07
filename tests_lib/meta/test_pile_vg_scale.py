@@ -346,6 +346,33 @@ class TestVgNameTables:
                 for name in names:
                     assert name == name.strip().lower(), name
 
+    def test_glass_is_withheld_from_cup_rather_than_folded(self, pc):
+        """The audit ARGUES FOR folding this one, and it must still not be folded.
+
+        `glass` is ambiguous for `cup` on a measurement no script makes: the
+        merged `cup` slate rejected **9 of 30** boxed positives (30%), against
+        0-17% for every other class of the thirteen, and worst in the LARGE band
+        at 40% -- which is where a windowpane lands (#3588).
+
+        Making the audit merge-aware (#3700) *raised* the case for folding it,
+        because the scorer now counts COCO `wine glass` too and `glass` clears
+        the cuts. That is not new evidence, it is the same evidence measured
+        better on the half where `glass` was never the problem: repair precision
+        is computed on the COCO-annotated overlap, and the windowpanes arrive as
+        positives on the half with **no reference at all**. A fold-out rate is
+        not a positive-precision rate, and neither is a merge-aware one.
+
+        So this test guards a hand exclusion against a script that disagrees
+        with it -- the same shape as `sign` for `stop sign` below.
+        """
+        assert "glass" in pc.SCALE_VG_AMBIGUOUS["cup"]
+        for spelling in ("glass", "glass.", "clear glass"):
+            assert spelling not in pc.SCALE_VG_NAMES.get("cup", ()), (
+                f"`{spelling}` folded into `cup`: the merge-aware audit proposes this and the "
+                "human review refutes it -- 30% of the merged slate's boxed positives were "
+                "rejected when it was treated as an alias (#3588, #3700)."
+            )
+
     def test_sign_is_not_listed_for_stop_sign(self, pc):
         """The largest fold-in column in C, and the one that must not be acted on.
 

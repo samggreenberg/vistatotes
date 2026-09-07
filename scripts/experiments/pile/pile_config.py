@@ -560,14 +560,27 @@ SCALE_VG_NAMES: dict[str, tuple[str, ...]] = {
     "clock": ("clock face", "clockface", "clocks"),
     # +386 repaired on the non-COCO half, 345 of them banded.
     #
-    # The stemware half is the CLASS MERGE (see SCALE_CLASS_MERGES) and had to be
-    # carried by hand: `name_evidence.py` scores every candidate against COCO
-    # `cup` alone, so `wine glass` reads 38% precision and 2% box agreement and
-    # lands in `neither` -- not because the name is bad but because the audit
-    # cannot ask about `cup` U `wine glass` (#3700). Those six keep their #3588
-    # measurement against COCO `wine glass` boxes. `mug` is the cup half's own
-    # missing spelling, and the audit confirms it independently: 88% over 193
-    # sole images, 82% over 290 boxes.
+    # The stemware half is the CLASS MERGE (see SCALE_CLASS_MERGES). It was
+    # carried by hand at the #3588 promotion because the audit scored every
+    # candidate against COCO `cup` alone -- `wine glass` read 38% precision and
+    # 2% box agreement and landed in `neither`, a refusal produced by the scorer
+    # looking at the wrong half of the class.
+    #
+    # #3700 made the audit merge-aware, and it now CONFIRMS the two spellings
+    # that carry the mass: `wine glass` at **98%** precision over 151 sole images
+    # and **85%** box agreement over 253 boxes, `wine glasses` at 95% / 57%.
+    # The other four stay on #3588's direct measurement against COCO
+    # `wine glass` boxes, because they sit below the audit's own floors rather
+    # than being refused by it: `goblet` clears precision at 70% with 12 boxes
+    # against a floor of 20, and `wineglass`, `champagne glass` and
+    # `champagne flute` fall under `--min-sole` entirely. `unmeasured` is not
+    # `refuted`.
+    #
+    # `mug` is the cup half's own missing spelling and was never affected: 88%
+    # over 193 sole images, 82% over 290 boxes, before and after.
+    #
+    # `glass` is NOT here, and the audit now proposes that it should be. See
+    # SCALE_VG_AMBIGUOUS["cup"] for why it is refused anyway.
     "cup": (
         "black cup",
         "brown cup",
@@ -893,6 +906,28 @@ SCALE_VG_AMBIGUOUS: dict[str, tuple[str, ...]] = {
     ),
     # `numerals` and `clock faces` each inherit from their own singular (#3636).
     "clock": ("alarm clock", "clock faces", "numeral", "numerals", "roman numerals"),
+    # `glass` is the entry that named this table, and it is the one entry the
+    # audit actively DISAGREES with.
+    #
+    # It is 62.2% good by fold-out (1,146 of 3,224 VG boxes on COCO `cup`, 861
+    # on `wine glass`), well clear of `bike`'s 40.1%, which is why it was first
+    # tried as a plain alias. A fold-out rate is not a positive-precision rate:
+    # fold-out is measured only on the COCO-annotated half, while POSITIVES are
+    # drawn from all of VG, and there the ~35% of `glass` boxes that land on no
+    # COCO class -- windowpanes, eyeglasses -- arrive as positives unexamined.
+    # The review measured the damage: the merged `cup` slate rejected **9 of 30**
+    # boxed positives (30%) against 0-17% for every other class of the thirteen,
+    # and worst in the LARGE band at 40%, which is where a windowpane lands.
+    #
+    # **#3700 raised the case for folding it, and changed nothing that matters.**
+    # Once the scorer counted COCO `wine glass` too, `glass`, `glass.` and
+    # `clear glass` all cleared the cuts and `name_evidence.py` began proposing
+    # them as aliases. That is the same evidence measured better on the half
+    # where `glass` was never the problem -- repair precision is computed on the
+    # overlap, and the windowpanes are on the half with no reference at all. The
+    # measurement that decides is a human one and no script produces it, so the
+    # exclusion is a hand exclusion with a test behind it, exactly like `sign`
+    # for `stop sign` (`test_glass_is_withheld_from_cup_rather_than_folded`).
     "cup": (
         "beer",
         "beer glass",

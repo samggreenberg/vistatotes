@@ -83,7 +83,7 @@ def main() -> None:
 
     corrections = load_corrections()
     labels = read_vg_labels(records, paths, dims, wanted_vg)
-    box_dims, exhaustive, _n_anchored, _n_reframed = anchor_to_coco(labels, dims, coco_of, truth, ca.COCO_DIMS, wanted)
+    box_dims, exhaustive, *_ = anchor_to_coco(labels, dims, coco_of, truth, ca.COCO_DIMS, wanted)
     canonicalise(labels, pc.SCALE_VG_NAMES, box_dims, pc.SCALE_FOLD_MODE)
     unbanded = apply_corrections(labels, corrections, box_dims, exhaustive)
     unbanded |= lift_ambiguous(labels, pc.SCALE_VG_AMBIGUOUS, exhaustive)

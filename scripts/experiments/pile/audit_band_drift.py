@@ -138,7 +138,9 @@ def main() -> int:
     vg_labels = {iid: {n: list(bs) for n, bs in by_name.items()} for iid, by_name in labels.items()}
     withheld = lift_ambiguous(vg_labels, pc.SCALE_VG_AMBIGUOUS, set())
 
-    box_dims, exhaustive, n_anchored, n_reframed = anchor_to_coco(labels, dims, coco_of, truth, ca.COCO_DIMS, wanted)
+    box_dims, exhaustive, n_anchored, n_reframed, _reband = anchor_to_coco(
+        labels, dims, coco_of, truth, ca.COCO_DIMS, wanted
+    )
     log(f"  labels: {len(labels)} VG images, {n_anchored} anchored to COCO, {n_reframed} skipped as re-framed")
     if not exhaustive:
         raise SystemExit("no image anchored to COCO; there is no control group to measure against")

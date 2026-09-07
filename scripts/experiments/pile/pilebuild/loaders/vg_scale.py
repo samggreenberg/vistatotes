@@ -236,6 +236,15 @@ def lift_ambiguous(
     return pairs
 
 
+#: The four things the anchor can do to a ``(image, class)`` pair whose VG boxes
+#: put the image in a band -- the keys of each class's row in
+#: :func:`anchor_to_coco`'s ``rebanded`` ledger, in the order the log prints
+#: them. ``absent`` is not a fifth kind of band change but its own fact: COCO
+#: looked at the image exhaustively and the class is not there, so the pair
+#: leaves the class's cells as a *negative* rather than moving between them.
+REBAND_OUTCOMES = ("kept", "moved", "unbanded", "absent")
+
+
 def anchor_to_coco(
     labels: dict[int, dict[str, list[list[float]]]],
     dims: dict[int, tuple[int, int]],
@@ -243,11 +252,11 @@ def anchor_to_coco(
     truth: dict[int, dict[str, list[list[float]]]],
     coco_dims: dict[int, tuple[int, int]],
     wanted: set[str],
-) -> tuple[dict[int, tuple[int, int]], set[int], int, int]:
+) -> tuple[dict[int, tuple[int, int]], set[int], int, int, dict[str, dict[str, int]]]:
     """Replace VG's labels with COCO's wherever COCO annotates the same image.
 
-    Returns ``(box_dims, exhaustive, n_anchored, n_reframed)`` and edits
-    *labels* in place.
+    Returns ``(box_dims, exhaustive, n_anchored, n_reframed, rebanded)`` and
+    edits *labels* in place.
 
     VG's own annotation is not exhaustive: measured against COCO its recall over
     C is 0.61, and 1.35% of the images it treats as negatives actually hold the
@@ -268,9 +277,37 @@ def anchor_to_coco(
     COCO box normalised by the VG file's dimensions lands in the wrong place and
     with the wrong extent. Every box is normalised by the dimensions of the
     image its coordinates were measured on.
+
+    ``rebanded`` is what that replacement did, per class, over the pairs where
+    **VG's own spelling put the image in a band** -- one row of
+    :data:`REBAND_OUTCOMES` counts each. It is the anchor's half of the ledger
+    :func:`canonicalise` prints for the fold, and it is the larger half by eight
+    times: measured in #3637, over the 11,156 such pairs the anchor keeps the
+    band on 67%, MOVES it on 6.2%, UN-BANDS the image on 17%, and finds the
+    class absent on 10% -- so a third of the anchored half's band memberships
+    change on every build, and the line above this one has only ever said how
+    many images the pass touched (#3659).
+
+    That is not a defect to be fixed: COCO's boxes are the exhaustive reference
+    the banding rule was validated against, and #3637's finding is that they are
+    right where VG's disagree. It is a defect to leave *unreported*, because a
+    class whose anchored half is mostly un-banded is a class whose VG spelling
+    frames a different thing from COCO's -- a signal
+    :data:`pile_config.SCALE_VG_NAMES_AUDITED` cannot give, since it measures
+    the spellings against each other rather than against a band.
+
+    Counting has to read ``band_for`` over VG's boxes BEFORE the replacement
+    overwrites them, which is why it happens here rather than in a later pass
+    reading the result: after the assignment below, VG's reading of an anchored
+    image is gone. This is the same rule as the fold's -- count where the work
+    lands, not where it is attempted -- read from the other end.
+    ``scripts/experiments/pile/band_fold.py --phase truth`` computes the same
+    four numbers off the raw source, so the two can be checked against each
+    other.
     """
     box_dims: dict[int, tuple[int, int]] = dict(dims)
     exhaustive: set[int] = set()
+    rebanded: dict[str, dict[str, int]] = {c: dict.fromkeys(REBAND_OUTCOMES, 0) for c in sorted(wanted)}
     n_anchored = 0
     n_reframed = 0
     for iid in labels:
@@ -292,6 +329,26 @@ def anchor_to_coco(
             n_reframed += 1
             continue
         box_dims[iid] = wh
+        # Read VG's verdict while it still exists. Only the class's OWN spelling
+        # is consulted, and that is not an omission: the fold runs after this
+        # pass and is discarded on an anchored image, so an alias box has no
+        # effect here to count. Pairs VG does not band are skipped rather than
+        # counted as a fifth outcome -- the question is what the replacement does
+        # to a band that exists, and an image VG left scattered has none to lose.
+        for cls in wanted & labels[iid].keys():
+            own = labels[iid][cls]
+            if not own:
+                continue
+            was = band_for(own, vw, vh)
+            if was not in pc.BOX_BANDS:
+                continue
+            now = band_for(ref[cls], *wh) if ref.get(cls) else None
+            if now is None:
+                rebanded[cls]["absent"] += 1
+            elif now not in pc.BOX_BANDS:
+                rebanded[cls]["unbanded"] += 1
+            else:
+                rebanded[cls]["moved" if now != was else "kept"] += 1
         # COCO's annotation REPLACES VG's for this image rather than merging
         # with it: the two disagree in both directions, and only one of them is
         # exhaustive. Keeping VG's extra boxes would reintroduce exactly the
@@ -299,7 +356,7 @@ def anchor_to_coco(
         labels[iid] = {name: bs for name, bs in ref.items() if name in wanted}
         exhaustive.add(iid)
         n_anchored += 1
-    return box_dims, exhaustive, n_anchored, n_reframed
+    return box_dims, exhaustive, n_anchored, n_reframed, rebanded
 
 
 def apply_corrections(
@@ -793,7 +850,9 @@ def load(dataset: str, medias: dict[int, dict], embedder_name: str) -> None:
     log(f"  {len(coco_of)} VG images carry a coco_id; {len(corrections)} human verdicts on file")
 
     labels = read_vg_labels(records, paths, dims, wanted_vg)
-    box_dims, exhaustive, n_anchored, n_reframed = anchor_to_coco(labels, dims, coco_of, truth, ca.COCO_DIMS, wanted)
+    box_dims, exhaustive, n_anchored, n_reframed, rebanded = anchor_to_coco(
+        labels, dims, coco_of, truth, ca.COCO_DIMS, wanted
+    )
     # Taken HERE, before `apply_corrections` folds every reviewed image into
     # `exhaustive`. The two are different claims and #3670 turns on the
     # difference: `exhaustive` says "someone or something answered for this
@@ -821,6 +880,21 @@ def load(dataset: str, medias: dict[int, dict], embedder_name: str) -> None:
         f"  labels: {len(labels)} VG images, {n_anchored} repaired from COCO, "
         f"{len(exhaustive)} with a verified pair, {n_reframed} skipped as re-framed copies"
     )
+    if any(any(row.values()) for row in rebanded.values()):
+        # The anchor's half of the same ledger, and the larger half: it changes a
+        # third of the anchored images' band memberships against the fold's 2.1%
+        # off-COCO, and said nothing about it for a release (#3659). Read a class
+        # by the share of its row that is NOT `kept`: a class mostly un-banded
+        # here has a VG spelling that frames a different thing from COCO's, which
+        # is a defect in the name and not in the band.
+        totals = {k: sum(row[k] for row in rebanded.values()) for k in REBAND_OUTCOMES}
+        log(
+            "  COCO's boxes re-band the anchored half as `class "
+            + "/".join(REBAND_OUTCOMES)
+            + "` -- VG's own spelling banded these images and the anchor overwrote it: "
+            + ", ".join(f"{c}={'/'.join(str(row[k]) for k in REBAND_OUTCOMES)}" for c, row in sorted(rebanded.items()))
+            + f"; all classes={'/'.join(str(totals[k]) for k in REBAND_OUTCOMES)}"
+        )
     if folded:
         # Both halves of the ledger on one line. A class whose fold contests more
         # images than it repairs is being made worse by its own name table, and

@@ -102,7 +102,7 @@ def main() -> None:
 
     corrections = load_corrections()
     labels = read_vg_labels(records, paths, dims, pc.scale_vg_wanted())
-    box_dims, exhaustive, _n_anchored, _n_reframed = anchor_to_coco(labels, dims, coco_of, truth, ca.COCO_DIMS, wanted)
+    box_dims, exhaustive, *_ = anchor_to_coco(labels, dims, coco_of, truth, ca.COCO_DIMS, wanted)
     # Captured before `apply_corrections` widens `exhaustive`, exactly as the
     # loader does it. Using the widened set here would stratify on a different
     # fact from the build and quietly answer a different question.

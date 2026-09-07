@@ -15,6 +15,14 @@ byte for byte, with no pixels read and no GPU. That matters twice over here:
 ran, and the rebuild that will finally land it is deferred behind #3588's class
 expansion. Neither should cost the answer.
 
+It also reports the **realised** prevalence, which is not the designed one and
+has not been since #3667. A cell scores its shared negatives *plus* every other
+class's COCO-scored positives, so the pool a detector actually faces is larger
+than ``SCALE_N_NEG`` and the prevalence lower than ``SCALE_PREVALENCE`` -- and by
+a different amount for each class, because how many positives the other eleven
+have is a property of the class list. Asking for "1% prevalence" and setting
+``SCALE_N_NEG`` to 9,900 are therefore two different requests (#3681).
+
 For each composition it reports the table :mod:`check_review_coverage` prints,
 using that module's own arithmetic rather than a second copy of it:
 
@@ -53,6 +61,7 @@ pc.setup_env()
 from check_review_coverage import coverage_row  # noqa: E402
 from pilebuild.corrections import load_corrections  # noqa: E402
 from pilebuild.loaders.vg_scale import (  # noqa: E402
+    _evaluable,
     anchor_to_coco,
     apply_corrections,
     band_candidates,
@@ -155,8 +164,40 @@ def main() -> None:
             "populations": rows,
         }
 
+    # --- realised prevalence, per cell ---------------------------------------
+    # Read off `_evaluable` itself rather than a formula: the cross-class rule is
+    # the thing being counted, and a second implementation of it here is exactly
+    # how the deep sibling got a rule nobody had checked (#3667).
+    cells = [pc.scale_cell(c, b) for c in pc.SCALE_CLASSES for b in pc.BOX_BANDS]
+    provable_pool, _sp = draw_negatives(clean, roster, coco_scored, 1.0)
+    neg_set = set(provable_pool)
+    positive_in: dict[int, list[str]] = {}
+    for cell, ids in chosen.items():
+        for iid in ids:
+            positive_in.setdefault(iid, []).append(cell)
+
+    per_cell: dict[str, int] = dict.fromkeys(cells, 0)
+    for iid in set(positive_in) | neg_set:
+        for cell in _evaluable(iid, sorted(positive_in.get(iid, [])), cells, neg_set, labels, exhaustive):
+            if cell in per_cell and cell not in positive_in.get(iid, []):
+                per_cell[cell] += 1
+
+    realised = {}
+    for cell, n_neg in per_cell.items():
+        pi = pc.SCALE_N_POS / (pc.SCALE_N_POS + n_neg)
+        realised[cell] = {"evaluable_negatives": n_neg, "prevalence": round(pi, 5)}
+    pis = [v["prevalence"] for v in realised.values()]
+    report["realised"] = {
+        "designed_cell_prevalence": round(pc.SCALE_N_POS / (pc.SCALE_N_POS + pc.SCALE_N_NEG), 5),
+        "mean": round(sum(pis) / len(pis), 5),
+        "min": round(min(pis), 5),
+        "max": round(max(pis), 5),
+        "per_cell": realised,
+    }
+
     OUT.write_text(json.dumps(report, indent=1) + "\n")
-    print(json.dumps(report, indent=1))
+    print(json.dumps({k: v for k, v in report.items() if k != "realised"}, indent=1))
+    print(json.dumps({k: v for k, v in report["realised"].items() if k != "per_cell"}, indent=1))
 
 
 if __name__ == "__main__":

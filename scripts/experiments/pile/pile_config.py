@@ -2249,9 +2249,17 @@ def scale_cell(category: str, band: str) -> str:
 #: SO400M/384 model at 32 is already the heavy end. Sizes are per model, not per
 #: run, so a fatter card only means the whole table can move up.
 #:
-#: Batch size does not change what is embedded: in fp32 it shifts vectors by
-#: ~1e-7 through kernel selection, orders of magnitude below anything the
-#: studies resolve.
+#: Batch size does not change *which* images are embedded, but it does change
+#: their vectors, by more than this comment used to claim. #3683 rebuilt
+#: ``siglip2_l`` at 31 instead of 32 -- same images, same node, everything else
+#: equal -- and 27 of 7,746 vectors moved, by up to **1.6e-04**: the batched
+#: GEMM's reduction order is not independent of what an image was batched with,
+#: even in fp32. Median 0, and 7,719 of 7,746 bit-identical, so the effect is a
+#: few images rather than a shift; but 1.6e-04 is 400x the same-node rebuild
+#: floor and larger than the fp16 difference #3143 measured and rejected. Which
+#: is why the size a cell was built at is now in its provenance sidecar
+#: (``embed_batch_size``): changing an entry below silently redefines every cell
+#: it is rebuilt into, and the sidecar is the only place that says so.
 #: Deliberately three, not five. ``siglip`` is the shipped default and
 #: ``siglip2_l`` the premium end; the middles (``siglip_l``, ``siglip2``) were
 #: dropped because a study learns little from interpolating between them, and

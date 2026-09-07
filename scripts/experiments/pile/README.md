@@ -448,6 +448,46 @@ reports `REBUILD-BROKEN` on any difference. Verified against the live pile on
 2026-08-28: all three bands reproduce exactly, 40/40 categories, agreeing
 across all three cells present at the time (#3299).
 
+## What a rebuilt cell reproduces (#3683)
+
+Three different guarantees, and the difference between them is the difference
+between a rebuild you can ignore and one that redefines a study's inputs. All
+three are measured in
+[the #3667 report](../../../docs/experiments/2026-09-06-cross-class-negatives-3667/REPORT.md).
+
+| Rebuild | Agreement | Measured |
+|---|---|---|
+| same node, same code, **same membership** | **bit-identical** | 0 of 7,746 vectors differ, `siglip2_l` and `dinov3_patch`, twice each |
+| different host, different device, same membership | **~3e-07** max abs | `clip` 2.53e-07, `clip_l` 3.16e-07 across two parts of one `gres/gpu:v100` |
+| same node, **membership moved by one image** | **~1e-4** on a handful of images | `siglip2_l` 3.21e-04, `dinov3_patch` 3.03e-04, August → September |
+
+The third row is the one to know about, because it looks like the first. A
+membership change is **not** a relabel: a merged `pile_config` ruling that drops
+one image shifts every later image's position in the batch stream, and a
+per-image embedding turns out not to be independent of what it was batched
+with. Rebuilding `siglip2_l` at batch 31 instead of 32 — same images, same node
+— reproduces the signature: 27 of 7,746 vectors move, median difference 0,
+maximum **1.6e-04**. The batched GEMM's reduction order is what does it, in
+fp32, on hardware that is otherwise producing bit-identical results.
+
+That is the guarantee to state rather than to engineer away. Removing one image
+necessarily shifts every later one, so the only way to keep the vectors fixed
+across a ruling would be to stop the rulings — and 1e-4 on ~30 of 7,746 images
+is small. It is *not* nothing: it is 400× the same-node floor and larger than
+the fp16 difference #3143
+measured and rejected. Whether it changes any study's conclusion is a separate
+question that needs a paired re-run, not an opinion; file it if the answer starts
+to matter.
+
+What did need fixing is that nothing recorded the batch size.
+`VTSEARCH_EMBED_BATCH_SIZE` is a build parameter that changes the output — the
+same class of gap as the un-pinned CPU dispatch in #3160 — so the per-cell
+sidecar now carries `embed_batch_size`, and `--provenance` shows it in a `batch`
+column. A `-` there means the cell predates the key. Two cells of one
+`(dataset, embedder)` built at different sizes disagree by ~1e-4 with every
+other recorded field identical, which is exactly the comparison the sidecar
+exists to make possible.
+
 ## Building on the GRID
 
 ```bash

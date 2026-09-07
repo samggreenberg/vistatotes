@@ -150,7 +150,7 @@ def main() -> int:
         coco_of = {int(m["image_id"]): int(m["coco_id"]) for m in json.load(fh) if m.get("coco_id")}
 
     labels = read_vg_labels(records, paths, dims, pc.scale_vg_wanted())
-    box_dims, exhaustive, _na, _nr = anchor_to_coco(labels, dims, coco_of, truth, ca.COCO_DIMS, wanted)
+    box_dims, exhaustive, *_ = anchor_to_coco(labels, dims, coco_of, truth, ca.COCO_DIMS, wanted)
     coco_scored = set(exhaustive)
     canonicalise(labels, pc.SCALE_VG_NAMES, box_dims, pc.SCALE_FOLD_MODE)
     unbanded = apply_corrections(labels, corrections, box_dims, exhaustive)

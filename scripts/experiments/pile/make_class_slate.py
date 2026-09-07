@@ -139,7 +139,7 @@ def main() -> int:
     # `coco_truth` fills this as a side effect of reading the instances files,
     # so it is only populated after the call above -- read it off the module
     # rather than binding the name at import time.
-    box_dims, exhaustive, n_anchored, n_reframed = anchor_to_coco(
+    box_dims, exhaustive, n_anchored, n_reframed, _reband = anchor_to_coco(
         labels, dims, coco_of, truth, coco_anchor.COCO_DIMS, set(classes)
     )
     log(f"anchored {n_anchored} images to COCO ({n_reframed} skipped as re-framed copies)")

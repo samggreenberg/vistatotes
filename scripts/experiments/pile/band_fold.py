@@ -313,9 +313,9 @@ def phase_supply(anchor: Path) -> dict:
         labels = vs.read_vg_labels(records, paths, dims, wanted_vg)
         if mode == LEGACY:
             folded, contested = vs.canonicalise(labels, pc.SCALE_VG_NAMES)
-            box_dims, exhaustive, _, _ = vs.anchor_to_coco(labels, dims, coco_of, truth, ca.COCO_DIMS, wanted)
+            box_dims, exhaustive, *_ = vs.anchor_to_coco(labels, dims, coco_of, truth, ca.COCO_DIMS, wanted)
         else:
-            box_dims, exhaustive, _, _ = vs.anchor_to_coco(labels, dims, coco_of, truth, ca.COCO_DIMS, wanted)
+            box_dims, exhaustive, *_ = vs.anchor_to_coco(labels, dims, coco_of, truth, ca.COCO_DIMS, wanted)
             folded, contested = vs.canonicalise(labels, pc.SCALE_VG_NAMES, box_dims, mode)
         unbanded = vs.apply_corrections(labels, corrections, box_dims, exhaustive)
         unbanded |= vs.lift_ambiguous(labels, pc.SCALE_VG_AMBIGUOUS, exhaustive)

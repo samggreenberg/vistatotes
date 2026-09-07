@@ -176,7 +176,12 @@ def load(dataset: str, medias: dict[int, dict], embedder_name: str) -> None:
     # `bicycle` negative while `vg_scale` excludes it, which is precisely the
     # "only depth changed" premise breaking.
     labels = read_vg_labels(records, paths, dims, pc.scale_vg_wanted())
-    box_dims, exhaustive, n_anchored, n_reframed = anchor_to_coco(labels, dims, coco_of, truth, ca.COCO_DIMS, wanted)
+    # The re-banding ledger is `vg_scale.load`'s to print (#3659): deep shares
+    # this pass and the shallow cell's labels, so the two builds' rows would be
+    # identical and the second copy would only invite a reader to diff them.
+    box_dims, exhaustive, n_anchored, n_reframed, _reband = anchor_to_coco(
+        labels, dims, coco_of, truth, ca.COCO_DIMS, wanted
+    )
     # Before corrections widen it -- see `vg_scale.load`. Deep's own pool is not
     # stratified on it (#3690 pins deep to the pre-#3670 construction), but the
     # medias carry the flag so a reader of either dataset can ask the same

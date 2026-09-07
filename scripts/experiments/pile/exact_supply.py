@@ -42,7 +42,7 @@ for label, (classes, table) in GROUPS.items():
     labels = read_vg_labels(records, paths, dims, wanted)
     canonicalise(labels, dict(vg_names))
     truth = coco_truth(instances, set(classes))
-    box_dims, exhaustive, _n, _r = anchor_to_coco(labels, dims, coco_of, truth, coco_anchor.COCO_DIMS, set(classes))
+    box_dims, exhaustive, *_ = anchor_to_coco(labels, dims, coco_of, truth, coco_anchor.COCO_DIMS, set(classes))
     supply, _boxes, _clean = band_candidates(labels, box_dims, set(), classes=classes)
 
     print(f"\n=== {label} ===")

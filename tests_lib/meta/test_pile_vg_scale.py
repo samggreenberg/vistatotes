@@ -130,7 +130,7 @@ class TestAnchorToCoco:
 
     def test_anchored_image_takes_cocos_labels_and_cocos_pixel_space(self, vgs, pc):
         labels = {7: {"dog": [[1.0, 1.0, 2.0, 2.0]]}}
-        box_dims, exhaustive, n_anchored, n_reframed = vgs.anchor_to_coco(
+        box_dims, exhaustive, n_anchored, n_reframed, _reband = vgs.anchor_to_coco(
             labels,
             dims={7: (500, 375)},
             coco_of={7: 100},
@@ -147,7 +147,7 @@ class TestAnchorToCoco:
     def test_reframed_copy_keeps_vgs_own_labels(self, vgs):
         """A transposed copy is a different framing; COCO's box does not describe it."""
         labels = {7: {"dog": [[1.0, 1.0, 2.0, 2.0]]}}
-        box_dims, exhaustive, n_anchored, n_reframed = vgs.anchor_to_coco(
+        box_dims, exhaustive, n_anchored, n_reframed, _reband = vgs.anchor_to_coco(
             labels,
             dims={7: (375, 500)},  # transposed against COCO's 640x480
             coco_of={7: 100},
@@ -173,10 +173,161 @@ class TestAnchorToCoco:
 
     def test_unanchored_images_keep_vg_dims(self, vgs):
         labels = {7: {}, 8: {}}
-        box_dims, _, n_anchored, _ = vgs.anchor_to_coco(
+        box_dims, _, n_anchored, *_ = vgs.anchor_to_coco(
             labels, dims={7: (500, 375), 8: (600, 400)}, coco_of={}, truth={}, coco_dims={}, wanted={"bus"}
         )
         assert box_dims == {7: (500, 375), 8: (600, 400)} and n_anchored == 0
+
+
+def _square(frac: float, W: int, H: int) -> list[float]:
+    """A box covering *frac* of a *W* x *H* frame, in that frame's pixels."""
+    side = (frac * W * H) ** 0.5
+    return [0.0, 0.0, side, side]
+
+
+class TestAnchorRebandLedger:
+    """What the replacement does to a band VG's own spelling had already given.
+
+    The anchor overwrites VG's labels wholesale on the ~48% of VG that COCO
+    annotates, and a third of that half's band memberships change when it does:
+    over the 11,156 pairs VG bands there, 67% keep the band, 6.2% move, 17% leave
+    every band and 10% turn out not to hold the class at all (#3637). The build
+    reported none of it -- only how many images the pass touched -- which is
+    #3659, and the same defect `canonicalise`'s ``contested`` was filed for at
+    an eighth of the size.
+
+    Correctness is not what these pin: COCO's boxes are the exhaustive reference
+    the banding rule was validated against, so the anchor's answer is the right
+    one. What they pin is that the four outcomes stay **told apart**, and that
+    each band is read in the pixel space its own boxes were measured in -- VG
+    ships downscaled copies, so a band read in the wrong frame is off by the
+    square of the scale factor and lands in a neighbouring band without
+    complaint.
+    """
+
+    #: A VG frame and a COCO copy of it nine times its area, so a band read in
+    #: the wrong one of the two is a *different* band rather than the same one.
+    VG_WH = (400, 400)
+    COCO_WH = (1200, 1200)
+
+    def _anchor(self, vgs, vg_boxes: dict, coco_boxes: dict, wanted=("bus", "dog")):
+        labels = {7: dict(vg_boxes)}
+        *_, rebanded = vgs.anchor_to_coco(
+            labels,
+            dims={7: self.VG_WH},
+            coco_of={7: 100},
+            truth={100: dict(coco_boxes)},
+            coco_dims={100: self.COCO_WH},
+            wanted=set(wanted),
+        )
+        return rebanded
+
+    def _vg(self, frac: float) -> list[list[float]]:
+        return [_square(frac, *self.VG_WH)]
+
+    def _coco(self, frac: float) -> list[list[float]]:
+        return [_square(frac, *self.COCO_WH)]
+
+    def test_a_kept_band_is_counted_as_kept(self, vgs):
+        reband = self._anchor(vgs, {"bus": self._vg(0.01)}, {"bus": self._coco(0.01)})
+        assert reband["bus"] == {"kept": 1, "moved": 0, "unbanded": 0, "absent": 0}
+
+    def test_a_band_change_is_counted_as_moved(self, vgs):
+        """Both boxes band; they disagree about which band."""
+        reband = self._anchor(vgs, {"bus": self._vg(0.01)}, {"bus": self._coco(0.3)})
+        assert vgs.band_for(self._vg(0.01), *self.VG_WH) == "medium"
+        assert vgs.band_for(self._coco(0.3), *self.COCO_WH) == "large"
+        assert reband["bus"] == {"kept": 0, "moved": 1, "unbanded": 0, "absent": 0}
+
+    def test_leaving_every_band_is_counted_as_unbanded(self, vgs):
+        """The 17%: COCO's boxes scatter, or outgrow a region, where VG's banded."""
+        oversize = self._anchor(vgs, {"bus": self._vg(0.01)}, {"bus": self._coco(0.9)})
+        assert oversize["bus"]["unbanded"] == 1
+        # Two instances too far apart to be one region -- the other way out of
+        # every band, and the one an exhaustive annotation reaches most often.
+        w, h = self.COCO_WH
+        scattered = self._anchor(
+            vgs,
+            {"bus": self._vg(0.01)},
+            {"bus": [[0.0, 0.0, 20.0, 20.0], [w - 20.0, h - 20.0, float(w), float(h)]]},
+        )
+        assert scattered["bus"]["unbanded"] == 1
+
+    def test_a_class_coco_does_not_hold_is_counted_as_absent(self, vgs):
+        """Not a band change: the pair leaves the class's cells as a negative."""
+        reband = self._anchor(vgs, {"bus": self._vg(0.01)}, {"dog": self._coco(0.01)})
+        assert reband["bus"] == {"kept": 0, "moved": 0, "unbanded": 0, "absent": 1}
+
+    def test_cocos_band_is_read_in_cocos_pixel_space(self, vgs):
+        """VG's copy is downscaled, so the same pixel box is a different band.
+
+        The COCO box below covers 1% of the COCO frame (medium) and 9% of the VG
+        frame (large). Reading it against ``dims`` rather than ``coco_dims``
+        reports a move that the build never makes -- the same off-by-a-scale-
+        factor that makes ``box_dims`` the whole reason this pass returns
+        anything.
+        """
+        coco_box = _square(0.01, *self.COCO_WH)
+        assert vgs.band_for([coco_box], *self.COCO_WH) == "medium"
+        assert vgs.band_for([coco_box], *self.VG_WH) == "large"
+        reband = self._anchor(vgs, {"bus": self._vg(0.01)}, {"bus": [coco_box]})
+        assert reband["bus"]["kept"] == 1
+
+    def test_vgs_band_is_read_in_vgs_pixel_space(self, vgs):
+        """The same trap from the other side: VG's boxes are in VG's frame."""
+        vg_box = _square(0.09, *self.VG_WH)
+        assert vgs.band_for([vg_box], *self.VG_WH) == "large"
+        assert vgs.band_for([vg_box], *self.COCO_WH) == "medium"
+        reband = self._anchor(vgs, {"bus": [vg_box]}, {"bus": self._coco(0.09)})
+        assert reband["bus"]["kept"] == 1
+
+    def test_a_pair_vg_does_not_band_is_not_counted_at_all(self, vgs):
+        """There is no band to keep, move or lose, so it is not a fifth outcome."""
+        w, h = self.VG_WH
+        scattered = [[0.0, 0.0, 20.0, 20.0], [w - 20.0, h - 20.0, float(w), float(h)]]
+        assert vgs.band_for(scattered, w, h) == vgs.SCATTERED
+        reband = self._anchor(vgs, {"bus": scattered}, {"bus": self._coco(0.01)})
+        assert sum(reband["bus"].values()) == 0
+        # Nor does a class VG never saw: the ledger's denominator is what VG
+        # banded, not what COCO holds.
+        assert sum(reband["dog"].values()) == 0
+
+    def test_only_the_classes_own_spelling_is_read(self, vgs):
+        """Aliases are folded after this pass and discarded here, so they count nothing.
+
+        `read_vg_labels` reads wider than *C* (#3605), so an alias spelling is
+        sitting in ``labels`` when the anchor runs. Counting it would report a
+        band the build never derives: `canonicalise` runs afterwards and its
+        merge is thrown away on an anchored image.
+        """
+        reband = self._anchor(
+            vgs,
+            {"bus": self._vg(0.01), "minibus": self._vg(0.3)},
+            {"bus": self._coco(0.01)},
+        )
+        assert reband["bus"]["kept"] == 1 and "minibus" not in reband
+
+    def test_an_unanchored_image_contributes_nothing(self, vgs):
+        """A re-framed copy keeps VG's labels, so nothing re-bands there."""
+        labels = {7: {"bus": [_square(0.01, 400, 400)]}}
+        *_, rebanded = vgs.anchor_to_coco(
+            labels,
+            dims={7: (375, 500)},  # transposed against COCO's 400x300
+            coco_of={7: 100},
+            truth={100: {"bus": [_square(0.3, 400, 300)]}},
+            coco_dims={100: (400, 300)},
+            wanted={"bus"},
+        )
+        assert sum(rebanded["bus"].values()) == 0
+
+    def test_every_wanted_class_gets_a_row(self, vgs):
+        """A class with an all-zero row is a fact about the class, not a gap."""
+        reband = self._anchor(vgs, {}, {}, wanted=("bus", "dog", "clock"))
+        assert sorted(reband) == ["bus", "clock", "dog"]
+        assert all(sorted(row) == sorted(vgs.REBAND_OUTCOMES) for row in reband.values())
+
+    def test_the_ledgers_outcomes_are_the_documented_four(self, vgs):
+        assert vgs.REBAND_OUTCOMES == ("kept", "moved", "unbanded", "absent")
 
 
 class TestBandFor:

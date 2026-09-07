@@ -69,8 +69,26 @@ fails closed would wedge every unrelated GitHub call.
 
 Escape hatch for the `experiment` heuristic (see `_looks_like_an_experiment`):
 put `<!-- not-an-experiment: <reason> -->` in the issue body. It renders as
-nothing on GitHub, greps cleanly, and forces the reason to be stated rather
-than letting the check be dodged by rewording the body.
+nothing on GitHub and greps cleanly.
+
+**The reason is read** (see `_reason_problem`). For its first weeks the marker
+matched on its prefix alone, so the text after the colon was never looked at by
+anything -- it forced a reason to be *typed*, not to be *true*. Issue #3708
+counted the result: four markers in three days had to be corrected by hand, and
+in every one of them the sentence that disproves the marker was inside the
+marker itself. #3683 promised "no GPU, no sweep" while closing on
+`build_pile.py --provenance` over a newly built cell; #3693 closed on
+"confirming the submitted job imports THAT worktree"; #3694 closed on `cat`ing
+a file that exists only on the GRID plus one submitted cpu job. So a reason
+that describes a run is now refused, and the refusal quotes the offending
+phrase back.
+
+That costs a wrongly-blocked issue one sentence of rewording at filing time. A
+wrongly-passed one costs a whole session: `label:experiment` is a *scheduling*
+queue, so a false marker puts GRID-only work into the pick-up-now queue, and
+the session that takes it gets as far as the acceptance check and stops -- or
+invents the missing half. The gate is deliberately biased toward the cheap
+failure.
 """
 
 from __future__ import annotations
@@ -174,7 +192,68 @@ GH_CLOSE_VALUE_FLAGS = frozenset({"-c", "--comment", "-r", "--reason", "-R", "--
 GH_LOOKUP_TIMEOUT_ENV = "VTSEARCH_GH_LOOKUP_TIMEOUT"
 GH_LOOKUP_TIMEOUT_DEFAULT = 5.0
 
-OPT_OUT = re.compile(r"<!--\s*not-an-experiment\s*:", re.IGNORECASE)
+# The marker, with its reason captured. Non-greedy up to the terminator rather
+# than `[^>]*`, so a reason containing `>` (a shell redirect, an arrow, a
+# quoted diff line) still parses as a marker instead of silently ceasing to be
+# one -- a marker the hook cannot see is reported as a missing marker, which is
+# the one denial message a filer who wrote one cannot act on.
+OPT_OUT = re.compile(r"<!--\s*not-an-experiment\s*:(?P<reason>.*?)-->", re.IGNORECASE | re.DOTALL)
+
+# Phrases that describe machine time. These are read against the *marker's own
+# reason*, not the issue body -- the body of an issue about a sweep will always
+# talk about sweeps, so scanning it would make the marker unusable on exactly
+# the issues that legitimately need it. The four corrections in #3708 are all
+# catchable inside the marker, which is what makes this mechanical rather than
+# a matter of taste.
+RUN_SHAPED = [
+    re.compile(pattern, re.IGNORECASE)
+    for pattern in (
+        r"\bsbatch\b",
+        r"\bsqueue\b",
+        r"\bsrun\b",
+        r"\bscancel\b",
+        # "the submitted job", "submit one cpu job to prove it". Bounded to one
+        # clause so a marker ending "nothing is submitted." cannot reach a
+        # "job" in the next sentence.
+        r"\bsubmit\w*\b[^.;]{0,60}?\bjobs?\b",
+        r"\b(?:cpu|gpu)\s+jobs?\b",
+        r"\bnewly\s+built\s+\w+",
+        r"\bre-?build\w*",
+        r"\bbuild(?:ing|s)?\s+(?:a|the|every|one)\s+cells?\b",
+        r"\bpile cells?\b",
+        r"\bbuild_pile\.py\b",
+        r"\blaunch_\w+\.sh\b",
+        r"\bpreflight\.sh\b",
+        r"\bslate import\b",
+        r"\bimport\w*\s+(?:a\s+|the\s+)?(?:slate|pile|dataset)s?\b",
+        r"\bsweeps?\b",
+        r"\beval arms?\b",
+        r"\bcalibration runs?\b",
+        r"\bvtscore\.eval\b",
+        r"scripts/experiments",
+    )
+]
+
+# Case-sensitive, unlike everything above: a lowercase "grid" is a CSS grid far
+# more often than it is this cluster, and a false block whose quoted phrase is
+# `grid` from "the grid layout" reads as a bug rather than as a rule.
+RUN_SHAPED += [re.compile(r"\bGRID\b"), re.compile(r"\bSLURM\b")]
+
+# A run-shaped word inside a denial ("no sweep", "no GRID/eval run is
+# involved") is the marker doing its job, not failing it. Bounded to the same
+# clause -- no `.`, `;` or `:` between the negator and the phrase -- so
+# "nothing measured. Submit one cpu job" is not read as a denial of the job.
+NEGATED = re.compile(r"\b(?:no|not|never|nothing|none|neither|nor|without|n't)\b[^.;:]{0,24}$", re.IGNORECASE)
+
+# A reason with fewer than this many non-space characters is not a reason.
+# Deliberately a low floor: its whole job is the degenerate case (#3669's
+# marker claimed only "not an experiment", which is the marker's own name), and
+# a floor high enough to judge a *short but real* reason would be a floor high
+# enough to block one. The run-shaped check above is what does the actual work.
+MIN_REASON_CHARS = 12
+
+# ...and the restatement itself, which clears any floor low enough to be safe.
+BARE_RESTATEMENT = re.compile(r"^(?:it'?s |this is |it is )?not (?:an )?experiment[.!]?$", re.IGNORECASE)
 
 # One of these alone means the issue cannot be closed without machine time.
 # They are repo-specific enough that a false positive is a real surprise.
@@ -215,6 +294,53 @@ def _looks_like_an_experiment(text: str) -> bool:
         return True
     hits = sum(1 for p in WEAK_SIGNALS if re.search(p, text, re.IGNORECASE))
     return hits >= 2
+
+
+def _run_shaped_phrase(reason: str) -> str | None:
+    """The first phrase in `reason` that describes machine time, if any."""
+    for pattern in RUN_SHAPED:
+        for match in pattern.finditer(reason):
+            if NEGATED.search(reason[: match.start()]):
+                continue
+            return match.group(0).strip()
+    return None
+
+
+def _reason_problem(reason: str) -> str | None:
+    """Why this marker does not count as a stated reason, or `None` if it does.
+
+    Two refusals, in the order that produces the more useful message. A
+    run-shaped reason gets the phrase quoted back, because that phrase *is* the
+    argument against the marker and the filer wrote it themselves. A reason too
+    thin to disagree with gets the criterion instead.
+    """
+    stripped = " ".join(reason.split())
+
+    phrase = _run_shaped_phrase(stripped)
+    if phrase is not None:
+        return RUN_SHAPED_REASON.format(phrase=phrase)
+
+    if len(stripped.replace(" ", "")) < MIN_REASON_CHARS or BARE_RESTATEMENT.match(stripped):
+        return THIN_REASON.format(reason=stripped or "(empty)")
+
+    return None
+
+
+def _opt_out_refusal(text: str) -> str | None:
+    """`None` if some marker in `text` releases the heuristic; else why none does.
+
+    Every marker is judged and any one acceptable marker is enough, because a
+    body can carry the real marker *and* a fenced example of the syntax (the
+    body of an issue about this very rule does). Judging only the first would
+    turn writing about the marker into a block.
+    """
+    refusals = []
+    for match in OPT_OUT.finditer(text):
+        problem = _reason_problem(match.group("reason"))
+        if problem is None:
+            return None
+        refusals.append(problem)
+    return refusals[0] if refusals else MISSING_EXPERIMENT
 
 
 def _close_problems(args: dict) -> list[str]:
@@ -264,12 +390,46 @@ MISSING_CLAUDE = (
     "(`is:issue is:open -label:claude`). It is never optional."
 )
 
+# The criterion, stated once and reused by all three refusals below.
+#
+# It deliberately does NOT say "closeable from a laptop with the test suite",
+# which is what this message said until #3708. That named a configuration that
+# does not exist: per #3694, `run-tests.sh` runs nowhere but the GRID, because
+# the laptop has 3 GB of RAM -- so a filer applying the old wording literally
+# got the wrong answer, and every issue would have read as an experiment. The
+# criterion the four hand corrections actually used is narrower and true.
+CRITERION = (
+    "The test is whether the issue can be closed WITHOUT running the product -- "
+    "an app, a dataset, an embedder, a pile cell, a submitted job."
+)
+
 MISSING_EXPERIMENT = (
-    "MISSING `experiment`: this reads like an issue nobody can close from a "
-    "laptop with the test suite -- it needs measured results first. Add the "
-    "label so it lands in the queue of work that needs machine time booked.\n"
-    "  If closing it genuinely needs no run, say so explicitly instead of "
-    "rewording the body: add `<!-- not-an-experiment: <reason> -->`."
+    "MISSING `experiment`: this reads like an issue that cannot be closed without a run. "
+    "Add the label so it lands in the queue of work that needs machine time booked.\n"
+    f"  {CRITERION}\n"
+    "  If closing it genuinely needs none of that, say so explicitly instead of "
+    "rewording the body: add `<!-- not-an-experiment: <reason> -->`. The reason is READ, "
+    "not merely counted."
+)
+
+RUN_SHAPED_REASON = (
+    "MISSING `experiment`, AND THE `not-an-experiment` MARKER DESCRIBES A RUN: the reason "
+    'you gave says "{phrase}", which is machine time.\n'
+    f"  {CRITERION}\n"
+    "  So the marker argues against itself, and the marker is not what decides this -- the "
+    "closing condition is. Either add `experiment` (the usual answer when the reason reads "
+    "like that), or, if the phrase is incidental and nothing has to be run, say what the "
+    "closing condition IS without naming a run.\n"
+    "  #3708 has the four markers that were wrong this way; each was disproved by its own text."
+)
+
+THIN_REASON = (
+    '`not-an-experiment` MARKER STATES NO REASON: the marker reads "{reason}", which '
+    "restates the marker's name instead of giving a reason.\n"
+    f"  {CRITERION}\n"
+    "  Answer that question in the marker -- name the closing condition, so the next reader "
+    "can check the claim instead of taking it. If you cannot name one that avoids a run, the "
+    "answer is the `experiment` label."
 )
 
 
@@ -286,8 +446,10 @@ def _label_problems(labels: set[str], text: str) -> list[str]:
     if "claude" not in labels:
         found.append(MISSING_CLAUDE)
 
-    if "experiment" not in labels and not OPT_OUT.search(text) and _looks_like_an_experiment(text):
-        found.append(MISSING_EXPERIMENT)
+    if "experiment" not in labels and _looks_like_an_experiment(text):
+        refusal = _opt_out_refusal(text)
+        if refusal is not None:
+            found.append(refusal)
 
     return found
 

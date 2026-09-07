@@ -17,6 +17,12 @@ actually used, so `TestGhCli` carries the shell shapes those sessions really
 emit -- compound commands, heredoc bodies, `--body-file`, `ssh grid '...'` --
 rather than a tidy flag list that would pass without proving anything.
 
+The `experiment` half of the rule has an escape hatch, and `TestOptOutMarkerReason`
+is the check that the hatch is a hatch rather than a hole: its fixtures are the
+real markers off GitHub -- four that had to be corrected by hand and three that
+are right -- rather than invented ones, because a pattern list tuned against
+invented markers proves nothing about the mistake sessions actually make.
+
 The `solved`-strip guard at the other end of an issue's life has the same two
 paths, and the `gh` half of it (`TestGhCloseSolved`) is the one place this hook
 does I/O: `gh issue close` has no `--label` flag to restate a label set with, so
@@ -130,6 +136,153 @@ class TestExperimentLabel:
         assert result.returncode == BLOCK
         assert "MISSING `claude`" in result.stderr
         assert "MISSING `experiment`" in result.stderr
+
+
+# The markers that were corrected by hand, as issue #3708 catalogued them. The
+# first three are the marker text verbatim off GitHub; #3669's was rewritten in
+# place when it was corrected, so it is reconstructed from what #3708 records
+# of it ("the marker claimed `not an experiment`") -- which is why it is the
+# one row here that tests the no-reason-at-all path rather than the
+# run-shaped-reason path.
+#
+# The value of using the real ones is that they were written by sessions trying
+# to be honest, not by someone inventing a bad marker for a test. A pattern
+# list tuned against invented markers proves nothing; these four are the actual
+# distribution of the mistake.
+WRONG_MARKERS = {
+    "3669": "not an experiment",
+    "3683": (
+        "the measurements are already done and are in the #3667 report; what is left is a "
+        "provenance field and a sentence in the README. Closes with `python build_pile.py "
+        "--provenance` showing `embed_batch_size` on a newly built cell, plus "
+        "`./run-tests.sh meta` for the test that asserts the key is written. No GPU, no "
+        "sweep. The one genuinely run-shaped question -- whether a 1e-4 perturbation changes "
+        "any study's conclusion -- is deliberately NOT part of the closing condition; see "
+        "the last section."
+    ),
+    "3693": (
+        "a launcher default and a guard around it; closed by running `bash launch_pile.sh "
+        "vg_scale` from a worktree and confirming the submitted job imports THAT worktree"
+    ),
+    "3694": (
+        "closing this is `git mv`-shaped: a file move plus `bash -n` and a text test. No "
+        "arms, no cells, no GPU, nothing measured; `cat` the live script and submit one cpu "
+        "job to prove it."
+    ),
+}
+
+# ...and the markers that are right, which is the half that stops the pattern
+# list from being tuned until it matches nothing. All three are verbatim: two
+# from #3708's own "must still pass" list, and one from #3708 itself -- the
+# issue asking for this check was filed under a marker, so a gate that blocks
+# its own filing is not shippable.
+GOOD_MARKERS = {
+    "3657": "one formula, four call sites, same constant; the fix and its test are a laptop change.",
+    "3452": ("an investigation with external developers plus documentation; no GRID/eval run is involved."),
+    "3708": (
+        "a regex, a hook message and a `tests_lib/meta/` test over "
+        "`.claude/hooks/require-issue-labels.py`. The hook is pure string logic with no I/O "
+        "on the create path, and `tests_lib/meta/` already tests it, so the gate is its own "
+        "test. Nothing is measured, nothing is submitted."
+    ),
+}
+
+
+def marked(reason: str, body: str = EXPERIMENT_BODY) -> str:
+    return f"{body}\n\n<!-- not-an-experiment: {reason} -->"
+
+
+class TestOptOutMarkerReason:
+    """The marker's reason is read, not merely counted (issue #3708).
+
+    `OPT_OUT` used to match the marker's prefix only, so any text at all after
+    the colon satisfied the gate. That made the escape hatch an unchecked free
+    pass, and it was wrong four times in three days -- every one of them
+    disproved by a sentence inside the marker itself, which is what makes it
+    mechanically catchable rather than a matter of taste.
+
+    Each fixture body pairs a real marker with `EXPERIMENT_BODY`, so the
+    heuristic definitely fires and the marker is the only thing under test.
+    Every issue's real body also trips the heuristic; pinning the body here
+    keeps a later edit to `STRONG_SIGNALS` from quietly turning these into
+    assertions about nothing.
+    """
+
+    @pytest.mark.parametrize("number", sorted(WRONG_MARKERS))
+    def test_a_marker_that_describes_a_run_is_refused(self, number):
+        result = run_hook(create(body=marked(WRONG_MARKERS[number]), labels=["claude"]))
+        assert result.returncode == BLOCK, f"#{number}'s marker was accepted"
+        assert "MISSING `experiment`" in result.stderr or "STATES NO REASON" in result.stderr
+
+    @pytest.mark.parametrize("number", sorted(GOOD_MARKERS))
+    def test_a_laptop_shaped_marker_still_releases_the_heuristic(self, number):
+        result = run_hook(create(body=marked(GOOD_MARKERS[number]), labels=["claude"]))
+        assert result.returncode == ALLOW, f"#{number}'s marker was refused:\n{result.stderr}"
+
+    @pytest.mark.parametrize(
+        ("number", "phrase"),
+        [("3683", "newly built cell"), ("3693", "submitted job"), ("3694", "submit one cpu job")],
+    )
+    def test_the_denial_quotes_the_offending_phrase_back(self, number, phrase):
+        """The filer wrote the argument against their own marker; show it to them."""
+        result = run_hook(create(body=marked(WRONG_MARKERS[number]), labels=["claude"]))
+        assert phrase in result.stderr
+
+    def test_a_marker_restating_its_own_name_is_not_a_reason(self):
+        result = run_hook(create(body=marked(WRONG_MARKERS["3669"]), labels=["claude"]))
+        assert result.returncode == BLOCK
+        assert "STATES NO REASON" in result.stderr
+
+    @pytest.mark.parametrize("reason", ["", "  ", "n/a", "no", "obvious", "This is not an experiment."])
+    def test_an_empty_or_token_reason_is_not_a_reason(self, reason):
+        assert run_hook(create(body=marked(reason), labels=["claude"])).returncode == BLOCK
+
+    def test_a_run_shaped_word_inside_a_denial_is_not_held_against_the_marker(self):
+        """#3452 says "no GRID/eval run is involved" -- that is the marker working."""
+        for reason in ("no sweep is involved", "closes without any sbatch job", "nothing is submitted"):
+            body = marked(f"one constant, four call sites; {reason}.")
+            assert run_hook(create(body=body, labels=["claude"])).returncode == ALLOW, reason
+
+    def test_a_reason_containing_an_angle_bracket_is_still_read_as_a_marker(self):
+        """`[^>]*` would stop at the `>` and report the marker as missing.
+
+        That is the one denial a filer who wrote a marker cannot act on: the
+        message asks for the thing already on the screen.
+        """
+        body = marked("one call site; the fix is `a > b` and its test, both a laptop change.")
+        assert run_hook(create(body=body, labels=["claude"])).returncode == ALLOW
+
+    def test_a_multi_line_marker_is_read_whole(self):
+        body = marked("closes by\nsubmitting one cpu job\non the GRID")
+        result = run_hook(create(body=body, labels=["claude"]))
+        assert result.returncode == BLOCK
+
+    def test_a_fenced_example_of_the_syntax_does_not_block_a_real_marker(self):
+        """#3708's own body carries both, and it had to be fileable."""
+        body = f"{marked(GOOD_MARKERS['3708'])}\n\n```\n<!-- not-an-experiment: <reason> -->\n```"
+        assert run_hook(create(body=body, labels=["claude"])).returncode == ALLOW
+
+    def test_the_label_still_beats_the_marker(self):
+        """A wrong marker on an issue that carries `experiment` is nobody's problem."""
+        body = marked(WRONG_MARKERS["3693"])
+        assert run_hook(create(body=body, labels=["claude", "experiment"])).returncode == ALLOW
+
+    def test_a_refused_marker_does_not_swallow_the_claude_problem(self):
+        result = run_hook(create(body=marked(WRONG_MARKERS["3694"])))
+        assert result.returncode == BLOCK
+        assert "MISSING `claude`" in result.stderr
+
+    def test_the_criterion_names_running_the_product_not_a_laptop_test_suite(self):
+        """#3694: `run-tests.sh` runs nowhere but the GRID, so the old wording was unusable."""
+        result = run_hook(create(body=EXPERIMENT_BODY, labels=["claude"]))
+        assert "WITHOUT running the product" in result.stderr
+        assert "laptop with the test suite" not in result.stderr
+
+    def test_the_gh_path_reads_the_reason_too(self):
+        """Both call paths share `_label_problems`; prove it rather than assume it."""
+        command = f'gh issue create --title "T" --body "{marked(WRONG_MARKERS["3693"])}" --label claude'
+        payload = {"tool_name": "Bash", "tool_input": {"command": command}}
+        assert run_hook(payload).returncode == BLOCK
 
 
 class TestSolvedLabelOnClose:

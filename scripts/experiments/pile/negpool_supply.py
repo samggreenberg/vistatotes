@@ -64,7 +64,12 @@ def main() -> None:
     # against. Simulating the expansion means setting it, exactly as #3588's
     # config change would.
     if SCOPE == "all25":
-        pc.SCALE_CLASSES = tuple(list(pc.SCALE_CLASSES) + list(pc.SCALE_CANDIDATES_3588))
+        # Since the #3588 promotion this simulates a transition that has already
+        # happened -- SCALE_CLASSES holds all twenty-five -- so the union is the
+        # shipped list and the scope is a no-op kept so the report's command line
+        # still runs. Deduplicated rather than concatenated: `+` would list the
+        # thirteen twice, and `len(wanted)` would then print 38 for a 25-class run.
+        pc.SCALE_CLASSES = tuple(dict.fromkeys([*pc.SCALE_CLASSES, *pc.SCALE_CANDIDATES_3588]))
     wanted = set(pc.SCALE_CLASSES)
     wanted_vg = pc.scale_vg_wanted() | wanted
     print(f"scope={SCOPE}: {len(wanted)} classes define a clean image")

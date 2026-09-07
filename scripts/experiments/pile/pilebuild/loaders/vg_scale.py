@@ -166,6 +166,7 @@ def lift_ambiguous(
     labels: dict[int, dict[str, list[list[float]]]],
     vg_names: dict[str, tuple[str, ...]],
     exhaustive: set[int],
+    classes: tuple[str, ...] | None = None,
 ) -> set[tuple[int, str]]:
     """Take ambiguous spellings out of *labels*, and return the pairs they suppress.
 
@@ -207,7 +208,23 @@ def lift_ambiguous(
     (``test_no_listed_spelling_is_itself_a_class_in_c``) rather than here,
     because this function receives the table as an argument and is used by tests
     with deliberately small ones (#3588).
+
+    *classes* is the second line of that defence, for the callers the suite guard
+    cannot see: it compares the shipped table against the shipped *C*, and a
+    caller that widens `SCALE_CLASSES` at runtime is outside that frame.
+    `negpool_supply.py` is one, and its `all25` scope simulates precisely the
+    twelve-to-twenty-five transition that produced the `truck` entry. Defaults to
+    `pile_config.SCALE_CLASSES`; pass the small list beside a small table.
     """
+    in_c = set(pc.SCALE_CLASSES if classes is None else classes)
+    stolen = sorted({n for cls, names in vg_names.items() for n in names if n in in_c and n != cls})
+    if stolen:
+        raise ValueError(
+            f"lift_ambiguous: {stolen} name a class in C. The drop below is unconditional, so "
+            "suppressing one deletes that class's own boxes from every image -- and on a "
+            "COCO-anchored image the `exhaustive` exemption then files it as CLEAN, putting a "
+            "confirmed positive into the shared negative pool (#3588)."
+        )
     reverse = {n: cls for cls, names in vg_names.items() for n in names if n != cls}
     pairs: set[tuple[int, str]] = set()
     for iid, by_name in labels.items():

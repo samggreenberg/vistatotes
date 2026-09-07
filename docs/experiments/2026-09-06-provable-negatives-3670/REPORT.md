@@ -31,7 +31,7 @@ to quote is 0.85%.
 > Both distortions vary per class, so the spread argument selects neither pool.
 > **The setting stands; its justification does not.** The measured sums, 2.35 and
 > 2.36 against a pure-contamination 2.00, do establish that a real artifact
-> exists — it is simply unsized. §3 is rewritten below and #3700 carries the
+> exists — it is simply unsized. §3 is rewritten below and #3702 carries the
 > reopened decision. The rest of this report is unaffected.
 
 **Both candidate pools distort, and which is worse is not established.** On
@@ -225,7 +225,7 @@ about variation across classes cannot be checked against a mean.
 
 `SCALE_NEG_COMPOSITION = "matched"` still reaches the other pool, and its
 docstring still says what switching costs (a rebuild, because the off-COCO
-stratum is not embedded under `provable`). Whether to spend it is #3700.
+stratum is not embedded under `provable`). Whether to spend it is #3702.
 
 ## 4. What "provable" had to be made to mean
 

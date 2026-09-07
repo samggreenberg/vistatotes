@@ -1547,7 +1547,7 @@ SCALE_N_NEG_SPARE = int(os.environ.get("VTS_SCALE_N_NEG_SPARE", "300"))
 #:     price: `provable` rules 513 of 743 reviewed negatives ineligible).
 #:
 #: **THE ARGUMENT THIS WAS SHIPPED ON DOES NOT HOLD. The setting stands; its
-#: justification does not, and the choice is open (#3700).**
+#: justification does not, and the choice is open (#3702).**
 #:
 #: What was claimed: both compositions distort, the magnitudes are not separable,
 #: but the provenance shortcut is *uniform across classes* while contamination is

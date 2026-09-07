@@ -12,8 +12,8 @@ import pile_config as pc
 from pilebuild.env import cells_io, log
 
 
-def _device_record() -> dict:
-    """Everything about the machine that a later reader needs to compare cells.
+def _device_record(embed_batch_size: int | None = None) -> dict:
+    """Everything about the build that a later reader needs to compare cells.
 
     ``gres/gpu:v100`` is a *type*, and #3143 measured that a type is not a
     device: two nodes both answering to it produced ``siglip2_l`` vectors 1.5e-04
@@ -42,6 +42,16 @@ def _device_record() -> dict:
         # written; a reader can see a request that did not land.
         "cpu_capability": _cpu_capability(),
         "aten_cpu_capability_requested": os.environ.get("ATEN_CPU_CAPABILITY"),
+        # Not a property of the machine, and here anyway for the same reason the
+        # line above is: it is a build parameter that moves the vectors. A
+        # per-image embedding is supposed to be independent of what it was
+        # batched with, and #3683 measured that it is not -- rebuilding
+        # `siglip2_l` at batch 31 instead of 32, same images and same node,
+        # changed 27 of 7,746 vectors by up to 1.6e-04, because the batched
+        # GEMM's reduction order is not. That is 400x the same-node floor and
+        # larger than the fp16 difference #3143 rejected, and until this key
+        # existed nothing in the sidecar said what a cell had been batched at.
+        "embed_batch_size": embed_batch_size,
         "slurm_job": os.environ.get("SLURM_JOB_ID"),
         "slurm_gres": os.environ.get("SLURM_JOB_GRES") or os.environ.get("SBATCH_GRES"),
         "precision_requested": EMBED_PRECISION,
@@ -84,6 +94,29 @@ def _device_record() -> dict:
         }
     )
     return rec
+
+
+def effective_embed_batch_size(embedder: str) -> int | None:
+    """The batch size *embedder* will forward at, given the environment right now.
+
+    Read the embedder rather than the env var, because the env var is only the
+    default: a subclass with a tighter VRAM budget passes its own smaller one to
+    ``resolve_embed_batch_size``, and it is the number the GEMM sees that moves
+    the vectors. Registry lookup only -- no weights load, so this is free to
+    call before the pass it describes.
+
+    **Call it while the build's ``VTSEARCH_EMBED_BATCH_SIZE`` is still set.**
+    ``build_pile`` applies the per-embedder size for the duration of the embed
+    pass and pops it afterwards, so asking at provenance-write time would answer
+    with the shipped default -- recording a size the pass never ran at, which is
+    the failure the ``aten_cpu_capability_requested`` comment above warns about.
+    """
+    try:
+        from vtscore.media import get_embedder  # noqa: PLC0415
+
+        return int(get_embedder(embedder).embed_batch_size)
+    except Exception:  # noqa: BLE001 -- provenance must never fail a build
+        return None
 
 
 def _cpu_capability() -> str | None:
@@ -182,14 +215,25 @@ def cell_fingerprint(dataset: str, embedder: str, medias: dict | None = None) ->
     }
 
 
-def write_provenance(dataset: str, embedder: str, summary: dict, medias: dict | None = None) -> Path:
-    """Write the per-cell provenance sidecar."""
+def write_provenance(
+    dataset: str,
+    embedder: str,
+    summary: dict,
+    medias: dict | None = None,
+    embed_batch_size: int | None = None,
+) -> Path:
+    """Write the per-cell provenance sidecar.
+
+    *embed_batch_size* is what the embed pass actually ran at; see
+    :func:`effective_embed_batch_size` for why the caller has to measure it
+    rather than this function reading the environment.
+    """
     record = {
         "dataset": dataset,
         "embedder": embedder,
         "cell": pc.cell_path(dataset, embedder).name,
         "built_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
-        "device": _device_record(),
+        "device": _device_record(embed_batch_size),
         "preprocessing": _processor_record(embedder),
         "cell_summary": {k: v for k, v in summary.items() if k != "status"},
         "fingerprint": cell_fingerprint(dataset, embedder, medias),

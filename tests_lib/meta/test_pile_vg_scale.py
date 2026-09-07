@@ -577,7 +577,7 @@ class TestDrawNegatives:
         clean = list(range(1, pc.SCALE_N_NEG + pc.SCALE_N_NEG_SPARE + 100))
         keep = clean[-10:]
 
-        negatives, spares = vgs.draw_negatives(clean, {"negatives": keep})
+        negatives, spares = vgs.draw_negatives(clean, {"negatives": keep}, set(clean), 1.0)
 
         assert set(keep) <= set(negatives)
         assert len(negatives) == pc.SCALE_N_NEG
@@ -587,14 +587,48 @@ class TestDrawNegatives:
     def test_a_roster_entry_that_is_no_longer_clean_drops_out(self, vgs, pc):
         clean = list(range(1, pc.SCALE_N_NEG + pc.SCALE_N_NEG_SPARE + 100))
 
-        negatives, spares = vgs.draw_negatives(clean, {"negatives": [424242]})
+        negatives, spares = vgs.draw_negatives(clean, {"negatives": [424242]}, set(clean), 1.0)
 
         assert 424242 not in negatives and 424242 not in spares
         assert len(negatives) == pc.SCALE_N_NEG
 
     def test_a_short_clean_pool_yields_what_there_is(self, vgs, pc):
-        negatives, spares = vgs.draw_negatives([1, 2, 3], {})
+        negatives, spares = vgs.draw_negatives([1, 2, 3], {}, {1, 2, 3}, 1.0)
         assert sorted([*negatives, *spares]) == [1, 2, 3]
+
+    def test_an_all_provable_pool_draws_only_coco_scored_images(self, vgs, pc):
+        """`coco_fraction` 1.0 must exclude every image COCO never scored (#3670)."""
+        clean = list(range(1, 3 * (pc.SCALE_N_NEG + pc.SCALE_N_NEG_SPARE)))
+        exhaustive = set(clean[::2])
+
+        negatives, spares = vgs.draw_negatives(clean, {}, exhaustive, 1.0)
+
+        assert len(negatives) == pc.SCALE_N_NEG
+        assert set(negatives) <= exhaustive
+        assert set(spares) <= exhaustive
+
+    def test_a_matched_pool_hits_the_requested_share(self, vgs, pc):
+        """The point of `matched` is the RATIO, so the draw has to honour it."""
+        clean = list(range(1, 4 * (pc.SCALE_N_NEG + pc.SCALE_N_NEG_SPARE)))
+        exhaustive = set(clean[::2])
+
+        negatives, _spares = vgs.draw_negatives(clean, {}, exhaustive, 0.6)
+
+        assert len(negatives) == pc.SCALE_N_NEG
+        assert abs(len(set(negatives) & exhaustive) / len(negatives) - 0.6) < 0.01
+
+    def test_a_pinned_image_keeps_its_seat_within_its_own_stratum(self, vgs, pc):
+        """A composition change must retire only what the new one cannot hold."""
+        clean = list(range(1, 4 * (pc.SCALE_N_NEG + pc.SCALE_N_NEG_SPARE)))
+        exhaustive = set(clean[::2])
+        pinned_provable = sorted(exhaustive)[-10:]
+        pinned_silent = sorted(set(clean) - exhaustive)[-10:]
+        roster = {"negatives": pinned_provable + pinned_silent}
+
+        negatives, _spares = vgs.draw_negatives(clean, roster, exhaustive, 1.0)
+
+        assert set(pinned_provable) <= set(negatives)
+        assert not set(pinned_silent) & set(negatives)
 
 
 class TestRank:

@@ -455,21 +455,60 @@ def designate_cells(
     return chosen
 
 
-def draw_negatives(clean: list[int], roster: dict) -> tuple[list[int], list[int]]:
+def draw_negatives(
+    clean: list[int], roster: dict, exhaustive: set[int], coco_fraction: float
+) -> tuple[list[int], list[int]]:
     """The shared negative pool and its spares, drawn from the clean images.
 
     Spares are drawn beyond the designated pool on purpose: a human verdict can
     retire a contaminated negative later, and re-designating from spares costs a
     relabel rather than a re-embed of every cell.
+
+    The draw is **stratified by provenance** (#3670). *coco_fraction* is the share
+    of the pool that must come from *exhaustive* -- images COCO scored, where
+    "holds none of C" is a fact rather than VG's silence. The caller derives it
+    from :data:`pile_config.SCALE_NEG_COMPOSITION`: 1.0 for an all-provable pool,
+    the positives' own COCO share for a provenance-matched one.
+
+    Stratifying rather than filtering is what keeps the roster honest. A pinned
+    image that is still clean keeps its seat **within its own stratum**, so a
+    composition change retires only the images the new composition cannot hold
+    instead of reshuffling the whole draw -- the failure that orphaned 49 of 360
+    reviewed images the last time a selection rule changed.
     """
-    want_neg = pc.SCALE_N_NEG + pc.SCALE_N_NEG_SPARE
     clean_set = set(clean)
-    drawn = [i for i in roster.get("negatives", []) + roster.get("spares", []) if i in clean_set]
-    if len(drawn) < want_neg:
-        extra = sorted(clean_set - set(drawn), key=lambda i: rank("__negatives__", i))
-        drawn += extra[: want_neg - len(drawn)]
-    drawn = drawn[:want_neg]
-    return drawn[: pc.SCALE_N_NEG], drawn[pc.SCALE_N_NEG :]
+    want_prov = round(pc.SCALE_N_NEG * coco_fraction)
+    strata = [
+        (clean_set & exhaustive, want_prov),
+        (clean_set - exhaustive, pc.SCALE_N_NEG - want_prov),
+    ]
+    pinned = [i for i in roster.get("negatives", []) + roster.get("spares", []) if i in clean_set]
+
+    def draw(pool: set[int], want: int, taken: set[int]) -> list[int]:
+        """*want* images from *pool*, roster pins first, then hash-ranked."""
+        avail = pool - taken
+        out = [i for i in pinned if i in avail][:want]
+        if len(out) < want:
+            rest = sorted(avail - set(out), key=lambda i: rank("__negatives__", i))
+            out += rest[: want - len(out)]
+        return out
+
+    negatives: list[int] = []
+    for pool, want in strata:
+        negatives += draw(pool, want, set(negatives))
+
+    # Spares come from the same strata in the same proportion, so promoting one
+    # later cannot change what the pool is made of.
+    spares: list[int] = []
+    for pool, want in strata:
+        share = round(pc.SCALE_N_NEG_SPARE * want / pc.SCALE_N_NEG) if pc.SCALE_N_NEG else 0
+        spares += draw(pool, share, set(negatives) | set(spares))
+    # A short pool yields what there is rather than silently rebalancing: the
+    # builder reports an under-supplied pool, it does not paper over one.
+    short = pc.SCALE_N_NEG + pc.SCALE_N_NEG_SPARE - len(negatives) - len(spares)
+    if short > 0:
+        spares += draw(clean_set, short, set(negatives) | set(spares))
+    return negatives, spares
 
 
 def _cells_by_class(cells: list[str]) -> dict[str, set[str]]:
@@ -689,7 +728,24 @@ def load(dataset: str, medias: dict[int, dict], embedder_name: str) -> None:
 
     chosen = designate_cells(supply, corrections, roster)
     clean.sort()
-    negatives, spares = draw_negatives(clean, roster)
+    # The target provenance mix. `provable` asks for an all-COCO-scored pool;
+    # `matched` asks for the positives' OWN share, measured on the images
+    # actually designated rather than on the much larger class supply.
+    pos_ids = {i for ids in chosen.values() for i in ids}
+    pos_frac = len(pos_ids & exhaustive) / len(pos_ids) if pos_ids else 1.0
+    if pc.SCALE_NEG_COMPOSITION == "provable":
+        coco_fraction = 1.0
+    elif pc.SCALE_NEG_COMPOSITION == "matched":
+        coco_fraction = pos_frac
+    else:
+        raise SystemExit(f"unknown SCALE_NEG_COMPOSITION {pc.SCALE_NEG_COMPOSITION!r}")
+    negatives, spares = draw_negatives(clean, roster, exhaustive, coco_fraction)
+    n_prov = len(set(negatives) & exhaustive)
+    log(
+        f"  negative pool composition={pc.SCALE_NEG_COMPOSITION}: {n_prov} provable "
+        f"({n_prov / len(negatives):.1%} of {len(negatives)}), "
+        f"positives are {pos_frac:.1%} COCO-scored"
+    )
     pc.ROSTER.write_text(json.dumps({"cells": chosen, "negatives": negatives, "spares": spares}, indent=1) + "\n")
     log(
         f"  {sum(len(v) for v in chosen.values())} positives over {len(cells)} cells, "

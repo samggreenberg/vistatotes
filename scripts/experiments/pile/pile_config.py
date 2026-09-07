@@ -1526,14 +1526,42 @@ def scale_vg_wanted() -> set[str]:
 #: different difficulty. Unequal prevalence between arms is what made wave 1 and
 #: wave 2 of the overview benchmark non-comparable.
 SCALE_N_POS = int(os.environ.get("VTS_SCALE_N_POS", "100"))
-SCALE_N_NEG = int(os.environ.get("VTS_SCALE_N_NEG", "3900"))
+SCALE_N_NEG = int(os.environ.get("VTS_SCALE_N_NEG", "9900"))
 #: Extra negatives drawn into the pickle but designated into no cell. A human
 #: verdict can retire a contaminated negative later; re-designating from a spare
 #: is a relabel, while drawing a fresh one would mean re-embedding every cell.
 SCALE_N_NEG_SPARE = int(os.environ.get("VTS_SCALE_N_NEG_SPARE", "300"))
 
+#: What the shared negative pool is made of (#3670).
+#:
+#: ``provable``
+#:     Every designated negative is COCO-scored, so "holds no bus" is a FACT --
+#:     COCO annotates all eighty of its classes on any image it touches -- rather
+#:     than VG's silence, which is wrong 0.3-2.8% of the time depending on the
+#:     class. That per-class SPREAD, not its average, is what makes a comparison
+#:     between two classes unreadable, and this is the only composition that
+#:     removes it.
+#: ``matched``
+#:     The negatives' COCO share is matched to the positives' own (~57%), so
+#:     provenance carries no information about the label. Keeps the
+#:     contamination; the floor falls only to 77% of the mixed pool's.
+#:
+#: **Chosen on a measurement, not on the principle.** An all-provable pool does
+#: hand a head a shortcut, because off-COCO then implies positive: measured on
+#: #3667's scale it is worth **1.11x** (`provenance_shortcut.py`, agreed by two
+#: independent routes -- a reverse arm at 1.12x and the residual after
+#: subtracting predicted contamination). The contamination a mixed pool carries
+#: is already worth **1.32x** on the same scale. All-provable is the LESS
+#: distorted pool, not merely the cleaner one; #3667's cross-class shortcut, for
+#: reference, was 1.88x and justified a rebuild.
+#:
+#: Switching back to ``matched`` needs the off-COCO stratum EMBEDDED, which the
+#: all-provable build does not carry -- it is a rebuild, not a relabel.
+SCALE_NEG_COMPOSITION = os.environ.get("VTS_SCALE_NEG_COMPOSITION", "provable")
+
 #: The **designed** prevalence of a `vg_scale` cell: 100 positives per band x 3
-#: bands against 3900 shared negatives. Named because `vg_scale_deep` has to
+#: bands against the shared negatives, which #3670 took from 3,900 to 9,900
+#: so a cell's prevalence is 1%. Named because `vg_scale_deep` has to
 #: REPRODUCE it rather than re-derive it, and because every k* this family of
 #: studies quotes is computed from it (`-log2((1-pi)/pi) = -3.71`).
 #:
@@ -1558,9 +1586,20 @@ SCALE_PREVALENCE = (3 * SCALE_N_POS) / (3 * SCALE_N_POS + SCALE_N_NEG)
 #: and a class list that differs from #3319's would confound the horizon axis
 #: with a vocabulary axis in the one comparison this dataset exists to make.
 SCALE_DEEP_N_POS = int(os.environ.get("VTS_SCALE_DEEP_N_POS", "900"))
-#: DERIVED, never set: see the `vg_scale_deep` note in DATASETS. A negative pool
-#: written as a literal beside a positive count is how prevalence drifts.
-SCALE_DEEP_N_NEG = round(SCALE_DEEP_N_POS * (1 - SCALE_PREVALENCE) / SCALE_PREVALENCE)
+#: `vg_scale_deep` does NOT follow #3670's expansion, and the pin is deliberate.
+#: Deriving its pool from the live `SCALE_PREVALENCE` would have taken it from
+#: 11,700 negatives to 29,700 as a silent side effect of a change to a DIFFERENT
+#: dataset. Deep exists for one comparison -- the #3319/#3547 acquisition horizon
+#: -- and moving its prevalence mid-stream would confound that axis with a
+#: prevalence axis, which is the argument `SCALE_DEEP_N_POS` already makes about
+#: holding the class list fixed. Whether deep should follow is #3690.
+#:
+#: Still DERIVED, never set: a negative pool written as a literal beside a
+#: positive count is how prevalence drifts. What is pinned is the `vg_scale`
+#: pool size deep's prevalence refers to, not the pool itself.
+SCALE_DEEP_PIN_N_NEG = int(os.environ.get("VTS_SCALE_DEEP_PIN_N_NEG", "3900"))
+SCALE_DEEP_PREVALENCE = (3 * SCALE_N_POS) / (3 * SCALE_N_POS + SCALE_DEEP_PIN_N_NEG)
+SCALE_DEEP_N_NEG = round(SCALE_DEEP_N_POS * (1 - SCALE_DEEP_PREVALENCE) / SCALE_DEEP_PREVALENCE)
 SCALE_DEEP_N_NEG_SPARE = int(os.environ.get("VTS_SCALE_DEEP_N_NEG_SPARE", "300"))
 
 

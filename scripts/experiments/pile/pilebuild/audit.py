@@ -98,6 +98,21 @@ def verify() -> int:
         # the two stay consistent (#3281). This one compares the box against the
         # frame, which nothing can drag along with it.
         problems += [f"{ds} x {emb}: {g}" for g in region_geometry_problems(medias)]
+
+        # What the negatives are MADE OF is implied by nothing above. A pool of
+        # the right size, with valid boxes, vectors and prevalence, can still
+        # rest on VG's silence rather than on COCO's answer -- and the whole
+        # point of the `provable` composition is that it does not (#3670). A
+        # rebuild that quietly drew off-COCO images would pass every other check
+        # in this function, which is the same shape as #3299: the cell was fine,
+        # what it was built FROM was not.
+        pool = [m for m in medias.values() if not m.get("categories")]
+        n_prov = sum(1 for m in pool if m.get("labels_exhaustive"))
+        if pool and pc.SCALE_NEG_COMPOSITION == "provable" and n_prov < len(pool):
+            problems.append(
+                f"{ds} x {emb}: composition=provable, but {len(pool) - n_prov} of {len(pool)} "
+                "shared negatives carry no exhaustive reference -- they rest on VG's silence"
+            )
         break  # one embedder is enough; the boxes are identical across cells
 
     # A derived cell that no longer matches its parent. `vg_scale_any` is a

@@ -63,6 +63,32 @@ _VG_SCALE_TEXTS = {
     "knife": "a knife",
     "stop sign": "a stop sign",
     "umbrella": "an umbrella",
+    # The thirteen #3588 added, taken VERBATIM from `_COCO_TEXTS` below -- which
+    # is where the twelve above came from too: every one of them is byte-identical
+    # to its COCO entry, scene qualifiers included (`a boat on the water`, `a kite
+    # in the sky`). Reusing rather than re-writing is what keeps the opening from
+    # becoming a second, uncontrolled axis: a hand-tuned query for one class and a
+    # plain one for another is an arm-dependent seeding difference, which is the
+    # confound #3278 added the region pair to remove.
+    #
+    # **The query is what a USER TYPES; the class rule is what a REVIEWER
+    # APPLIES.** They deliberately do not match, and two of these show why: `cup`
+    # is `cup` U `wine glass` (SCALE_CLASS_MERGES) and `truck` excludes SUVs
+    # (SCALE_CLASS_RULES), but nobody hunting either types the boundary into the
+    # search box. Encoding the ruling here would measure an opening no user has.
+    "truck": "a truck",
+    "car": "a car on the street",
+    "fork": "a fork",
+    "spoon": "a spoon",
+    "cup": "a cup",
+    "bowl": "a bowl",
+    "bottle": "a bottle",
+    "vase": "a vase",
+    "bench": "a bench",
+    "chair": "a chair",
+    "sink": "a sink",
+    "cell phone": "a cell phone",
+    "fire hydrant": "a fire hydrant",
 }
 
 #: COCO-2017-val's 80 categories as **typed queries**.

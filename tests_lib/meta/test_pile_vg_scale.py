@@ -846,18 +846,38 @@ class TestCoverageRow:
 
 
 class TestCorrectionsOutsideC:
-    """A shared verdict file holds classes this build does not have (#3670)."""
+    """A shared verdict file holds classes this build does not have (#3670).
+
+    The example class is **not** written as a literal any more. #3670 wrote these
+    against `car`, which was outside *C* when it did and inside *C* a few hours
+    later when #3588's thirteen were promoted -- so both tests failed on a build
+    where nothing they test had changed. A test whose fixture is a class list
+    that moves has to read the class list.
+    """
+
+    #: A COCO class this study has never carried. It is not barred by
+    #: `scale_study_exclusion` -- nothing about a toaster is a part, a place or a
+    #: plural -- it simply has never cleared the supply shortlist and has never
+    #: been proposed. `test_the_example_class_really_is_outside_c` is what keeps
+    #: that true rather than assumed.
+    OUTSIDE = "toaster"
+
+    def test_the_example_class_really_is_outside_c(self, pc):
+        """Guards the guard: these tests say nothing if OUTSIDE drifts into C."""
+        assert self.OUTSIDE not in pc.SCALE_CLASSES
 
     def test_a_verdict_for_a_class_outside_c_is_skipped(self, vgs):
         """`corrections.json` is shared; #3588's pass added thirteen classes to it.
 
         Without the skip the label is written anyway and `band_candidates` dies
-        on `supply['car']` -- a shared file making the shipped twelve-class
-        construction unbuildable, reported as a dict lookup three passes later.
+        on `supply[cls]` -- a shared file making the shipped construction
+        unbuildable, reported as a dict lookup three passes later.
         """
         labels = {7: {}}
 
-        vgs.apply_corrections(labels, {(7, "car"): _verdict(True, [[0.0, 0.0, 0.5, 0.5]])}, {7: (640, 480)}, set())
+        vgs.apply_corrections(
+            labels, {(7, self.OUTSIDE): _verdict(True, [[0.0, 0.0, 0.5, 0.5]])}, {7: (640, 480)}, set()
+        )
 
         assert labels[7] == {}
 
@@ -865,11 +885,11 @@ class TestCorrectionsOutsideC:
         """The half that decides pool membership under #3670.
 
         Marking an image exhaustive claims absence is a fact for every class in
-        C. A human who looked for a `car` established nothing about `bus`.
+        C. A human who looked for one object established nothing about `bus`.
         """
         exhaustive: set[int] = set()
 
-        vgs.apply_corrections({7: {}}, {(7, "car"): _verdict(False)}, {7: (640, 480)}, exhaustive)
+        vgs.apply_corrections({7: {}}, {(7, self.OUTSIDE): _verdict(False)}, {7: (640, 480)}, exhaustive)
 
         assert exhaustive == set()
 

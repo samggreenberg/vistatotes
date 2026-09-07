@@ -96,8 +96,9 @@ def _cell_membership(medias: dict[int, dict]) -> tuple[dict[str, set[int]], set[
     return positives, pool
 
 
-def _compare(label: str, chosen: dict[str, list[int]], negatives: list[int],
-             built_pos: dict[str, set[int]], built_pool: set[int]) -> dict:
+def _compare(
+    label: str, chosen: dict[str, list[int]], negatives: list[int], built_pos: dict[str, set[int]], built_pool: set[int]
+) -> dict:
     """One replay against the built cell, as counts plus the worst cells."""
     per_cell = {}
     add_total = drop_total = 0

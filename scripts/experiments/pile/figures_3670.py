@@ -224,33 +224,43 @@ def fig_review(coverage: dict, path: Path) -> None:
 
 
 def fig_prevalence(coverage: dict, path: Path) -> None:
-    """Designed vs realised, with k* on the right -- the axis studies actually read."""
+    """Designed vs realised, with k* annotated per point rather than on an axis.
+
+    k* is `-log2((1-pi)/pi)`, which is NOT linear in pi -- so a twin axis whose
+    limits are the transformed endpoints places every gridline between them in
+    the wrong spot, and reads as a scale when it is an interpolation. Annotating
+    each measured point instead says exactly as much and cannot be misread.
+    """
     stages = [
         ("#3156 as built\n3,900 shared", 0.0250, 0.0250),
         ("after #3667\ncross-class negatives", 0.0250, 0.01722),
         ("#3670\n9,900 provable", 0.0100, coverage["realised"]["mean"]),
     ]
-    fig, ax = plt.subplots(figsize=(6.8, 3.4), dpi=130)
+    fig, ax = plt.subplots(figsize=(7.0, 3.6), dpi=130)
     xs = range(len(stages))
     ax.plot(list(xs), [d for _n, d, _r in stages], "o--", color=MUTED, lw=1.4, label="designed")
     ax.plot(list(xs), [r for _n, _d, r in stages], "o-", color=PROVABLE, lw=2.0, label="realised")
     for x, (_name, d, r) in zip(xs, stages, strict=True):
-        ax.annotate(f"{d:.2%}", (x, d), textcoords="offset points", xytext=(0, 8), ha="center", fontsize=8, color=MUTED)
-        ax.annotate(f"{r:.2%}", (x, r), textcoords="offset points", xytext=(0, -14), ha="center", fontsize=9, color=INK)
+        if abs(d - r) > 1e-6:
+            ax.annotate(
+                f"{d:.2%}", (x, d), textcoords="offset points", xytext=(0, 9), ha="center", fontsize=8, color=MUTED
+            )
+        ax.annotate(
+            f"{r:.2%}\nk* {-math.log2((1 - r) / r):.2f}",
+            (x, r),
+            textcoords="offset points",
+            xytext=(0, -26),
+            ha="center",
+            fontsize=8.5,
+            color=INK,
+        )
     ax.set_xticks(list(xs))
     ax.set_xticklabels([n for n, _d, _r in stages], fontsize=8)
+    ax.set_xlim(-0.4, len(stages) - 0.6)
     ax.set_ylabel("prevalence of one band cell", fontsize=9, color=INK)
     ax.set_ylim(0.005, 0.030)
     ax.grid(axis="y", color=GRID, lw=0.6)
     _frame(ax)
-
-    kax = ax.twinx()
-    kax.set_ylim(*(-math.log2((1 - p) / p) for p in ax.get_ylim()))
-    kax.set_ylabel("k* = -log2((1-pi)/pi)", fontsize=9, color=MUTED)
-    kax.tick_params(colors=MUTED, labelsize=8)
-    kax.spines[["top", "left"]].set_visible(False)
-    kax.spines[["right", "bottom"]].set_color(GRID)
-
     ax.legend(fontsize=8, frameon=False, loc="upper right")
     ax.set_title(
         "The ask was 1%; the pool delivers 0.85%, because #3667 already adds ~1,900 negatives",

@@ -111,8 +111,8 @@ def coverage_row(
 
 def main() -> int:
     # Called here rather than at import, unlike this directory's other scripts:
-    # `setup_env` edits `sys.meta_path` and `sys.path` process-wide, and the
-    # arithmetic above is worth a unit test that does not pay that.
+    # `setup_env` rewrites the import machinery process-wide, and the arithmetic
+    # above is worth a unit test that does not pay for that.
     pc.setup_env()
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     base = pc.PILE.parent / "vgscale-3156"

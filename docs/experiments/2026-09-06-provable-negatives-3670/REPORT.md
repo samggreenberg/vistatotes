@@ -31,9 +31,9 @@ make the gap impossible to miss (§7).
 
 | | |
 |---|---|
-| Shared negatives | 3,900 → **9,900**, drawn from 34,071 COCO-scored candidates |
+| Shared negatives | 3,900 → **9,900**, drawn from 34,071 COCO-scored candidates (21,121 once #3588's classes land — §5) |
 | Designed cell prevalence | 2.50% → **1.00%** (k\* −5.29 → **−6.63**) |
-| **Realised** cell prevalence | 1.72% → **0.85%** (0.844–0.856 across 36 cells) |
+| **Realised** cell prevalence | 1.72% → **0.85%** (0.844–0.856 across 36 cells); **0.73%** once #3588's classes land — §5 |
 | Contamination from VG's silence | 1.40% [0.68, 2.86] → **0 by construction** |
 | Negative review still eligible | 743 → **147**; coverage of those, **100.0%** |
 | New images to embed | **6,000** (7,746 → 13,746 medias; 15.5 min for all five embedders, measured) |
@@ -226,6 +226,22 @@ split.*
 | #3156 as built | 2.50% | 2.50% |
 | after #3667 | 2.50% | 1.72% |
 | **#3670** | **1.00%** | **0.85%** (0.844–0.856) |
+| **#3670 + #3588's twenty-five classes** | **1.00%** | **0.73%** (0.720–0.753) |
+
+**The last row is what the pile actually holds.** Every number above it is
+computed over twelve classes, and the class expansion this rebuild is shared
+with lands before the cells exist — so `0.85%` is the realised prevalence of a
+dataset that was never built. The cause is the one this section already names,
+applied to a longer list: a cell scores its shared negatives *plus* every other
+class's COCO-scored positives, and there are now **twenty-four** other classes
+rather than eleven. Re-measured with `negpool_coverage.py` against
+`SCALE_CLASSES` at twenty-five (k\* **−7.09**, against −6.87 at twelve).
+
+The composition survives the expansion, which is the load-bearing check: a
+25-class list leaves **21,121** provably-clean images against the 9,900 the pool
+needs — 2.1× headroom where twelve classes gave 3.4×. `SCALE_N_NEG` does not
+have to move. See
+[`../2026-09-06-vg-scale-promotion-3588/REPORT.md`](../2026-09-06-vg-scale-promotion-3588/REPORT.md) §6.
 
 The spread across cells is small — 1.4% relative — because the cross-class
 contribution depends on the class list, which every cell shares. So one constant

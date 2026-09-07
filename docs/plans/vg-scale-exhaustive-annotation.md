@@ -39,6 +39,12 @@ are present — rather than 25 binary votes. For scale, the pass already committ
 to for #3702 is ~400 cleared negatives per class, ~10,000 images. Counts from
 [the #3670 study](../experiments/2026-09-06-provable-negatives-3670/REPORT.md).
 
+**That estimate is here to say whether this is worth starting, and does not need
+refining.** The work has to be done whatever the number turns out to be, so
+sizing it more precisely buys nothing; the exact per-class counts arrive for
+free with the queue, as a byproduct of building the worklist rather than as a
+run of their own.
+
 **The zero-annotation version was measured and does not reach.**
 `scripts/experiments/pile/exact_supply.py` asks whether the COCO half alone
 supplies the cells; 20 of 36 shipped cells and 17 of 39 candidate cells fall
@@ -93,14 +99,16 @@ scoring into the pass rather than discovering the drift afterwards.
 
 <!-- item-sep -->
 
-- **Measure the real debt against the 25-class roster.** The 3,100–3,200 figure
-  is scaled from the 12-class build. Run
-  `scripts/experiments/pile/measure_supply.py` and
-  `scripts/experiments/pile/exact_supply.py` against the shipped 25 and report
-  the off-COCO positive count per class and per band, plus the per-cell
-  COCO-anchored shortfall table. Needs a compute node — the full VG source does
-  not fit on a laptop. Nothing else here should be scoped until this lands.
-  (Sonnet 5)
+- **Emit the annotation queue.** Not a measurement — the worklist. A reviewer
+  cannot start without knowing which images are off-COCO positives, and that is
+  a join between VG and COCO ids rather than something visible in the image. It
+  is cheap: `_emit_medias` stamps `coco_scored` on every media, so where the
+  shipped cell carries it the queue is `categories and not coco_scored` read
+  off the pickle, and where it does not the fallback is `image_data.json`'s
+  `coco_id` field (~100 MB) joined against the pickle's positives. Neither
+  needs `objects.json` or a compute node; `scripts/experiments/pile/exact_supply.py`
+  does, which is why it is the wrong tool here. The per-class counts fall out of
+  the queue for free — do not run anything extra to produce them. (Sonnet 5)
 
 <!-- item-sep -->
 
@@ -115,15 +123,17 @@ scoring into the pass rather than discovering the drift afterwards.
 
 <!-- item-sep -->
 
-- **Pilot the exhaustive interaction before committing the pass.** Naming which
-  of 25 classes are present is a materially harder task than a binary vote, and
-  COCO itself used a staged per-class protocol rather than one sweep over 80.
-  Run a pilot on a few hundred anchored images where COCO is the answer key, and
-  report per-class recall and the time per image. That measurement decides
-  whether the pass is one sweep, a staged protocol, or a shortlist-then-confirm
-  flow.
+- **Treat the first batch as the pilot, rather than piloting separately.**
+  Naming which of 25 classes are present is a materially harder task than a
+  binary vote, and COCO itself used a staged per-class protocol rather than one
+  sweep over 80 — so the interaction may well need changing. That is an argument
+  for looking at the first few hundred judgements before running the other three
+  thousand, not for annotating throwaway images first: start on the real queue,
+  and read the first batch as the pilot. What to read off it is per-class recall
+  and time per image, both against COCO on whatever part of the batch is
+  anchored.
   `scripts/experiments/lessons/2026-09-02-one-pilot-cell-cleared-a-hazard-the-full-wave-hit.md`
-  is the standing reason to pilot first. (human + Sonnet 5)
+  is the standing reason to look before committing the rest. (human + Sonnet 5)
 
 <!-- item-sep -->
 

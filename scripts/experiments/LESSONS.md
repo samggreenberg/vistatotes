@@ -72,6 +72,7 @@ correct union of the two branches with no judgement involved.
 
 | Date | Lesson | Issue |
 |---|---|---|
+| 2026-09-07 | [the launch output never named the checkout](lessons/2026-09-07-the-launch-output-never-named-the-checkout.md) | #3693 |
 | 2026-09-06 | [a backup glob that did not match the sibling](lessons/2026-09-06-a-backup-glob-that-did-not-match-the-sibling.md) | #3667 |
 | 2026-09-06 | [a force-push left the suite silently testing the old commit](lessons/2026-09-06-a-force-push-left-the-suite-testing-the-old-commit.md) | #3666 |
 | 2026-09-06 | [a truncating pipe killed the script before it wrote its output](lessons/2026-09-06-a-truncating-pipe-killed-the-json-write.md) | #3667 |

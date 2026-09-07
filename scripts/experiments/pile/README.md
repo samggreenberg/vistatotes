@@ -33,6 +33,29 @@ before you do it, both learned in #3667:
 - **Copy the cells first, and check your glob.** `vg_scale__*` does not match
   `vg_scale_deep__*`.
 
+## Which checkout built it
+
+`launch_pile.sh` names the tree it will import before it submits anything, and
+refuses one more than `VTS_MAX_BEHIND` (default 100) commits behind `origin/dev`
+— `preflight.sh` check 4's bar, applied to the artifact every study reads:
+
+```
+=== code under launch ===
+repo:    /exp/sgreenberg/projects/VTSearch
+head:    a9dd62ff (dev)
+base:    level with origin/dev
+```
+
+`VTS_MAX_BEHIND=0` waives the refusal for a build that means to run old code.
+The same facts are stamped into each cell's sidecar under `code` (repo, commit,
+branch, dirty, and the commit the launcher saw — which differs if the worktree
+moved while the job queued), and `--provenance` calls out a pile whose cells came
+from more than one tree.
+
+This exists because the launcher used to build from a **fixed path**: run from
+any other worktree it embedded the pile out of a checkout 1,420 commits behind
+`dev`, predating `vg_scale` entirely, and printed nothing that said so (#3693).
+
 ## Where the code lives
 
 `build_pile.py` is the CLI and the per-cell build loop; everything it does
@@ -44,7 +67,7 @@ before you do it, both learned in #3667:
 | `pilebuild/vgsource.py`, `boxscan.py` | reading the VG source; choosing a band's categories from the box scan |
 | `pilebuild/corrections.py` | human verdicts, and the one place their boxes cross from normalised into pixel space |
 | `pilebuild/geometry.py` | geometry no honest region box can have; the derived-label digest |
-| `pilebuild/provenance.py` | which machine produced a cell, and its vector hash |
+| `pilebuild/provenance.py` | which machine **and which checkout** produced a cell, and its vector hash |
 | `pilebuild/audit.py`, `manifest.py`, `provenance_report.py` | the read-only modes |
 
 **Both halves of a dataset live in one module on purpose.** They used to be two

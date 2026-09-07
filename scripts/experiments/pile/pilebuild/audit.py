@@ -35,10 +35,13 @@ def negative_pool_problems(ds: str, medias: dict) -> list[str]:
 
     Two separate claims, so two separate messages:
 
-    * **composition** -- under ``provable`` every designated negative carries an
-      exhaustive reference, so "holds none of C" is COCO's answer rather than
-      VG's silence. A rebuild that quietly drew off-COCO images passes every
-      other check here.
+    * **composition** -- under ``provable`` every designated negative is
+      ``coco_scored``, so "holds none of C" is COCO's answer rather than VG's
+      silence. A rebuild that quietly drew off-COCO images passes every other
+      check here. It reads ``coco_scored`` and not ``labels_exhaustive``: the
+      latter is also set by a human who looked at ONE class, which establishes
+      nothing about the other eleven, and a cell predating the stamp is told to
+      rebuild rather than passed on the weaker flag.
     * **size** -- the pool has as many images as :data:`pile_config.SCALE_N_NEG`
       says, so ``SCALE_PREVALENCE`` describes this pickle. #3670 changed that
       constant while the shared pile still held the old pool; without this check
@@ -56,15 +59,22 @@ def negative_pool_problems(ds: str, medias: dict) -> list[str]:
     pool = [m for m in medias.values() if not m.get("categories") and m.get("evaluable_categories")]
     if not pool:
         return problems
-    n_silent = sum(1 for m in pool if not m.get("labels_exhaustive"))
+    unstamped = sum(1 for m in pool if "coco_scored" not in m)
+    n_silent = sum(1 for m in pool if not m.get("coco_scored"))
     # `vg_scale_deep` draws its own pool and is deliberately NOT provable
     # (#3690): it is pinned to the pre-#3670 construction so the #3319/#3547
     # horizon comparison keeps one prevalence from end to end.
     if pc.SCALE_NEG_COMPOSITION == "provable" and n_silent and ds != "vg_scale_deep":
-        problems.append(
-            f"{ds}: composition=provable, but {n_silent} of {len(pool)} designated negatives "
-            "carry no exhaustive reference -- they rest on VG's silence"
-        )
+        if unstamped == len(pool):
+            problems.append(
+                f"{ds}: composition=provable, but no negative carries a `coco_scored` stamp -- "
+                "this cell was built before the flag existed, so the claim cannot be checked; rebuild it"
+            )
+        else:
+            problems.append(
+                f"{ds}: composition=provable, but {n_silent} of {len(pool)} designated negatives "
+                "are not COCO-scored -- their absence claim is VG's silence"
+            )
     # Positives per cell differ by construction: `vg_scale` designates one band,
     # `vg_scale_any` collapses all three, `vg_scale_deep` is its own depth.
     # Quoting the realised prevalence is the whole point of the message, so it is

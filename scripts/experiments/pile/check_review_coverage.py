@@ -29,11 +29,12 @@ coverage if it went missing. The distinction is the check:
 * left because the rule cannot hold it -> ``by rule``, not a failure;
 * left for any other reason -> counted, and the gate fires.
 
-Eligibility is read from the COCO pairing (``coco_anchor/image_data.json``),
-which is a superset of ``labels_exhaustive`` -- it does not re-apply the
-aspect-drift filter. That errs toward calling an image eligible, i.e. toward a
-*larger* denominator and a *lower* coverage, which is the safe direction for a
-gate.
+Eligibility is read from the COCO pairing (``coco_anchor/image_data.json``) --
+the same fact the build stratifies on, and deliberately not ``labels_exhaustive``,
+which a one-class review also sets. It is a slight *superset* of what the build
+admits, because it does not re-apply the aspect-drift filter that drops 49 of
+51,497 pairs. That errs toward calling an image eligible, i.e. toward a *larger*
+denominator and a *lower* coverage, which is the safe direction for a gate.
 
 Usage::
 

@@ -177,6 +177,11 @@ def load(dataset: str, medias: dict[int, dict], embedder_name: str) -> None:
     # "only depth changed" premise breaking.
     labels = read_vg_labels(records, paths, dims, pc.scale_vg_wanted())
     box_dims, exhaustive, n_anchored, n_reframed = anchor_to_coco(labels, dims, coco_of, truth, ca.COCO_DIMS, wanted)
+    # Before corrections widen it -- see `vg_scale.load`. Deep's own pool is not
+    # stratified on it (#3690 pins deep to the pre-#3670 construction), but the
+    # medias carry the flag so a reader of either dataset can ask the same
+    # question of both.
+    coco_scored = set(exhaustive)
     # After the anchor and with the pixel space, exactly as `vg_scale` runs it:
     # the fold's treatment of a scattered union is part of "what a positive is",
     # so a sibling that folded differently would break the only-depth-changed
@@ -208,14 +213,22 @@ def load(dataset: str, medias: dict[int, dict], embedder_name: str) -> None:
         f"  {sum(len(v) for v in chosen.values())} positives over {len(cells)} cells, "
         f"{len(negatives)} shared negatives + {len(spares)} spares (from {len(clean)} clean images)"
     )
-    log(f"  prevalence {prevalence:.5f} vs vg_scale's designed {pc.SCALE_PREVALENCE:.5f}")
+    log(f"  prevalence {prevalence:.5f} vs the pinned {pc.SCALE_DEEP_PREVALENCE:.5f} (#3690)")
     # The rebuild's whole premise is that only DEPTH changed. A drift here is
     # the failure mode the derived SCALE_DEEP_N_NEG exists to prevent, so it is
     # asserted at build time rather than left to a reader of the manifest.
-    if abs(prevalence - pc.SCALE_PREVALENCE) > 1e-4:
+    #
+    # The target is `SCALE_DEEP_PREVALENCE`, not `SCALE_PREVALENCE`. Those were
+    # the same constant until #3670 took `vg_scale` to 1% and deep stayed at the
+    # 7.14% its horizon comparison was measured against; against the live
+    # `vg_scale` number this assertion now fires on a correct build, which is a
+    # rebuild that aborts rather than a dataset that drifts -- but it would have
+    # aborted at the end of the GPU hours, and the message would have named the
+    # wrong culprit.
+    if abs(prevalence - pc.SCALE_DEEP_PREVALENCE) > 1e-4:
         raise SystemExit(
-            f"vg_scale_deep: prevalence {prevalence:.5f} != vg_scale's {pc.SCALE_PREVALENCE:.5f}; "
-            "the deep cell would not be comparable to the shallow one"
+            f"vg_scale_deep: prevalence {prevalence:.5f} != the pinned {pc.SCALE_DEEP_PREVALENCE:.5f}; "
+            "the deep cell would not be comparable to the runs it exists to extend"
         )
 
     # `labels` is not optional here, whatever the signature's default says: it
@@ -225,7 +238,18 @@ def load(dataset: str, medias: dict[int, dict], embedder_name: str) -> None:
     # the first time in #3667's rebuild; before that the deep cell got the
     # exclusion semantics of a dataset with no labels at all.
     _emit_medias(
-        medias, paths, chosen, negatives, spares, boxes_for, box_dims, exhaustive, cells, embedder_name, labels
+        medias,
+        paths,
+        chosen,
+        negatives,
+        spares,
+        boxes_for,
+        box_dims,
+        exhaustive,
+        cells,
+        embedder_name,
+        labels,
+        coco_scored,
     )
     for d in medias.values():
         d["origin"] = {

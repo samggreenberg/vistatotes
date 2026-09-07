@@ -280,6 +280,7 @@ def apply_corrections(
     corrections: dict[tuple[int, str], dict],
     box_dims: dict[int, tuple[int, int]],
     exhaustive: set[int],
+    classes: tuple[str, ...] | None = None,
 ) -> set[tuple[int, str]]:
     """Fold human verdicts into *labels*, and return the pairs that cannot be banded.
 
@@ -297,10 +298,27 @@ def apply_corrections(
     band is a claim about size, and no size was measured. It leaves every cell of
     that class instead -- neither a positive nor a negative -- which is precisely
     what the third value is for.
+
+    **A verdict on a class outside *C* is skipped**, and that is not a nicety.
+    `corrections.json` is shared by every build of this family, so it holds rows
+    for classes a given build does not have: #3588's negative pass added
+    thirteen, and from that moment a twelve-class build died in
+    :func:`band_candidates` with ``KeyError: 'car'`` -- a shared file making the
+    shipped construction unbuildable, reported as a dict lookup three passes
+    later. Skipping is also the only *correct* reading: a verdict about `car`
+    cannot move a `bus` cell, and folding it in would write a class the supply
+    table has no column for.
+
+    The skip covers ``exhaustive`` too, which is the half that would have
+    survived a narrower fix. Marking an image exhaustive means "absence is a
+    fact here for every class in *C*"; a human who looked for a `car` did not
+    establish that, and under #3670 that flag is what admits an image to the
+    provable negative pool.
     """
+    in_c = set(pc.SCALE_CLASSES if classes is None else classes)
     unbanded: set[tuple[int, str]] = set()
     for (iid, name), verdict in corrections.items():
-        if iid not in labels:
+        if iid not in labels or name not in in_c:
             continue
         if verdict.get("present"):
             boxes = correction_boxes_px(verdict, *box_dims[iid])
@@ -456,7 +474,7 @@ def designate_cells(
 
 
 def draw_negatives(
-    clean: list[int], roster: dict, exhaustive: set[int], coco_fraction: float
+    clean: list[int], roster: dict, coco_scored: set[int], coco_fraction: float
 ) -> tuple[list[int], list[int]]:
     """The shared negative pool and its spares, drawn from the clean images.
 
@@ -465,10 +483,18 @@ def draw_negatives(
     relabel rather than a re-embed of every cell.
 
     The draw is **stratified by provenance** (#3670). *coco_fraction* is the share
-    of the pool that must come from *exhaustive* -- images COCO scored, where
+    of the pool that must come from *coco_scored* -- images COCO annotated, where
     "holds none of C" is a fact rather than VG's silence. The caller derives it
     from :data:`pile_config.SCALE_NEG_COMPOSITION`: 1.0 for an all-provable pool,
     the positives' own COCO share for a provenance-matched one.
+
+    ``coco_scored`` is deliberately **not** the ``exhaustive`` set the rest of
+    the build carries. That one also holds every image a human looked at, and a
+    human who looked for a `bus` established nothing about the other eleven
+    classes -- so admitting those here would put images in an "all-provable"
+    pool whose absence claim is still VG's silence for most of *C*. The
+    distinction costs nothing: 34,071 clean images carry a COCO pairing against
+    the 9,900 the pool needs.
 
     Stratifying rather than filtering is what keeps the roster honest. A pinned
     image that is still clean keeps its seat **within its own stratum**, so a
@@ -479,8 +505,8 @@ def draw_negatives(
     clean_set = set(clean)
     want_prov = round(pc.SCALE_N_NEG * coco_fraction)
     strata = [
-        (clean_set & exhaustive, want_prov),
-        (clean_set - exhaustive, pc.SCALE_N_NEG - want_prov),
+        (clean_set & coco_scored, want_prov),
+        (clean_set - coco_scored, pc.SCALE_N_NEG - want_prov),
     ]
     pinned = [i for i in roster.get("negatives", []) + roster.get("spares", []) if i in clean_set]
 
@@ -585,6 +611,7 @@ def _emit_medias(
     cells: list[str],
     embedder_name: str,
     labels: dict[int, dict[str, list[list[float]]]],
+    coco_scored: set[int],
 ) -> None:
     """Read the pixels and write one media dict per designated image.
 
@@ -646,6 +673,11 @@ def _emit_medias(
             # or a human who looked). False means VG's silence is the only
             # evidence of absence -- which is what the review slates target.
             "labels_exhaustive": iid in exhaustive,
+            # The strict half of the flag above, and the one #3670's composition
+            # is defined on. `labels_exhaustive` is also set by a human looking
+            # at ONE class; this says COCO answered for all eighty at once, which
+            # is what makes a negative provable rather than merely reviewed.
+            "coco_scored": iid in coco_scored,
             "regions": regions,
             "origin": {"importer": "vg_scale", "params": {"embedder": embedder_name, "labels": "coco"}},
             "origin_name": str(path),
@@ -676,6 +708,12 @@ def load(dataset: str, medias: dict[int, dict], embedder_name: str) -> None:
 
     labels = read_vg_labels(records, paths, dims, wanted_vg)
     box_dims, exhaustive, n_anchored, n_reframed = anchor_to_coco(labels, dims, coco_of, truth, ca.COCO_DIMS, wanted)
+    # Taken HERE, before `apply_corrections` folds every reviewed image into
+    # `exhaustive`. The two are different claims and #3670 turns on the
+    # difference: `exhaustive` says "someone or something answered for this
+    # image", `coco_scored` says "all eighty classes were answered at once".
+    # Only the second makes "holds none of C" a fact.
+    coco_scored = set(exhaustive)
     # The fold runs AFTER the anchor, not before it. On an anchored image COCO's
     # labels replace VG's wholesale, so folding there was always discarded --
     # the order is a no-op on what gets built (verified cell-by-cell in #3637)
@@ -732,15 +770,15 @@ def load(dataset: str, medias: dict[int, dict], embedder_name: str) -> None:
     # `matched` asks for the positives' OWN share, measured on the images
     # actually designated rather than on the much larger class supply.
     pos_ids = {i for ids in chosen.values() for i in ids}
-    pos_frac = len(pos_ids & exhaustive) / len(pos_ids) if pos_ids else 1.0
+    pos_frac = len(pos_ids & coco_scored) / len(pos_ids) if pos_ids else 1.0
     if pc.SCALE_NEG_COMPOSITION == "provable":
         coco_fraction = 1.0
     elif pc.SCALE_NEG_COMPOSITION == "matched":
         coco_fraction = pos_frac
     else:
         raise SystemExit(f"unknown SCALE_NEG_COMPOSITION {pc.SCALE_NEG_COMPOSITION!r}")
-    negatives, spares = draw_negatives(clean, roster, exhaustive, coco_fraction)
-    n_prov = len(set(negatives) & exhaustive)
+    negatives, spares = draw_negatives(clean, roster, coco_scored, coco_fraction)
+    n_prov = len(set(negatives) & coco_scored)
     log(
         f"  negative pool composition={pc.SCALE_NEG_COMPOSITION}: {n_prov} provable "
         f"({n_prov / len(negatives):.1%} of {len(negatives)}), "
@@ -764,6 +802,7 @@ def load(dataset: str, medias: dict[int, dict], embedder_name: str) -> None:
         cells,
         embedder_name,
         labels,
+        coco_scored,
     )
 
     # Refuse to embed a pickle whose boxes are impossible. `--verify` runs the

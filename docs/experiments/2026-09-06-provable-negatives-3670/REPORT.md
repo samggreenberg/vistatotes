@@ -328,13 +328,14 @@ asserts against the pinned value.
 - **#3690** — should `vg_scale_deep` follow? Note it now differs from `vg_scale`
   in *composition* as well as size: deep's pool is still mixed, so it keeps the
   per-class contamination spread §3 rejects.
-- **the audit stratum** — an all-provable pool has no stratum in which VG's
-  silence can be measured, so the rate that justified the composition can no
-  longer be re-measured inside the dataset. Filed.
+- **#3698** — the rebuild itself, owed jointly with #3588 and to be run once.
+- **#3696** — an all-provable pool has no stratum in which VG's silence can be
+  measured, so the rate that justified the composition can only be re-measured
+  against an archived cell on purgeable disk.
 - **`exhaustive` is still widened by a one-class review** where #3667's
   cross-class rule reads it, so the same over-promotion §4 removed from the pool
   draw survives in the negatives a class inherits from its siblings. Measured
   here and small: **197 images** of 51,645 are exhaustive only because someone
   looked (0.4%), of which **64 are designated positives** — 1.8% of them. Filed
-  rather than fixed, because tightening it changes which images #3667 admits and
-  that is a rebuild of its own.
+  as **#3697** rather than fixed, because tightening it changes which images
+  #3667 admits and that is a rebuild of its own.

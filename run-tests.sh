@@ -8,6 +8,7 @@
 #   ./run-tests.sh core sorting # core + sorting groups
 #   ./run-tests.sh vtscore-clean  # run tests_lib/ with Flask import blocked
 #   ./run-tests.sh slides       # slide-deck gates only (~8s, no Python tests)
+#   ./run-tests.sh docs         # markdown-only gate (engages by itself; see below)
 #
 # Available groups: core, api, sorting, datasets, io, detectors,
 #                   downloads, integration, cli, converters, projection,
@@ -16,7 +17,9 @@
 #                   harness — nothing that ships as vtsearch/vtscore code),
 #                   frontend (build + audit + Vitest, no Python tests),
 #                   slides (the four gates a deck can trip, no Python
-#                   tests — see the note below), gpu
+#                   tests — see the note below),
+#                   docs (markdown-only: every cheap gate, plus the few tests
+#                   that read a doc — see the note below), gpu
 #
 # Each group is a folder under tests/ AND tests_lib/. Marker assignment is
 # automatic: any file at tests[_lib]/<group>/test_*.py gets marked <group>
@@ -75,6 +78,23 @@
 # build.py --check — and skips pytest and every whole-repo gate. ~8s against
 # ~3.5min. The exemption is self-policing: the group refuses to run when the
 # branch touches anything outside slides/, so it cannot be taken by mistake.
+#
+# `docs` is the same idea one step wider, and it does not wait to be asked.
+# A change confined to tracked markdown cannot be seen by pyright (which
+# excludes markdown), by pip-audit, by the frontend build or its unit suite, or
+# by ~1600 of the ~1603 Python tests. So a *bare* `./run-tests.sh` looks at what
+# the branch actually changed and, when the answer is "markdown and nothing
+# else", keeps the whole of stage 1 — the gates that genuinely read markdown
+# live there — and narrows pytest to the tests that can observe a doc
+# (tests_shared/markdown_surface.py names them, and a meta test keeps that list
+# honest). ~25s against ~3.5min.
+#
+# It auto-engages because the thing being fixed is the *default* path: a
+# plan-file session pays the full 3.5 minutes precisely by running the command
+# everyone runs. A group you have to remember to type would not have caught it.
+# The pruning is announced in full, and VTSEARCH_FULL_GATES=1 turns it off.
+# Naming the group explicitly (`./run-tests.sh docs`) is the same gate with the
+# slides-style guard: it refuses to run when the branch changes anything else.
 # ---------------------------------------------------------------------------
 
 set -euo pipefail
@@ -252,6 +272,26 @@ _blocked() {
     echo "============================================================"
 }
 
+# Everything this branch changes relative to dev — committed, staged, unstaged
+# and untracked alike. Untracked files count because a stray new .py would be
+# linted by a full run and is exactly the kind of thing that should not ride
+# along unchecked on a narrowed one.
+#
+# Both fast paths below rest on this: `slides` verifies the diff is confined to
+# slides/, and the markdown path both detects and verifies. Returns non-zero
+# when there is no origin/dev to diff against, in which case neither path can
+# establish its premise and both decline to narrow anything.
+_branch_changed_paths() {
+    local base
+    base=$(git merge-base HEAD origin/dev 2>/dev/null || true)
+    [[ -z "$base" ]] && return 1
+    {
+        git diff --name-only "$base" HEAD
+        git diff --name-only HEAD
+        git ls-files --others --exclude-standard
+    } | sort -u
+}
+
 # Guard on the `slides` fast path.
 #
 # The group's whole justification is that a change confined to slides/ cannot
@@ -269,18 +309,11 @@ _blocked() {
 # this, because the doc-inventory gate can see markdown that this group skips.
 # Run the full suite for a mixed change; it is the honest cost of one.
 if $_is_slides_run; then
-    _slides_base=$(git merge-base HEAD origin/dev 2>/dev/null || true)
-    if [[ -z "$_slides_base" ]]; then
+    if ! _slides_changed=$(_branch_changed_paths); then
         echo "Note: no origin/dev to diff against; skipping the slides-only guard."
     else
-        _outside=$(
-            {
-                git diff --name-only "$_slides_base" HEAD
-                git diff --name-only HEAD
-                git ls-files --others --exclude-standard
-            } | sort -u | grep -v '^slides/' || true
-        )
-        if [[ -n "$_outside" ]]; then
+        _outside=$(printf '%s\n' "$_slides_changed" | grep -v '^slides/' || true)
+        if [[ -n "$_slides_changed" && -n "$_outside" ]]; then
             _blocked "'slides' is a slides-only gate, but this branch changes other files"
             echo ""
             echo "The group skips pytest and every whole-repo gate, which is only"
@@ -292,6 +325,106 @@ if $_is_slides_run; then
             exit 1
         fi
     fi
+fi
+
+# ---------------------------------------------------------------------------
+# The markdown-only fast path.
+#
+# A change confined to tracked markdown is invisible to most of this script:
+# pyright excludes markdown, pip-audit reads the venv, the Angular build only
+# *copies* docs/user/*.md into the bundle (frontend/docs-assets is a symlink to
+# it) and cannot fail on its contents, and of ~1603 Python tests only the ones
+# named in tests_shared/markdown_surface.py ever open a doc. What *can* see a
+# doc is stage 1 — check-docs, codespell, the doc-inventory and screenshot
+# wiring snapshots, the deck preflight — so a markdown-only run keeps stage 1
+# whole and prunes the rest.
+#
+# Unlike `slides`, this engages on a bare `./run-tests.sh`. The complaint it
+# answers is about the default: a session that writes one plan file pays the
+# full 3.5 minutes by running the command everybody runs, and a group name you
+# have to remember would not have been typed. So the diff decides, the pruning
+# is announced in full, and VTSEARCH_FULL_GATES=1 opts out.
+#
+# Three things keep the narrowing honest rather than optimistic:
+#   - it needs a diff to reason about. No origin/dev, or no changes at all, and
+#     nothing is pruned.
+#   - the pytest selection is single-sourced in tests_shared/markdown_surface.py,
+#     and tests_lib/meta/test_markdown_surface.py fails when a test outside that
+#     selection learns to read a repo doc — the one way this could rot.
+#   - naming the group (`./run-tests.sh docs`) asserts the premise instead of
+#     detecting it, so it blocks on a mixed branch rather than quietly running
+#     the full suite.
+# ---------------------------------------------------------------------------
+_is_docs_run=false
+_docs_named=false
+if [[ ${#TEST_GROUPS[@]} -eq 1 && "${TEST_GROUPS[0]}" == "docs" ]]; then
+    _docs_named=true
+fi
+
+if $_docs_named || { $_is_full_run && [[ "${VTSEARCH_FULL_GATES:-}" != "1" ]]; }; then
+    if ! _md_changed=$(_branch_changed_paths); then
+        if $_docs_named; then
+            echo "Note: no origin/dev to diff against; skipping the markdown-only guard."
+            _is_docs_run=true
+        fi
+    else
+        _md_outside=""
+        if [[ -n "$_md_changed" ]]; then
+            _md_outside=$(printf '%s\n' "$_md_changed" | grep -v '\.md$' || true)
+        fi
+        if $_docs_named; then
+            if [[ -n "$_md_outside" ]]; then
+                _blocked "'docs' is a markdown-only gate, but this branch changes other files"
+                echo ""
+                echo "The group narrows pytest and skips every whole-repo gate, which is"
+                echo "only sound when nothing but tracked markdown has changed. Not markdown:"
+                echo ""
+                echo "$_md_outside" | sed 's/^/  /'
+                echo ""
+                echo "Run the full suite instead:  ./run-tests.sh"
+                exit 1
+            fi
+            _is_docs_run=true
+        elif [[ -n "$_md_changed" && -z "$_md_outside" ]]; then
+            _is_docs_run=true
+            echo "============================================================"
+            echo "MARKDOWN-ONLY CHANGE: narrowing this run"
+            echo ""
+            echo "$_md_changed" | sed 's/^/  /'
+            echo ""
+            echo "Nothing but tracked markdown has changed, so this run keeps every"
+            echo "cheap gate (check-docs, codespell, the doc-inventory and screenshot"
+            echo "snapshots, the deck preflight) and runs the tests that read a doc,"
+            echo "and skips pyright, pip-audit, the vulture whitelist check, the"
+            echo "frontend build/audit/unit suite, and the rest of pytest — none of"
+            echo "which can observe a markdown file."
+            echo ""
+            echo "Set VTSEARCH_FULL_GATES=1 to run everything anyway."
+            echo "============================================================"
+            echo ""
+        fi
+    fi
+fi
+
+_docs_targets=()
+if $_is_docs_run; then
+    # Nothing outside stage 1 and the markdown surface can see a doc.
+    _run_whole_repo_gates=false
+    _run_frontend_check=false
+    _run_frontend_unit=false
+    _run_pytest=true
+    # Single-sourced with the gate that proves the list is complete; see
+    # tests_shared/markdown_surface.py.
+    _md_surface=$(python -c 'from tests_shared.markdown_surface import MARKDOWN_TEST_SURFACE as m; print(" ".join(m))' 2>/dev/null || true)
+    if [[ -z "$_md_surface" ]]; then
+        _blocked "could not read MARKDOWN_TEST_SURFACE from tests_shared/markdown_surface.py"
+        echo ""
+        echo "The markdown-only path narrows pytest to that list, so an unreadable"
+        echo "list would silently run no tests at all. Run './run-tests.sh' with"
+        echo "VTSEARCH_FULL_GATES=1, and fix the import."
+        exit 1
+    fi
+    read -r -a _docs_targets <<< "$_md_surface"
 fi
 
 # ---------------------------------------------------------------------------
@@ -621,6 +754,14 @@ if $_is_slides_run; then
     # and why it is sound, so the claim stays auditable rather than folkloric.
     echo "Slides-only run: pytest and every whole-repo gate skipped — nothing"
     echo "outside slides/ changed, and no test or type-check reads a deck."
+elif $_is_docs_run; then
+    # Also not the "a full run is the gate" notice: for a change confined to
+    # tracked markdown this *is* the gate. Stage 1 ran whole; what is left is
+    # the tests that can actually open a doc.
+    echo "Markdown-only run: every cheap gate ran; pytest is narrowed to the"
+    echo "tests that read a repo doc (${_docs_targets[*]}), and pyright,"
+    echo "pip-audit, the vulture whitelist check and the frontend lanes are"
+    echo "skipped — none of them can see a markdown file."
 elif ! $_run_whole_repo_gates; then
     echo "Group run: skipping pyright, pip-audit and the vulture whitelist check."
     echo "A full './run-tests.sh' is the gate before pushing (or set"
@@ -671,7 +812,12 @@ if $_run_pytest; then
     # The two trees have independent conftests; pytest's auto-merge picks
     # the right autouse fixtures per test based on file location.
     set +e
-    if [[ -n "$MARKER_EXPR" ]]; then
+    if $_is_docs_run; then
+        # Paths, not a marker: the markdown surface is one folder plus one file
+        # in another group, and no marker expression names that set. Leaving -m
+        # off keeps pyproject.toml's `not gpu and not slow` default in force.
+        python -m pytest "${_docs_targets[@]}" -q --tb=short --no-header -n auto --dist loadgroup ${COV_ARGS[@]+"${COV_ARGS[@]}"} ${EXTRA_ARGS[@]+"${EXTRA_ARGS[@]}"}
+    elif [[ -n "$MARKER_EXPR" ]]; then
         python -m pytest tests/ tests_lib/ -q --tb=short --no-header -n auto --dist loadgroup -m "$MARKER_EXPR" ${COV_ARGS[@]+"${COV_ARGS[@]}"} ${EXTRA_ARGS[@]+"${EXTRA_ARGS[@]}"}
     else
         python -m pytest tests/ tests_lib/ -q --tb=short --no-header -n auto --dist loadgroup ${COV_ARGS[@]+"${COV_ARGS[@]}"} ${EXTRA_ARGS[@]+"${EXTRA_ARGS[@]}"}
@@ -730,7 +876,9 @@ if [[ ${#_failed_lanes[@]} -gt 0 || $_pytest_status -ne 0 ]]; then
     fi
     exit 1
 fi
-if $_run_pytest; then
+if $_is_docs_run; then
+    echo "RUN PASSED (markdown-only; this is the full gate for a markdown-only change)"
+elif $_run_pytest; then
     echo "RUN PASSED (all gates green; pytest summary above)"
 elif $_is_slides_run; then
     echo "RUN PASSED (slides-only; this is the full gate for a slides-only change)"

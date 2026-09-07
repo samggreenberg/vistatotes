@@ -103,6 +103,7 @@ def provenance_report(backfill: bool = False) -> int:
                 dev.get("gpu_name") or "unknown",
                 dev.get("hostname") or (f"{dev['hostname_recovered']}?" if dev.get("hostname_recovered") else "-"),
                 str(dev.get("cpu_capability") or "-"),
+                str(dev.get("embed_batch_size") or "-"),
                 (code.get("commit") or dev.get("commit") or "-")[:9],
                 rec.get("fingerprint", {}).get("vectors_sha256", "")[:12],
             )
@@ -110,9 +111,16 @@ def provenance_report(backfill: bool = False) -> int:
         devices[(dev.get("gpu_name") or "unknown", dev.get("cpu_capability"))].append(f"{ds}x{emb}")
         checkouts[code.get("repo") or "unrecorded"].append(f"{ds}x{emb}")
 
-    log(f"{'dataset':<18} {'embedder':<14} {'device':<26} {'node':<10} {'dispatch':<9} {'commit':<10} vectors")
+    # `batch` is here because it is a build parameter that moves the vectors and
+    # was invisible until #3683: two cells of the same (dataset, embedder) built
+    # at different batch sizes disagree by ~1e-4 on a handful of images, with
+    # every other recorded field identical. A `-` means the cell predates the key.
+    log(
+        f"{'dataset':<18} {'embedder':<14} {'device':<26} {'node':<10} "
+        f"{'dispatch':<9} {'batch':<6} {'commit':<10} vectors"
+    )
     for row in sorted(rows):
-        log("{:<18} {:<14} {:<26} {:<10} {:<9} {:<10} {}".format(*row))
+        log("{:<18} {:<14} {:<26} {:<10} {:<9} {:<6} {:<10} {}".format(*row))
     if missing:
         log(f"\n{len(missing)} cell(s) with NO provenance (run --backfill-provenance): {', '.join(missing)}")
     if len(devices) > 1:

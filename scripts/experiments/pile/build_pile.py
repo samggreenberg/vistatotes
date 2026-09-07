@@ -61,7 +61,11 @@ from pilebuild.env import assert_vtscore_is_this_checkout, cells_io, log  # noqa
 from pilebuild.geometry import region_geometry_problems, scale_label_digest  # noqa: E402
 from pilebuild.loaders import loader_for  # noqa: E402
 from pilebuild.manifest import write_manifest  # noqa: E402
-from pilebuild.provenance import cell_fingerprint, write_provenance  # noqa: E402
+from pilebuild.provenance import (  # noqa: E402
+    cell_fingerprint,
+    effective_embed_batch_size,
+    write_provenance,
+)
 from pilebuild.provenance_report import provenance_report  # noqa: E402
 from pilebuild.vgsource import vg_image_paths  # noqa: E402
 
@@ -74,6 +78,7 @@ __all__ = [
     "band_categories",
     "build_cell",
     "cell_fingerprint",
+    "effective_embed_batch_size",
     "list_cells",
     "load_box_scan_categories",
     "main",
@@ -103,15 +108,20 @@ def _embed_batch_size(embedder: str):
     process can run each embedder at its own size rather than every model at
     the shipped default of 32. An explicit env var wins: someone who set one
     is tuning for the card in front of them, and the table cannot know that.
+
+    Yields the size the pass will actually run at, for the provenance sidecar
+    (#3683). It has to be read here rather than at write time: this is the only
+    window in which the env var is set, and the number is not recoverable from
+    the table afterwards once an explicit override is in play.
     """
     want = pc.embed_batch_size(embedder)
     if want is None or os.environ.get("VTSEARCH_EMBED_BATCH_SIZE", "").strip():
-        yield
+        yield effective_embed_batch_size(embedder)
         return
     os.environ["VTSEARCH_EMBED_BATCH_SIZE"] = str(want)
     log(f"  embed batch size {want}")
     try:
-        yield
+        yield effective_embed_batch_size(embedder)
     finally:
         os.environ.pop("VTSEARCH_EMBED_BATCH_SIZE", None)
 
@@ -138,7 +148,7 @@ def build_cell(dataset: str, embedder: str, force: bool = False) -> dict:
     from vtscore.datasets.stages.embedding import embed_missing  # noqa: PLC0415
 
     t1 = time.time()
-    with _embed_batch_size(embedder):
+    with _embed_batch_size(embedder) as batch_size:
         embed_missing(medias, embedder)
     embed_s = time.time() - t1
 
@@ -159,7 +169,7 @@ def build_cell(dataset: str, embedder: str, force: bool = False) -> dict:
         "embed_seconds": round(embed_s, 1),
         "wall_seconds": round(total_s, 1),
     }
-    write_provenance(dataset, embedder, summary, medias)
+    write_provenance(dataset, embedder, summary, medias, embed_batch_size=batch_size)
     return summary
 
 

@@ -91,7 +91,7 @@ def fig_coverage(cov: dict, path: Path) -> None:
     ax.set_yticklabels([f"`{c}`" for _, _, c in rows])
     ax.set_xlabel("share of COCO's boxes for the class that some VG spelling of ours lands on (%)", fontsize=9)
     ax.grid(axis="x", color=GRID, lw=0.6)
-    ax.legend(frameon=False, fontsize=8.5, loc="lower right")
+    ax.legend(frameon=False, fontsize=8.5, loc="upper center", bbox_to_anchor=(0.5, -0.14), ncol=2)
     _frame(ax)
     ax.set_title(
         "One spelling carries a third of `fire hydrant`, and half of `cell phone`",
@@ -105,35 +105,38 @@ def fig_coverage(cov: dict, path: Path) -> None:
 
 
 def fig_supply(before: dict, after: dict, path: Path) -> None:
-    """The control is the diagonal: a class with no alias row cannot move."""
-    fig, ax = plt.subplots(figsize=(5.6, 5.2), dpi=130)
+    """The control is a class with no alias row: it must move by exactly nothing.
+
+    Plotted as the delta rather than as before-against-after, because the claim
+    is about a measurement that could not respond to its input, and a scatter on
+    a log diagonal makes "moved by 1,175" and "moved by 0" look similar.
+    """
     b, a = before["supply"], after["supply"]
-    names = [c for c in a if c in b]
-    lo, hi = 800, 6500
-    ax.plot([lo, hi], [lo, hi], color=GRID, lw=1.2, zorder=1)
-    for c in names:
-        x, y = b[c]["union"], a[c]["union"]
-        moved = abs(y - x) > 1
-        ax.scatter(
-            [x], [y], s=34, color=GAINED if c in C13 else SHIPPED, zorder=3, edgecolor="white", linewidth=0.6
-        )
-        if moved and (y - x) / max(x, 1) > 0.1:
-            ax.annotate(
-                f"`{c}`  +{y - x:,}",
-                (x, y),
-                textcoords="offset points",
-                xytext=(6, 4),
-                fontsize=8,
-                color=INK,
-            )
-    ax.set_xscale("log")
-    ax.set_yscale("log")
-    ax.set_xlim(lo, hi)
-    ax.set_ylim(lo, hi)
-    ax.set_xlabel("band-free supply as measure_supply.py reported it (blind to the alias table)", fontsize=8.5)
-    ax.set_ylabel("band-free supply the build actually gets", fontsize=8.5)
-    ax.grid(color=GRID, lw=0.6, which="both")
+    rows = sorted(((a[c]["union"] - b[c]["union"], c) for c in a if c in b), reverse=True)
+    fig, ax = plt.subplots(figsize=(6.6, 5.6), dpi=130)
+    ys = range(len(rows))
+    ax.barh(
+        list(ys),
+        [d for d, _ in rows],
+        color=[GAINED if c in C13 else SHIPPED for _, c in rows],
+        height=0.62,
+    )
+    for i, (d, c) in enumerate(rows):
+        pct = 100 * d / max(b[c]["union"], 1)
+        label = f"  +{d:,}  ({pct:.0f}%)" if d else "  0 -- no alias row"
+        ax.text(max(d, 0) + 12, i, label, va="center", fontsize=8, color=INK if d else OWN)
+    ax.set_yticks(list(ys))
+    ax.set_yticklabels([f"`{c}`" for _, c in rows], fontsize=8.5)
+    ax.set_xlabel("band-free positives the alias table adds, invisible to the old measurement", fontsize=9)
+    ax.set_xlim(0, max(d for d, _ in rows) * 1.42)
+    ax.grid(axis="x", color=GRID, lw=0.6)
+    ax.invert_yaxis()
     _frame(ax)
+    handles = [
+        plt.Rectangle((0, 0), 1, 1, color=GAINED),
+        plt.Rectangle((0, 0), 1, 1, color=SHIPPED),
+    ]
+    ax.legend(handles, ["the #3588 thirteen", "the original twelve"], frameon=False, fontsize=8.5, loc="lower right")
     ax.set_title(
         "A measurement that could not move when its input changed",
         fontsize=10.5,

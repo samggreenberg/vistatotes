@@ -34,8 +34,8 @@ was that adding thirteen classes and 182 spellings changed its output by exactly
 | | |
 |---|---|
 | Classes in *C* | 12 → **25** (75 cells) |
-| Alias spellings | 78 → **182**, over 24 classes |
-| Ambiguous spellings | 87 → **254** |
+| Alias spellings | 49 → **182** (the thirteen bring **133**) |
+| Ambiguous spellings | 58 → **254** (the thirteen bring **196**) |
 | `SCALE_VG_NAMES_AUDITED` | 12 → **25** |
 | `SCALE_N_NEG_SPARE` | 300 → **1,000** |
 | Provable negative supply | 34,071 (12 classes) → **21,121** (25) against 9,900 needed |
@@ -76,8 +76,11 @@ flag — with the suite red in between, which is the flag doing its job.
 
 4,604 candidate names over the thirteen — the union of `coco_folds.py`'s
 fold-in column and `vg_name_families.py`'s head-noun families — adjudicated
-against COCO on the 51,411-image overlap. 182 alias and 254 ambiguous spellings
-survive.
+against COCO on the 51,411-image overlap. The audit proposes **131 alias** and
+**198 ambiguous** spellings; after the adjudication below — four aliases demoted,
+six merge spellings carried by hand, six cross-class names dropped — the thirteen
+ship **133** alias and **196** ambiguous, taking the whole tables from 49 and 58
+to **182** and **254**.
 
 ### What the alias table buys
 

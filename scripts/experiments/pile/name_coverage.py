@@ -200,7 +200,7 @@ def main() -> int:
 
         # --- the overlap: score the proposal against COCO -------------------
         cd = cdims[cid]
-        if abs((vd[0] / vd[1]) - (cd[0] / cd[1])) > pc.MAX_ASPECT_DRIFT:
+        if not pc.aspect_transferable(vd, cd):
             skipped_aspect += 1
             continue
         # `coco_boxes` carries the whole COCO vocabulary (#3640); only the

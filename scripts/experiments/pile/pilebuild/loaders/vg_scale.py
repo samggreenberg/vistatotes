@@ -288,8 +288,7 @@ def anchor_to_coco(
         # VG's pixels at all. Those keep VG's own labels and stay unanchored
         # rather than importing a box that points at the wrong part of a
         # different framing.
-        vw, vh = dims[iid]
-        if abs((vw / vh) - (wh[0] / wh[1])) / (wh[0] / wh[1]) > pc.MAX_ASPECT_DRIFT:
+        if not pc.aspect_transferable(dims[iid], wh):
             n_reframed += 1
             continue
         box_dims[iid] = wh

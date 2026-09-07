@@ -48,11 +48,6 @@ pc.setup_env()
 
 VG_ROOT = pc.DEMO_CACHE / "visual_genome"
 
-#: A VG copy whose aspect ratio drifts further than this from the COCO original
-#: has been re-cropped or rotated, not merely rescaled, and normalised
-#: coordinates do not transfer across it (`pile_config.MAX_ASPECT_DRIFT`).
-MAX_ASPECT_DRIFT = pc.MAX_ASPECT_DRIFT
-
 
 def log(msg: str) -> None:
     print(f"[folds] {msg}", flush=True)
@@ -173,7 +168,7 @@ def main() -> int:
         if not vd:
             continue
         # A re-crop or rotation breaks normalised transfer; a pure rescale does not.
-        if abs((vd[0] / vd[1]) - (cd[0] / cd[1])) > MAX_ASPECT_DRIFT:
+        if not pc.aspect_transferable(vd, cd):
             skipped_aspect += 1
             continue
         considered += 1

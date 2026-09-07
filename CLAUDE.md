@@ -75,17 +75,24 @@ This standing instruction **is** the explicit request that the remote-environmen
 **Use a normal merge commit: `gh pr merge <n> --merge`.** Never `--squash`, never
 `--rebase`.
 
-This is not a style preference — [`docs/RELEASE.md`](docs/RELEASE.md) finds what
-shipped by walking **merge commits**. Steps 4 and 6 both say to *inspect the
-merge commits in that range to get the PR numbers*, and a squashed PR is not a
-merge commit: it lands as an ordinary commit whose subject ends `(#N)`, so
-`git log --merges origin/main..origin/dev` never lists it. Measured on a live
-window (197 commits, 52 of them merges): a PR squashed by mistake was **absent**
-from that walk while one merged normally an hour later was present. The issue
-sweep has a second net — step 6's orphan backstop reads `Addressed in #M`
-comments, which is PR data rather than git — but the release summary and the
-punch-card data (`scripts/punchcard/pr_merges.txt`) have none, so a squashed PR
-can drop out of both without anything saying so.
+This is not a style preference. [`docs/RELEASE.md`](docs/RELEASE.md) steps 4 and 6
+find what shipped by walking the release window, and until #3691 they walked
+**merge commits** specifically — a squashed PR is not one: it lands as an ordinary
+commit whose subject ends `(#N)`, so `git log --merges origin/main..origin/dev`
+never listed it. Measured on a live window (197 commits, 52 of them merges): a PR
+squashed by mistake was **absent** from that walk while one merged normally an hour
+later was present. The issue sweep had a second net — step 6's orphan backstop reads
+`Addressed in #M` comments, which is PR data rather than git — but the release
+summary and the punch-card data (`scripts/punchcard/pr_merges.txt`) had none, so a
+squashed PR could drop out of both without anything saying so.
+
+**That half is now fixed at the other end, and the rule still stands.** Four
+squashes were already on `dev` before this rule existed, and no convention can
+retroactively un-squash them, so `scripts/release-prs.py` walks `--first-parent`
+and reads either shape. The release walk is therefore no longer a reason to merge
+rather than squash — but the two costs below are not recoverable by any script,
+and a subject-line parse is a weaker thing for a release to rest on than a merge
+commit. Do not read the fix as permission.
 
 Two smaller costs, both paid at merge time:
 

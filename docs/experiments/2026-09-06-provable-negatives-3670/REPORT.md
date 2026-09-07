@@ -18,10 +18,11 @@ to quote is 0.85%.
 **The composition was chosen on the spread, not the magnitude, and an earlier
 reading of this trade was wrong.** Both candidate pools distort. On #3667's
 FPR-inflation scale an all-provable pool's provenance shortcut is **1.1×** and a
-mixed pool's contamination is **1.18×** [1.09, 1.37] — intervals that overlap,
-so the taller bar decides nothing. What decides it is that the shortcut is
-*uniform across classes* while contamination is not (1.04× to 1.37×, class by
-class), and this dataset exists to compare classes and bands (§3).
+mixed pool's contamination is **1.18×** [1.09, 1.37] — the second interval
+contains the first, so the taller bar decides nothing. What decides it is that
+the shortcut is *uniform across classes* while contamination is not (1.04× to
+1.37×, class by class), and this dataset exists to compare classes and bands
+(§3).
 
 **The pile is not rebuilt in this PR.** The rebuild is deferred so it happens
 once, with #3588's class expansion, rather than twice. That leaves a live hazard
@@ -113,11 +114,13 @@ measured 1.88 ± 0.19 on this scale and justified rebuilding eleven cells.
 
 ![Both distortions on one scale](figures/distortion.png)
 
-*Blue is the provenance shortcut an all-provable pool creates, read two ways;
-orange is the contamination a mixed pool keeps, with #3666's 95% interval on the
-measured rate. The dotted line is the effect that justified the last rebuild. The
-bars are close together and one of them has an interval spanning the other:
-this figure is here to show that the magnitudes do not decide the question.*
+*Blue is the provenance shortcut an all-provable pool creates, read two ways
+per embedder; orange is the contamination a mixed pool keeps, with #3666's 95%
+interval on the measured rate. The dotted line is the effect that justified the
+last rebuild, for scale. Read the reverse-arm bars as the estimate — the residual
+bars inherit the uncertainty of the contamination rate they subtract, which is
+the orange interval. Do not read this figure as ranking the two compositions:
+the orange interval spans every blue bar, which is the finding.*
 
 **The forward arm alone cannot answer it, and that is the trap.** Fitting
 against provable negatives and scoring the silent ones gives 1.46 ± 0.10
@@ -137,15 +140,26 @@ two causes, and neither needs new labelling:
 - **forward, contamination removed** — the forward ratio divided by the
   predicted contamination penalty above.
 
-They fail differently, so their agreement is worth more than either alone, and
-they agree: the provenance shortcut is **1.06–1.12×** across two embedders and
-two routes. Call it **1.1×**.
+| embedder | forward | reverse | shortcut, reverse | shortcut, residual |
+|---|---:|---:|---:|---:|
+| `siglip` | 1.46 ± 0.10 | 0.90 ± 0.05 | **1.12** | 1.24 |
+| `clip` | 1.41 ± 0.11 | 0.95 ± 0.05 | **1.06** | 1.20 |
+| `siglip2_l` | 1.46 ± 0.11 | 0.91 ± 0.05 | **1.10** | 1.24 |
 
-Against contamination's **1.18× [1.09, 1.37]**, that is not a difference this
-evidence establishes. **An earlier reading of this trade quoted 1.32× for
-contamination and read the comparison as decisive; that figure took the top of
-#3635's *predicted* per-class range, and #3666 has since measured the shipped
-twelve at 1.40% pooled.** The corrected numbers overlap.
+**Quote the reverse arm: 1.06–1.12×, call it 1.1×.** The two routes are not
+equally good and the difference is instructive. The residual route subtracts a
+*predicted* contamination penalty, so it inherits every bit of that prediction's
+uncertainty; the reverse arm depends on no such estimate. They agree only if
+contamination is near **2.5%** — the top of #3666's [0.68, 2.86] interval — and
+disagree by ~0.13 at its 1.40% point estimate. That is a statement about how
+poorly the contamination rate is pinned down, not about the shortcut.
+
+Which is the point. Against contamination's **1.18× [1.09, 1.37]**, a 1.1×
+shortcut is not a difference this evidence establishes, by either route. **An
+earlier reading of this trade quoted 1.32× for contamination and called the
+comparison decisive; that figure took the top of #3635's *predicted* per-class
+range, and #3666 has since measured the shipped twelve at 1.40% pooled.** With
+the measured rate the numbers overlap, and the magnitude argument is gone.
 
 ### What actually decides it
 

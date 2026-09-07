@@ -102,11 +102,13 @@ def fig_distortion(shortcut: dict, path: Path) -> None:
             continue
         # The reverse arm reads the shortcut with the sign flipped: fitted
         # against the silent half, a provable negative fires LESS often, so the
-        # shortcut is 1/ratio. Contamination cannot move this arm.
+        # shortcut is 1/ratio. It is the ESTIMATE, because contamination cannot
+        # move it -- the residual route below is only ever as good as the
+        # contamination rate it subtracts.
         rows.append((f"provenance, {emb}\n(reverse arm)", 1.0 / r["ratio_reverse_mean"], None))
         rows.append(
             (
-                f"provenance, {emb}\n(forward, contamination removed)",
+                f"provenance, {emb}\n(forward minus predicted contamination)",
                 r["ratio_mean"] / contamination_ratio(POOL_ERROR),
                 None,
             )
@@ -120,16 +122,36 @@ def fig_distortion(shortcut: dict, path: Path) -> None:
     )
 
     ys = range(len(rows))
-    colors = [PROVABLE if "provenance" in lbl else MIXED for lbl, _v, _ci in rows]
-    ax.barh(list(ys), [v for _l, v, _c in rows], color=colors, height=0.6)
+    # Solid where the estimate stands on its own, hatched where it is only as
+    # good as the contamination rate it subtracts. Two readings of one quantity
+    # drawn identically would invite averaging them, and they are not equals.
+    colors, hatches = [], []
+    for lbl, _v, _ci in rows:
+        colors.append(PROVABLE if "provenance" in lbl else MIXED)
+        hatches.append("///" if "forward minus" in lbl else "")
+    bars = ax.barh(list(ys), [v for _l, v, _c in rows], color=colors, height=0.6)
+    for bar, hatch in zip(bars, hatches, strict=True):
+        bar.set_hatch(hatch)
+        bar.set_edgecolor("white")
     for y, (_lbl, v, ci) in zip(ys, rows, strict=True):
+        right = v
         if ci:
             ax.plot(ci, [y, y], color=INK, lw=1.4)
             ax.plot([ci[0], ci[0]], [y - 0.12, y + 0.12], color=INK, lw=1.4)
             ax.plot([ci[1], ci[1]], [y - 0.12, y + 0.12], color=INK, lw=1.4)
-        ax.text(v + 0.012, y, f"{v:.2f}x", va="center", fontsize=9, color=INK)
+            right = max(right, ci[1])
+        # Past the interval, never on top of it.
+        ax.text(right + 0.018, y, f"{v:.2f}x", va="center", fontsize=9, color=INK)
     ax.axvline(1.0, color=INK, lw=1.0)
     ax.text(1.0, len(rows) - 0.35, " no distortion", fontsize=8, color=MUTED, va="bottom")
+    ax.text(
+        1.30,
+        -0.75,
+        "solid = reverse arm (independent of the contamination rate)   hatched = forward minus predicted contamination",
+        fontsize=7.5,
+        color=MUTED,
+        ha="center",
+    )
     # The effect that justified the last rebuild, for scale.
     ax.axvline(1.88, color=MUTED, lw=1.0, ls=":")
     ax.text(1.88, len(rows) - 0.35, " #3667: 1.88x", fontsize=8, color=MUTED, va="bottom", ha="left")

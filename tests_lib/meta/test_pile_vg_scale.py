@@ -577,7 +577,7 @@ class TestDrawNegatives:
         clean = list(range(1, pc.SCALE_N_NEG + pc.SCALE_N_NEG_SPARE + 100))
         keep = clean[-10:]
 
-        negatives, spares = vgs.draw_negatives(clean, {"negatives": keep})
+        negatives, spares = vgs.draw_negatives(clean, {"negatives": keep}, set(clean), 1.0)
 
         assert set(keep) <= set(negatives)
         assert len(negatives) == pc.SCALE_N_NEG
@@ -587,14 +587,48 @@ class TestDrawNegatives:
     def test_a_roster_entry_that_is_no_longer_clean_drops_out(self, vgs, pc):
         clean = list(range(1, pc.SCALE_N_NEG + pc.SCALE_N_NEG_SPARE + 100))
 
-        negatives, spares = vgs.draw_negatives(clean, {"negatives": [424242]})
+        negatives, spares = vgs.draw_negatives(clean, {"negatives": [424242]}, set(clean), 1.0)
 
         assert 424242 not in negatives and 424242 not in spares
         assert len(negatives) == pc.SCALE_N_NEG
 
     def test_a_short_clean_pool_yields_what_there_is(self, vgs, pc):
-        negatives, spares = vgs.draw_negatives([1, 2, 3], {})
+        negatives, spares = vgs.draw_negatives([1, 2, 3], {}, {1, 2, 3}, 1.0)
         assert sorted([*negatives, *spares]) == [1, 2, 3]
+
+    def test_an_all_provable_pool_draws_only_coco_scored_images(self, vgs, pc):
+        """`coco_fraction` 1.0 must exclude every image COCO never scored (#3670)."""
+        clean = list(range(1, 3 * (pc.SCALE_N_NEG + pc.SCALE_N_NEG_SPARE)))
+        exhaustive = set(clean[::2])
+
+        negatives, spares = vgs.draw_negatives(clean, {}, exhaustive, 1.0)
+
+        assert len(negatives) == pc.SCALE_N_NEG
+        assert set(negatives) <= exhaustive
+        assert set(spares) <= exhaustive
+
+    def test_a_matched_pool_hits_the_requested_share(self, vgs, pc):
+        """The point of `matched` is the RATIO, so the draw has to honour it."""
+        clean = list(range(1, 4 * (pc.SCALE_N_NEG + pc.SCALE_N_NEG_SPARE)))
+        exhaustive = set(clean[::2])
+
+        negatives, _spares = vgs.draw_negatives(clean, {}, exhaustive, 0.6)
+
+        assert len(negatives) == pc.SCALE_N_NEG
+        assert abs(len(set(negatives) & exhaustive) / len(negatives) - 0.6) < 0.01
+
+    def test_a_pinned_image_keeps_its_seat_within_its_own_stratum(self, vgs, pc):
+        """A composition change must retire only what the new one cannot hold."""
+        clean = list(range(1, 4 * (pc.SCALE_N_NEG + pc.SCALE_N_NEG_SPARE)))
+        exhaustive = set(clean[::2])
+        pinned_provable = sorted(exhaustive)[-10:]
+        pinned_silent = sorted(set(clean) - exhaustive)[-10:]
+        roster = {"negatives": pinned_provable + pinned_silent}
+
+        negatives, _spares = vgs.draw_negatives(clean, roster, exhaustive, 1.0)
+
+        assert set(pinned_provable) <= set(negatives)
+        assert not set(pinned_silent) & set(negatives)
 
 
 class TestRank:
@@ -604,3 +638,182 @@ class TestRank:
 
     def test_rank_is_stable_across_processes(self, vgs):
         assert vgs.rank("bus@small", 7) == vgs.rank("bus@small", 7)
+
+
+@pytest.fixture(scope="module")
+def audit():
+    """``pilebuild.audit``, imported without ``build_pile``'s env setup."""
+    if str(_PILE_DIR) not in sys.path:
+        sys.path.insert(0, str(_PILE_DIR))
+    from pilebuild import audit as mod
+
+    return mod
+
+
+@pytest.fixture(scope="module")
+def coverage():
+    """``check_review_coverage``, which defers ``setup_env`` into ``main``."""
+    if str(_PILE_DIR) not in sys.path:
+        sys.path.insert(0, str(_PILE_DIR))
+    import check_review_coverage
+
+    return check_review_coverage
+
+
+def _pool_media(*, coco_scored: bool = True, designated: bool = True, stamped: bool = True) -> dict:
+    """A shared negative as the loader writes one: no categories, scorable everywhere."""
+    media = {
+        "categories": [],
+        "evaluable_categories": ["bus@small"] if designated else [],
+        "labels_exhaustive": True,
+    }
+    if stamped:
+        media["coco_scored"] = coco_scored
+    return media
+
+
+class TestNegativePoolProblems:
+    """`--verify`'s two claims about the pool itself (#3670).
+
+    Both are invisible to every other check: a pool of the wrong size drawn from
+    the wrong half of VG loads, bands and scores exactly like a healthy one.
+    """
+
+    def _pool(self, pc, n: int, silent: int = 0) -> dict:
+        medias = {i: _pool_media(coco_scored=i >= silent) for i in range(n)}
+        # One positive, so the cell is not all-negative and the pool filter has
+        # something to exclude.
+        medias[-1] = {"categories": ["bus@small"], "evaluable_categories": ["bus@small"]}
+        return medias
+
+    def test_a_healthy_pool_is_silent(self, audit, pc):
+        assert audit.negative_pool_problems("vg_scale", self._pool(pc, pc.SCALE_N_NEG)) == []
+
+    def test_an_off_coco_negative_is_named_under_provable(self, audit, pc):
+        problems = audit.negative_pool_problems("vg_scale", self._pool(pc, pc.SCALE_N_NEG, silent=7))
+
+        assert any("not COCO-scored" in p and "7 of" in p for p in problems)
+
+    def test_a_reviewed_image_does_not_count_as_provable(self, audit, pc):
+        """`labels_exhaustive` is also set by a one-class review, so it is the wrong flag."""
+        medias = self._pool(pc, pc.SCALE_N_NEG)
+        for i in range(5):
+            medias[i]["coco_scored"] = False
+            medias[i]["labels_exhaustive"] = True  # a human looked -- at one class
+
+        assert any("not COCO-scored" in p for p in audit.negative_pool_problems("vg_scale", medias))
+
+    def test_a_cell_predating_the_stamp_is_told_to_rebuild(self, audit, pc):
+        """An unstamped cell cannot answer the question; it must not pass by default."""
+        medias = {i: _pool_media(stamped=False) for i in range(pc.SCALE_N_NEG)}
+
+        problems = audit.negative_pool_problems("vg_scale", medias)
+
+        assert any("built before the flag existed" in p for p in problems)
+
+    def test_the_pre_3670_pool_size_is_caught(self, audit, pc):
+        """The exact shape of a deferred rebuild: right cells, stale pool."""
+        problems = audit.negative_pool_problems("vg_scale", self._pool(pc, 3900))
+
+        assert any(f"3900 designated negatives, but the config says {pc.SCALE_N_NEG}" in p for p in problems)
+        # The message has to quote the prevalence, because that is the number a
+        # report would otherwise take from the constant and get wrong.
+        assert any("2.50% prevalence" in p for p in problems)
+
+    def test_spares_are_not_counted_as_pool(self, audit, pc):
+        """300 spares in the denominator would fire the size check on a healthy pile."""
+        medias = self._pool(pc, pc.SCALE_N_NEG)
+        medias.update({10_000 + i: _pool_media(designated=False) for i in range(pc.SCALE_N_NEG_SPARE)})
+
+        assert audit.negative_pool_problems("vg_scale", medias) == []
+
+    def test_deep_is_exempt_from_the_composition_rule(self, audit, pc):
+        """`vg_scale_deep` is pinned to the pre-#3670 construction on purpose (#3690)."""
+        medias = {i: _pool_media(coco_scored=False) for i in range(pc.SCALE_DEEP_N_NEG)}
+
+        assert audit.negative_pool_problems("vg_scale_deep", medias) == []
+
+
+class TestCoverageRow:
+    """Which retirements the coverage gate forgives, and which it must not (#3670)."""
+
+    def test_an_intact_population_is_full_coverage(self, coverage):
+        by_rule, by_fix, denom, kept, cov = coverage.coverage_row({1, 2, 3}, {1, 2, 3}, set(), lambda _i: True)
+
+        assert (by_rule, by_fix, denom, kept, cov) == (0, 0, 3, 3, 1.0)
+
+    def test_an_image_the_rule_cannot_hold_leaves_the_denominator(self, coverage):
+        """The #3670 case: off-COCO reviews are about a stratum the pool dropped."""
+        by_rule, _fix, denom, kept, cov = coverage.coverage_row({1, 2, 3, 4}, {1, 2}, set(), lambda i: i <= 2)
+
+        assert (by_rule, denom, kept, cov) == (2, 2, 2, 1.0)
+
+    def test_an_eligible_image_that_vanished_still_fails(self, coverage):
+        """The gate's whole job. A reshuffle must not hide behind the rule."""
+        _rule, _fix, denom, kept, cov = coverage.coverage_row({1, 2, 3, 4}, {1}, set(), lambda _i: True)
+
+        assert (denom, kept, cov) == (4, 1, 0.25)
+
+    def test_a_correction_is_forgiven_but_only_when_eligible(self, coverage):
+        _rule, by_fix, denom, kept, cov = coverage.coverage_row({1, 2, 3}, {1, 2}, {3}, lambda _i: True)
+
+        assert (by_fix, denom, kept, cov) == (1, 2, 2, 1.0)
+
+    def test_an_ineligible_correction_is_counted_once(self, coverage):
+        """Both exits apply; counting it twice would understate coverage."""
+        by_rule, by_fix, denom, _kept, _cov = coverage.coverage_row({1, 2}, {1}, {2}, lambda i: i == 1)
+
+        assert (by_rule, by_fix, denom) == (1, 0, 1)
+
+    def test_matched_forgives_nothing(self, coverage):
+        """Only `provable` narrows the frame; `matched` draws from both halves."""
+        eligible = coverage.eligible_under("matched")
+
+        assert all(eligible(i) for i in (1, 2, 424242))
+
+
+class TestCorrectionsOutsideC:
+    """A shared verdict file holds classes this build does not have (#3670)."""
+
+    def test_a_verdict_for_a_class_outside_c_is_skipped(self, vgs):
+        """`corrections.json` is shared; #3588's pass added thirteen classes to it.
+
+        Without the skip the label is written anyway and `band_candidates` dies
+        on `supply['car']` -- a shared file making the shipped twelve-class
+        construction unbuildable, reported as a dict lookup three passes later.
+        """
+        labels = {7: {}}
+
+        vgs.apply_corrections(labels, {(7, "car"): _verdict(True, [[0.0, 0.0, 0.5, 0.5]])}, {7: (640, 480)}, set())
+
+        assert labels[7] == {}
+
+    def test_a_verdict_outside_c_does_not_make_the_image_exhaustive(self, vgs):
+        """The half that decides pool membership under #3670.
+
+        Marking an image exhaustive claims absence is a fact for every class in
+        C. A human who looked for a `car` established nothing about `bus`.
+        """
+        exhaustive: set[int] = set()
+
+        vgs.apply_corrections({7: {}}, {(7, "car"): _verdict(False)}, {7: (640, 480)}, exhaustive)
+
+        assert exhaustive == set()
+
+    def test_a_verdict_inside_c_still_applies(self, vgs):
+        exhaustive: set[int] = set()
+        labels = {7: {"bus": [[1.0, 1.0, 2.0, 2.0]]}}
+
+        vgs.apply_corrections(labels, {(7, "bus"): _verdict(False)}, {7: (640, 480)}, exhaustive)
+
+        assert labels[7] == {} and exhaustive == {7}
+
+    def test_a_widened_class_list_is_honoured(self, vgs):
+        """#3588's expansion passes its own C rather than editing the module."""
+        labels = {7: {}}
+
+        vgs.apply_corrections(
+            labels, {(7, "car"): _verdict(True, [[0.0, 0.0, 0.5, 0.5]])}, {7: (640, 480)}, set(), classes=("car",)
+        )
+
+        assert "car" in labels[7]

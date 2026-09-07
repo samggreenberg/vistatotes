@@ -566,6 +566,36 @@ can**, so the difference between what each loses on the new negatives is the
 size of the shortcut. Running only one of them halves the effect and invites the
 wrong conclusion.
 
+Four more when the question is **what the negative pool should be made of**
+(#3670). The order is the argument: supply, then whether provenance is visible,
+then whether a head would use it, then what the choice costs the review.
+
+```bash
+python negpool_supply.py supply.json                     # can an all-provable 9,900 be drawn at all?
+python provenance_probe.py probe.json                    # is COCO-vs-YFCC even readable? (AUC 0.53-0.56)
+python provenance_shortcut.py short.json siglip,clip     # would a head USE it? (reverse arm: 1.1x)
+VTS_SCALE_ROSTER=<pre-change roster> \
+    python negpool_coverage.py cov.json                  # what it costs the review, and the REALISED prevalence
+```
+
+Two traps live in this group. **`provenance_shortcut.py` needs a pool holding
+both provenance strata, and the composition it argues for leaves only one** — so
+after the rebuild it must be pointed at an archived pre-change cell (third
+argument), not at the live pile, which would silently measure a population where
+the question is vacuous. And **`negpool_coverage.py` redraws the pool rather
+than reading one**: `draw_negatives` is hash-ranked and roster-pinned, so the
+draw is the build's draw with no pixels read — which is what let #3670 be
+measured after a parallel study's rebuild overwrote its cells. Point
+`VTS_SCALE_ROSTER` at the roster the change starts *from*; the live one is
+whatever built last.
+
+Its **realised** prevalence block is the one to read before quoting a number.
+`SCALE_PREVALENCE` describes the designated pool, and since #3667 a cell also
+scores the other classes' COCO-scored positives — so 9,900 shared negatives
+deliver a realised **0.85%**, not the designed 1.00% (#3681).
+
+[`figures_3670.py`](figures_3670.py) draws the four of them.
+
 Run `name_coverage.py` with no `--propose` to score the tables that are actually
 shipped, which is what says whether `pile_config` still does what its comment
 claims. Every cut is a flag (`--min-precision`, `--min-box`, `--min-sole`), so a

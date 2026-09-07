@@ -27,9 +27,14 @@ A composition that retires most of the review but keeps everything it is
 *allowed* to keep has spent the review, not lost it; one that drops images it
 could have held has a draw problem, and no composition argument excuses it.
 
+Point ``VTS_SCALE_ROSTER`` at the roster the change starts FROM. The pile's
+live roster is whatever the last build wrote, which may be another study's; the
+pins are what decide how much of the review a composition can keep, so reading
+the wrong one silently answers a different question.
+
 Usage::
 
-    python negpool_coverage.py [out.json]
+    VTS_SCALE_ROSTER=<archived pre-change roster> python negpool_coverage.py [out.json]
 """
 
 from __future__ import annotations
@@ -108,11 +113,12 @@ def main() -> None:
     # are the images that would leave, so there is no cell to read it from.
     provable_eligible = exhaustive.__contains__
 
-    report: dict[str, dict] = {
+    report: dict[str, object] = {
         "positives_coco_fraction": round(pos_frac, 4),
         "clean_total": len(clean),
         "compositions": {},
     }
+    compositions: dict[str, dict] = report["compositions"]  # type: ignore[assignment]
 
     arms = {
         # The roster's own pool, whatever composition built it.
@@ -138,7 +144,7 @@ def main() -> None:
                 "still_in": kept,
                 "coverage": round(cov, 4),
             }
-        report["compositions"][name] = {
+        compositions[name] = {
             "n": len(pool),
             "provable": len(present & exhaustive),
             "provable_fraction": round(len(present & exhaustive) / len(pool), 4) if pool else None,

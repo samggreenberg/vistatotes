@@ -280,7 +280,53 @@ by construction: COCO annotates all eighty of its classes on any image it
 touches, so "holds no car" is a fact there. The pass was the right call against
 a 45%-COCO pool and is redundant against a 100% one.
 
-## 7. Follow-ups
+## 7. The rebuild, and what it does to the negative review
+
+Growing *C* does not merely add cells. An image sitting in the shared negative
+pool because it held none of the twelve may hold one of the thirteen, and then it
+cannot be a negative for *anything* — so a correct rebuild must drop it. Measured
+on this build: **1,670 rostered negatives disqualified** at the moment of the
+promotion.
+
+`check_review_coverage.py` forgave exactly one reason for a reviewed image
+leaving the pool — a correction removed it — so it read every one of those as
+**lost review**, which is the alarm that protects the most expensive input this
+dataset has. A 25-class build fails that gate at ~60.8%. The fix
+(`disqualified_negatives`, contributed by the parallel #3588 session and
+cherry-picked here as `5f1e2e91b`) records the disqualification in the roster at
+the one moment it is knowable, because by the time the gate runs the reason is
+gone.
+
+Two traps in it, both found by that session and both worth keeping in view:
+
+- **It has to accumulate.** `load` runs once per embedder and rewrites the roster
+  each time, so the first cell sees the old negatives and records the event while
+  every later cell reads a roster whose negatives are already clean, computes an
+  empty set, and overwrites the fact. It survived exactly one cell of a five-cell
+  build before the function existed — the same shape as the counter placed before
+  the pass that discards its work (#3637).
+- **The event is consumed by the first build that sees it.** A rebuild from a
+  roster that has already crossed the 12→25 transition records an empty set even
+  with correct code, and an empty set looks exactly like success. This build was
+  therefore launched from the archived **pre-expansion** roster
+  (`archive/pre-3670-negpool/`, 36 cells and 3,900 negatives), per #3698's
+  "start from the roster the change starts from". An earlier attempt inherited a
+  25-class roster from a parallel branch and was discarded for that reason.
+
+**The retirements are legitimate, and the attribution is what says so.** Of the
+345 retired *reviewed* negatives, **79%** hold a newly-added class (`car` 118,
+`chair` 48, `truck` 43, `cell phone` 35, `bench` 30), 9% are ambiguous
+suppression, 7% a correction, 6% an original class, and **none** unexplained
+(`why_retired.py`, measured by the parallel #3588 session). The gate was blind to
+the largest cause, not wrong about the loss.
+
+One more measurement from that session, which retires a blocker rather than
+raising one: the **global ambiguous exclusion** (#3655 — one ambiguous name costs
+every class the image) withholds **2,142 images at twenty-five classes, 4.4% of
+the clean pool** (48,345 → 46,203). It had been queued as a blocker on the
+strength of the twelve-class figure; at this scale it is not one.
+
+## 8. Follow-ups
 
 - **#3700** — the VG-name audit is blind to `SCALE_CLASS_MERGES`, so it scores
   stemware as `neither` for `cup` and under-reports that class's coverage.

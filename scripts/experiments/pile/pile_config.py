@@ -1537,23 +1537,36 @@ SCALE_N_NEG_SPARE = int(os.environ.get("VTS_SCALE_N_NEG_SPARE", "300"))
 #: ``provable``
 #:     Every designated negative is COCO-scored, so "holds no bus" is a FACT --
 #:     COCO annotates all eighty of its classes on any image it touches -- rather
-#:     than VG's silence, which is wrong 0.3-2.8% of the time depending on the
-#:     class. That per-class SPREAD, not its average, is what makes a comparison
-#:     between two classes unreadable, and this is the only composition that
-#:     removes it.
+#:     than VG's silence, which #3666 measured wrong **1.40%** [0.68, 2.86] of
+#:     the time pooled over the shipped twelve, and #3635 predicts between
+#:     **0.28% and 2.87%** depending on the class.
 #: ``matched``
 #:     The negatives' COCO share is matched to the positives' own (~57%), so
 #:     provenance carries no information about the label. Keeps the
-#:     contamination; the floor falls only to 77% of the mixed pool's.
+#:     contamination, and keeps the whole negative review (#3670 measured that
+#:     price: `provable` rules 513 of 743 reviewed negatives ineligible).
 #:
-#: **Chosen on a measurement, not on the principle.** An all-provable pool does
-#: hand a head a shortcut, because off-COCO then implies positive: measured on
-#: #3667's scale it is worth **1.11x** (`provenance_shortcut.py`, agreed by two
-#: independent routes -- a reverse arm at 1.12x and the residual after
-#: subtracting predicted contamination). The contamination a mixed pool carries
-#: is already worth **1.32x** on the same scale. All-provable is the LESS
-#: distorted pool, not merely the cleaner one; #3667's cross-class shortcut, for
-#: reference, was 1.88x and justified a rebuild.
+#: **Chosen on the SPREAD, not on the magnitude, and the difference matters.**
+#: Both compositions distort, and on #3667's FPR-inflation scale the two are not
+#: separable:
+#:
+#: * an all-provable pool hands a head a provenance shortcut, because off-COCO
+#:   then implies positive -- **1.1x** (`provenance_shortcut.py`; 1.06-1.12 over
+#:   two embedders and two independent routes, a reverse arm and the residual
+#:   after subtracting predicted contamination);
+#: * a mixed pool carries contamination -- **1.18x** at #3666's pooled 1.40%,
+#:   with a 95% interval of [1.09, 1.37] that contains the first number.
+#:
+#: So this is NOT "all-provable is less distorted": at the pooled rate the two
+#: overlap, and an earlier reading of this trade quoted 1.32x by taking the top
+#: of a *predicted* per-class range that has since been measured lower. What
+#: separates them is that the provenance shortcut is **uniform across classes**
+#: while contamination is not -- 1.04x to 1.37x, class by class. `vg_scale`
+#: exists to compare one class against another and one band against another, and
+#: a distortion that varies per class is the one that makes those comparisons
+#: unreadable. A uniform one moves every cell together and cancels in the
+#: contrast. (#3667's cross-class shortcut, for scale, was 1.88x and justified
+#: rebuilding eleven cells.)
 #:
 #: Switching back to ``matched`` needs the off-COCO stratum EMBEDDED, which the
 #: all-provable build does not carry -- it is a rebuild, not a relabel.

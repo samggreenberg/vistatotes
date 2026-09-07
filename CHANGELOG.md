@@ -33,6 +33,19 @@ not list every commit. Use `git log` for the full history.
 
 ### Fixed
 
+- **Startup no longer stalls for minutes on a cold NFS install** (issue #3715).
+  `transformers` builds `importlib.metadata.packages_distributions()` when it is
+  imported, and the stdlib version of that stats every file recorded by every
+  installed distribution - ~85,000 of them in a venv carrying torch, onnx and
+  RAPIDS. With the venv's metadata in page cache that is milliseconds; on an
+  NFS-mounted venv whose dentries have been evicted it is 85,000 serialized
+  round trips, measured at 78/sec on the GRID: **16 minutes 23 seconds** during
+  which the process sat in `D` state after printing
+  `Running in PRODUCTION mode` and looked hung. Startup now installs a
+  stat-free replacement that reads each distribution's `top_level.txt` (falling
+  back to parsing `RECORD` as text) before anything can import transformers, so
+  the walk never happens.
+
 - **A mixed-media dataset is no longer scored against another embedding space's
   vectors.** Asking the matrix layer for a specific embedder checked only the
   *first* media to decide whether that name was the dataset's primary - and if

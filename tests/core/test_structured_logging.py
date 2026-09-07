@@ -475,6 +475,38 @@ class TestTransformersLoggingBridge:
             setup_logging()
 
 
+class TestTransformersImportIsNotAStatWalk:
+    """The bridge seeds the stat-free ``packages_distributions`` first.
+
+    transformers builds the mapping at module import, and the stdlib version of
+    it stats every file recorded by every installed distribution - 16 minutes of
+    silent startup on a cold NFS venv (issue #3715).
+    """
+
+    def test_bridge_seeds_before_importing_transformers(self):
+        import importlib.metadata
+
+        from vtscore.utils.import_metadata import fast_packages_distributions
+
+        stdlib = importlib.metadata.packages_distributions
+        called = []
+
+        def tripwire():
+            called.append(True)
+            return {}
+
+        importlib.metadata.packages_distributions = tripwire
+        try:
+            install_transformers_logging_bridge()
+            assert called == [], "startup walked every recorded file of every distribution"
+            assert importlib.metadata.packages_distributions is fast_packages_distributions
+        finally:
+            importlib.metadata.packages_distributions = stdlib
+            hf_logging = importlib.import_module("transformers.utils.logging")
+            hf_logging._reset_library_root_logger()
+            hf_logging._configure_library_root_logger()
+
+
 class TestRequestIdHelper:
     def test_new_request_id_is_unique(self):
         ids = {new_request_id() for _ in range(100)}

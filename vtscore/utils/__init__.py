@@ -11,6 +11,10 @@ Remaining here:
   non-security declaration stays in one place (keeps MD5 working on
   FIPS-enabled hosts).
 - :mod:`vtscore.utils.hits` - ``build_media_hit`` helper for scoring/route hit dicts.
+- :mod:`vtscore.utils.import_metadata` - ``seed_packages_distributions``, the
+  stat-free stand-in for ``importlib.metadata.packages_distributions`` that
+  keeps transformers' module-level call from walking every installed
+  distribution's file list at startup.
 - :mod:`vtscore.utils.optional_deps` - actionable messages for the opt-out AGPL
   packages (``ultralytics``, ``PyMuPDF``), which a default install has but an
   ``VTSEARCH_NO_AGPL=1`` install deliberately lacks.

@@ -21,6 +21,69 @@ from pilebuild.geometry import region_geometry_problems, scale_label_digest
 from pilebuild.loaders import loader_for
 
 
+def negative_pool_problems(ds: str, medias: dict) -> list[str]:
+    """What one dataset's shared negative pool is MADE OF, and how big it is (#3670).
+
+    Neither is implied by anything else ``--verify`` checks. A pool of the wrong
+    size, drawn from the wrong half of VG, still loads: the cells are full, the
+    vectors are there, the boxes agree with their bands, and the prevalence
+    *of the pool it actually holds* is exact. What breaks is the relation
+    between the pickle and the constants every reader quotes -- and that relation
+    was only ever true by construction, so a construction change breaks it in
+    silence. This is #3299's shape twice over: the cell was fine, what it was
+    built FROM was not.
+
+    Two separate claims, so two separate messages:
+
+    * **composition** -- under ``provable`` every designated negative carries an
+      exhaustive reference, so "holds none of C" is COCO's answer rather than
+      VG's silence. A rebuild that quietly drew off-COCO images passes every
+      other check here.
+    * **size** -- the pool has as many images as :data:`pile_config.SCALE_N_NEG`
+      says, so ``SCALE_PREVALENCE`` describes this pickle. #3670 changed that
+      constant while the shared pile still held the old pool; without this check
+      the only symptom is that every k\\* a report quotes is computed from a
+      prevalence the data does not have.
+
+    Spares are excluded from both: they are drawn from the same strata but
+    designated into no cell, which is exactly what an empty
+    ``evaluable_categories`` says. Counting them would put the size check 300
+    images off and make it fire on a healthy pile.
+    """
+    problems: list[str] = []
+    # A designated negative is scorable everywhere; a spare is scorable nowhere.
+    # `categories` cannot tell them apart -- both are empty.
+    pool = [m for m in medias.values() if not m.get("categories") and m.get("evaluable_categories")]
+    if not pool:
+        return problems
+    n_silent = sum(1 for m in pool if not m.get("labels_exhaustive"))
+    # `vg_scale_deep` draws its own pool and is deliberately NOT provable
+    # (#3690): it is pinned to the pre-#3670 construction so the #3319/#3547
+    # horizon comparison keeps one prevalence from end to end.
+    if pc.SCALE_NEG_COMPOSITION == "provable" and n_silent and ds != "vg_scale_deep":
+        problems.append(
+            f"{ds}: composition=provable, but {n_silent} of {len(pool)} designated negatives "
+            "carry no exhaustive reference -- they rest on VG's silence"
+        )
+    # Positives per cell differ by construction: `vg_scale` designates one band,
+    # `vg_scale_any` collapses all three, `vg_scale_deep` is its own depth.
+    # Quoting the realised prevalence is the whole point of the message, so it is
+    # read per dataset rather than assumed.
+    want, n_pos = {
+        "vg_scale": (pc.SCALE_N_NEG, pc.SCALE_N_POS),
+        "vg_scale_any": (pc.SCALE_N_NEG, 3 * pc.SCALE_N_POS),
+        "vg_scale_deep": (pc.SCALE_DEEP_N_NEG, pc.SCALE_DEEP_N_POS),
+    }.get(ds, (pc.SCALE_N_NEG, pc.SCALE_N_POS))
+    if len(pool) != want:
+        problems.append(
+            f"{ds}: {len(pool)} designated negatives, but the config says {want} -- this cell "
+            f"predates the current construction, so a cell of it sits at "
+            f"{n_pos / (n_pos + len(pool)):.2%} prevalence and not the {n_pos / (n_pos + want):.2%} "
+            "the config implies"
+        )
+    return problems
+
+
 def verify() -> int:
     """Load every present cell and check it is usable. Returns an exit code."""
     io = cells_io()
@@ -99,21 +162,16 @@ def verify() -> int:
         # frame, which nothing can drag along with it.
         problems += [f"{ds} x {emb}: {g}" for g in region_geometry_problems(medias)]
 
-        # What the negatives are MADE OF is implied by nothing above. A pool of
-        # the right size, with valid boxes, vectors and prevalence, can still
-        # rest on VG's silence rather than on COCO's answer -- and the whole
-        # point of the `provable` composition is that it does not (#3670). A
-        # rebuild that quietly drew off-COCO images would pass every other check
-        # in this function, which is the same shape as #3299: the cell was fine,
-        # what it was built FROM was not.
-        pool = [m for m in medias.values() if not m.get("categories")]
-        n_prov = sum(1 for m in pool if m.get("labels_exhaustive"))
-        if pool and pc.SCALE_NEG_COMPOSITION == "provable" and n_prov < len(pool):
-            problems.append(
-                f"{ds} x {emb}: composition=provable, but {len(pool) - n_prov} of {len(pool)} "
-                "shared negatives carry no exhaustive reference -- they rest on VG's silence"
-            )
         break  # one embedder is enough; the boxes are identical across cells
+
+    # One cell per vg_scale-family dataset: the pool is the same set of images in
+    # every embedder's copy, so a second one would only repeat the finding.
+    for ds in pc.DATASETS:
+        if not str(pc.DATASETS[ds].get("kind", "")).startswith("vg_scale"):
+            continue
+        path = next((p for p in (pc.cell_path(ds, e) for _d, e in pc.cells() if _d == ds) if p.exists()), None)
+        if path is not None:
+            problems += negative_pool_problems(ds, io.load_medias(path))
 
     # A derived cell that no longer matches its parent. `vg_scale_any` is a
     # relabel of the built `vg_scale` pickle and shares its vectors, so it

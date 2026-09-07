@@ -17,7 +17,10 @@ from _cells_io import load_medias  # noqa: E402
 
 from coco_anchor import coco_truth, ensure_sources  # noqa: E402
 
-SHIPPED, CAND = set(pc.SCALE_CLASSES), set(pc.SCALE_CANDIDATES_3588)
+CAND = set(pc.SCALE_CANDIDATES_3588)
+# The ORIGINAL twelve: SCALE_CLASSES holds all 25 since #3588 shipped, so
+# taking it whole would put every candidate on both sides of the contrast.
+SHIPPED = set(pc.SCALE_CLASSES) - CAND
 medias = load_medias(pc.EMBEDDINGS / "vg_scale__siglip.pkl")
 ids = sorted(medias)
 pool = [i for i in ids if not medias[i].get("categories")]

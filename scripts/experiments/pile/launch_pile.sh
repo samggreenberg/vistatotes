@@ -22,7 +22,12 @@ set -euo pipefail
 
 SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 USER="${USER:-sgreenberg}"
-REPO="${VTS_REPO:-/exp/$USER/projects/vts-pile}"
+# The checkout the jobs import. DERIVED from this script's own location, never a
+# fixed path: the old default pointed at `/exp/$USER/projects/vts-pile`, which by
+# 2026-09-06 was 1,420 commits behind dev and predated `vg_scale` entirely, so a
+# launch from any other worktree built the pile from code nobody was looking at
+# and said nothing about it. Same shape as #3269. See #3693.
+REPO="${VTS_REPO:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)}"
 PILE="${VTS_PILE:-/expscratch/$USER/vts-cache}"
 HERE="$REPO/scripts/experiments/pile"
 LOGS="${PILE}/logs"

@@ -16,7 +16,9 @@ import pile_config as pc  # noqa: E402
 from _cells_io import load_medias  # noqa: E402
 from coco_anchor import coco_truth, ensure_sources  # noqa: E402
 
-ALL = list(pc.SCALE_CANDIDATES_3588) + list(pc.SCALE_CLASSES)
+# The thirteen are part of SCALE_CLASSES since #3588 shipped, so this is a
+# UNION, not a concatenation -- the old `+` now lists each of them twice.
+ALL = list(dict.fromkeys(list(pc.SCALE_CLASSES) + list(pc.SCALE_CANDIDATES_3588)))
 m = load_medias(pc.EMBEDDINGS / "vg_scale__siglip.pkl")
 anchor = Path(pc.PILE / "coco_anchor")
 image_data, instances = ensure_sources(anchor, False)

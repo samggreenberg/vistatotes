@@ -28,7 +28,8 @@ GROUPS = {
     "Outdoor Objects": ("bird", "kite", "boat", "dog"),
     "Bench": ("bench",),
 }
-ALL = list(pc.SCALE_CANDIDATES_3588) + list(pc.SCALE_CLASSES)
+# See cooccur25.py: SCALE_CANDIDATES_3588 is a SUBSET of SCALE_CLASSES now.
+ALL = list(dict.fromkeys(list(pc.SCALE_CLASSES) + list(pc.SCALE_CANDIDATES_3588)))
 
 m = load_medias(pc.EMBEDDINGS / "vg_scale__siglip.pkl")
 anchor = Path(pc.PILE / "coco_anchor")

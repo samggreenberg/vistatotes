@@ -320,6 +320,7 @@ def scale_study_exclusion(name: str) -> str | None:
 #: can annotate consistently is a judgement, and re-deriving it would silently
 #: change what the study measures whenever the scan is re-run.
 SCALE_CLASSES: tuple[str, ...] = (
+    # The original twelve (#3156).
     "clock",
     "bird",
     "boat",
@@ -332,6 +333,31 @@ SCALE_CLASSES: tuple[str, ...] = (
     "bicycle",
     "bus",
     "stop sign",
+    # The thirteen #3588 cleared, added 2026-09-06. They exist to make context
+    # exclusivity a factor that VARIES rather than a property two classes happen
+    # to have: `truck` partners `bus`, `fork`/`spoon` partner `knife`, and
+    # `cup`/`bowl`/`bottle`/`vase`/`chair`/`sink`/`cell phone` widen the
+    # generic-clutter end that only `kite` and `boat` used to anchor.
+    #
+    # Every one clears `scale_study_exclusion` -- including `car` and `chair`,
+    # which #3588's proposal expected to be barred as pervasive -- and every one
+    # was reviewed: 3,900 human judgements across thirteen slates, plus a
+    # negative pass, measuring pool error at 2.09% [1.34, 3.24] against the
+    # shipped twelve's 1.40% (#3666). The two tiers are NOT separable at that
+    # sample size, which is what made the expansion admissible.
+    "truck",
+    "car",
+    "fork",
+    "spoon",
+    "cup",
+    "bowl",
+    "bottle",
+    "vase",
+    "bench",
+    "chair",
+    "sink",
+    "cell phone",
+    "fire hydrant",
 )
 
 #: VG spellings that ARE a class in *C*, beyond the class name itself.
@@ -421,6 +447,86 @@ SCALE_VG_NAMES: dict[str, tuple[str, ...]] = {
         "white umbrella",
         "yellow umbrella",
     ),
+    # --- #3588's thirteen, audited 2026-09-06 --------------------------------
+    # Same two cuts as the twelve: repair precision >= 1/3 on the Wilson lower
+    # bound, box agreement >= 0.5 over >= 20 boxes. A name clearing precision
+    # but short of the box floor falls to SCALE_VG_AMBIGUOUS, not out.
+    "truck": (
+        "ambulance",
+        "dump truck",
+        "fire truck",
+        "food truck",
+        "pickup",
+        "pickup truck",
+        "red truck",
+        "white truck",
+    ),
+    "car": (
+        "automobile",
+        "black car",
+        "blue car",
+        "cars",
+        "jeep",
+        "minivan",
+        "red car",
+        "sedan",
+        "silver car",
+        "suv",
+        "taxi",
+        "van",
+        "vehicle",
+        "white car",
+    ),
+    "fork": ("forks",),
+    "spoon": (
+        "ladle",
+        "silver spoon",
+        "spoons",
+    ),
+    "cup": (
+        "coffee cup",
+        "coffee mug",
+        "mug",
+        "paper cup",
+        "plastic cup",
+    ),
+    "bowl": ("bowls",),
+    "bottle": (
+        "beer bottle",
+        "bottles",
+        "dish soap",
+        "plastic bottle",
+        "water bottle",
+        "wine bottle",
+        "wine bottles",
+    ),
+    "vase": (
+        "flower vase",
+        "urn",
+    ),
+    "bench": (
+        "benches",
+        "wooden bench",
+    ),
+    "chair": (
+        "armchair",
+        "bar stool",
+        "beach chair",
+        "brown chair",
+        "chair back",
+        "chairs",
+        "folding chair",
+        "lawn chair",
+    ),
+    "sink": (
+        "bathroom sink",
+        "kitchen sink",
+    ),
+    "cell phone": (
+        "cellphone",
+        "phone",
+    ),
+    "fire hydrant": ("hydrant",),
 }
 
 #: What :func:`pilebuild.loaders.vg_scale.canonicalise` does when an alias box
@@ -529,6 +635,141 @@ SCALE_VG_AMBIGUOUS: dict[str, tuple[str, ...]] = {
     # need a human pass, not a name (#3618).
     "stop sign": ("octagon", "stop"),
     "umbrella": ("an umbrella", "black umbrella", "pink umbrella", "umbrellas"),
+    # --- #3588's thirteen, audited 2026-09-06 --------------------------------
+    # `pickup truck` is an alias of `truck` and ambiguous for `car`; `jeep` is
+    # the reverse. That is the confusable pair #3588 added on purpose, and the
+    # two tables express it exactly: the box IS a truck, and it may be a car.
+    "truck": (
+        "blue truck",
+        "box truck",
+        "camper",
+        "delivery truck",
+        "fire engine",
+        "firetruck",
+        "flatbed",
+        "lorry",
+        "luggage cart",
+        "pick-up truck",
+        "rv",
+        "semi truck",
+        "tow truck",
+        "tractor",
+        "trailer",
+        "trucks",
+        "vehicles",
+        "white van",
+    ),
+    "car": (
+        "automobiles",
+        "golf cart",
+        "mini van",
+        "parked car",
+        "parked cars",
+        "pick up",
+        "police car",
+        "taxi cab",
+        "vehicles",
+        "white van",
+    ),
+    "fork": (
+        "silver fork",
+        "silverware",
+    ),
+    "spoon": (
+        "cooking utensils",
+        "kitchen utensils",
+        "plastic spoon",
+        "silverware",
+        "utensil",
+        "utensils",
+    ),
+    "cup": (
+        "beer",
+        "beverage",
+        "blue cup",
+        "coffee",
+        "cups",
+        "drink",
+        "drinking glass",
+        "glass",
+        "glass of water",
+        "juice",
+        "liquid",
+        "measuring cup",
+        "mugs",
+        "napkin holder",
+        "orange juice",
+        "shaker",
+        "tea",
+        "tea cup",
+        "tumbler",
+        "water glass",
+    ),
+    "bowl": (
+        "blue bowl",
+        "casserole dish",
+        "dishes",
+        "dog bowl",
+        "mixing bowl",
+    ),
+    "bottle": (
+        "beverages",
+        "glass bottle",
+        "green bottle",
+        "hand soap",
+        "jar",
+        "ketchup bottle",
+        "shaker",
+        "shakers",
+        "soap bottle",
+        "soda bottle",
+        "water bottles",
+    ),
+    "vase": (
+        "artifact",
+        "blue vase",
+        "glass vase",
+        "vases",
+    ),
+    "bench": (
+        "bleacher",
+        "park bench",
+        "picnic bench",
+        "picnic table",
+    ),
+    "chair": (
+        "black chair",
+        "blue chair",
+        "classroom",
+        "computer chair",
+        "desk chair",
+        "high chair",
+        "highchair",
+        "office chair",
+        "rocking chair",
+        "seats",
+        "stool",
+        "wicker chair",
+    ),
+    "sink": (
+        "basin",
+        "white sink",
+    ),
+    "cell phone": (
+        "black phone",
+        "cell",
+        "cellphones",
+        "flip phone",
+        "iphone",
+        "ipod",
+        "mobile",
+        "mobile phone",
+        "mp3 player",
+        "phones",
+        "smart phone",
+        "smartphone",
+    ),
+    "fire hydrant": ("firehydrant",),
 }
 
 
@@ -1039,6 +1280,19 @@ SCALE_VG_NAMES_AUDITED: frozenset[str] = frozenset(
         "knife",
         "stop sign",
         "umbrella",
+        "bench",
+        "bottle",
+        "bowl",
+        "car",
+        "cell phone",
+        "chair",
+        "cup",
+        "fire hydrant",
+        "fork",
+        "sink",
+        "spoon",
+        "truck",
+        "vase",
     }
 )
 
@@ -1784,6 +2038,14 @@ def setup_env() -> None:
 #: supply are anti-correlated in VG, so the easy end of the axis cannot be
 #: widened with this source at this floor. These additions widen the hard end
 #: and add same-scene partners; see the report for what that costs the design.
+#: **These thirteen are part of `SCALE_CLASSES` as of 2026-09-06.** The tuple
+#: survives as the record of WHICH classes were added when, because the two
+#: groups carry different review histories and that difference is quotable:
+#: pool error 1.40% [0.68, 2.86] for the original twelve against 2.09%
+#: [1.34, 3.24] for these (#3666 -- not separable at that sample size, which
+#: is what made the expansion admissible). Anything contrasting the tiers must
+#: take the twelve as `SCALE_CLASSES - SCALE_CANDIDATES_3588`, never as
+#: `SCALE_CLASSES`, which now holds both.
 SCALE_CANDIDATES_3588: tuple[str, ...] = (
     # Tier A -- a habitat partner of a class already in C, so the negative pool
     # is shared and the contrast is same-scene, different-object.

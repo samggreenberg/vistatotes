@@ -20,7 +20,9 @@ import pile_config as pc  # noqa: E402
 from _cells_io import load_medias  # noqa: E402
 from coco_anchor import coco_truth, ensure_sources  # noqa: E402
 
-SHIPPED, CAND = list(pc.SCALE_CLASSES), list(pc.SCALE_CANDIDATES_3588)
+CAND = list(pc.SCALE_CANDIDATES_3588)
+# The ORIGINAL twelve -- see pool_audit.py; SCALE_CLASSES now holds all 25.
+SHIPPED = [c for c in pc.SCALE_CLASSES if c not in set(CAND)]
 m = load_medias(pc.EMBEDDINGS / "vg_scale__siglip.pkl")
 pool = {i for i in m if not m[i].get("categories")}
 

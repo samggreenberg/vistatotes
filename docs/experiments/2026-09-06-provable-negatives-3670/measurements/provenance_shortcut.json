@@ -1,0 +1,368 @@
+{
+ "siglip": {
+  "n_provable_negatives": 1888,
+  "n_silent_negatives": 2312,
+  "target_fpr": 0.05,
+  "per_class": {
+   "clock": {
+    "n_pos": 300,
+    "fpr_silent": 0.0891,
+    "ratio": 1.782,
+    "ratio_se": 0.107,
+    "ratio_reverse": 0.737,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "bird": {
+    "n_pos": 300,
+    "fpr_silent": 0.0758,
+    "ratio": 1.516,
+    "ratio_se": 0.153,
+    "ratio_reverse": 0.956,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "boat": {
+    "n_pos": 300,
+    "fpr_silent": 0.056,
+    "ratio": 1.119,
+    "ratio_se": 0.17,
+    "ratio_reverse": 1.085,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "umbrella": {
+    "n_pos": 300,
+    "fpr_silent": 0.0875,
+    "ratio": 1.749,
+    "ratio_se": 0.066,
+    "ratio_reverse": 0.729,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "kite": {
+    "n_pos": 300,
+    "fpr_silent": 0.0517,
+    "ratio": 1.035,
+    "ratio_se": 0.139,
+    "ratio_reverse": 1.14,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "book": {
+    "n_pos": 300,
+    "fpr_silent": 0.056,
+    "ratio": 1.119,
+    "ratio_se": 0.077,
+    "ratio_reverse": 0.989,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "dog": {
+    "n_pos": 300,
+    "fpr_silent": 0.0561,
+    "ratio": 1.121,
+    "ratio_se": 0.081,
+    "ratio_reverse": 1.206,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "backpack": {
+    "n_pos": 300,
+    "fpr_silent": 0.0748,
+    "ratio": 1.497,
+    "ratio_se": 0.084,
+    "ratio_reverse": 0.86,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "knife": {
+    "n_pos": 300,
+    "fpr_silent": 0.0547,
+    "ratio": 1.093,
+    "ratio_se": 0.061,
+    "ratio_reverse": 0.949,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "bicycle": {
+    "n_pos": 300,
+    "fpr_silent": 0.0859,
+    "ratio": 1.718,
+    "ratio_se": 0.091,
+    "ratio_reverse": 0.716,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "bus": {
+    "n_pos": 300,
+    "fpr_silent": 0.0953,
+    "ratio": 1.907,
+    "ratio_se": 0.108,
+    "ratio_reverse": 0.619,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "stop sign": {
+    "n_pos": 300,
+    "fpr_silent": 0.0928,
+    "ratio": 1.856,
+    "ratio_se": 0.192,
+    "ratio_reverse": 0.75,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   }
+  },
+  "ratio_mean": 1.459,
+  "ratio_se": 0.098,
+  "ratio_reverse_mean": 0.895,
+  "ratio_reverse_se": 0.054,
+  "ratio_clean_only_mean": null,
+  "ratio_clean_only_se": null,
+  "n_clean_only_total": 0
+ },
+ "clip": {
+  "n_provable_negatives": 1888,
+  "n_silent_negatives": 2312,
+  "target_fpr": 0.05,
+  "per_class": {
+   "clock": {
+    "n_pos": 300,
+    "fpr_silent": 0.0959,
+    "ratio": 1.919,
+    "ratio_se": 0.14,
+    "ratio_reverse": 0.617,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "bird": {
+    "n_pos": 300,
+    "fpr_silent": 0.0676,
+    "ratio": 1.353,
+    "ratio_se": 0.167,
+    "ratio_reverse": 0.977,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "boat": {
+    "n_pos": 300,
+    "fpr_silent": 0.056,
+    "ratio": 1.119,
+    "ratio_se": 0.1,
+    "ratio_reverse": 0.983,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "umbrella": {
+    "n_pos": 300,
+    "fpr_silent": 0.0952,
+    "ratio": 1.903,
+    "ratio_se": 0.107,
+    "ratio_reverse": 0.729,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "kite": {
+    "n_pos": 300,
+    "fpr_silent": 0.0519,
+    "ratio": 1.038,
+    "ratio_se": 0.143,
+    "ratio_reverse": 1.119,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "book": {
+    "n_pos": 300,
+    "fpr_silent": 0.0554,
+    "ratio": 1.109,
+    "ratio_se": 0.073,
+    "ratio_reverse": 1.061,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "dog": {
+    "n_pos": 300,
+    "fpr_silent": 0.0442,
+    "ratio": 0.884,
+    "ratio_se": 0.153,
+    "ratio_reverse": 1.278,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "backpack": {
+    "n_pos": 300,
+    "fpr_silent": 0.0604,
+    "ratio": 1.208,
+    "ratio_se": 0.051,
+    "ratio_reverse": 1.064,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "knife": {
+    "n_pos": 300,
+    "fpr_silent": 0.0538,
+    "ratio": 1.076,
+    "ratio_se": 0.059,
+    "ratio_reverse": 1.03,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "bicycle": {
+    "n_pos": 300,
+    "fpr_silent": 0.0901,
+    "ratio": 1.801,
+    "ratio_se": 0.089,
+    "ratio_reverse": 0.869,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "bus": {
+    "n_pos": 300,
+    "fpr_silent": 0.0953,
+    "ratio": 1.907,
+    "ratio_se": 0.099,
+    "ratio_reverse": 0.754,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "stop sign": {
+    "n_pos": 300,
+    "fpr_silent": 0.0798,
+    "ratio": 1.597,
+    "ratio_se": 0.173,
+    "ratio_reverse": 0.877,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   }
+  },
+  "ratio_mean": 1.41,
+  "ratio_se": 0.113,
+  "ratio_reverse_mean": 0.947,
+  "ratio_reverse_se": 0.054,
+  "ratio_clean_only_mean": null,
+  "ratio_clean_only_se": null,
+  "n_clean_only_total": 0
+ },
+ "siglip2_l": {
+  "n_provable_negatives": 1888,
+  "n_silent_negatives": 2312,
+  "target_fpr": 0.05,
+  "per_class": {
+   "clock": {
+    "n_pos": 300,
+    "fpr_silent": 0.0895,
+    "ratio": 1.791,
+    "ratio_se": 0.088,
+    "ratio_reverse": 0.788,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "bird": {
+    "n_pos": 300,
+    "fpr_silent": 0.0776,
+    "ratio": 1.552,
+    "ratio_se": 0.077,
+    "ratio_reverse": 0.633,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "boat": {
+    "n_pos": 300,
+    "fpr_silent": 0.0516,
+    "ratio": 1.033,
+    "ratio_se": 0.065,
+    "ratio_reverse": 1.044,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "umbrella": {
+    "n_pos": 300,
+    "fpr_silent": 0.0928,
+    "ratio": 1.856,
+    "ratio_se": 0.041,
+    "ratio_reverse": 0.758,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "kite": {
+    "n_pos": 300,
+    "fpr_silent": 0.0503,
+    "ratio": 1.007,
+    "ratio_se": 0.147,
+    "ratio_reverse": 1.114,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "book": {
+    "n_pos": 300,
+    "fpr_silent": 0.0566,
+    "ratio": 1.131,
+    "ratio_se": 0.099,
+    "ratio_reverse": 1.025,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "dog": {
+    "n_pos": 300,
+    "fpr_silent": 0.0496,
+    "ratio": 0.991,
+    "ratio_se": 0.124,
+    "ratio_reverse": 1.231,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "backpack": {
+    "n_pos": 300,
+    "fpr_silent": 0.074,
+    "ratio": 1.479,
+    "ratio_se": 0.085,
+    "ratio_reverse": 0.941,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "knife": {
+    "n_pos": 300,
+    "fpr_silent": 0.0543,
+    "ratio": 1.087,
+    "ratio_se": 0.08,
+    "ratio_reverse": 0.975,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "bicycle": {
+    "n_pos": 300,
+    "fpr_silent": 0.0917,
+    "ratio": 1.834,
+    "ratio_se": 0.127,
+    "ratio_reverse": 0.847,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "bus": {
+    "n_pos": 300,
+    "fpr_silent": 0.1022,
+    "ratio": 2.043,
+    "ratio_se": 0.099,
+    "ratio_reverse": 0.706,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   },
+   "stop sign": {
+    "n_pos": 300,
+    "fpr_silent": 0.0853,
+    "ratio": 1.706,
+    "ratio_se": 0.134,
+    "ratio_reverse": 0.843,
+    "n_clean_only": 0,
+    "ratio_clean_only": null
+   }
+  },
+  "ratio_mean": 1.459,
+  "ratio_se": 0.112,
+  "ratio_reverse_mean": 0.909,
+  "ratio_reverse_se": 0.051,
+  "ratio_clean_only_mean": null,
+  "ratio_clean_only_se": null,
+  "n_clean_only_total": 0
+ }
+}

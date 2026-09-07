@@ -1,0 +1,234 @@
+{
+ "positives_coco_fraction": 0.5564,
+ "clean_total": 74541,
+ "compositions": {
+  "today": {
+   "n": 3899,
+   "provable": 1756,
+   "provable_fraction": 0.4504,
+   "populations": {
+    "reviewed negatives": {
+     "reviewed": 743,
+     "by_rule": 0,
+     "by_fix": 84,
+     "eligible": 659,
+     "still_in": 622,
+     "coverage": 0.9439
+    },
+    "triaged negatives": {
+     "reviewed": 1742,
+     "by_rule": 0,
+     "by_fix": 170,
+     "eligible": 1572,
+     "still_in": 1504,
+     "coverage": 0.9567
+    }
+   }
+  },
+  "provable": {
+   "n": 9900,
+   "provable": 9900,
+   "provable_fraction": 1.0,
+   "populations": {
+    "reviewed negatives": {
+     "reviewed": 743,
+     "by_rule": 591,
+     "by_fix": 5,
+     "eligible": 147,
+     "still_in": 147,
+     "coverage": 1.0
+    },
+    "triaged negatives": {
+     "reviewed": 1742,
+     "by_rule": 1312,
+     "by_fix": 11,
+     "eligible": 419,
+     "still_in": 419,
+     "coverage": 1.0
+    }
+   }
+  },
+  "matched": {
+   "n": 9900,
+   "provable": 5508,
+   "provable_fraction": 0.5564,
+   "populations": {
+    "reviewed negatives": {
+     "reviewed": 743,
+     "by_rule": 0,
+     "by_fix": 84,
+     "eligible": 659,
+     "still_in": 627,
+     "coverage": 0.9514
+    },
+    "triaged negatives": {
+     "reviewed": 1742,
+     "by_rule": 0,
+     "by_fix": 169,
+     "eligible": 1573,
+     "still_in": 1520,
+     "coverage": 0.9663
+    }
+   }
+  }
+ },
+ "realised": {
+  "designed_cell_prevalence": 0.01,
+  "mean": 0.00847,
+  "min": 0.00844,
+  "max": 0.00856,
+  "per_cell": {
+   "clock@small": {
+    "evaluable_negatives": 11738,
+    "prevalence": 0.00845
+   },
+   "clock@medium": {
+    "evaluable_negatives": 11738,
+    "prevalence": 0.00845
+   },
+   "clock@large": {
+    "evaluable_negatives": 11738,
+    "prevalence": 0.00845
+   },
+   "bird@small": {
+    "evaluable_negatives": 11725,
+    "prevalence": 0.00846
+   },
+   "bird@medium": {
+    "evaluable_negatives": 11725,
+    "prevalence": 0.00846
+   },
+   "bird@large": {
+    "evaluable_negatives": 11725,
+    "prevalence": 0.00846
+   },
+   "boat@small": {
+    "evaluable_negatives": 11729,
+    "prevalence": 0.00845
+   },
+   "boat@medium": {
+    "evaluable_negatives": 11729,
+    "prevalence": 0.00845
+   },
+   "boat@large": {
+    "evaluable_negatives": 11729,
+    "prevalence": 0.00845
+   },
+   "umbrella@small": {
+    "evaluable_negatives": 11715,
+    "prevalence": 0.00846
+   },
+   "umbrella@medium": {
+    "evaluable_negatives": 11715,
+    "prevalence": 0.00846
+   },
+   "umbrella@large": {
+    "evaluable_negatives": 11715,
+    "prevalence": 0.00846
+   },
+   "kite@small": {
+    "evaluable_negatives": 11755,
+    "prevalence": 0.00844
+   },
+   "kite@medium": {
+    "evaluable_negatives": 11755,
+    "prevalence": 0.00844
+   },
+   "kite@large": {
+    "evaluable_negatives": 11755,
+    "prevalence": 0.00844
+   },
+   "book@small": {
+    "evaluable_negatives": 11715,
+    "prevalence": 0.00846
+   },
+   "book@medium": {
+    "evaluable_negatives": 11715,
+    "prevalence": 0.00846
+   },
+   "book@large": {
+    "evaluable_negatives": 11715,
+    "prevalence": 0.00846
+   },
+   "dog@small": {
+    "evaluable_negatives": 11719,
+    "prevalence": 0.00846
+   },
+   "dog@medium": {
+    "evaluable_negatives": 11719,
+    "prevalence": 0.00846
+   },
+   "dog@large": {
+    "evaluable_negatives": 11719,
+    "prevalence": 0.00846
+   },
+   "backpack@small": {
+    "evaluable_negatives": 11589,
+    "prevalence": 0.00856
+   },
+   "backpack@medium": {
+    "evaluable_negatives": 11589,
+    "prevalence": 0.00856
+   },
+   "backpack@large": {
+    "evaluable_negatives": 11589,
+    "prevalence": 0.00856
+   },
+   "knife@small": {
+    "evaluable_negatives": 11738,
+    "prevalence": 0.00845
+   },
+   "knife@medium": {
+    "evaluable_negatives": 11738,
+    "prevalence": 0.00845
+   },
+   "knife@large": {
+    "evaluable_negatives": 11738,
+    "prevalence": 0.00845
+   },
+   "bicycle@small": {
+    "evaluable_negatives": 11657,
+    "prevalence": 0.00851
+   },
+   "bicycle@medium": {
+    "evaluable_negatives": 11657,
+    "prevalence": 0.00851
+   },
+   "bicycle@large": {
+    "evaluable_negatives": 11657,
+    "prevalence": 0.00851
+   },
+   "bus@small": {
+    "evaluable_negatives": 11708,
+    "prevalence": 0.00847
+   },
+   "bus@medium": {
+    "evaluable_negatives": 11708,
+    "prevalence": 0.00847
+   },
+   "bus@large": {
+    "evaluable_negatives": 11708,
+    "prevalence": 0.00847
+   },
+   "stop sign@small": {
+    "evaluable_negatives": 11690,
+    "prevalence": 0.00848
+   },
+   "stop sign@medium": {
+    "evaluable_negatives": 11690,
+    "prevalence": 0.00848
+   },
+   "stop sign@large": {
+    "evaluable_negatives": 11690,
+    "prevalence": 0.00848
+   }
+  }
+ },
+ "over_promoted": {
+  "coco_scored": 51448,
+  "exhaustive": 51645,
+  "promoted_by_review": 197,
+  "promoted_positives": 64,
+  "share_of_designated_positives": 0.018
+ }
+}

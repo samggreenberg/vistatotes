@@ -6,6 +6,7 @@
 #   bash launch_pile.sh coco_val     # just one dataset's job
 #   VTS_GPU_NODE=rack7n03 bash launch_pile.sh visual_genome_m   # pin the device
 #   VTS_BUILD_ARGS=--force bash launch_pile.sh vg_scale         # REBUILD, not fill
+#   VTS_MAX_BEHIND=0 bash launch_pile.sh vg_scale   # build from an OLD checkout
 #
 # Weights are prefetched in a separate CPU step because parallel GPU jobs would
 # otherwise race to populate the same shared HF cache (see prefetch_models.py).
@@ -42,8 +43,24 @@ CPUS="${VTS_CPUS:-8}"
 
 mkdir -p "$LOGS"
 
+# Name the checkout before anything is submitted, and refuse one that is stale.
+# The fixed default above was only half of #3693: the other half is that the
+# launch output said `submitted vg_scale -> job NNN` and never named the tree or
+# the commit, so a build from a checkout 1,420 commits behind dev had nothing on
+# screen to be wrong. This prints both and applies preflight.sh check 4's bar
+# (VTS_MAX_BEHIND, default 100) to the pile -- the artifact every study reads.
+# shellcheck source=../repo_stamp.sh
+source "$SELF_DIR/../repo_stamp.sh"
+repo_stamp "$REPO" || exit 1
+echo
+
 ENVSET="module load python/3.12.3 && source /exp/$USER/projects/VTSearch/.venv/bin/activate"
 ENVSET="$ENVSET && export VTS_REPO=$REPO VTS_PILE=$PILE"
+# The commit as it stood at LAUNCH time, carried into the job so the cell's
+# provenance can compare it against the commit the build actually resolves. A
+# pile job sits in the queue for hours; a worktree that changes branch in the
+# meantime builds from code the launch banner never showed anyone.
+ENVSET="$ENVSET && export VTS_LAUNCH_COMMIT=${REPO_STAMP_COMMIT:-}"
 # Keep HF off /exp: one model download there fills the 50G quota.
 ENVSET="$ENVSET && export HF_HOME=$PILE/models VTSEARCH_MODELS_DIR=$PILE/models"
 ENVSET="$ENVSET && export VTSEARCH_DATA_DIR=$PILE/datadir && cd $HERE"
@@ -166,5 +183,6 @@ for ds in "${DATASETS[@]}"; do
 done
 
 echo
+echo "built from: $REPO @ ${REPO_STAMP_COMMIT:0:9} (${REPO_STAMP_BRANCH:-unknown})"
 echo "watch:   squeue -u $USER"
 echo "verify:  cd $HERE && python build_pile.py --verify"

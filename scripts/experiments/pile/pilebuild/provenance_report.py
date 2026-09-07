@@ -54,6 +54,7 @@ def provenance_report(backfill: bool = False) -> int:
     the cell?" from an unanswerable question into a hash comparison.
     """
     rows, missing, devices = [], [], defaultdict(list)
+    checkouts: defaultdict[str, list[str]] = defaultdict(list)
     recovered = _sacct_build_nodes() if backfill else {}
     for ds, emb in pc.cells():
         cell = pc.cell_path(ds, emb)
@@ -85,6 +86,10 @@ def provenance_report(backfill: bool = False) -> int:
                 continue
         rec = json.loads(path.read_text())
         dev = rec.get("device", {})
+        # `code` since #3693; older sidecars kept the commit under `device` and
+        # recorded no checkout at all, so a null repo here means "unrecorded",
+        # not "same tree as everything else".
+        code = rec.get("code", {})
         if backfill and not dev.get("hostname") and not dev.get("hostname_recovered") and recovered.get(ds):
             dev["hostname_recovered"] = recovered[ds]
             dev["recovered_from"] = "sacct pile-<dataset> job"
@@ -98,11 +103,12 @@ def provenance_report(backfill: bool = False) -> int:
                 dev.get("gpu_name") or "unknown",
                 dev.get("hostname") or (f"{dev['hostname_recovered']}?" if dev.get("hostname_recovered") else "-"),
                 str(dev.get("cpu_capability") or "-"),
-                (dev.get("commit") or "-")[:9],
+                (code.get("commit") or dev.get("commit") or "-")[:9],
                 rec.get("fingerprint", {}).get("vectors_sha256", "")[:12],
             )
         )
         devices[(dev.get("gpu_name") or "unknown", dev.get("cpu_capability"))].append(f"{ds}x{emb}")
+        checkouts[code.get("repo") or "unrecorded"].append(f"{ds}x{emb}")
 
     log(f"{'dataset':<18} {'embedder':<14} {'device':<26} {'node':<10} {'dispatch':<9} {'commit':<10} vectors")
     for row in sorted(rows):
@@ -114,4 +120,15 @@ def provenance_report(backfill: bool = False) -> int:
         log("hosts is 1.5e-04 median 1-cos on siglip2_l when CPU dispatch is unpinned (#3160):")
         for (name, cap), cells in sorted(devices.items(), key=lambda kv: str(kv[0])):
             log(f"  {str(name):<26} dispatch={cap or 'unrecorded':<10} {len(cells)} cell(s)")
+    # The same warning one axis over. A pile built from two checkouts is what
+    # #3693 was: a launcher whose fixed default pointed at a tree 1,420 commits
+    # behind dev, while the tree you were reading built everything else. Nothing
+    # said so, because nothing recorded the path -- and the cells look identical
+    # from outside. Now they do not.
+    if len(checkouts) > 1:
+        log(f"\nthis pile was built from {len(checkouts)} DIFFERENT checkouts:")
+        for repo, cells in sorted(checkouts.items()):
+            log(f"  {repo:<52} {len(cells)} cell(s)")
+        log("cells built from different trees ran different code; compare their commits")
+        log("before reading them as one pile (#3693).")
     return 0

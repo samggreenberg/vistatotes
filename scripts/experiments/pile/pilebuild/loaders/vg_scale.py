@@ -455,6 +455,30 @@ def designate_cells(
     return chosen
 
 
+def disqualified_negatives(roster: dict, clean: set[int]) -> list[int]:
+    """Rostered negatives that can no longer BE negatives, accumulated.
+
+    An image holding a class in *C* cannot serve as a negative for anything, so a
+    rebuild is right to drop it -- but `check_review_coverage.py` sees only that
+    a reviewed image is gone and reads a correct rebuild as lost review.
+    Expanding *C* from twelve to 25 disqualified 1,530 of them at once (#3588).
+
+    **Accumulated, not recomputed, and that is the whole point of the function.**
+    ``load`` runs once per embedder and rewrites the roster each time, so the
+    first cell sees the old negatives and records the disqualification while
+    every later cell reads a roster whose negatives are already clean, computes
+    an empty set, and overwrites the fact. The value survived exactly one cell of
+    a five-cell build before this existed. Same shape as the counter that was
+    placed before the pass discarding its work (#3637).
+
+    Spares count too: they are drawn into the pickle and can be designated later,
+    so one becoming ineligible is the same event.
+    """
+    was = {int(i) for i in roster.get("disqualified", [])}
+    pool = list(roster.get("negatives", [])) + list(roster.get("spares", []))
+    return sorted(was | {int(i) for i in pool if int(i) not in clean})
+
+
 def draw_negatives(clean: list[int], roster: dict) -> tuple[list[int], list[int]]:
     """The shared negative pool and its spares, drawn from the clean images.
 
@@ -689,8 +713,24 @@ def load(dataset: str, medias: dict[int, dict], embedder_name: str) -> None:
 
     chosen = designate_cells(supply, corrections, roster)
     clean.sort()
+    # A rostered negative that is no longer clean has been DISQUALIFIED -- it
+    # holds one of the classes now, so it cannot be a negative and no rebuild
+    # could keep it. That is different in kind from an image lost to a reshuffle,
+    # and only this pass can tell them apart: by the time
+    # `check_review_coverage.py` runs, the reason is gone. Expanding C from 12 to
+    # 25 disqualified 271 reviewed negatives at a stroke (#3588), and the
+    # coverage gate read every one of them as lost review.
+    disqualified = disqualified_negatives(roster, set(clean))
+    if disqualified:
+        log(f"  {len(disqualified)} rostered negatives disqualified: they can no longer be negatives")
     negatives, spares = draw_negatives(clean, roster)
-    pc.ROSTER.write_text(json.dumps({"cells": chosen, "negatives": negatives, "spares": spares}, indent=1) + "\n")
+    pc.ROSTER.write_text(
+        json.dumps(
+            {"cells": chosen, "negatives": negatives, "spares": spares, "disqualified": disqualified},
+            indent=1,
+        )
+        + "\n"
+    )
     log(
         f"  {sum(len(v) for v in chosen.values())} positives over {len(cells)} cells, "
         f"{len(negatives)} shared negatives + {len(spares)} spares (from {len(clean)} clean images)"

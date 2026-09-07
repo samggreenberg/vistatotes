@@ -176,8 +176,7 @@ class TestTheMergeIsPartOfTheClass:
         row = evidence["names"]["cup"]["wine glass"]
         assert row["sole"] == _N_IMAGES, "every image has the name and not the class name"
         assert row["sole_present"] == _N_IMAGES, (
-            "COCO annotates the object on every one of them -- as `wine glass`, "
-            "which IS `cup` for this class"
+            "COCO annotates the object on every one of them -- as `wine glass`, which IS `cup` for this class"
         )
         assert row["boxes_on_class"] == row["boxes"] == _N_IMAGES
         assert row["verdict"] == "alias"

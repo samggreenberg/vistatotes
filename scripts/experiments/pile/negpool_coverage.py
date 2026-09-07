@@ -184,7 +184,14 @@ def main() -> None:
     per_cell: dict[str, int] = dict.fromkeys(cells, 0)
     for iid in set(positive_in) | neg_set:
         ev = _evaluable(
-            iid, sorted(positive_in.get(iid, [])), cells, neg_set, labels, coco_scored, reviewed_absent, reviewed_present
+            iid,
+            sorted(positive_in.get(iid, [])),
+            cells,
+            neg_set,
+            labels,
+            coco_scored,
+            reviewed_absent,
+            reviewed_present,
         )
         for cell in ev:
             if cell in per_cell and cell not in positive_in.get(iid, []):

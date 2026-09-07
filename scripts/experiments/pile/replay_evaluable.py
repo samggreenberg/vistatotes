@@ -83,9 +83,7 @@ def main() -> int:
 
     medias = load_medias(Path(args.cell))
     cells = (
-        list(pc.SCALE_CLASSES)
-        if args.deep
-        else [pc.scale_cell(c, b) for c in pc.SCALE_CLASSES for b in pc.BOX_BANDS]
+        list(pc.SCALE_CLASSES) if args.deep else [pc.scale_cell(c, b) for c in pc.SCALE_CLASSES for b in pc.BOX_BANDS]
     )
     log(f"{Path(args.cell).name}: {len(medias)} medias, {len(cells)} cells")
 

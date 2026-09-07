@@ -130,9 +130,12 @@ def _files_naming_the_constant() -> dict[str, list[int]]:
         if path.name == "pile_config.py":
             continue  # the definition, and the one function allowed to read it
         for node in ast.walk(ast.parse(path.read_text())):
-            named = (isinstance(node, ast.Name) and node.id == "MAX_ASPECT_DRIFT") or (
-                isinstance(node, ast.Attribute) and node.attr == "MAX_ASPECT_DRIFT"
-            )
+            if isinstance(node, ast.Name):
+                named = node.id == "MAX_ASPECT_DRIFT"
+            elif isinstance(node, ast.Attribute):
+                named = node.attr == "MAX_ASPECT_DRIFT"
+            else:
+                continue
             if named:
                 hits.setdefault(str(path.relative_to(_PILE_DIR)), []).append(node.lineno)
     return hits

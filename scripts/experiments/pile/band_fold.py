@@ -170,7 +170,7 @@ def phase_truth(anchor: Path, records: list, inflations: list[float], examples: 
         if vd is None or cid is None or cid not in cdims:
             continue
         cd = cdims[cid]
-        if abs((vd[0] / vd[1]) - (cd[0] / cd[1])) > pc.MAX_ASPECT_DRIFT:
+        if not pc.aspect_transferable(vd, cd):
             skipped_aspect += 1
             continue
         n_overlap += 1

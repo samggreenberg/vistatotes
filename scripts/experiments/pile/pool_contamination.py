@@ -171,7 +171,7 @@ def main() -> int:
         vd, cd = vdims.get(iid), cdims.get(cid)
         if vd is None or cd is None:
             continue
-        if abs((vd[0] / vd[1]) - (cd[0] / cd[1])) / (cd[0] / cd[1]) > pc.MAX_ASPECT_DRIFT:
+        if not pc.aspect_transferable(vd, cd):
             reframed += 1
             continue
         adjudicable[iid] = cid

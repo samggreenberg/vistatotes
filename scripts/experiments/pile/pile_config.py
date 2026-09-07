@@ -2181,11 +2181,51 @@ SCALE_DEEP_N_NEG_SPARE = int(os.environ.get("VTS_SCALE_DEEP_N_NEG_SPARE", "300")
 
 
 #: How far a VG copy's aspect ratio may drift from the COCO original before its
-#: boxes are considered untransferable. Normalised coordinates survive a rescale
-#: but not a re-crop or a rotation, and 49 of the 51,497 overlaps are one of
-#: those -- small enough to ignore by accident, which is why it is a constant
-#: with a check rather than an assumption.
+#: boxes are considered untransferable, as a fraction of the COCO ratio.
+#: Normalised coordinates survive a rescale but not a re-crop or a rotation, and
+#: 49 of the 51,497 overlaps are one of those -- small enough to ignore by
+#: accident, which is why it is a constant with a check rather than an
+#: assumption.
+#:
+#: The threshold is *relative*, and only :func:`aspect_transferable` may read
+#: it: see that function for why a bare comparison against this number is a bug
+#: rather than a shorthand (#3657).
 MAX_ASPECT_DRIFT = float(os.environ.get("VTS_MAX_ASPECT_DRIFT", "0.01"))
+
+
+def aspect_drift(vg_wh: tuple[int, int], coco_wh: tuple[int, int]) -> float:
+    """How far a VG copy's aspect ratio has drifted from its COCO original.
+
+    Relative to COCO's ratio, because COCO's is the reference: the question is
+    whether COCO's normalised box still describes VG's pixels, so the drift is
+    measured as a fraction of the framing the box was recorded in.
+    """
+    coco_ratio = coco_wh[0] / coco_wh[1]
+    return abs((vg_wh[0] / vg_wh[1]) - coco_ratio) / coco_ratio
+
+
+def aspect_transferable(vg_wh: tuple[int, int], coco_wh: tuple[int, int]) -> bool:
+    """May a normalised COCO box transfer to the VG copy of the same image?
+
+    One implementation, so that anything asking "do these two copies frame the
+    same thing?" asks it the same way -- the treatment
+    :func:`pilebuild.loaders.vg_scale.band_for` got for the banding question.
+
+    It is a function rather than a bare ``> MAX_ASPECT_DRIFT`` because the two
+    readings of that constant are indistinguishable at a glance and were both
+    live: the loader divided by COCO's ratio, three analysis scripts compared an
+    absolute difference of ratios, and the disagreement ran in *both* directions
+    depending on orientation. A landscape 4:3 original (ratio 1.333) let the
+    loader tolerate |delta| up to 0.0133 where the scripts stopped at 0.0100; a
+    portrait 3:4 (0.75) had the loader stop at 0.0075 while the scripts still
+    allowed 0.0100. So the set of images the *measurement* called adjudicable
+    was not the set the *build* anchored, and it was skewed by orientation
+    rather than by a uniform margin (#3657).
+
+    The relative reading is the one that shipped the dataset, so it is the one
+    that survives; the absolute call sites moved to it.
+    """
+    return aspect_drift(vg_wh, coco_wh) <= MAX_ASPECT_DRIFT
 
 
 #: The coordinate space a correction box is recorded in. VG's and COCO's boxes

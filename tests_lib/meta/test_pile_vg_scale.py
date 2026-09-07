@@ -620,6 +620,31 @@ class TestDesignateCells:
         assert f"UNDER-SUPPLIED {cell}" in capsys.readouterr().out
 
 
+class TestDisqualifiedNegatives:
+    def test_a_rostered_negative_that_is_no_longer_clean_is_recorded(self, vgs):
+        roster = {"negatives": [1, 2, 3], "spares": [4]}
+
+        assert vgs.disqualified_negatives(roster, {1, 3, 4}) == [2]
+
+    def test_a_later_cell_does_not_erase_what_an_earlier_one_recorded(self, vgs):
+        """`load` runs once per embedder and rewrites the roster every time.
+
+        The second cell reads a roster whose negatives are already clean, so a
+        recomputed value is empty and overwrites the first cell's finding -- the
+        fact survived one cell of a five-cell build before this accumulated.
+        """
+        first = vgs.disqualified_negatives({"negatives": [1, 2, 3]}, {1, 3})
+        assert first == [2]
+
+        # What the next cell sees: a fresh draw, all of it clean.
+        second = vgs.disqualified_negatives({"negatives": [1, 3], "disqualified": first}, {1, 3})
+        assert second == [2]
+
+    def test_spares_count_as_negatives(self, vgs):
+        """A spare is designatable later, so it becoming ineligible is the same event."""
+        assert vgs.disqualified_negatives({"negatives": [], "spares": [9]}, set()) == [9]
+
+
 class TestDrawNegatives:
     def test_roster_negatives_are_kept_and_the_rest_backfilled(self, vgs, pc):
         clean = list(range(1, pc.SCALE_N_NEG + pc.SCALE_N_NEG_SPARE + 100))

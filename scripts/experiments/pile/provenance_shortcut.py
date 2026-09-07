@@ -22,11 +22,14 @@ A ratio of 1 means provenance buys nothing. #3667's cross-class shortcut measure
 
 **The forward ratio is an UPPER bound and it came back 1.46 +/- 0.10, so it did
 NOT settle the question.** The silent negatives also carry genuine VG-silence
-contamination (0.3-2.8% per class): some really do hold the class, and a head
-SHOULD score those high. At c = 2.5% contamination among the silent negatives and
-a TPR near 0.7 at this threshold, contamination alone predicts a ratio of about
-0.975 x 0.05 + 0.025 x 0.7 = 0.066, i.e. **1.32** -- most of what was measured. So
-the forward arm alone cannot tell a provenance shortcut from a dirty stratum.
+contamination: some really do hold the class, and a head SHOULD score those high.
+At #3666's measured 1.40% [0.68, 2.86] pooled over the shipped twelve, and a TPR
+near 0.7 at this threshold, contamination alone predicts
+``1 + 0.0140 x (0.70/0.05 - 1)`` = **1.18** -- much of what was measured. So the
+forward arm alone cannot tell a provenance shortcut from a dirty stratum. (An
+earlier version of this docstring used 2.5%, the top of #3635's *predicted*
+per-class range, and got 1.32; that overstated the contamination and was what
+made the trade look decisive.)
 
 Two further arms separate them, and neither needs new labelling:
 
@@ -42,7 +45,7 @@ Two further arms separate them, and neither needs new labelling:
 
   What that buys instead is better than what it cost: under PURE contamination
   the two arms must satisfy **forward + reverse = 2**, for any contamination rate
-  and any TPR (verified by simulation: 2.00-2.02 for rates up to 2.5%). The sum
+  and any TPR (`contamination_identity.py`: 2.00-2.02 for rates up to 2.5%). The sum
   is therefore a **contamination-free diagnostic**. It does not size the
   asymmetry -- `1/reverse` is a lower bound, and a Gaussian shift model that
   reproduces the forward arm gives reverse 0.65 against a measured 0.895, so the
@@ -58,11 +61,13 @@ depressed by it, the clean-only arm is limited by review coverage -- so
 agreement between them is worth more than either alone. **Agreement between
 forward and reverse is worth nothing**, for the reason above.
 
-**Read `ratio` and `ratio_reverse` PER CLASS, never pooled.** The pooled sum hides
-a near-tenfold spread in the excess over 2: `bus` 2.65 and `bicycle` 2.60 against
-`knife` 2.07 and `boat` 2.13, which are indistinguishable from pure
-contamination. A pooled number was read as evidence that the artifact is uniform
-across classes, and that reading is what #3670's composition was justified on.
+**Read `ratio` and `ratio_reverse` PER CLASS, never pooled**, and read the
+EXCESS over 2 rather than the sum -- as sums the rows below read 2.65 against
+2.07 and look like a 28% spread. `forward + reverse - 2` runs `bus` **0.65** and
+`bicycle` **0.60** against `knife` **0.07** and `boat` **0.13**, the last two
+indistinguishable from pure contamination. A pooled number was read as evidence
+that the artifact is uniform across classes, and that reading is what #3670's
+composition was justified on (#3702).
 
 Run on `clip` as well as the shipped `siglip`: CLIP reads provenance most
 strongly of the five columns, so it is the adversarial case.

@@ -8,25 +8,28 @@ apart in the direction that hurts -- a cell can load perfectly, carry the right
 media count and the right vectors, and encode a rule that was superseded three
 merges ago, with nothing anywhere saying so (#3678).
 
-Answering that in general needs the VG source. Answering it for
-``evaluable_categories`` does not, and that is the field where the rules actually
-churn: #3667 rewrote it, #3697 rewrote it again. Everything the rule reads is
-already in the pickle --
+**A pickle cannot answer this about itself, and finding that out is half the
+point.** The first cut of this script reconstructed "what the image holds" from
+``categories`` and compared the rule's output against the stored field, on the
+theory that everything the rule reads is already in the media dict. It is not.
+``categories`` is what the image was **designated** for -- 100 images per cell --
+and an image can hold a `car` perfectly well without ever being drawn into a
+`car` cell. So the reconstruction under-counts what is held, the rule admits
+cells it should not, and the replay reports thousands of spurious ADDITIONS
+against a change that can only ever remove them. That is a property of the
+schema, not a bug in the idea: **`evaluable_categories` is not self-checking,
+because the pickle never records what an image holds.**
 
-* ``categories`` -- the cells the image is a positive for;
-* ``evaluable_categories`` -- what the build decided, i.e. the thing under test;
-* ``labels_exhaustive`` -- someone or something answered for this image;
-* ``coco_scored`` -- COCO answered for all eighty classes at once (#3670);
+So this reads the source. It runs the loader's own front half -- the same passes
+in the same order, called rather than restated -- to recover ``labels``, then
+asks :func:`~pilebuild.loaders.vg_scale._evaluable` what it would write today and
+diffs that against what the cell holds. A minute of CPU, no pixels, no GPU, and
+it can be run against a cell other studies are reading right now.
 
--- plus ``corrections.json``, which says per ``(image, class)`` what a human
-established. So the replay costs seconds, reads no pixels, and can be run
-against a cell other studies are using right now.
-
-**What it cannot see.** Only the images the pickle contains. If a rule change
-would designate a *different* set of images, this reports nothing about the ones
-that are not there -- that is the selection replay #3678 also wants, and it needs
-the source. Read a clean report here as "the rule agrees on the images we have",
-never as "the cell is current".
+**What it still cannot see: selection.** It compares the rule on the images the
+cell contains. If a change would designate a *different* set, the images that are
+not there are invisible to it. Read a clean report as "the rule agrees on the
+images we have", never as "the cell is current".
 
 Usage::
 
@@ -49,9 +52,18 @@ import pile_config as pc  # noqa: E402
 
 pc.setup_env()
 
+import coco_anchor as ca  # noqa: E402
 from _cells_io import load_medias  # noqa: E402
 from pilebuild.corrections import load_corrections  # noqa: E402
-from pilebuild.loaders.vg_scale import _evaluable  # noqa: E402
+from pilebuild.loaders.vg_scale import (  # noqa: E402
+    _evaluable,
+    anchor_to_coco,
+    apply_corrections,
+    canonicalise,
+    lift_ambiguous,
+    read_vg_labels,
+)
+from pilebuild.vgsource import vg_image_paths, vg_source  # noqa: E402
 
 
 def log(msg: str) -> None:
@@ -83,16 +95,30 @@ def main() -> int:
     reviewed_present = {k for k, v in corrections.items() if k[1] in in_c and v.get("present")}
     log(f"{len(corrections)} verdicts on file: {len(reviewed_absent)} absent, {len(reviewed_present)} present")
 
-    # The pickle stores what a class HOLDS only as `categories`, which is the
-    # cells it was designated for. That is what the rule reads too, so the
-    # replay reconstructs `labels` from it rather than from the VG source: a
-    # class appears iff the image is a positive for one of its cells.
+    # The loader's own front half, in the loader's own order, so a rule change in
+    # the build cannot drift away from this check. `labels` is the thing the
+    # pickle cannot give us -- see the module docstring.
+    wanted = set(pc.SCALE_CLASSES)
+    paths = vg_image_paths()
+    _, records, dims = vg_source()
+    image_data, instances = ca.ensure_sources(pc.PILE / "coco_anchor", fetch=False)
+    truth = ca.coco_truth(instances, wanted)
+    with image_data.open() as fh:
+        coco_of = {int(m["image_id"]): int(m["coco_id"]) for m in json.load(fh) if m.get("coco_id")}
+
+    labels = read_vg_labels(records, paths, dims, pc.scale_vg_wanted())
+    box_dims, exhaustive, _na, _nr = anchor_to_coco(labels, dims, coco_of, truth, ca.COCO_DIMS, wanted)
+    coco_scored = set(exhaustive)
+    canonicalise(labels, pc.SCALE_VG_NAMES, box_dims, pc.SCALE_FOLD_MODE)
+    apply_corrections(labels, corrections, box_dims, exhaustive)
+    lift_ambiguous(labels, pc.SCALE_VG_AMBIGUOUS, exhaustive)
+
     neg_set = {i for i, d in medias.items() if not d.get("categories") and d.get("evaluable_categories")}
-    coco_scored = {i for i, d in medias.items() if d.get("coco_scored")}
-    exhaustive = {i for i, d in medias.items() if d.get("labels_exhaustive")}
+    stamped = {i for i, d in medias.items() if d.get("coco_scored")}
     log(
-        f"{len(neg_set)} shared negatives; {len(coco_scored)} COCO-scored, "
-        f"{len(exhaustive - coco_scored)} exhaustive by REVIEW alone"
+        f"{len(neg_set)} shared negatives; {len(coco_scored & set(medias))} COCO-scored by replay "
+        f"({len(stamped)} stamped in the cell); "
+        f"{len((exhaustive - coco_scored) & set(medias))} exhaustive by REVIEW alone"
     )
 
     added: Counter[str] = Counter()
@@ -100,8 +126,6 @@ def main() -> int:
     changed_medias = 0
     for iid, d in medias.items():
         cats = list(d.get("categories") or [])
-        held = {c.split("@", 1)[0] for c in cats}
-        labels = {iid: dict.fromkeys(held, [[0.0, 0.0, 1.0, 1.0]])}
         want = set(_evaluable(iid, cats, cells, neg_set, labels, coco_scored, reviewed_absent, reviewed_present))
         have = set(d.get("evaluable_categories") or [])
         if want == have:

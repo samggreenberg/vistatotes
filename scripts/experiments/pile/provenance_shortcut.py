@@ -67,6 +67,12 @@ from sklearn.model_selection import StratifiedKFold  # noqa: E402
 
 OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("provenance_shortcut.json")
 EMBEDDERS = sys.argv[2].split(",") if len(sys.argv) > 2 else ["siglip", "clip"]
+#: Where the cells live. Overridable because this measurement needs a pool with
+#: BOTH strata in it, and the composition it argues for leaves only one -- so
+#: once #3670 lands, the only place to reproduce it is the archived pre-change
+#: cell, not the live pile. A measurement whose own result destroys its input
+#: has to say where the input went.
+CELLS = Path(sys.argv[3]) if len(sys.argv) > 3 else pc.EMBEDDINGS
 TARGET_FPR = 0.05
 SEED = 0
 
@@ -80,7 +86,7 @@ def main() -> None:
     corrections = load_corrections()
 
     for embedder in EMBEDDERS:
-        pkl = pc.EMBEDDINGS / f"vg_scale__{embedder}.pkl"
+        pkl = CELLS / f"vg_scale__{embedder}.pkl"
         if not pkl.exists():
             report[embedder] = {"error": "cell missing"}
             continue

@@ -2058,26 +2058,34 @@ SCALE_N_NEG_SPARE = int(os.environ.get("VTS_SCALE_N_NEG_SPARE", "1000"))
 #:     contamination, and keeps the whole negative review (#3670 measured that
 #:     price: `provable` rules 513 of 743 reviewed negatives ineligible).
 #:
-#: **Chosen on the SPREAD, not on the magnitude, and the difference matters.**
-#: Both compositions distort, and on #3667's FPR-inflation scale the two are not
-#: separable:
+#: **THE ARGUMENT THIS WAS SHIPPED ON DOES NOT HOLD. The setting stands; its
+#: justification does not, and the choice is open (#3702).**
 #:
-#: * an all-provable pool hands a head a provenance shortcut, because off-COCO
-#:   then implies positive -- **1.1x** (`provenance_shortcut.py`; 1.06-1.12 over
-#:   two embedders and two independent routes, a reverse arm and the residual
-#:   after subtracting predicted contamination);
-#: * a mixed pool carries contamination -- **1.18x** at #3666's pooled 1.40%,
-#:   with a 95% interval of [1.09, 1.37] that contains the first number.
+#: What was claimed: both compositions distort, the magnitudes are not separable,
+#: but the provenance shortcut is *uniform across classes* while contamination is
+#: not -- so the uniform one cancels in the class-vs-class contrast this dataset
+#: exists to make. Two errors underneath it, both in data already on disk:
 #:
-#: So this is NOT "all-provable is less distorted": at the pooled rate the two
-#: overlap, and an earlier reading of this trade quoted 1.32x by taking the top
-#: of a *predicted* per-class range that has since been measured lower. What
-#: separates them is that the provenance shortcut is **uniform across classes**
-#: while contamination is not -- 1.04x to 1.37x, class by class. `vg_scale`
-#: exists to compare one class against another and one band against another, and
-#: a distortion that varies per class is the one that makes those comparisons
-#: unreadable. A uniform one moves every cell together and cancels in the
-#: contrast. (#3667's cross-class shortcut, for scale, was 1.88x and justified
+#: * the "two independent routes agreeing on 1.1x" were **one route counted
+#:   twice**. Contamination inflates the forward arm and depresses the reverse
+#:   arm; under pure contamination they must sum to 2. See
+#:   `provenance_shortcut.py`, which carries the derivation and what the sum is
+#:   good for instead.
+#: * **the artifact is not uniform.** On the contamination-free diagnostic
+#:   (`forward + reverse - 2`, which is 0 for pure contamination) the classes run
+#:   `bus` 0.65, `bicycle` 0.60, `umbrella` 0.57 against `knife` 0.07, `boat`
+#:   0.13, `book` 0.14 -- a near-tenfold spread, concentrated in street scenes,
+#:   where COCO and YFCC100M differ most. It does not track contamination either:
+#:   `backpack` is the dirtiest class at 2.8% and sits mid-table, while `bus` is
+#:   among the cleanest and is the worst affected.
+#:
+#: So both distortions vary per class, and the spread argument selects neither
+#: composition. What survives is that contamination is 1.18x [1.09, 1.37] at
+#: #3666's measured 1.40%, and that the provenance artifact is real -- the sums
+#: are 2.35 and 2.36, well clear of 2 -- but **unsized**, since `1/reverse` is
+#: only a lower bound. Sizing it needs ~400 human-cleared off-COCO negatives per
+#: class; the existing labels give ~53, at which the ratio's standard error is
+#: +/-0.60. (#3667's cross-class shortcut, for scale, was 1.88x and justified
 #: rebuilding eleven cells.)
 #:
 #: Switching back to ``matched`` needs the off-COCO stratum EMBEDDED, which the

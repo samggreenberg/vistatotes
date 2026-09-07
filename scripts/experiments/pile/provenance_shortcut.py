@@ -31,18 +31,38 @@ the forward arm alone cannot tell a provenance shortcut from a dirty stratum.
 Two further arms separate them, and neither needs new labelling:
 
 * **reverse** -- fit on positives against the SILENT negatives, pin the threshold
-  on held-out silent, and score the PROVABLE ones. Provable negatives are
-  contamination-free, so contamination cannot move this number: a ratio at 1 says
-  provenance buys nothing, and a ratio meaningfully below 1 is the shortcut
-  showing up with the sign reversed.
+  on held-out silent, and score the PROVABLE ones. A ratio at 1 says provenance
+  buys nothing and a ratio below 1 is the shortcut with its sign reversed.
+
+  **This arm is NOT contamination-free, and an earlier version of this docstring
+  said it was.** The threshold is pinned at the 95th percentile of a stratum that
+  holds hidden positives, which pushes it UP, so clean negatives then fire at
+  under 5% -- contamination depresses the reverse arm exactly as it inflates the
+  forward one. The two are one route counted twice, not two.
+
+  What that buys instead is better than what it cost: under PURE contamination
+  the two arms must satisfy **forward + reverse = 2**, for any contamination rate
+  and any TPR (verified by simulation: 2.00-2.02 for rates up to 2.5%). The sum
+  is therefore a **contamination-free diagnostic**. It does not size the
+  asymmetry -- `1/reverse` is a lower bound, and a Gaussian shift model that
+  reproduces the forward arm gives reverse 0.65 against a measured 0.895, so the
+  arms are not reconcilable under the simplest model either. Sizing it needs the
+  clean-only arm below, at a sample the existing labels cannot supply.
 * **clean-only forward** -- the forward arm with the silent negatives restricted
   to those a human reviewed and confirmed absent (`corrections.json` carries a row
   for every reviewed pair, agreeing or not). Contamination is removed by
   selection rather than by arithmetic.
 
-They fail differently -- the reverse arm trains on a slightly dirty stratum, the
-clean-only arm is limited by review coverage -- so agreement between them is
-worth more than either alone.
+They fail differently -- the reverse arm trains on a dirty stratum and is
+depressed by it, the clean-only arm is limited by review coverage -- so
+agreement between them is worth more than either alone. **Agreement between
+forward and reverse is worth nothing**, for the reason above.
+
+**Read `ratio` and `ratio_reverse` PER CLASS, never pooled.** The pooled sum hides
+a near-tenfold spread in the excess over 2: `bus` 2.65 and `bicycle` 2.60 against
+`knife` 2.07 and `boat` 2.13, which are indistinguishable from pure
+contamination. A pooled number was read as evidence that the artifact is uniform
+across classes, and that reading is what #3670's composition was justified on.
 
 Run on `clip` as well as the shipped `siglip`: CLIP reads provenance most
 strongly of the five columns, so it is the adversarial case.

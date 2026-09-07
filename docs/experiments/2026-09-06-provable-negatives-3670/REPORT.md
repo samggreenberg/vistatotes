@@ -15,14 +15,31 @@ requests, and this delivers the first (§5). It overshoots the reviewer's ask in
 the direction the ask was pointing — more negatives, not fewer — but the number
 to quote is 0.85%.
 
-**The composition was chosen on the spread, not the magnitude, and an earlier
-reading of this trade was wrong.** Both candidate pools distort. On #3667's
-FPR-inflation scale an all-provable pool's provenance shortcut is **1.1×** and a
-mixed pool's contamination is **1.18×** [1.09, 1.37] — the second interval
-contains the first, so the taller bar decides nothing. What decides it is that
-the shortcut is *uniform across classes* while contamination is not (1.04× to
-1.37×, class by class), and this dataset exists to compare classes and bands
-(§3).
+> ### ⚠ Correction, 2026-09-06, after this shipped
+>
+> **§3's argument does not hold, and it was the argument the composition was
+> chosen on.** Two errors, both in data that was already on disk:
+>
+> 1. the "two independent routes agreeing on **1.1×**" are **one route counted
+>    twice**. Contamination inflates the forward arm *and depresses the reverse
+>    one*, so under pure contamination they must sum to 2 — verified by
+>    simulation. `1/reverse` is therefore a **lower bound**, not an estimate.
+> 2. **the artifact is not uniform across classes**, which is the whole of what
+>    §3 concluded. On the contamination-free diagnostic (`forward + reverse − 2`)
+>    it runs `bus` **0.65** against `knife` **0.07** — a near-tenfold spread.
+>
+> Both distortions vary per class, so the spread argument selects neither pool.
+> **The setting stands; its justification does not.** The measured sums, 2.35 and
+> 2.36 against a pure-contamination 2.00, do establish that a real artifact
+> exists — it is simply unsized. §3 is rewritten below and #3702 carries the
+> reopened decision. The rest of this report is unaffected.
+
+**Both candidate pools distort, and which is worse is not established.** On
+#3667's FPR-inflation scale a mixed pool's contamination is **1.18×** [1.09,
+1.37] at #3666's measured rate. An all-provable pool's provenance artifact is
+**real but unsized** — the two probe arms bound it below at 1.1× and cannot pin
+it — and, unlike what this report first claimed, it **varies by class as much as
+contamination does** (§3).
 
 **The pile is not rebuilt in this PR.** The rebuild is deferred so it happens
 once, with #3588's class expansion, rather than twice. That leaves a live hazard
@@ -146,38 +163,74 @@ two causes, and neither needs new labelling:
 | `clip` | 1.41 ± 0.11 | 0.95 ± 0.05 | **1.06** | 1.20 |
 | `siglip2_l` | 1.46 ± 0.11 | 0.91 ± 0.05 | **1.10** | 1.24 |
 
-**Quote the reverse arm: 1.06–1.12×, call it 1.1×.** The two routes are not
-equally good and the difference is instructive. The residual route subtracts a
-*predicted* contamination penalty, so it inherits every bit of that prediction's
-uncertainty; the reverse arm depends on no such estimate. They agree only if
-contamination is near **2.5%** — the top of #3666's [0.68, 2.86] interval — and
-disagree by ~0.13 at its 1.40% point estimate. That is a statement about how
-poorly the contamination rate is pinned down, not about the shortcut.
+### The two arms are one route, and their sum is the only clean reading
 
-Which is the point. Against contamination's **1.18× [1.09, 1.37]**, a 1.1×
-shortcut is not a difference this evidence establishes, by either route. **An
-earlier reading of this trade quoted 1.32× for contamination and called the
-comparison decisive; that figure took the top of #3635's *predicted* per-class
-range, and #3666 has since measured the shipped twelve at 1.40% pooled.** With
-the measured rate the numbers overlap, and the magnitude argument is gone.
+This report first called forward and reverse two independent routes agreeing on
+1.1×. **They are not independent.** The reverse arm pins its threshold at the
+95th percentile of the *silent* stratum — which holds hidden positives — and
+those push the threshold **up**, so clean negatives then fire at under 5%.
+Contamination inflates the forward arm and depresses the reverse one by the same
+mechanism. `1/reverse` is a **lower bound** on the artifact, not an estimate of
+it, and the two arms agreeing proves nothing.
 
-### What actually decides it
+What falls out instead is worth more than what it cost. Under **pure**
+contamination the two arms must satisfy
 
-**The provenance shortcut is uniform across classes; contamination is not.**
-Every class's negatives are drawn from the same two provenance strata in the
-same proportion, so a provenance shortcut shifts every cell together. Pool
-error does not behave that way — #3635's per-class predictions run from 0.28%
-(`kite`) to 2.87% (`backpack`), which is 1.04× to 1.37× on this scale.
+> forward + reverse = 2
 
-`vg_scale` exists to compare **one class against another and one band against
-another** (#3156). A distortion that varies per class lands directly on that
-contrast; a uniform one cancels in it. That is the argument, and it survives the
-magnitudes being tied.
+for any contamination rate and any TPR. Simulation confirms it: 2.00–2.02 for
+rates up to 2.5%, drifting to 2.1 only at an implausible 5%. So the **sum is a
+contamination-free diagnostic**, and the measured sums are **2.35** (`siglip`),
+**2.36** (`clip`) and **2.42** (`siglip2_l`). Contamination alone is refuted: a
+real stratum asymmetry exists.
 
-It also means the choice is not permanent in the way the numbers alone suggest:
-`SCALE_NEG_COMPOSITION = "matched"` restores the provenance-matched pool, and
-its docstring says what switching costs (a rebuild, because the off-COCO stratum
-is not embedded under `provable`).
+It is not sized by anything here. A Gaussian location-shift model tuned to
+reproduce the forward arm returns a reverse arm of 0.65 against the measured
+0.895, so the two are not reconcilable under the simplest model either.
+Identifying the magnitude needs the **clean-only arm** — human-cleared off-COCO
+negatives — at about **400 per class** for a ratio standard error of ±0.10. The
+existing labels supply ~53, where the standard error is ±0.60 and one image moves
+the ratio by 0.38.
+
+### The artifact is per-class, and that is what breaks the argument
+
+![The contamination-free diagnostic, per class](figures/asymmetry.png)
+
+*`forward + reverse − 2` per class and per embedder; 0 is what pure
+contamination produces. Ordered by the mean over embedders. This is the panel
+that should have been drawn before the composition was chosen.*
+
+The table gives the **excess**, `forward + reverse − 2`, and not the sum, for
+the reason this whole section exists: as sums the same rows read 2.65 against
+2.07 and look like a 28% spread, which is the kind of reading that produced the
+error being corrected here.
+
+| | classes | `forward + reverse − 2` |
+|---|---|---|
+| street scenes | `bus`, `bicycle`, `umbrella`, `clock`, `stop sign` | **0.54 – 0.65** |
+| middling | `backpack`, `bird`, `dog` | 0.24 – 0.35 |
+| indistinguishable from pure contamination | `kite`, `book`, `boat`, `knife` | **0.07 – 0.17** |
+
+The excess spans **0.07 to 0.65** — nearly tenfold — and it does not track
+contamination: `backpack` is the dirtiest class at 2.8% and sits mid-table, while
+`bus` is among the cleanest and is the worst affected. `dog` and `kite` have a
+reverse arm above 1, so the asymmetry there even changes sign. COCO and
+YFCC100M differ most in street scenes, which is what this looks like.
+
+**So the argument this report shipped is wrong.** It ran: both distortions are of
+the same magnitude, but the provenance one is *uniform across classes* while
+contamination is not, so the uniform one cancels in the class-vs-class contrast
+`vg_scale` exists to make. The second clause is false. Both vary per class, and
+on this diagnostic the provenance artifact varies **more**. The spread argument
+selects neither composition.
+
+**The error was reading a pooled number as evidence about a spread**, with the
+per-class breakdown sitting in the same JSON the pooled number came from. A claim
+about variation across classes cannot be checked against a mean.
+
+`SCALE_NEG_COMPOSITION = "matched"` still reaches the other pool, and its
+docstring still says what switching costs (a rebuild, because the off-COCO
+stratum is not embedded under `provable`). Whether to spend it is #3702.
 
 ## 4. What "provable" had to be made to mean
 

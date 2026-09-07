@@ -94,6 +94,10 @@ def main() -> None:
     corrections = load_corrections()
     labels = read_vg_labels(records, paths, dims, pc.scale_vg_wanted())
     box_dims, exhaustive, _n_anchored, _n_reframed = anchor_to_coco(labels, dims, coco_of, truth, ca.COCO_DIMS, wanted)
+    # Captured before `apply_corrections` widens `exhaustive`, exactly as the
+    # loader does it. Using the widened set here would stratify on a different
+    # fact from the build and quietly answer a different question.
+    coco_scored = set(exhaustive)
     canonicalise(labels, pc.SCALE_VG_NAMES, box_dims, pc.SCALE_FOLD_MODE)
     unbanded = apply_corrections(labels, corrections, box_dims, exhaustive)
     unbanded |= lift_ambiguous(labels, pc.SCALE_VG_AMBIGUOUS, exhaustive)
@@ -103,7 +107,7 @@ def main() -> None:
     roster = json.loads(pc.ROSTER.read_text()) if pc.ROSTER.exists() else {}
     chosen = designate_cells(supply, corrections, roster)
     pos_ids = {i for ids in chosen.values() for i in ids}
-    pos_frac = len(pos_ids & exhaustive) / len(pos_ids) if pos_ids else 1.0
+    pos_frac = len(pos_ids & coco_scored) / len(pos_ids) if pos_ids else 1.0
 
     populations = reviewed_populations(pc.PILE.parent / "vgscale-3156")
     # Every image a correction touched, matching `check_review_coverage`: a
@@ -111,7 +115,7 @@ def main() -> None:
     corrected = {int(c["image_id"]) for c in json.loads((pc.PILE / "corrections.json").read_text())}
     # Eligibility under `provable` is asked of the DRAW, not of the pickle: these
     # are the images that would leave, so there is no cell to read it from.
-    provable_eligible = exhaustive.__contains__
+    provable_eligible = coco_scored.__contains__
 
     report: dict[str, object] = {
         "positives_coco_fraction": round(pos_frac, 4),
@@ -128,7 +132,7 @@ def main() -> None:
     }
     for name, (fixed, frac) in arms.items():
         if fixed is None:
-            pool, _spares = draw_negatives(clean, roster, exhaustive, frac)
+            pool, _spares = draw_negatives(clean, roster, coco_scored, frac)
         else:
             pool = [i for i in fixed if i in set(clean)]
         present = set(pool)
@@ -146,8 +150,8 @@ def main() -> None:
             }
         compositions[name] = {
             "n": len(pool),
-            "provable": len(present & exhaustive),
-            "provable_fraction": round(len(present & exhaustive) / len(pool), 4) if pool else None,
+            "provable": len(present & coco_scored),
+            "provable_fraction": round(len(present & coco_scored) / len(pool), 4) if pool else None,
             "populations": rows,
         }
 

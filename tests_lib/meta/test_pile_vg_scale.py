@@ -817,3 +817,47 @@ class TestCorrectionsOutsideC:
         )
 
         assert "car" in labels[7]
+
+
+class TestContaminationIdentity:
+    """`forward + reverse = 2` under pure contamination (#3702).
+
+    #3670 read the two probe arms as independent routes and quoted their
+    agreement as evidence. They are one route: contamination inflates the
+    forward arm and depresses the reverse one by the same mechanism. The
+    identity is what makes their SUM a contamination-free diagnostic, and the
+    report's whole corrected argument rests on it, so it is asserted rather
+    than left in a script nobody runs.
+    """
+
+    def _arms(self, c: float, sep: float, n: int = 200_000, fpr: float = 0.05):
+        np = pytest.importorskip("numpy")
+        rng = np.random.default_rng(0)
+        provable = rng.normal(0.0, 1.0, n)
+        hidden = int(round(c * n))
+        # Same distribution as `provable` apart from the hidden positives: there
+        # is deliberately NO provenance effect to find.
+        silent = np.concatenate([rng.normal(0.0, 1.0, n - hidden), rng.normal(sep, 1.0, hidden)])
+        t_f = float(np.quantile(provable, 1 - fpr))
+        t_r = float(np.quantile(silent, 1 - fpr))
+        return float((silent > t_f).mean()) / fpr, float((provable > t_r).mean()) / fpr
+
+    @pytest.mark.parametrize("c", [0.005, 0.014, 0.025])
+    @pytest.mark.parametrize("sep", [1.5, 2.6])
+    def test_the_arms_sum_to_two_whatever_the_rate_and_tpr(self, c, sep):
+        forward, reverse = self._arms(c, sep)
+
+        assert abs(forward + reverse - 2.0) < 0.05
+
+    def test_contamination_moves_both_arms_in_opposite_directions(self):
+        """The claim that replaced 'the reverse arm is contamination-free'."""
+        clean_f, clean_r = self._arms(0.0, 2.0)
+        dirty_f, dirty_r = self._arms(0.025, 2.0)
+
+        assert dirty_f > clean_f and dirty_r < clean_r
+
+    def test_the_measured_sums_are_outside_what_contamination_explains(self):
+        """2.35 is why #3670's asymmetry is real rather than dirt."""
+        worst = max(sum(self._arms(c, sep)) for c in (0.005, 0.014, 0.025) for sep in (1.5, 2.0, 2.6))
+
+        assert worst < 2.35

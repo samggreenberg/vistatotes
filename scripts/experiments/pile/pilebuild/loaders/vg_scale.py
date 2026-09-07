@@ -339,7 +339,7 @@ def anchor_to_coco(
             own = labels[iid][cls]
             if not own:
                 continue
-            was = band_for(own, vw, vh)
+            was = band_for(own, *dims[iid])
             if was not in pc.BOX_BANDS:
                 continue
             now = band_for(ref[cls], *wh) if ref.get(cls) else None

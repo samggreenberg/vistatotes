@@ -87,7 +87,7 @@
 # else", keeps the whole of stage 1 — the gates that genuinely read markdown
 # live there — and narrows pytest to the tests that can observe a doc
 # (tests_shared/markdown_surface.py names them, and a meta test keeps that list
-# honest). ~25s against ~3.5min.
+# honest). ~35s against ~3.5min.
 #
 # It auto-engages because the thing being fixed is the *default* path: a
 # plan-file session pays the full 3.5 minutes precisely by running the command

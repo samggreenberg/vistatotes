@@ -144,14 +144,6 @@ def fig_distortion(shortcut: dict, path: Path) -> None:
         ax.text(right + 0.018, y, f"{v:.2f}x", va="center", fontsize=9, color=INK)
     ax.axvline(1.0, color=INK, lw=1.0)
     ax.text(1.0, len(rows) - 0.35, " no distortion", fontsize=8, color=MUTED, va="bottom")
-    ax.text(
-        1.30,
-        -0.75,
-        "solid = reverse arm (independent of the contamination rate)   hatched = forward minus predicted contamination",
-        fontsize=7.5,
-        color=MUTED,
-        ha="center",
-    )
     # The effect that justified the last rebuild, for scale.
     ax.axvline(1.88, color=MUTED, lw=1.0, ls=":")
     ax.text(1.88, len(rows) - 0.35, " #3667: 1.88x", fontsize=8, color=MUTED, va="bottom", ha="left")
@@ -163,6 +155,17 @@ def fig_distortion(shortcut: dict, path: Path) -> None:
     ax.grid(axis="x", color=GRID, lw=0.6)
     _frame(ax)
     ax.set_title("The two distortions overlap; the bar chart is not the argument", fontsize=10.5, color=INK, loc="left")
+    # Figure coordinates, below the plot. This axis is inverted, so a note
+    # placed in axes coordinates for "the bottom" lands under the title instead.
+    fig.text(
+        0.5,
+        -0.02,
+        "solid = reverse arm (independent of the contamination rate)      "
+        "hatched = forward minus predicted contamination",
+        fontsize=7.5,
+        color=MUTED,
+        ha="center",
+    )
     fig.tight_layout()
     fig.savefig(path, bbox_inches="tight")
     plt.close(fig)

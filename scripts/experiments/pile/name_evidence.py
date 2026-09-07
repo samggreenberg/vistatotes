@@ -284,6 +284,23 @@ def main() -> int:
     overlap_images = 0
     base_hit = dict.fromkeys(classes, 0)
 
+    #: The COCO classes whose annotation counts as *c*, resolved once.
+    #:
+    #: This is the difference between asking about the class and asking about
+    #: the COCO class of the same name, and for a class this project defines as
+    #: a UNION (:data:`pile_config.SCALE_CLASS_MERGES`) those are not the same
+    #: question. `cup` is `cup` U `wine glass`, and scoring a stemware spelling
+    #: against COCO `cup` alone reads its boxes as landing on nothing: `wine
+    #: glass` measured 38% precision and **2%** box agreement that way, a
+    #: `neither` verdict produced entirely by the scorer looking at the wrong
+    #: half. `mug`, whose object COCO really does call a cup, scored normally --
+    #: which is what made the defect specific to the merged class and silent
+    #: everywhere else (#3700).
+    #:
+    #: :func:`pile_config.coco_classes_for` returns ``{c}`` for an unmerged
+    #: class, so this changes nothing for the other twenty-four.
+    coco_for = {c: pc.coco_classes_for(c) for c in classes}
+
     skipped_aspect = 0
     for rec in records:
         iid = int(rec["image_id"])
@@ -326,9 +343,11 @@ def main() -> int:
         overlap_images += 1
         here = cpresent.get(cid, set())
         for c in classes:
-            base_hit[c] += c in here
+            base_hit[c] += bool(here & coco_for[c])
         for c, names in cands.items():
-            truth = cboxes.get(cid, {}).get(c, [])
+            # Both the presence question and the box question are asked of the
+            # class's WHOLE COCO footprint, not of its namesake alone (#3700).
+            truth = [b for k in coco_for[c] for b in cboxes.get(cid, {}).get(k, [])]
             for n in names:
                 vb = by_name.get(n)
                 if not vb:
@@ -336,7 +355,7 @@ def main() -> int:
                 if c not in by_name:
                     # exactly the state that becomes a false negative off-COCO
                     sole[c, n] += 1
-                    sole_hit[c, n] += c in here
+                    sole_hit[c, n] += bool(here & coco_for[c])
                 boxes[c, n] += len(vb)
                 boxes_hit[c, n] += sum(1 for b in vb if any(cf.iou(t, b) >= args.iou for t in truth))
             for g, members in groups.get(c, {}).items():
@@ -345,7 +364,7 @@ def main() -> int:
                     continue
                 if c not in by_name:
                     gsole[c, g] += 1
-                    gsole_hit[c, g] += c in here
+                    gsole_hit[c, g] += bool(here & coco_for[c])
                 for m in present:
                     gboxes[c, g] += len(by_name[m])
                     gboxes_hit[c, g] += sum(1 for b in by_name[m] if any(cf.iou(t, b) >= args.iou for t in truth))

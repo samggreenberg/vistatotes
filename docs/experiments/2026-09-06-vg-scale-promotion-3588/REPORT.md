@@ -329,6 +329,30 @@ every class the image) withholds **2,142 images at twenty-five classes, 4.4% of
 the clean pool** (48,345 → 46,203). It had been queued as a blocker on the
 strength of the twelve-class figure; at this scale it is not one.
 
+### What the built pile verifies as
+
+| check | result |
+|---|---|
+| `build_pile.py --verify` | all fifteen `vg_scale*` cells ok, 18,050 medias (deep 31,832) |
+| reviewed negatives | 743 reviewed, 591 ruled out by composition, 49 by a fix, **103 of 103 kept — 100.0%** |
+| triaged negatives | 1,742 reviewed, **261 of 261 kept — 100.0%** |
+| reviewed positives | **314 of 360 — 87.2%** |
+| COCO-scored designated negatives | **9,900 of 9,900** |
+| …holding any class of *C* | **0** — `POOL_CLEAN` |
+
+The last row is #3701's check run once by hand, and it is the one worth having:
+it tests #3670's claim **directly** rather than through the `coco_scored` stamp,
+which is exactly the distinction the `truck` defect turns on — those images would
+have carried a valid stamp while holding a confirmed truck. It also settles
+`car`: the 7.1% pool error that #3604 planned a human pass around is measured at
+zero, not merely unmeasured.
+
+`reviewed positives` at 87.2% is the one number not at 100%. It is 46 of 360, and
+that is exactly the figure #3698 records for #3667's rebuild ("five rulings, 46 of
+360 reviewed positives"). The roster this build started from post-dates #3667, so
+these are the same 46 carried forward rather than new losses — stated as a match
+rather than a proof, since the id sets were not diffed.
+
 ## 8. Follow-ups
 
 - **#3700** — the VG-name audit is blind to `SCALE_CLASS_MERGES`, so it scores

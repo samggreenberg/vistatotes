@@ -79,6 +79,7 @@ def _fit_label(base: str) -> str:
 from vtscore.config import MODELS_CACHE_DIR, resolve_device
 from vtscore.media.base import ProgressCallback
 from vtscore.media.torch_setup import ensure_torch_configured
+from vtscore.utils.import_metadata import seed_packages_distributions
 
 logger = logging.getLogger(__name__)
 
@@ -312,6 +313,13 @@ def initialize_models(on_progress: ProgressCallback | None = None) -> None:
     preload bars printed later in startup.  When ``None`` (the default, used
     by tests and the eval CLI) the imports run silently as before.
     """
+    # Before anything can import transformers: transformers builds
+    # ``importlib.metadata.packages_distributions()`` at module import, and the
+    # stdlib version of that stats every file recorded by every installed
+    # distribution.  On an NFS venv with a cold cache that is minutes of silent
+    # startup (issue #3715); the seed makes it ~224 small reads instead.
+    seed_packages_distributions()
+
     MODELS_CACHE_DIR.mkdir(parents=True, exist_ok=True)
     ensure_torch_configured()
 

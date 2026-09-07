@@ -10,6 +10,15 @@ instead, since every commit on `dev` is effectively a new app release.)
 
 ### Added
 
+- **`vtscore.utils.import_metadata`** (issue #3715) - `seed_packages_distributions()`
+  installs a stat-free stand-in for `importlib.metadata.packages_distributions`,
+  which `transformers` calls at module import. The stdlib version stats every
+  file recorded by every installed distribution (~85k on a torch + RAPIDS venv);
+  on an NFS install with a cold cache that was 16 minutes of silent startup.
+  `initialize_models()` now seeds it before anything can import transformers.
+  Purely additive: the seed is idempotent and best-effort, and the replacement
+  reports every entry the stdlib does.
+
 - **A timing profile can price a forked step per branch** (issue #3594).
   `vtscore.timing.step_weights` and `step_terms` take an optional `branch=` -
   a branch name from `CHEAP_BRANCHES` / `DEAR_BRANCHES`, or a `{step: branch}`

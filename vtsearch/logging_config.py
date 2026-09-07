@@ -316,11 +316,27 @@ def install_transformers_logging_bridge() -> None:
     filters like every other library's.
 
     Deferred from ``setup_logging`` because importing ``transformers.utils.logging``
-    pulls in the full ``transformers`` package (~0.7s), which we don't want
-    to pay for in unit tests that stub embedders. Call once during app
-    startup before any model load; :func:`vtscore.embedding.loader.initialize_models`
-    is the canonical call site.
+    pulls in the full ``transformers`` package, which we don't want to pay for
+    in unit tests that stub embedders. Call once during app startup before any
+    model load; :func:`vtscore.embedding.loader.initialize_models` is the
+    canonical call site.
+
+    That import costs ~0.7s with the venv's metadata in page cache, but it is
+    **not** bounded by that: transformers builds
+    ``importlib.metadata.packages_distributions()`` at module import, which
+    stats every file recorded by every installed distribution (~85k of them
+    here). On an NFS venv with a cold dentry cache that took 16 minutes of
+    silent startup on the GRID (issue #3715), which is why this call seeds the
+    stat-free replacement first. The seed is idempotent, so paying for it here
+    as well as in ``initialize_models`` costs nothing and covers callers that
+    reach this bridge by another route.
     """
+    # Imported lazily: ``logging_config`` is app.py's very first import, and a
+    # module-level ``vtscore`` import here would pull the library package in
+    # before logging is configured.
+    from vtscore.utils.import_metadata import seed_packages_distributions  # noqa: PLC0415
+
+    seed_packages_distributions()
     try:
         import transformers.utils.logging as hf_logging  # noqa: PLC0415
     except Exception:

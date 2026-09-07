@@ -35,7 +35,7 @@ __all__ = ["fast_packages_distributions", "seed_packages_distributions"]
 #: The stdlib function displaced by :func:`seed_packages_distributions`, kept so
 #: callers (and tests) can tell whether the seed is installed and can put the
 #: original back.
-original_packages_distributions = getattr(importlib.metadata, "packages_distributions", None)
+original_packages_distributions = importlib.metadata.packages_distributions
 
 
 def _declared_top_level(dist: importlib.metadata.Distribution) -> list[str]:
@@ -65,7 +65,7 @@ def _inferred_top_level(dist: importlib.metadata.Distribution) -> set[str]:
         if not row or not row[0]:
             continue
         parts = PurePosixPath(row[0]).parts
-        name = parts[0] if len(parts) > 1 else inspect.getmodulename(parts[0])
+        name = parts[0] if len(parts) > 1 else inspect.getmodulename(row[0])
         # A dotted name is not an import name: it is a ``*.dist-info`` directory,
         # a ``../`` escape to a data path, or a file with an unrecognised suffix.
         if name and "." not in name and name != "__pycache__":

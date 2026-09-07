@@ -27,7 +27,7 @@ the shortcut is *uniform across classes* while contamination is not (1.04× to
 **The pile is not rebuilt in this PR.** The rebuild is deferred so it happens
 once, with #3588's class expansion, rather than twice. That leaves a live hazard
 — code saying 1% over a pile holding 2.5% — so `--verify` gains two checks that
-make the gap impossible to miss (§6).
+make the gap impossible to miss (§7).
 
 | | |
 |---|---|
@@ -213,10 +213,13 @@ faces are ~1,900 more than `SCALE_N_NEG`:
 
 ![Designed against realised prevalence](figures/prevalence.png)
 
-*Counted off `_evaluable` itself rather than a formula, over all 36 cells. The
-right axis is k\*, the quantity the acquisition studies in this family actually
-read. Note the two lines were the same until #3667; #3681 is the issue that
-names the split.*
+*Counted off `_evaluable` itself rather than a formula, over all 36 cells. k\*
+— the quantity the acquisition studies in this family actually read — is
+annotated on each measured point rather than given a second axis: it is not
+linear in prevalence, so a twin axis drawn between two transformed endpoints
+puts every gridline between them in the wrong place while reading as a scale.
+The two lines were the same until #3667; #3681 is the issue that names the
+split.*
 
 | | designed | realised |
 |---|---|---|
@@ -241,8 +244,8 @@ This is the real cost of `provable`, and it is large.
 ![What each composition does to the review](figures/review-coverage.png)
 
 *Stacked by fate. The percentage above each bar is coverage of what that
-composition can hold — not of the whole review, which is the number §6's table
-gives.*
+composition can hold — not of the whole review, which is what the `ineligible by
+rule` band shows.*
 
 | composition | reviewed | ineligible by rule | removed by a fix | eligible | still in | coverage |
 |---|---:|---:|---:|---:|---:|---:|
@@ -261,7 +264,7 @@ Two readings, and both are true:
   #3675's recommendation. Those judgements measured a contamination the new pool
   cannot have, so their *purpose* is spent rather than their validity; but the
   dataset no longer contains a stratum where that contamination can be measured
-  at all. Filed as a follow-up.
+  at all (**#3696**).
 - **It loses nothing it is allowed to keep.** Of the 147 reviewed negatives the
   composition can hold, it holds 147. That is the number the coverage gate exists
   to protect, and it is the one a rebuild has broken before (three rebuilds

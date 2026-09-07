@@ -200,13 +200,18 @@ the ratio by 0.38.
 contamination produces. Ordered by the mean over embedders. This is the panel
 that should have been drawn before the composition was chosen.*
 
-| | classes | `forward + reverse` |
-|---|---|---|
-| street scenes | `bus`, `bicycle`, `umbrella`, `clock`, `stop sign` | **2.54 – 2.65** |
-| middling | `backpack`, `bird`, `dog` | 2.24 – 2.35 |
-| indistinguishable from pure contamination | `kite`, `book`, `boat`, `knife` | **2.07 – 2.17** |
+The table gives the **excess**, `forward + reverse − 2`, and not the sum, for
+the reason this whole section exists: as sums the same rows read 2.65 against
+2.07 and look like a 28% spread, which is the kind of reading that produced the
+error being corrected here.
 
-The excess over 2 spans **0.07 to 0.65** — nearly tenfold — and it does not track
+| | classes | `forward + reverse − 2` |
+|---|---|---|
+| street scenes | `bus`, `bicycle`, `umbrella`, `clock`, `stop sign` | **0.54 – 0.65** |
+| middling | `backpack`, `bird`, `dog` | 0.24 – 0.35 |
+| indistinguishable from pure contamination | `kite`, `book`, `boat`, `knife` | **0.07 – 0.17** |
+
+The excess spans **0.07 to 0.65** — nearly tenfold — and it does not track
 contamination: `backpack` is the dirtiest class at 2.8% and sits mid-table, while
 `bus` is among the cleanest and is the worst affected. `dog` and `kite` have a
 reverse arm above 1, so the asymmetry there even changes sign. COCO and

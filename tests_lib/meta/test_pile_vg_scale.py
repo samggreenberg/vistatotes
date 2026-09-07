@@ -266,6 +266,54 @@ class TestVgNameTables:
         ambiguous = {n for names in pc.SCALE_VG_AMBIGUOUS.values() for n in names}
         assert not (alias & ambiguous)
 
+    def test_no_listed_spelling_is_itself_a_class_in_c(self, pc):
+        """A name another class OWNS is settled by that class, never a neighbour's entry.
+
+        This is the sibling of the test above and it catches the case that one
+        misses, because it is about a table's KEYS meeting another's values.
+        `lift_ambiguous` does not merely decline to band an ambiguous spelling --
+        it ``pop``s the box out of `labels` for every image, before
+        `band_candidates` ever runs. So a class name listed as ambiguous for a
+        NEIGHBOUR deletes that class outright, everywhere, silently.
+
+        Measured, not imagined: the #3588 promotion's name audit adjudicates one
+        class at a time and duly offered `truck` as ambiguous evidence for `car`.
+        Adopting it took `truck` from 3,386 band-free positives to **0 in all
+        three bands**, and nothing in the build said so -- the fold ledger still
+        printed `truck+273/23` for a class that no longer existed. The pair test
+        above cannot see it, because `truck` is a table KEY rather than one of
+        its values (#3588).
+
+        **The zeroed supply is the visible half; the pool is the dangerous one.**
+        On a COCO-anchored image `anchor_to_coco` has already replaced VG's
+        labels with COCO's, so for an exhaustive image whose only *C* label is a
+        COCO-confirmed `truck`: the box is popped, no ``unbanded`` pair is added
+        because ``iid in exhaustive`` exempts it, ``by_name`` is now empty, and
+        `band_candidates` files the image as **clean**. It is COCO-scored, so
+        #3670's `provable` draw designates it -- putting COCO-confirmed trucks
+        into the negative pool whose entire claim is that it holds none of *C*.
+        `--verify`'s composition check cannot catch that: those images really do
+        carry `coco_scored`, which is the flag it tests.
+
+        The rule is also the right one semantically, not merely the safe one. The
+        ambiguous table is for names whose REFERENT is uncertain -- `bike` may be
+        a bicycle or a motorcycle, `van` is split 261/318/37 across three classes
+        -- and neither of those is a class in *C*. A name that IS a class has a
+        certain referent; what it has with a third class is co-occurrence, which
+        is not what this table means. Trucks and cars share streets, and that is
+        not a reason to withhold a truck.
+        """
+        classes = set(pc.SCALE_CLASSES)
+        for table_name, table in (("SCALE_VG_NAMES", pc.SCALE_VG_NAMES), ("SCALE_VG_AMBIGUOUS", pc.SCALE_VG_AMBIGUOUS)):
+            for cls, names in table.items():
+                collisions = sorted(set(names) & classes)
+                assert not collisions, (
+                    f"{table_name}[{cls!r}] lists {collisions}, which is a class in C. "
+                    "A spelling that names another class is settled by that class: as an alias it "
+                    "would fold one class's boxes onto another, and as an ambiguous entry "
+                    "lift_ambiguous pops those boxes and deletes the owning class from every band."
+                )
+
     def test_bike_is_declared_ambiguous_for_bicycle(self, pc):
         """Not merged: 59.6% of VG `bike` boxes land on no COCO class (#3605)."""
         assert "bike" in pc.SCALE_VG_AMBIGUOUS["bicycle"]
@@ -572,6 +620,31 @@ class TestDesignateCells:
         assert f"UNDER-SUPPLIED {cell}" in capsys.readouterr().out
 
 
+class TestDisqualifiedNegatives:
+    def test_a_rostered_negative_that_is_no_longer_clean_is_recorded(self, vgs):
+        roster = {"negatives": [1, 2, 3], "spares": [4]}
+
+        assert vgs.disqualified_negatives(roster, {1, 3, 4}) == [2]
+
+    def test_a_later_cell_does_not_erase_what_an_earlier_one_recorded(self, vgs):
+        """`load` runs once per embedder and rewrites the roster every time.
+
+        The second cell reads a roster whose negatives are already clean, so a
+        recomputed value is empty and overwrites the first cell's finding -- the
+        fact survived one cell of a five-cell build before this accumulated.
+        """
+        first = vgs.disqualified_negatives({"negatives": [1, 2, 3]}, {1, 3})
+        assert first == [2]
+
+        # What the next cell sees: a fresh draw, all of it clean.
+        second = vgs.disqualified_negatives({"negatives": [1, 3], "disqualified": first}, {1, 3})
+        assert second == [2]
+
+    def test_spares_count_as_negatives(self, vgs):
+        """A spare is designatable later, so it becoming ineligible is the same event."""
+        assert vgs.disqualified_negatives({"negatives": [], "spares": [9]}, set()) == [9]
+
+
 class TestDrawNegatives:
     def test_roster_negatives_are_kept_and_the_rest_backfilled(self, vgs, pc):
         clean = list(range(1, pc.SCALE_N_NEG + pc.SCALE_N_NEG_SPARE + 100))
@@ -773,18 +846,38 @@ class TestCoverageRow:
 
 
 class TestCorrectionsOutsideC:
-    """A shared verdict file holds classes this build does not have (#3670)."""
+    """A shared verdict file holds classes this build does not have (#3670).
+
+    The example class is **not** written as a literal any more. #3670 wrote these
+    against `car`, which was outside *C* when it did and inside *C* a few hours
+    later when #3588's thirteen were promoted -- so both tests failed on a build
+    where nothing they test had changed. A test whose fixture is a class list
+    that moves has to read the class list.
+    """
+
+    #: A COCO class this study has never carried. It is not barred by
+    #: `scale_study_exclusion` -- nothing about a toaster is a part, a place or a
+    #: plural -- it simply has never cleared the supply shortlist and has never
+    #: been proposed. `test_the_example_class_really_is_outside_c` is what keeps
+    #: that true rather than assumed.
+    OUTSIDE = "toaster"
+
+    def test_the_example_class_really_is_outside_c(self, pc):
+        """Guards the guard: these tests say nothing if OUTSIDE drifts into C."""
+        assert self.OUTSIDE not in pc.SCALE_CLASSES
 
     def test_a_verdict_for_a_class_outside_c_is_skipped(self, vgs):
         """`corrections.json` is shared; #3588's pass added thirteen classes to it.
 
         Without the skip the label is written anyway and `band_candidates` dies
-        on `supply['car']` -- a shared file making the shipped twelve-class
-        construction unbuildable, reported as a dict lookup three passes later.
+        on `supply[cls]` -- a shared file making the shipped construction
+        unbuildable, reported as a dict lookup three passes later.
         """
         labels = {7: {}}
 
-        vgs.apply_corrections(labels, {(7, "car"): _verdict(True, [[0.0, 0.0, 0.5, 0.5]])}, {7: (640, 480)}, set())
+        vgs.apply_corrections(
+            labels, {(7, self.OUTSIDE): _verdict(True, [[0.0, 0.0, 0.5, 0.5]])}, {7: (640, 480)}, set()
+        )
 
         assert labels[7] == {}
 
@@ -792,11 +885,11 @@ class TestCorrectionsOutsideC:
         """The half that decides pool membership under #3670.
 
         Marking an image exhaustive claims absence is a fact for every class in
-        C. A human who looked for a `car` established nothing about `bus`.
+        C. A human who looked for one object established nothing about `bus`.
         """
         exhaustive: set[int] = set()
 
-        vgs.apply_corrections({7: {}}, {(7, "car"): _verdict(False)}, {7: (640, 480)}, exhaustive)
+        vgs.apply_corrections({7: {}}, {(7, self.OUTSIDE): _verdict(False)}, {7: (640, 480)}, exhaustive)
 
         assert exhaustive == set()
 

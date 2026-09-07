@@ -12,9 +12,20 @@ here before anyone looked (`scripts/experiments/lessons/`). So coverage gets an
 assertion of its own, run *before* a rebuild is trusted rather than after it is
 noticed.
 
-An image legitimately leaves the pool when a correction removes it: a
-contaminated negative that the review itself promoted is *supposed* to
-disappear. Those are counted separately and never held against coverage.
+An image legitimately leaves the pool for two reasons, and neither is held
+against coverage:
+
+* **a correction removed it** -- a contaminated negative the review itself
+  promoted is *supposed* to disappear;
+* **the class list grew past it** -- an image holding `cup` was a sound negative
+  when C had twelve classes and cannot be one now that it has 25. The build
+  records these in the roster as ``disqualified``, because by the time this
+  script runs the reason is no longer recoverable: the image is simply absent.
+  Expanding C disqualified 271 reviewed negatives at once (#3588), and without
+  this the gate reads a correct rebuild as a 60.8% coverage collapse.
+
+What is still held against coverage is an image that left for neither reason --
+a reshuffle, which is the failure this exists to catch.
 
 **A declared composition change is the second such exit, and it is much
 larger** (#3670). When the pool is drawn from the COCO-scored half alone, an
@@ -135,7 +146,10 @@ def main() -> int:
     medias = load_medias(Path(args.cell))
     negatives = {i for i, m in medias.items() if not m.get("categories")}
 
+    # Disqualified by a class-list change: recorded by the build, in the roster.
     corrected = set()
+    if pc.ROSTER.exists():
+        corrected |= {int(i) for i in json.loads(pc.ROSTER.read_text()).get("disqualified", [])}
     if Path(args.corrections).exists():
         for c in json.loads(Path(args.corrections).read_text()):
             # A correction that fixes or excludes a negative is *meant* to

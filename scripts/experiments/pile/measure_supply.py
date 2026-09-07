@@ -26,6 +26,8 @@ from pilebuild.loaders.vg_scale import (  # noqa: E402
     anchor_to_coco,
     apply_corrections,
     band_candidates,
+    canonicalise,
+    lift_ambiguous,
     read_vg_labels,
 )
 from pilebuild.vgsource import vg_image_paths, vg_source  # noqa: E402
@@ -48,10 +50,29 @@ def main() -> None:
         coco_of = {int(m["image_id"]): int(m["coco_id"]) for m in json.load(fh) if m.get("coco_id")}
 
     corrections = load_corrections()
-    labels = read_vg_labels(records, paths, dims, wanted)
+    # The READ, the FOLD and the SUPPRESSION are the loader's, in the loader's
+    # order. This used to read `wanted` -- the bare class names -- and skip
+    # `canonicalise` / `lift_ambiguous` entirely, which measured the supply of a
+    # dataset nobody builds: every alternate spelling in SCALE_VG_NAMES was
+    # invisible, so a class was counted as if its alias table were empty.
+    #
+    # It is not a small correction and it is not in one direction. Folding adds
+    # the images that spell the class differently -- `hydrant` alone carries a
+    # third of `fire hydrant` -- while the scatter guard un-bands a merged union
+    # that spreads (#3637), and `lift_ambiguous` withholds images whose only
+    # evidence is a name that means two things. The reason this matters beyond
+    # tidiness is that #3547 sized SCALE_DEEP_N_POS off this script's output.
+    labels = read_vg_labels(records, paths, dims, pc.scale_vg_wanted())
     box_dims, exhaustive, n_anchored, n_reframed = anchor_to_coco(labels, dims, coco_of, truth, ca.COCO_DIMS, wanted)
+    folded, contested = canonicalise(labels, pc.SCALE_VG_NAMES, box_dims, pc.SCALE_FOLD_MODE)
     unbanded = apply_corrections(labels, corrections, box_dims, exhaustive)
+    unbanded |= lift_ambiguous(labels, pc.SCALE_VG_AMBIGUOUS, exhaustive)
     log(f"  labels: {len(labels)} VG images, {n_anchored} repaired from COCO, {n_reframed} re-framed")
+    if folded:
+        log(
+            "  merged VG spellings as `class+boxes folded/images it un-bands`: "
+            + ", ".join(f"{c}+{n}/{contested[c]}" for c, n in sorted(folded.items()))
+        )
 
     supply, _boxes, clean = band_candidates(labels, box_dims, unbanded)
 

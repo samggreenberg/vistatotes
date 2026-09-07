@@ -166,6 +166,7 @@ def lift_ambiguous(
     labels: dict[int, dict[str, list[list[float]]]],
     vg_names: dict[str, tuple[str, ...]],
     exhaustive: set[int],
+    classes: tuple[str, ...] | None = None,
 ) -> set[tuple[int, str]]:
     """Take ambiguous spellings out of *labels*, and return the pairs they suppress.
 
@@ -196,7 +197,34 @@ def lift_ambiguous(
 
     The boxes are dropped either way: :func:`band_candidates` bands by category
     name and has no cell to put a `bike` in.
+
+    **That last sentence is why a table entry must never name another class in
+    C.** The drop is unconditional and global -- it happens before the three
+    exemptions are even consulted -- so an entry naming a class deletes that
+    class's own boxes from every image in the corpus. `truck` listed as
+    ambiguous for `car` took `truck` from 3,386 band-free positives to zero in
+    all three bands, and the run said nothing: the fold ledger still printed
+    `truck+273/23`, because the fold had already run. The guard is in the suite
+    (``test_no_listed_spelling_is_itself_a_class_in_c``) rather than here,
+    because this function receives the table as an argument and is used by tests
+    with deliberately small ones (#3588).
+
+    *classes* is the second line of that defence, for the callers the suite guard
+    cannot see: it compares the shipped table against the shipped *C*, and a
+    caller that widens `SCALE_CLASSES` at runtime is outside that frame.
+    `negpool_supply.py` is one, and its `all25` scope simulates precisely the
+    twelve-to-twenty-five transition that produced the `truck` entry. Defaults to
+    `pile_config.SCALE_CLASSES`; pass the small list beside a small table.
     """
+    in_c = set(pc.SCALE_CLASSES if classes is None else classes)
+    stolen = sorted({n for cls, names in vg_names.items() for n in names if n in in_c and n != cls})
+    if stolen:
+        raise ValueError(
+            f"lift_ambiguous: {stolen} name a class in C. The drop below is unconditional, so "
+            "suppressing one deletes that class's own boxes from every image -- and on a "
+            "COCO-anchored image the `exhaustive` exemption then files it as CLEAN, putting a "
+            "confirmed positive into the shared negative pool (#3588)."
+        )
     reverse = {n: cls for cls, names in vg_names.items() for n in names if n != cls}
     pairs: set[tuple[int, str]] = set()
     for iid, by_name in labels.items():
@@ -471,6 +499,30 @@ def designate_cells(
             )
             chosen[cell] = order[: pc.SCALE_N_POS]
     return chosen
+
+
+def disqualified_negatives(roster: dict, clean: set[int]) -> list[int]:
+    """Rostered negatives that can no longer BE negatives, accumulated.
+
+    An image holding a class in *C* cannot serve as a negative for anything, so a
+    rebuild is right to drop it -- but `check_review_coverage.py` sees only that
+    a reviewed image is gone and reads a correct rebuild as lost review.
+    Expanding *C* from twelve to 25 disqualified 1,530 of them at once (#3588).
+
+    **Accumulated, not recomputed, and that is the whole point of the function.**
+    ``load`` runs once per embedder and rewrites the roster each time, so the
+    first cell sees the old negatives and records the disqualification while
+    every later cell reads a roster whose negatives are already clean, computes
+    an empty set, and overwrites the fact. The value survived exactly one cell of
+    a five-cell build before this existed. Same shape as the counter that was
+    placed before the pass discarding its work (#3637).
+
+    Spares count too: they are drawn into the pickle and can be designated later,
+    so one becoming ineligible is the same event.
+    """
+    was = {int(i) for i in roster.get("disqualified", [])}
+    pool = list(roster.get("negatives", [])) + list(roster.get("spares", []))
+    return sorted(was | {int(i) for i in pool if int(i) not in clean})
 
 
 def draw_negatives(
@@ -766,6 +818,16 @@ def load(dataset: str, medias: dict[int, dict], embedder_name: str) -> None:
 
     chosen = designate_cells(supply, corrections, roster)
     clean.sort()
+    # A rostered negative that is no longer clean has been DISQUALIFIED -- it
+    # holds one of the classes now, so it cannot be a negative and no rebuild
+    # could keep it. That is different in kind from an image lost to a reshuffle,
+    # and only this pass can tell them apart: by the time
+    # `check_review_coverage.py` runs, the reason is gone. Expanding C from 12 to
+    # 25 disqualified reviewed negatives at a stroke (#3588), and the coverage
+    # gate read every one of them as lost review.
+    disqualified = disqualified_negatives(roster, set(clean))
+    if disqualified:
+        log(f"  {len(disqualified)} rostered negatives disqualified: they can no longer be negatives")
     # The target provenance mix. `provable` asks for an all-COCO-scored pool;
     # `matched` asks for the positives' OWN share, measured on the images
     # actually designated rather than on the much larger class supply.
@@ -784,7 +846,13 @@ def load(dataset: str, medias: dict[int, dict], embedder_name: str) -> None:
         f"({n_prov / len(negatives):.1%} of {len(negatives)}), "
         f"positives are {pos_frac:.1%} COCO-scored"
     )
-    pc.ROSTER.write_text(json.dumps({"cells": chosen, "negatives": negatives, "spares": spares}, indent=1) + "\n")
+    pc.ROSTER.write_text(
+        json.dumps(
+            {"cells": chosen, "negatives": negatives, "spares": spares, "disqualified": disqualified},
+            indent=1,
+        )
+        + "\n"
+    )
     log(
         f"  {sum(len(v) for v in chosen.values())} positives over {len(cells)} cells, "
         f"{len(negatives)} shared negatives + {len(spares)} spares (from {len(clean)} clean images)"

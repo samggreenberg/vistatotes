@@ -113,8 +113,9 @@ would enter the shared negative pool on VG's evidence alone, what share actually
 hold the class?* — by running the loader's own passes over the overlap with
 `exhaustive=set()`, i.e. as if those images were off-COCO, and holding COCO back
 as the answer key. It also prices the two exclusion rules against each other:
-today one ambiguous name costs **all twelve** classes the image, though
-`evaluable_categories` could make it cost one (#3655).
+today one ambiguous name costs **every** class in *C* the image, though
+`evaluable_categories` could make it cost one (#3655) -- a price that doubled at
+the #3588 promotion, since *C* went from twelve classes to twenty-five.
 
 `withheld_difficulty.py` then asks whether the withheld images are the pool's
 *hard* negatives, by ranking the drawn pool with the class's own text query. The
@@ -485,7 +486,7 @@ and refuses to count a node whose usage it cannot read; see
 
 ## Considering a new class for `vg_scale` (#3588)
 
-Three scripts, in the order they answer questions. None of them changes
+Five scripts, in the order they answer questions. None of them changes
 `SCALE_CLASSES`; they produce the evidence for doing so.
 
 ```bash
@@ -495,6 +496,23 @@ python make_class_slate.py --supply-only                         # what a build 
 python make_class_slate.py --out .../slates                      # the review material
 python import_slates.py --slates .../slates                      # datasets + empty detectors
 ```
+
+**A cleared review is not yet a promotion, and the step between them is the name
+audit.** #3588 reviewed thirteen classes at 300 images each and cleared all
+thirteen; none of that says which VG spellings the class is *built* from, which
+is the next section's question and a separate measurement. `bicycle` shipped for
+the whole of #3156 built from one spelling with every structural check passing,
+which is why `SCALE_VG_NAMES_AUDITED` exists and why the suite refuses a class in
+*C* that is missing from it. Promotion is therefore four edits, not one:
+
+1. the class into `SCALE_CLASSES`;
+2. its measured spellings into `SCALE_VG_NAMES` / `SCALE_VG_AMBIGUOUS`, out of the
+   candidate tables and minus the class name itself;
+3. the class into `SCALE_VG_NAMES_AUDITED`, **after** running the audit below —
+   whatever the verdict, since an audit that found nothing is the result the flag
+   exists to record;
+4. the negative pool redrawn and the pile rebuilt, because a new class evicts
+   whatever the pool holds of it (#3604).
 
 ## Auditing a class's VG names (#3618)
 
@@ -530,7 +548,7 @@ which reads the negative pass back out per class and scores it against
 `pool_contamination.py`'s prediction:
 
 ```bash
-python shipped_pool_error.py                  # the twelve, from the committed verdicts
+python shipped_pool_error.py                  # the ORIGINAL twelve, from the committed verdicts
 python shipped_pool_error.py --rebank         # re-distil verdicts.csv from the passes on scratch
 python shipped_pool_error.py --figures        # + the report's figures (needs the VG pixels)
 ```
@@ -639,7 +657,12 @@ A candidate's measured spellings go in `SCALE_CANDIDATE_VG_NAMES`, not in the
 `SCALE_VG_NAMES` table above: that one widens the `vg_scale` **read** and is
 folded on every build, so an entry there for a class outside *C* would change the
 built dataset before anything has been decided. A candidate promoted into *C*
-moves its row across.
+moves its row across, **minus the class name itself** — the candidate table lists
+it because the slate builder has no separate class-name read to add it to, and a
+row carried over whole would list `cup` among `cup`'s alternate spellings. Both
+candidate tables are empty since the #3588 promotion; read either side through
+`pile_config.scale_names_for()` / `scale_ambiguous_for()`, which look in both, so
+that a slate rebuilt after a promotion cannot silently lose the spellings.
 
 `make_class_slate.py` differs from `make_audit_slate.py` in what it can assume:
 the audit slate reads a class the pickle already holds, while a candidate has
@@ -648,4 +671,5 @@ source through the loader's own `band_candidates`, so the banding is the one a
 build would use; negatives come from the built pickle's shared pool, **minus any
 image that holds the candidate**. That subtraction is not hygiene: the shared
 pool was drawn as "holds none of the current twelve", so 34% of it holds at least
-one of the thirteen candidates, and the count is the rebuild cost (#3604).
+one of the thirteen classes #3588 added, and that count is the rebuild cost the
+promotion paid (#3604).

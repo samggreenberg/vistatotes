@@ -1,0 +1,212 @@
+{
+ "meta": {
+  "n_pos": 100,
+  "n_neg": 3900,
+  "vg_images": 108073,
+  "anchored": 51448,
+  "reframed": 49,
+  "clean": 50809
+ },
+ "supply": {
+  "clock": {
+   "bands": {
+    "small": 1347,
+    "medium": 1600,
+    "large": 508
+   },
+   "union": 3455
+  },
+  "bird": {
+   "bands": {
+    "small": 480,
+    "medium": 605,
+    "large": 782
+   },
+   "union": 1867
+  },
+  "boat": {
+   "bands": {
+    "small": 306,
+    "medium": 643,
+    "large": 844
+   },
+   "union": 1793
+  },
+  "umbrella": {
+   "bands": {
+    "small": 275,
+    "medium": 1001,
+    "large": 992
+   },
+   "union": 2268
+  },
+  "kite": {
+   "bands": {
+    "small": 249,
+    "medium": 595,
+    "large": 342
+   },
+   "union": 1186
+  },
+  "book": {
+   "bands": {
+    "small": 377,
+    "medium": 921,
+    "large": 379
+   },
+   "union": 1677
+  },
+  "dog": {
+   "bands": {
+    "small": 227,
+    "medium": 1072,
+    "large": 1611
+   },
+   "union": 2910
+  },
+  "backpack": {
+   "bands": {
+    "small": 905,
+    "medium": 1659,
+    "large": 234
+   },
+   "union": 2798
+  },
+  "knife": {
+   "bands": {
+    "small": 336,
+    "medium": 1248,
+    "large": 368
+   },
+   "union": 1952
+  },
+  "bicycle": {
+   "bands": {
+    "small": 267,
+    "medium": 871,
+    "large": 614
+   },
+   "union": 1752
+  },
+  "bus": {
+   "bands": {
+    "small": 138,
+    "medium": 811,
+    "large": 2170
+   },
+   "union": 3119
+  },
+  "stop sign": {
+   "bands": {
+    "small": 282,
+    "medium": 426,
+    "large": 298
+   },
+   "union": 1006
+  },
+  "truck": {
+   "bands": {
+    "small": 464,
+    "medium": 1546,
+    "large": 1376
+   },
+   "union": 3386
+  },
+  "car": {
+   "bands": {
+    "small": 1310,
+    "medium": 2945,
+    "large": 1517
+   },
+   "union": 5772
+  },
+  "fork": {
+   "bands": {
+    "small": 257,
+    "medium": 1284,
+    "large": 356
+   },
+   "union": 1897
+  },
+  "spoon": {
+   "bands": {
+    "small": 371,
+    "medium": 913,
+    "large": 197
+   },
+   "union": 1481
+  },
+  "cup": {
+   "bands": {
+    "small": 974,
+    "medium": 1786,
+    "large": 504
+   },
+   "union": 3264
+  },
+  "bowl": {
+   "bands": {
+    "small": 455,
+    "medium": 1474,
+    "large": 932
+   },
+   "union": 2861
+  },
+  "bottle": {
+   "bands": {
+    "small": 1140,
+    "medium": 1785,
+    "large": 380
+   },
+   "union": 3305
+  },
+  "vase": {
+   "bands": {
+    "small": 519,
+    "medium": 720,
+    "large": 415
+   },
+   "union": 1654
+  },
+  "bench": {
+   "bands": {
+    "small": 486,
+    "medium": 1464,
+    "large": 1685
+   },
+   "union": 3635
+  },
+  "chair": {
+   "bands": {
+    "small": 320,
+    "medium": 2971,
+    "large": 1807
+   },
+   "union": 5098
+  },
+  "sink": {
+   "bands": {
+    "small": 378,
+    "medium": 1665,
+    "large": 556
+   },
+   "union": 2599
+  },
+  "cell phone": {
+   "bands": {
+    "small": 1170,
+    "medium": 812,
+    "large": 184
+   },
+   "union": 2166
+  },
+  "fire hydrant": {
+   "bands": {
+    "small": 278,
+    "medium": 423,
+    "large": 437
+   },
+   "union": 1138
+  }
+ }
+}

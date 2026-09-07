@@ -6,9 +6,12 @@ that decides which classes can serve, plus the review material for the ones that
 can: 13 slates, 13 datasets, 13 empty detectors and an
 [annotation guide](ANNOTATION_GUIDE.md).
 
-**Nothing about the class list has been changed.** `SCALE_CLASSES` is untouched
-and `vg_scale` is not rebuilt. What is added is the candidate list, the rules
-they would be reviewed under, and the tooling behind them.
+**Nothing about the class list has been changed** *by this report*.
+`SCALE_CLASSES` is untouched here and `vg_scale` is not rebuilt. What is added is
+the candidate list, the rules they would be reviewed under, and the tooling
+behind them. All thirteen were promoted into *C* on 2026-09-06 — see
+[`../2026-09-06-vg-scale-promotion-3588/REPORT.md`](../2026-09-06-vg-scale-promotion-3588/REPORT.md),
+which is also where the VG-name audit this report did not run lives.
 
 **Update, 2026-09-06.** The review ran. One reviewer produced **5,904
 judgements** over four days — 3,900 across the thirteen candidate slates and

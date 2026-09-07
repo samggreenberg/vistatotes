@@ -28,7 +28,7 @@ GROUPS = {
     "Outdoor Objects": ("bird", "kite", "boat", "dog"),
     "Bench": ("bench",),
 }
-ALL = list(pc.SCALE_CANDIDATES_3588) + list(pc.SCALE_CLASSES)
+ALL = list(pc.SCALE_CANDIDATES_3588) + list(pc.SCALE_CLASSES_ORIGINAL)
 
 m = load_medias(pc.EMBEDDINGS / "vg_scale__siglip.pkl")
 anchor = Path(pc.PILE / "coco_anchor")

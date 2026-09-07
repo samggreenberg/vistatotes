@@ -95,13 +95,13 @@ def main() -> int:
     log(f"{len(classes)} candidate classes: {', '.join(classes)}")
 
     # ---- positives, from the VG source through the loader's own passes -----
-    vg_names = {c: pc.SCALE_CANDIDATE_VG_NAMES.get(c, (c,)) for c in classes}
+    vg_names = {c: pc.scale_names_for(c) for c in classes}
     # Ambiguous spellings must be READ even though they are never folded: their
     # whole job is to bar an image from the shared negative pool, and a name that
     # was not read is invisible to `lift_ambiguous` -- it suppresses nothing and
     # the contaminated negative stays. `pile_config.scale_vg_wanted` reads both
     # tables for the built classes; this is the candidate-side equivalent.
-    ambiguous_names = {c: pc.SCALE_CANDIDATE_VG_AMBIGUOUS.get(c, ()) for c in classes}
+    ambiguous_names = {c: pc.scale_ambiguous_for(c) for c in classes}
     wanted_vg = {n for names in vg_names.values() for n in names}
     wanted_vg |= {n for names in ambiguous_names.values() for n in names}
     log(f"reading VG source for {len(wanted_vg)} names")

@@ -92,7 +92,7 @@ to **182** and **254**.
 | `truck` | 25.6% | 29.4% | +191 (on 1,499) | 167 |
 | `chair` | 22.2% | 24.9% | +361 (on 3,712) | 297 |
 | `bottle` | 23.3% | 27.8% | +375 (on 2,085) | 320 |
-| `cup` | 16.7% | 22.2% | +386 (on 1,616) | 345 |
+| `cup` | 12.6% | 18.8% | +581 (on 1,616) | 345 |
 | `bowl` | 30.5% | 32.1% | +51 (on 1,828) | 44 |
 | `fork` | 41.9% | 42.9% | +34 (on 1,037) | 34 |
 
@@ -140,6 +140,17 @@ scorer is not looking at. `mug`, whose object COCO really does call a cup,
 scores normally — so the blind spot is specific to the merged half and silent
 everywhere else. The six stemware spellings are carried by hand on #3588's own
 measurement against COCO `wine glass` boxes. Filed as **#3700**.
+
+> **Fixed, and the `cup` row above is restated accordingly.** #3700 made both
+> scripts resolve the class through `coco_classes_for`, and re-running the audit
+> confirms the two spellings that carry the mass — `wine glass` at **98%**
+> precision over 151 sole images and **85%** box agreement, `wine glasses` at
+> 95% — where the merge-blind run scored them 38% and 18% and refused both.
+> `cup`'s coverage row moves with it: its COCO denominator is **11,393** boxes
+> rather than 8,242, so the class name alone covers **12.6%** (not 16.7%) and
+> the alias table takes it to **18.8%** (not 22.2%). The numbers in this table's
+> `cup` row are the corrected ones; the rest are unaffected, because
+> `coco_classes_for` returns the class itself for the other twenty-four.
 
 ## 3. Adopting a per-class audit deleted a class
 

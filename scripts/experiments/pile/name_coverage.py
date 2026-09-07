@@ -98,6 +98,14 @@ def main() -> int:
             wanted.update(ns)
     log(f"{len(classes)} classes; {len(wanted)} VG names to match")
 
+    #: The COCO classes whose boxes count as *c* -- its whole footprint, not its
+    #: namesake alone. `cup` is `cup` U `wine glass`
+    #: (:data:`pile_config.SCALE_CLASS_MERGES`), so reading its coverage off COCO
+    #: `cup` omits every `wine glass` box the merge claims: the denominator is
+    #: short AND the stemware spellings appear to recover nothing (#3700).
+    #: Returns ``{c}`` for an unmerged class, so nothing else moves.
+    coco_for = {c: pc.coco_classes_for(c) for c in classes}
+
     cboxes, cdims, _ = cf.coco_boxes(Path(args.anchor_dir))
 
     log("loading VG image_data.json")
@@ -197,9 +205,14 @@ def main() -> int:
             continue
         # `coco_boxes` carries the whole COCO vocabulary (#3640); only the
         # classes under proposal are scored, and the counters are keyed on them.
+        #
+        # A class this project defines as a UNION is scored against its whole
+        # COCO footprint: reading `cup`'s coverage off COCO `cup` alone omits
+        # every `wine glass` box the merge claims, understating the denominator
+        # AND missing what the stemware spellings recover (#3700).
         on_image = cboxes.get(cid, {})
         for c in classes:
-            boxes = on_image.get(c, [])
+            boxes = [b for k in coco_for[c] for b in on_image.get(k, [])]
             if not boxes:
                 continue
             own = by_name.get(c, [])

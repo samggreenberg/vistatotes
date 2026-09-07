@@ -195,9 +195,26 @@ def main() -> None:
         "per_cell": realised,
     }
 
+    # --- how far `exhaustive` reaches past `coco_scored` ----------------------
+    # #3667's cross-class rule reads `exhaustive`, which a one-class review also
+    # sets -- so an image can serve as a negative for eleven classes on the
+    # strength of a human who looked at the twelfth. #3670 removed that from the
+    # POOL draw; this counts what it still buys elsewhere.
+    promoted = exhaustive - coco_scored
+    report["over_promoted"] = {
+        "coco_scored": len(coco_scored),
+        "exhaustive": len(exhaustive),
+        "promoted_by_review": len(promoted),
+        "promoted_positives": len(promoted & set(positive_in)),
+        "share_of_designated_positives": (
+            round(len(promoted & set(positive_in)) / len(positive_in), 4) if positive_in else None
+        ),
+    }
+
     OUT.write_text(json.dumps(report, indent=1) + "\n")
     print(json.dumps({k: v for k, v in report.items() if k != "realised"}, indent=1))
     print(json.dumps({k: v for k, v in report["realised"].items() if k != "per_cell"}, indent=1))
+    print(json.dumps(report["over_promoted"], indent=1))
 
 
 if __name__ == "__main__":

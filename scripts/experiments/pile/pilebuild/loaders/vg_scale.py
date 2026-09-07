@@ -609,7 +609,9 @@ def _evaluable(
     cells: list[str],
     neg_set: set[int],
     labels: dict[int, dict[str, list[list[float]]]],
-    exhaustive: set[int],
+    coco_scored: set[int],
+    reviewed_absent: set[tuple[int, str]],
+    reviewed_present: set[tuple[int, str]],
 ) -> list[str]:
     """Which cells this image can be SCORED in -- positive or negative.
 
@@ -624,11 +626,37 @@ def _evaluable(
     not hold contributes all of its cells, and the image scores there as the
     negative it is.
 
-    Gated on ``exhaustive``. On a COCO-annotated image "holds no bus" is a fact
-    about all eighty classes. Off COCO it is VG's silence, which #3588 measured
-    wrong 0.5-2.5% of the time, and importing that into the negatives is a
-    separate decision -- ``SCALE_CROSS_CLASS_NEGATIVES`` turns the whole thing
-    off rather than pretending the two halves are alike.
+    **Gated per class on who actually answered, which is not the same as who
+    looked.** On a COCO-annotated image "holds no bus" is a fact about all eighty
+    classes at once, so ``coco_scored`` admits every class. Off COCO it is VG's
+    silence, which #3588 measured wrong 0.5-2.5% of the time, and importing that
+    into the negatives is a separate decision -- ``SCALE_CROSS_CLASS_NEGATIVES``
+    turns the whole thing off rather than pretending the two halves are alike.
+
+    This used to read ``exhaustive``, and that set has **two** populations in it:
+    images COCO answered, and *any image a human looked at*, because
+    :func:`apply_corrections` adds every reviewed image to it. A reviewer asked
+    "does this hold a `car`?" established a fact about `car` and nothing about
+    `bus` -- so the rule promoted 467 review-only images into cross-class
+    negatives they had not earned, 322 of them designated positives, 4.5% of the
+    designated positive set (#3697). The error ran in the flattering direction:
+    an image reviewed as holding a `car` scored as a *confirmed* negative for
+    `truck`, which is exactly the hard negative a detector has not been shown.
+
+    ``reviewed_absent`` keeps what a review really did establish, per class: a
+    verdict of absent on ``(image, class)`` admits that class's cells and no
+    others. That matters because a **group** pass -- the #3588 negative pass
+    asked "do you see NONE of these twenty-five?" -- legitimately answers for
+    every member it named, and dropping human evidence wholesale would throw
+    those away to fix the one-class case.
+
+    ``reviewed_present`` is the guard the other way, and it is not hypothetical.
+    A **boxless** ``present`` verdict -- "it is here, I cannot draw one box for
+    it" -- makes :func:`apply_corrections` POP the class from ``labels``, so the
+    image then looks to this function exactly like an image that does not hold
+    it. On a COCO-anchored image that would admit the class as a *confirmed
+    negative* on the strength of a human saying it is present. A pair a reviewer
+    touched is never admitted by absence, whatever the anchor says.
 
     **The cells a class owns are read off ``cells``, never spelled.** This
     function serves two datasets that name their cells differently --
@@ -643,10 +671,13 @@ def _evaluable(
     if not cats:
         return list(cells) if iid in neg_set else []
     out = set(cats)
-    if pc.SCALE_CROSS_CLASS_NEGATIVES and iid in exhaustive:
+    if pc.SCALE_CROSS_CLASS_NEGATIVES:
         held = set(labels.get(iid, {}))
+        anchored = iid in coco_scored
         for c, owned in _cells_by_class(cells).items():
-            if c not in held:
+            if c in held or (iid, c) in reviewed_present:
+                continue
+            if anchored or (iid, c) in reviewed_absent:
                 out |= owned
     return sorted(out)
 
@@ -664,6 +695,8 @@ def _emit_medias(
     embedder_name: str,
     labels: dict[int, dict[str, list[list[float]]]],
     coco_scored: set[int],
+    reviewed_absent: set[tuple[int, str]],
+    reviewed_present: set[tuple[int, str]],
 ) -> None:
     """Read the pixels and write one media dict per designated image.
 
@@ -720,7 +753,9 @@ def _emit_medias(
             # A designated cell membership, not a closed world: a positive is
             # scorable only in the cells it was drawn for, and the shared
             # negatives are scorable everywhere.
-            "evaluable_categories": _evaluable(iid, cats, cells, neg_set, labels, exhaustive),
+            "evaluable_categories": _evaluable(
+                iid, cats, cells, neg_set, labels, coco_scored, reviewed_absent, reviewed_present
+            ),
             # Whether this image's labels rest on an exhaustive reference (COCO,
             # or a human who looked). False means VG's silence is the only
             # evidence of absence -- which is what the review slates target.
@@ -766,6 +801,14 @@ def load(dataset: str, medias: dict[int, dict], embedder_name: str) -> None:
     # image", `coco_scored` says "all eighty classes were answered at once".
     # Only the second makes "holds none of C" a fact.
     coco_scored = set(exhaustive)
+    # What a human actually established, per (image, class) -- NOT per image.
+    # `apply_corrections` folds every reviewed image into `exhaustive`, which is
+    # the right claim for the pool draw and the wrong one for #3667's
+    # cross-class rule: a reviewer asked about `car` said nothing about `bus`
+    # (#3697). Absence admits that class alone; presence bars it, because a
+    # boxless `present` leaves no box behind to make the class visible as held.
+    reviewed_absent = {k for k, v in corrections.items() if k[1] in wanted and not v.get("present")}
+    reviewed_present = {k for k, v in corrections.items() if k[1] in wanted and v.get("present")}
     # The fold runs AFTER the anchor, not before it. On an anchored image COCO's
     # labels replace VG's wholesale, so folding there was always discarded --
     # the order is a no-op on what gets built (verified cell-by-cell in #3637)
@@ -871,6 +914,8 @@ def load(dataset: str, medias: dict[int, dict], embedder_name: str) -> None:
         embedder_name,
         labels,
         coco_scored,
+        reviewed_absent,
+        reviewed_present,
     )
 
     # Refuse to embed a pickle whose boxes are impossible. `--verify` runs the

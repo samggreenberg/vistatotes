@@ -169,6 +169,11 @@ def main() -> None:
     # the thing being counted, and a second implementation of it here is exactly
     # how the deep sibling got a rule nobody had checked (#3667).
     cells = [pc.scale_cell(c, b) for c in pc.SCALE_CLASSES for b in pc.BOX_BANDS]
+    # Same per-(image, class) split `vg_scale.load` makes: a one-class review
+    # answers for that class alone (#3697). Counted here because this script
+    # reads `_evaluable` itself rather than restating the rule.
+    reviewed_absent = {k for k, v in corrections.items() if k[1] in set(pc.SCALE_CLASSES) and not v.get("present")}
+    reviewed_present = {k for k, v in corrections.items() if k[1] in set(pc.SCALE_CLASSES) and v.get("present")}
     provable_pool, _sp = draw_negatives(clean, roster, coco_scored, 1.0)
     neg_set = set(provable_pool)
     positive_in: dict[int, list[str]] = {}
@@ -178,7 +183,10 @@ def main() -> None:
 
     per_cell: dict[str, int] = dict.fromkeys(cells, 0)
     for iid in set(positive_in) | neg_set:
-        for cell in _evaluable(iid, sorted(positive_in.get(iid, [])), cells, neg_set, labels, exhaustive):
+        ev = _evaluable(
+            iid, sorted(positive_in.get(iid, [])), cells, neg_set, labels, coco_scored, reviewed_absent, reviewed_present
+        )
+        for cell in ev:
             if cell in per_cell and cell not in positive_in.get(iid, []):
                 per_cell[cell] += 1
 

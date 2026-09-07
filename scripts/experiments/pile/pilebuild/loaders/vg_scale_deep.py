@@ -182,6 +182,13 @@ def load(dataset: str, medias: dict[int, dict], embedder_name: str) -> None:
     # medias carry the flag so a reader of either dataset can ask the same
     # question of both.
     coco_scored = set(exhaustive)
+    # Per (image, class), what a human established -- the same distinction
+    # `vg_scale.load` draws, and deep needs it for the same reason: it shares
+    # `_emit_medias` and therefore `_evaluable`, so a one-class review would
+    # otherwise promote an image into cross-class negatives for the other
+    # twenty-four here too (#3697).
+    reviewed_absent = {k for k, v in corrections.items() if k[1] in wanted and not v.get("present")}
+    reviewed_present = {k for k, v in corrections.items() if k[1] in wanted and v.get("present")}
     # After the anchor and with the pixel space, exactly as `vg_scale` runs it:
     # the fold's treatment of a scattered union is part of "what a positive is",
     # so a sibling that folded differently would break the only-depth-changed
@@ -250,6 +257,8 @@ def load(dataset: str, medias: dict[int, dict], embedder_name: str) -> None:
         embedder_name,
         labels,
         coco_scored,
+        reviewed_absent,
+        reviewed_present,
     )
     for d in medias.values():
         d["origin"] = {

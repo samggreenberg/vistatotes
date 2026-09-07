@@ -311,7 +311,9 @@ def fig_asymmetry(shortcut: dict, path: Path) -> None:
                 ys.append(pc_row["ratio"] + pc_row["ratio_reverse"] - 2.0)
         ax.bar(xs, ys, width=width, label=emb)
     ax.axhline(0.0, color=INK, lw=1.0)
-    ax.text(len(classes) - 0.5, 0.012, "pure contamination", fontsize=8, color=MUTED, ha="right", va="bottom")
+    # At the left, where the tallest bars are -- the right end is where the bars
+    # approach this line, so a label there sits on top of the data.
+    ax.text(-0.45, 0.012, "pure contamination", fontsize=8, color=MUTED, ha="left", va="bottom")
     ax.set_xticks(range(len(classes)))
     ax.set_xticklabels(classes, fontsize=8, rotation=35, ha="right")
     ax.set_ylabel("forward + reverse - 2", fontsize=9, color=INK)

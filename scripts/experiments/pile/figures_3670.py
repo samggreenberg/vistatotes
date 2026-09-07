@@ -100,12 +100,11 @@ def fig_distortion(shortcut: dict, path: Path) -> None:
     for emb, r in sorted(shortcut.items()):
         if "ratio_reverse_mean" not in r or r["ratio_reverse_mean"] is None:
             continue
-        # The reverse arm reads the shortcut with the sign flipped: fitted
-        # against the silent half, a provable negative fires LESS often, so the
-        # shortcut is 1/ratio. It is the ESTIMATE, because contamination cannot
-        # move it -- the residual route below is only ever as good as the
-        # contamination rate it subtracts.
-        rows.append((f"provenance, {emb}\n(reverse arm)", 1.0 / r["ratio_reverse_mean"], None))
+        # 1/reverse is a LOWER BOUND, not an estimate: contamination depresses
+        # the reverse arm just as it inflates the forward one, so this understates
+        # the artifact by an unknown amount. See `provenance_shortcut.py`. Both
+        # bars are drawn because both were published; neither sizes anything.
+        rows.append((f"provenance, {emb}\n(1/reverse -- LOWER BOUND)", 1.0 / r["ratio_reverse_mean"], None))
         rows.append(
             (
                 f"provenance, {emb}\n(forward minus predicted contamination)",
@@ -122,13 +121,12 @@ def fig_distortion(shortcut: dict, path: Path) -> None:
     )
 
     ys = range(len(rows))
-    # Solid where the estimate stands on its own, hatched where it is only as
-    # good as the contamination rate it subtracts. Two readings of one quantity
-    # drawn identically would invite averaging them, and they are not equals.
+    # Both provenance readings are hatched: neither is an estimate. One is a
+    # lower bound, the other subtracts a rate it cannot pin down.
     colors, hatches = [], []
     for lbl, _v, _ci in rows:
         colors.append(PROVABLE if "provenance" in lbl else MIXED)
-        hatches.append("///" if "forward minus" in lbl else "")
+        hatches.append("///" if "provenance" in lbl else "")
     bars = ax.barh(list(ys), [v for _l, v, _c in rows], color=colors, height=0.6)
     for bar, hatch in zip(bars, hatches, strict=True):
         bar.set_hatch(hatch)
@@ -154,14 +152,19 @@ def fig_distortion(shortcut: dict, path: Path) -> None:
     ax.set_xlabel("FPR inflation vs the stratum the head was fitted against", fontsize=9, color=INK)
     ax.grid(axis="x", color=GRID, lw=0.6)
     _frame(ax)
-    ax.set_title("The two distortions overlap; the bar chart is not the argument", fontsize=10.5, color=INK, loc="left")
+    ax.set_title(
+        "Neither blue bar sizes the artifact - see the per-class panel",
+        fontsize=10.5,
+        color=INK,
+        loc="left",
+    )
     # Figure coordinates, below the plot. This axis is inverted, so a note
     # placed in axes coordinates for "the bottom" lands under the title instead.
     fig.text(
         0.5,
         -0.02,
-        "solid = reverse arm (independent of the contamination rate)      "
-        "hatched = forward minus predicted contamination",
+        "both provenance readings are hatched: contamination moves BOTH arms, "
+        "so neither is an estimate (1/reverse is a lower bound)",
         fontsize=7.5,
         color=MUTED,
         ha="center",
@@ -276,6 +279,56 @@ def fig_prevalence(coverage: dict, path: Path) -> None:
     plt.close(fig)
 
 
+def fig_asymmetry(shortcut: dict, path: Path) -> None:
+    """`forward + reverse - 2` per class: the artifact with contamination removed.
+
+    Under pure contamination the two arms must sum to 2, for any rate and any
+    TPR, so the excess over 2 is what contamination cannot explain. It does not
+    SIZE the artifact -- nothing here does -- but it is comparable across
+    classes, which is the only question #3670's argument turned on.
+
+    This is the panel that would have caught it. The pooled sum is 2.35 and reads
+    as one number; per class it runs from 0.07 to 0.65.
+    """
+    classes = sorted(
+        {c for r in shortcut.values() for c in r.get("per_class", {})},
+        key=lambda c: (
+            -sum(
+                r["per_class"][c]["ratio"] + r["per_class"][c]["ratio_reverse"]
+                for r in shortcut.values()
+                if c in r.get("per_class", {})
+            )
+        ),
+    )
+    fig, ax = plt.subplots(figsize=(7.4, 3.6), dpi=130)
+    width = 0.8 / max(1, len(shortcut))
+    for i, (emb, r) in enumerate(sorted(shortcut.items())):
+        xs, ys = [], []
+        for j, c in enumerate(classes):
+            pc_row = r.get("per_class", {}).get(c)
+            if pc_row and pc_row.get("ratio_reverse") is not None:
+                xs.append(j + i * width - 0.4 + width / 2)
+                ys.append(pc_row["ratio"] + pc_row["ratio_reverse"] - 2.0)
+        ax.bar(xs, ys, width=width, label=emb)
+    ax.axhline(0.0, color=INK, lw=1.0)
+    ax.text(len(classes) - 0.5, 0.012, "pure contamination", fontsize=8, color=MUTED, ha="right", va="bottom")
+    ax.set_xticks(range(len(classes)))
+    ax.set_xticklabels(classes, fontsize=8, rotation=35, ha="right")
+    ax.set_ylabel("forward + reverse - 2", fontsize=9, color=INK)
+    ax.grid(axis="y", color=GRID, lw=0.6)
+    _frame(ax)
+    ax.legend(fontsize=8, frameon=False, ncol=3, loc="upper right")
+    ax.set_title(
+        "The artifact is per-class, not uniform - which is what #3670 assumed",
+        fontsize=10.5,
+        color=INK,
+        loc="left",
+    )
+    fig.tight_layout()
+    fig.savefig(path, bbox_inches="tight")
+    plt.close(fig)
+
+
 def main() -> None:
     FIGDIR.mkdir(parents=True, exist_ok=True)
     supply = json.loads((RESULTS / "negpool_supply.json").read_text())
@@ -286,7 +339,8 @@ def main() -> None:
     fig_distortion(shortcut, FIGDIR / "distortion.png")
     fig_review(coverage, FIGDIR / "review-coverage.png")
     fig_prevalence(coverage, FIGDIR / "prevalence.png")
-    print(f"wrote 4 figures to {FIGDIR}")
+    fig_asymmetry(shortcut, FIGDIR / "asymmetry.png")
+    print(f"wrote 5 figures to {FIGDIR}")
 
 
 if __name__ == "__main__":

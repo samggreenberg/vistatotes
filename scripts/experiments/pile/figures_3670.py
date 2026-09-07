@@ -198,14 +198,18 @@ def fig_review(coverage: dict, path: Path) -> None:
             color="#dcdce2",
             label="ineligible by rule",
         )
+        top = max(coverage["compositions"][c]["populations"][pop]["reviewed"] for c in comps)
         for i, c in enumerate(comps):
             row = coverage["compositions"][c]["populations"][pop]
-            ax.text(i, row["reviewed"] * 1.02, f"{row['coverage']:.0%}", ha="center", fontsize=9, color=INK)
-        ax.set_title(pop, fontsize=9.5, color=INK)
+            ax.text(i, row["reviewed"] + top * 0.03, f"{row['coverage']:.0%}", ha="center", fontsize=9, color=INK)
+        # Headroom for the percentage labels, so they never meet the title.
+        ax.set_ylim(0, top * 1.18)
+        ax.set_title(pop, fontsize=9.5, color=INK, pad=22)
         ax.grid(axis="y", color=GRID, lw=0.6)
         _frame(ax)
     axes[0].set_ylabel("human judgements", fontsize=9, color=INK)
-    axes[0].legend(fontsize=7.5, frameon=False, loc="center left")
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, fontsize=8, frameon=False, ncol=4, loc="lower center", bbox_to_anchor=(0.5, -0.06))
     fig.suptitle(
         "`provable` spends two thirds of the review and loses none of the rest "
         "(% = coverage of what the rule can hold)",
@@ -214,7 +218,7 @@ def fig_review(coverage: dict, path: Path) -> None:
         x=0.01,
         ha="left",
     )
-    fig.tight_layout()
+    fig.tight_layout(rect=(0, 0.02, 1, 0.94))
     fig.savefig(path, bbox_inches="tight")
     plt.close(fig)
 

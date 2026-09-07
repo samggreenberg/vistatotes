@@ -804,6 +804,16 @@ SCALE_VG_AMBIGUOUS: dict[str, tuple[str, ...]] = {
     # `van` and `vehicle` are demoted aliases, not refuted names -- see the note
     # in SCALE_VG_NAMES["car"]. Both are evidence the class MAY be present, so
     # they still bar their image from the shared negative pool.
+    #
+    # `truck`, `pick up`, `pick up truck` and `pickup truck` are NOT here, and
+    # leaving them here would have been the most expensive line in this file.
+    # The audit adjudicates one class at a time, so it offered every one of them
+    # as ambiguous evidence for `car` -- reasonable in isolation, and fatal in
+    # combination, because `lift_ambiguous` POPS the box rather than merely
+    # declining to band it. Listing `truck` as ambiguous for `car` therefore
+    # deletes every VG `truck` box in the corpus: measured, `truck` supply went
+    # to **0 in all three bands** from 3,386. A name another class in C already
+    # owns is settled by that class; it is never a neighbour's ambiguous entry.
     "car": (
         "automobil",
         "automobiles",
@@ -819,10 +829,7 @@ SCALE_VG_AMBIGUOUS: dict[str, tuple[str, ...]] = {
         "parkedcar",
         "parkedcars",
         "parking lot",
-        "pick up",
-        "pick up truck",
         "pick-up truck",
-        "pickup truck",
         "police car",
         "police cars",
         "sedans",
@@ -830,7 +837,6 @@ SCALE_VG_AMBIGUOUS: dict[str, tuple[str, ...]] = {
         "taxicab",
         "taxis",
         "traffic",
-        "truck",
         "van",
         "vehicle",
         "vehicle?",
@@ -893,7 +899,6 @@ SCALE_VG_AMBIGUOUS: dict[str, tuple[str, ...]] = {
         "beer glasses",
         "beverage",
         "blue cup",
-        "bowls",
         "coaster",
         "coffee",
         "coffee cups",
@@ -978,7 +983,6 @@ SCALE_VG_AMBIGUOUS: dict[str, tuple[str, ...]] = {
         "firetrucks",
         "flatbed",
         "food trucks",
-        "jeep",
         "lorry",
         "luggage cart",
         "pick-up truck",
@@ -2019,7 +2023,19 @@ SCALE_N_NEG = int(os.environ.get("VTS_SCALE_N_NEG", "3900"))
 #: Extra negatives drawn into the pickle but designated into no cell. A human
 #: verdict can retire a contaminated negative later; re-designating from a spare
 #: is a relabel, while drawing a fresh one would mean re-embedding every cell.
-SCALE_N_NEG_SPARE = int(os.environ.get("VTS_SCALE_N_NEG_SPARE", "300"))
+#:
+#: **1,000 since the #3588 promotion, up from 300, because the pool is shared and
+#: C is now twenty-five classes.** A shared negative is evaluable in *every* cell
+#: (:func:`pilebuild.loaders.vg_scale._evaluable` returns the whole cell list for
+#: an image with no categories), so a verdict that finds a car in a pool image
+#: does not retire it from `car` alone -- the image stops being clean and leaves
+#: all twenty-five. The budget therefore has to cover the **joint** rate, not the
+#: worst class's: the negative pass measured 14% +/- 7 on its random stratum
+#: (n=100, #3588), which is ~550 of 3,900, and the spares are contaminated at the
+#: same rate. 300 was sized when *C* was twelve classes at 1-2% each and would be
+#: spent by a single correction pass, at which point the cheap relabel becomes a
+#: re-embed of every cell -- the exact trade this constant exists to avoid.
+SCALE_N_NEG_SPARE = int(os.environ.get("VTS_SCALE_N_NEG_SPARE", "1000"))
 
 #: The **designed** prevalence of a `vg_scale` cell: 100 positives per band x 3
 #: bands against 3900 shared negatives. Named because `vg_scale_deep` has to

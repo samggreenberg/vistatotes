@@ -266,6 +266,35 @@ class TestVgNameTables:
         ambiguous = {n for names in pc.SCALE_VG_AMBIGUOUS.values() for n in names}
         assert not (alias & ambiguous)
 
+    def test_no_listed_spelling_is_itself_a_class_in_c(self, pc):
+        """A name another class OWNS is settled by that class, never a neighbour's entry.
+
+        This is the sibling of the test above and it catches the case that one
+        misses, because it is about a table's KEYS meeting another's values.
+        `lift_ambiguous` does not merely decline to band an ambiguous spelling --
+        it ``pop``s the box out of `labels` for every image, before
+        `band_candidates` ever runs. So a class name listed as ambiguous for a
+        NEIGHBOUR deletes that class outright, everywhere, silently.
+
+        Measured, not imagined: the #3588 promotion's name audit adjudicates one
+        class at a time and duly offered `truck` as ambiguous evidence for `car`.
+        Adopting it took `truck` from 3,386 band-free positives to **0 in all
+        three bands**, and nothing in the build said so -- the fold ledger still
+        printed `truck+273/23` for a class that no longer existed. The pair test
+        above cannot see it, because `truck` is a table KEY rather than one of
+        its values (#3588).
+        """
+        classes = set(pc.SCALE_CLASSES)
+        for table_name, table in (("SCALE_VG_NAMES", pc.SCALE_VG_NAMES), ("SCALE_VG_AMBIGUOUS", pc.SCALE_VG_AMBIGUOUS)):
+            for cls, names in table.items():
+                collisions = sorted(set(names) & classes)
+                assert not collisions, (
+                    f"{table_name}[{cls!r}] lists {collisions}, which is a class in C. "
+                    "A spelling that names another class is settled by that class: as an alias it "
+                    "would fold one class's boxes onto another, and as an ambiguous entry "
+                    "lift_ambiguous pops those boxes and deletes the owning class from every band."
+                )
+
     def test_bike_is_declared_ambiguous_for_bicycle(self, pc):
         """Not merged: 59.6% of VG `bike` boxes land on no COCO class (#3605)."""
         assert "bike" in pc.SCALE_VG_AMBIGUOUS["bicycle"]

@@ -27,12 +27,14 @@ for iid, d in m.items():
     held = {c.split("@")[0] for c in cats}
     if not cats:
         # A media with no categories is a shared negative OR a SPARE, and only
-        # the first is evaluable anywhere. The spares (`SCALE_N_NEG_SPARE` =
-        # 300) are drawn into the pickle and designated into no cell, so that
-        # retiring a contaminated negative is a relabel rather than a
-        # re-embedding pass. Counting them put 4,300 in the `before` column of a
-        # cell that holds 4,000, and carried a 300-image error into the whole
-        # table -- found when the rebuilt cell was measured against it (#3667).
+        # the first is evaluable anywhere. The spares (`SCALE_N_NEG_SPARE`, 300
+        # when this was written and 1,000 since the #3588 promotion) are drawn
+        # into the pickle and designated into no cell, so that retiring a
+        # contaminated negative is a relabel rather than a re-embedding pass.
+        # Counting them put 4,300 in the `before` column of a cell that holds
+        # 4,000, and carried a 300-image error into the whole table -- found when
+        # the rebuilt cell was measured against it (#3667). Read the constant,
+        # never the number: the error scales with it.
         if not d.get("evaluable_categories"):
             continue
         for cell in CELLS:

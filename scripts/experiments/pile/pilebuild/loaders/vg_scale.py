@@ -196,6 +196,17 @@ def lift_ambiguous(
 
     The boxes are dropped either way: :func:`band_candidates` bands by category
     name and has no cell to put a `bike` in.
+
+    **That last sentence is why a table entry must never name another class in
+    C.** The drop is unconditional and global -- it happens before the three
+    exemptions are even consulted -- so an entry naming a class deletes that
+    class's own boxes from every image in the corpus. `truck` listed as
+    ambiguous for `car` took `truck` from 3,386 band-free positives to zero in
+    all three bands, and the run said nothing: the fold ledger still printed
+    `truck+273/23`, because the fold had already run. The guard is in the suite
+    (``test_no_listed_spelling_is_itself_a_class_in_c``) rather than here,
+    because this function receives the table as an argument and is used by tests
+    with deliberately small ones (#3588).
     """
     reverse = {n: cls for cls, names in vg_names.items() for n in names if n != cls}
     pairs: set[tuple[int, str]] = set()

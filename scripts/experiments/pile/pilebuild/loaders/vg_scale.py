@@ -365,6 +365,7 @@ def apply_corrections(
     box_dims: dict[int, tuple[int, int]],
     exhaustive: set[int],
     classes: tuple[str, ...] | None = None,
+    designated: dict[tuple[int, str], list[list[float]]] | None = None,
 ) -> set[tuple[int, str]]:
     """Fold human verdicts into *labels*, and return the pairs that cannot be banded.
 
@@ -377,6 +378,12 @@ def apply_corrections(
     could see that, because the BAND is derived from the same corrupted box, so
     the cell name and its boxes stayed consistent with each other all the way
     into the study.
+
+    **A drawn box designates rather than replaces** when *designated* is given
+    (#3726). The reviewer's box is recorded there and kept at the head of the
+    class's box list; the instances VG already had are kept behind it, where the
+    old behaviour dropped them. Passing ``None`` keeps the pre-#3726 semantics,
+    which is what every caller that only wants the labels still does.
 
     A pair a reviewer ruled "present" without drawing a box cannot be banded: a
     band is a claim about size, and no size was measured. It leaves every cell of
@@ -422,7 +429,28 @@ def apply_corrections(
         if verdict.get("present"):
             boxes = correction_boxes_px(verdict, *box_dims[iid])
             if boxes:
-                labels[iid][name] = boxes
+                # A reviewer's box does TWO things, and the build used to hear
+                # only one of them (#3726). It annotates an instance, and it
+                # *designates* which instance this cell is about -- Sam's own
+                # description of what he was doing: "there was a different,
+                # more-prominent example elsewhere in the image".
+                #
+                # Replacing the set hears the designation and throws the
+                # annotation away: 26 of 470 boxed corrections collapsed a
+                # multi-instance set, `book` 713617 from 14 boxes to 1. Merging
+                # without designating hears the annotation and loses the choice:
+                # `band_for` would union the drawn box with the others, the image
+                # would not move to the band the reviewer picked, and a scattered
+                # set would take it out of every band -- overturning #3616.
+                #
+                # So both are recorded. The set keeps every instance; the
+                # designation is carried beside it and is what bands the cell.
+                if designated is not None:
+                    designated[(iid, name)] = boxes
+                    existing = labels[iid].get(name) or []
+                    labels[iid][name] = boxes + [b for b in existing if b not in boxes]
+                else:
+                    labels[iid][name] = boxes
             else:
                 labels[iid].pop(name, None)
                 unbanded.add((iid, name))
@@ -476,8 +504,14 @@ def band_candidates(
     box_dims: dict[int, tuple[int, int]],
     unbanded: set[tuple[int, str]],
     classes: tuple[str, ...] | None = None,
+    designated: dict[tuple[int, str], list[list[float]]] | None = None,
 ) -> tuple[dict[str, dict[str, list[int]]], dict[tuple[int, str], list[list[float]]], list[int]]:
     """Sort every image into ``(class, band)`` supply, or into the clean pool.
+
+    Returns ``(supply, boxes_for, clean)``. *designated* carries a reviewer's
+    chosen box per ``(image, class)`` (#3726): it decides the **band**, while
+    ``boxes_for`` still carries every instance, so the cell knows what the class
+    has in the image and the band still says which one was picked.
 
     Returns ``(supply, boxes_for, clean)``. An image with no instance of any
     class in C joins ``clean`` -- unless its ``(image, class)`` pair is in
@@ -506,7 +540,12 @@ def band_candidates(
                 clean.append(iid)
             continue
         for name, bs in by_name.items():
-            band = band_for(bs, W, H)
+            # The band is a claim about the object this cell is about, so a
+            # reviewer's designation decides it and the other instances do not
+            # drag it (#3726). Without a designation this is exactly the old
+            # behaviour: the union over everything the class has here.
+            picked = (designated or {}).get((iid, name))
+            band = band_for(picked or bs, W, H)
             if band not in pc.BOX_BANDS:  # scattered, or bigger than a region
                 continue
             supply[name][band].append(iid)
@@ -888,7 +927,8 @@ def load(dataset: str, medias: dict[int, dict], embedder_name: str) -> None:
     # and is what lets `contested` be counted against the real pixel space, and
     # only on the images that actually pay it.
     folded, contested = canonicalise(labels, pc.SCALE_VG_NAMES, box_dims, pc.SCALE_FOLD_MODE)
-    unbanded = apply_corrections(labels, corrections, box_dims, exhaustive)
+    designated: dict[tuple[int, str], list[list[float]]] = {}
+    unbanded = apply_corrections(labels, corrections, box_dims, exhaustive, designated=designated)
     suppressed = lift_ambiguous(labels, pc.SCALE_VG_AMBIGUOUS, exhaustive)
     unbanded |= suppressed
     log(
@@ -940,7 +980,7 @@ def load(dataset: str, medias: dict[int, dict], embedder_name: str) -> None:
         )
         log("    run `coco_folds.py --classes <c>` and record the result in pile_config.SCALE_VG_NAMES_AUDITED (#3605)")
 
-    supply, boxes_for, clean = band_candidates(labels, box_dims, unbanded)
+    supply, boxes_for, clean = band_candidates(labels, box_dims, unbanded, designated=designated)
 
     roster = {}
     if pc.ROSTER.exists():

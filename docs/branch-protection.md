@@ -3,78 +3,101 @@
 Goal: **only @samggreenberg should land changes on `main`.** `dev` is the shared
 integration branch and stays open to collaborators via PRs.
 
-## Reality check: this repo is private on the Free plan
+## Current state (verified 2026-09-08)
 
-Two GitHub limitations apply here, and they shape everything below:
+This repository is **public**, so branch protection and rulesets are available at
+no cost, and both long-lived branches carry protection:
 
-1. **No branch protection or rulesets.** On the Free plan, protected branches and
-   repository rulesets are only available on **public** repositories. A private
-   repo on Free **cannot** enforce "require a PR," "require my review," or
-   "restrict who pushes to `main`." Those settings are simply unavailable.
-2. **No granular collaborator roles.** On a **personal-account** repo (this one),
-   every collaborator you add has **write/push** access. The Read / Triage /
-   Write / Maintain roles only exist inside **organizations**. So you can't make
-   any of the 7 collaborators (`xofm31`, `sbwilli3`, `matsunagateitoku`,
-   `trevoradriaanse`, `qr1338`, `GCHQDev42081`, `drew-synergist-computing`)
-   read-only either.
+| | |
+|---|---|
+| visibility | **public** (`"private": false`) |
+| default branch | `main` |
+| `main` | **protected** |
+| `dev` | **protected** |
+| collaborators | 4 — @samggreenberg (admin), @xofm31, @MatthewELucio, @CarHorseBatteryStaple (write) |
 
-Net effect: **right now, nothing GitHub-side can hard-*prevent* a collaborator
-from pushing to `main`.** Enforcement requires changing the plan or visibility
-(see the last section). Until then, the controls below are *soft* — they signal,
-notify, and rely on team convention, but do not block.
+That is the *existence* of protection, which is what the branch API reports. It
+does not say what each rule enforces — see
+[Reading the rules that are actually set](#reading-the-rules-that-are-actually-set)
+below, and read them before relying on any specific guarantee.
 
-## Soft controls in effect today
+### The one limitation that has not changed
 
-### 1. CODEOWNERS auto-requests your review
+**Every collaborator on a personal-account repo has write access.** The
+Read / Triage / Write / Maintain roles exist only inside organizations, so the
+three collaborators above cannot be made read-only while the repo lives under a
+personal account. Restricting *who may push to `main`* is therefore done by the
+branch rule's push restriction, not by giving anyone a weaker role.
 
-`.github/CODEOWNERS` is `* @samggreenberg`. Even without branch protection,
-GitHub uses it to **automatically request your review** on every PR. This does
-not *block* a merge on the Free/private plan, but it makes your sign-off the
-visible, expected step on anything heading toward `main`.
+## Why `dev` survives a Dev2Main release
 
-### 2. Team convention (the actual gate, for now)
+Worth stating explicitly, because the repo now has **"Automatically delete head
+branches"** enabled and the [Dev2Main](RELEASE.md) release PR is `dev` → `main` —
+which makes `dev` the *head* branch of a PR that gets merged every release.
 
-The enforced rules don't exist, so the working agreement is the gate. The
-project already encodes it in `CLAUDE.md`:
+`dev` is not deleted, for two independent reasons:
+
+1. **It is protected.** GitHub's automatic head-branch deletion skips protected
+   branches. A protection carrying `allow_deletions: false` blocks the deletion
+   outright rather than merely declining to initiate it.
+2. **It is the base of other open PRs.** GitHub does not auto-delete a branch
+   that another open PR is targeting, and on any ordinary day `dev` is the base
+   of several.
+
+If it were ever deleted anyway, nothing is lost: after the release merge `dev`'s
+tip is an ancestor of `main`, and the merged PR page offers **Restore branch** to
+recreate it at the same commit. The cost would be disruption — the
+`.claude/hooks/session-start.sh` hook and every open PR's base break until it is
+restored — not lost work.
+
+## Soft controls, which still do useful work
+
+Protection rules are the hard gate; these remain worth keeping because they shape
+behaviour before anyone reaches the gate.
+
+### CODEOWNERS auto-requests review
+
+[`.github/CODEOWNERS`](../.github/CODEOWNERS) is `* @samggreenberg`, so GitHub
+automatically requests that review on every PR. Combined with a `main` rule that
+requires Code Owner review, it makes @samggreenberg the only valid approver for
+anything landing on `main`.
+
+### Team convention
+
+`CLAUDE.md` encodes the working agreement, and it is what keeps `main` quiet in
+practice — nobody working off `dev` has a routine reason to touch `main`:
 
 - All work branches off `dev`; all PRs target `dev`, **never** `main`.
 - `main` is updated **only by @samggreenberg**, by promoting `dev` → `main`.
 - Collaborators do not push directly to `main`.
 
-Keep `main` as the stable/release branch and do all day-to-day merging on `dev`.
-Because everyone works off `dev`, no one has a routine reason to touch `main`.
+### Notifications
 
-### 3. Notifications so you'd *see* an unwanted push
+So an unwanted push to `main` is visible rather than silent: **Watch → All
+Activity** (or **Custom → Pushes**), or subscribe to the `main` commit feed at
+`https://github.com/samggreenberg/vtsearch/commits/main.atom`.
 
-Since you can't block pushes, make sure you'd notice one:
+## Reading the rules that are actually set
 
-- **Watch** the repo (top-right **Watch → All Activity**, or **Custom → Pushes**)
-  so direct pushes to `main` generate a notification.
-- Optionally subscribe to the `main` branch's commit feed (Atom):
-  `https://github.com/samggreenberg/vtsearch/commits/main.atom`.
-
-This turns "someone changed `main`" from invisible into an alert you can act on
-(revert + a conversation), which is the best available recourse without
-enforcement.
-
-## When you want real enforcement
-
-The soft controls above can't *prevent* a push. To actually restrict `main` so
-only you can land changes, pick one of these — then the enforced steps further
-below become available:
-
-| Path | Cost | Result |
-|------|------|--------|
-| **GitHub Pro** | ~$4/mo | Keep repo private; classic branch protection works on private repos. Cheapest real fix. |
-| **Make repo public** | Free | Branch protection + rulesets become available for free. (Code becomes public.) |
-| **Move into an Organization** | Free org / paid Team | Granular member roles (read-only members, contribute via fork+PR). Private-branch *protection* still needs the org **Team** plan. |
-
-### Enforced setup (once on Pro, or public)
-
-Classic branch protection via `gh` (run as `samggreenberg`):
+The branch listing reports only whether a branch is protected. To see what the
+protection contains:
 
 ```bash
-# Lock main: PR + your Code Owner review required, only you may push.
+gh api repos/samggreenberg/vtsearch/branches/main/protection
+gh api repos/samggreenberg/vtsearch/branches/dev/protection
+```
+
+The UI equivalent is **Settings → Rules → Rulesets**, or the classic
+**Settings → Branches** editor.
+
+## The intended rules
+
+Recorded here as the reference for what protection *should* say. Check the live
+rules against this rather than assuming they match.
+
+Lock `main` — PR plus Code Owner review required, only @samggreenberg may push:
+
+```bash
 gh api -X PUT repos/samggreenberg/vtsearch/branches/main/protection \
   --input - <<'JSON'
 {
@@ -92,12 +115,12 @@ gh api -X PUT repos/samggreenberg/vtsearch/branches/main/protection \
 JSON
 ```
 
-With `.github/CODEOWNERS` = `* @samggreenberg`, `require_code_owner_reviews`
-means only *your* review satisfies the gate; `restrictions.users` limits pushes
-to you. Set `enforce_admins: true` to bind yourself to the same rules.
+With CODEOWNERS as above, `require_code_owner_reviews` means only
+@samggreenberg's review satisfies the gate, and `restrictions.users` limits
+pushes. Set `enforce_admins: true` to bind yourself to the same rules.
 
-For `dev`, keep it lighter — a PR guardrail with no mandatory approver so routine
-work (and Claude PRs) keeps flowing:
+Keep `dev` lighter — a PR guardrail with no mandatory approver, so routine work
+and Claude PRs keep flowing:
 
 ```bash
 gh api -X PUT repos/samggreenberg/vtsearch/branches/dev/protection \
@@ -116,6 +139,18 @@ gh api -X PUT repos/samggreenberg/vtsearch/branches/dev/protection \
 JSON
 ```
 
-Verify with `gh api repos/samggreenberg/vtsearch/branches/main/protection`.
-The equivalent UI lives under **Settings → Rules → Rulesets** (or the classic
-**Settings → Branches** editor) once your plan/visibility allows it.
+`allow_deletions: false` on `dev` is the setting that makes the release flow
+above safe. It is worth confirming it is actually set.
+
+## History
+
+This document previously described the repo as **private on the Free plan**,
+where protected branches and rulesets are unavailable, and concluded that
+"nothing GitHub-side can hard-*prevent* a collaborator from pushing to `main`."
+It carried a cost table of ways to *obtain* enforcement — GitHub Pro, making the
+repo public, or moving to an organization.
+
+The repo has since taken the free option in that table and gone public, so
+enforcement is available and in place, and the sections describing its absence
+were removed rather than left to be reasoned from. The collaborator list in that
+version (seven accounts) no longer matches either.

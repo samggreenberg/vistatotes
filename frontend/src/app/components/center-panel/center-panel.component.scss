@@ -28,6 +28,16 @@
     color: var(--text-placeholder);
     font-size: var(--font-xl);
   }
+
+  // A Shift-drag (or the sticky Marquee toggle) can anchor a region box from
+  // anywhere in this column, not just from the image canvas - see
+  // `ImageViewerComponent.tryStartOffCanvasDraw`. The crosshair is the only
+  // affordance saying so; without it the reachable area below the image is
+  // invisible. Interactive controls keep their own cursor, matching the fact
+  // that a drag begun on one still does what it always did.
+  &.region-draw {
+    cursor: crosshair;
+  }
 }
 
 .placeholder-text {
@@ -136,6 +146,11 @@
 
 .ivc-zoom-slider {
   width: 100px;
+  // Every other control down here carries its own `cursor: pointer`, and a rule
+  // matching an element directly beats a value inherited from an ancestor - so
+  // the `.center-panel.region-draw` crosshair leaves them alone for free. The
+  // slider had no cursor of its own and would have inherited it.
+  cursor: pointer;
 }
 
 .ivc-zoom-label {

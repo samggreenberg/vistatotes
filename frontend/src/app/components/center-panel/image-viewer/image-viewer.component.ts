@@ -14,6 +14,12 @@ type DragMode =
 
 const MIN_BOX_SIZE = 0.01; // 1% of the image; below this we treat a draw as a stray click
 
+// Controls that keep their own click semantics when a region draw is started from
+// outside the canvas (see `tryStartOffCanvasDraw`). Without this, turning the
+// sticky Marquee toggle on would make the Good/Bad buttons and the zoom slider
+// unusable, because every mousedown on them would anchor a box instead.
+const OFF_CANVAS_DRAW_EXCLUDED = 'button, input, select, textarea, a, label, [role="button"], [contenteditable]';
+
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'vt-image-viewer',
@@ -276,22 +282,8 @@ export class ImageViewerComponent implements OnDestroy {
   onMouseDown(event: MouseEvent): void {
     if (event.button !== 0) return;
 
-    if (this.regionDrawActive && this.renderedW() > 0 && this.renderedH() > 0) {
-      // Drag from anywhere on the canvas (Shift-held or marquee mode) starts a fresh
-      // box. If an older box existed, discard it before recording the new anchor.
-      const local = this.screenToImageNormalized(event);
-      if (!local) return;
-      const x = clamp01(local.x);
-      const y = clamp01(local.y);
-      if (this.pendingBadConfirm()) this.armedConfirmCanceled.emit();
-      // Remember the prior box so we can restore it on a zero-area release;
-      // a stray Shift-click on empty space must not throw away real work.
-      this.drag = { kind: 'draw', anchor: { x, y }, previousBox: this.regionBox() };
-      this.regionBox.set([x, y, x, y]);
-      event.preventDefault();
-      this.setupWindowMouseListeners();
-      return;
-    }
+    // Drag from anywhere on the canvas (Shift-held or marquee mode) starts a fresh box.
+    if (this.beginDraw(event)) return;
 
     // Default: pan-when-zoomed.
     const max = this.getMaxPan();
@@ -305,6 +297,58 @@ export class ImageViewerComponent implements OnDestroy {
     };
     event.preventDefault();
     this.setupWindowMouseListeners();
+  }
+
+  /** Start a region draw from a point OUTSIDE the image canvas.
+   *
+   *  The horizontal case has always worked by accident of layout: the image is
+   *  ``object-fit: contain`` inside a full-width ``.image-wrap``, so for a tall
+   *  image the letterbox columns beside it are still *inside* the wrap and hit
+   *  `onMouseDown` above; `screenToImageNormalized` returns ``x < 0`` and
+   *  `clamp01` snaps the anchor to the nearest edge. Vertically there is no such
+   *  slack - the wrap is exactly as tall as the media area, and below it sit the
+   *  toolbar, the vote buttons and the metadata tray as SIBLINGS under
+   *  ``.center-panel``, so a mousedown there never reached this component at all
+   *  (it just started a native text selection over the buttons).
+   *
+   *  This is the same gesture, delegated from the panel. Nothing downstream needs
+   *  to change: the anchor is clamped exactly as the sideways case is, and the
+   *  move/up listeners were already on ``window``, so dragging out of the canvas
+   *  has always worked once a drag was under way. Only the *start* was gated.
+   *
+   *  Interactive controls are deliberately excluded - a click on the Good/Bad
+   *  buttons, the zoom slider or the metadata toggle keeps doing exactly what it
+   *  does today, including while the sticky Marquee toggle is on. */
+  tryStartOffCanvasDraw(event: MouseEvent): void {
+    if (event.button !== 0 || !this.regionDrawActive) return;
+    const target = event.target as HTMLElement | null;
+    const wrap = this.wrapRef()?.nativeElement;
+    // Inside the canvas the wrap's own handler owns the gesture; this delegated
+    // one sees the bubbled event afterwards and must not start a second draw.
+    if (!wrap || !target || wrap.contains(target)) return;
+    if (target.closest?.(OFF_CANVAS_DRAW_EXCLUDED)) return;
+    this.beginDraw(event);
+  }
+
+  /** Anchor a fresh draw at `event`, clamped to the image. Returns false (leaving
+   *  the caller to fall through to its own default) when region-draw isn't active
+   *  or the image isn't laid out yet. */
+  private beginDraw(event: MouseEvent): boolean {
+    if (!this.regionDrawActive || this.renderedW() <= 0 || this.renderedH() <= 0) return false;
+    const local = this.screenToImageNormalized(event);
+    if (!local) return false;
+    const x = clamp01(local.x);
+    const y = clamp01(local.y);
+    if (this.pendingBadConfirm()) this.armedConfirmCanceled.emit();
+    // Remember the prior box so we can restore it on a zero-area release;
+    // a stray Shift-click on empty space must not throw away real work.
+    this.drag = { kind: 'draw', anchor: { x, y }, previousBox: this.regionBox() };
+    this.regionBox.set([x, y, x, y]);
+    // Also what stops the drag from painting a native text selection across the
+    // buttons and labels it passes over.
+    event.preventDefault();
+    this.setupWindowMouseListeners();
+    return true;
   }
 
   onRegionBodyMouseDown(event: MouseEvent): void {

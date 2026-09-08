@@ -143,6 +143,7 @@ acquisition after it.
 | Compare a result here against `vg_box_small/medium/large` | **not supported** | Disjoint vocabularies; the gap confounds box size with class identity. Stated at the top of this datasheet. |
 | Any **per-class** reading of `bicycle` (or, in smaller measure, the other eleven) in the published cells | **carries a known defect** | All twelve are built from one VG spelling and the published pickle still is. `bike` carries 638 of COCO's 3,683 `bicycle` boxes against the `bicycle` spelling's 775, and on the non-COCO half those became `bicycle` **negatives** (#3605, #3618). |
 | Compare a number against one published **before 2026-09-06** | **not comparable** | #3667 changed both the evaluable set (4,000 → 5,806 per cell) and the realised prevalence (2.50% → 1.72%), which moves every k\* quoted from it. |
+| Compare a number against one measured **before the 2026-09-08 rebuild** | **check what moved first** | The pile was rebuilt 2026-09-08 04:52 carrying three merged rulings: #3727 (a confirmed verdict now leaves a row, so `designate_cells` seats confirmed images ahead of unreviewed ones), #3726 (a reviewer's box designates an instance and the class's other instances are kept, so a cell carries **+270** region boxes) and #3662 (a tightened pooled-name criterion, +8 repaired images). Membership moved by **30 positives over 12 cells**; the shared negative pool did not move at all. Small, and not nothing: a per-class number on `stop sign@medium`, `clock@small`, `bus@{small,medium,large}` or `knife@large` rests on up to 6 different images out of 100. The pre-rebuild cells, roster and corrections are kept at `vts-cache/stash/pre-rebuild-20260908/`, so an old number can be re-measured against the pile it was taken on rather than argued about. |
 
 **Per-class floors** (`pool_contamination.py`, #3635 — the estimated share of the
 shared pool that actually holds the class, on VG's evidence alone):
@@ -158,6 +159,14 @@ shared pool that actually holds the class, on VG's evidence alone):
 pool against the 100 labelled ones per cell — more real backpacks among the
 negatives than among the positives, which is the worst case `coco_anchor.py`
 names.
+
+**Region voting reads more boxes than it used to.** Since the 2026-09-08 rebuild a
+reviewed positive carries every instance of its class rather than only the box the
+reviewer drew (#3726), so a region-voting arm trains on +270 true boxes across the
+reviewed images. That is a correction, not a regression — the boxes were always in
+VG and the old merge discarded them — but it is a change in what an arm sees, so a
+region-voting number measured across that boundary is one of the ones the row
+above is about.
 
 **Two of these are removable rather than permanent**, and cheaply: the negative
 pool can be made *provable* instead of audited (#3668, #3670 — 18,986 images

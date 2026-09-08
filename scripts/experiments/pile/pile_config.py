@@ -1797,15 +1797,43 @@ SCALE_CLASS_RULES: dict[str, ClassRule] = {
     # The guide first named `chair` (53 boxes) as this class's confusion. It is
     # third: `seat` (64) and `table` (58) both outrank it, and each turns on a
     # question COCO's annotators do not ask.
+    # `bench` and `chair` share one principle about vehicles, and until 2026-09-08
+    # they contradicted each other: `chair` ruled a car seat out ("a component is
+    # not an instance"; "A PART INHERITS THE RULING OF ITS WHOLE") while `bench`
+    # ruled a rowboat's thwart IN. The reviewer found it mid-pass. `chair`'s
+    # principle wins because it generalises -- one line covers cars, motorcycles,
+    # buses and boats for both classes -- and because the alternative forces
+    # `chair` to admit bus seats, which it refuses for a practical reason rather
+    # than a principled one.
+    #
+    # The cost is real and worth naming: a swan boat's passenger bench is
+    # unambiguously built as seating for two or more, and it is now Bad. The line
+    # is "part of a vehicle", not "not really seating".
+    #
+    # **This ruling rests on consistency, NOT on a measurement**, and that is a
+    # weaker footing than `chair`'s. The annotation guide settled `chair` with a
+    # rate test -- every vehicle class holds a chair BELOW COCO's base rate
+    # (airplane 0.14x, train 0.17x, bus 0.20x, boat 0.56x), which reads as
+    # annotators treating a vehicle interior as containing none. Run for `bench`
+    # the same test says the opposite -- boat 1.42x, train 1.40x, car 1.43x --
+    # and it is confounded rather than contradicting: benches and vehicles share
+    # outdoor scenes, so a waterfront bench behind a moored boat and a station
+    # bench beside a train both count. The guide itself rules a platform bench a
+    # Bench. Neither that test nor a box-containment test separates "in the
+    # vehicle" from "near it" for this class, so what COCO does with built-in
+    # boat seating is UNMEASURED. Rendered cases show genuine ones exist.
     "bench": ClassRule(
         name="bench not chairs",
         test=(
             "Good: any backed or backless seat BUILT AS SEATING for two or more -- park, "
-            "bus-stop and station benches, church pews, picnic-table benches, and a "
-            "rowboat's thwart. Bad: a single chair, a sofa, a judge's bench (that is a "
-            "table; the seating is the chairs behind it), and a concrete planter wall or "
-            "ledge people merely sit on. Two tests: seating or surface, and built as "
-            "seating or merely sittable."
+            "bus-stop and station benches, church pews, picnic-table benches. Bad: a "
+            "single chair, a sofa, a judge's bench (that is a table; the seating is the "
+            "chairs behind it), a concrete planter wall or ledge people merely sit on, "
+            "and SEATING BUILT INTO A VEHICLE -- a rowboat's thwart, a boat's built-in "
+            "hull seating, a bus's bench seat. A bench standing loose on a deck or in a "
+            "bus IS one, exactly as a car seat out of the car is a Chair. Three tests: "
+            "seating or surface, built as seating or merely sittable, and free-standing "
+            "or part of a vehicle."
         ),
     ),
     "chair": ClassRule(

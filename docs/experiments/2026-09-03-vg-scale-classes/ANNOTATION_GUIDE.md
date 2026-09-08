@@ -799,9 +799,28 @@ ledge, a low wall, a kerb or a platform (`wall` 16, `concrete` 6, `platform` 5,
 `rail`/`railing` 10). The test is intent of manufacture, not affordance.
 
 Together these narrow the class by roughly 3% of COCO's bench boxes, which the
-supply absorbs. A rowboat's **thwart** — the crosswise plank built to sit on —
-**counts**: it is seating, and it was built as seating, so it passes both tests
-even though it is part of a boat.
+supply absorbs.
+
+> **SUPERSEDED 2026-09-08.** This section used to rule that a rowboat's
+> **thwart** *counts* — "it is seating, and it was built as seating, so it
+> passes both tests even though it is part of a boat". It no longer does.
+> **Seating built into a vehicle is not a Bench**: a thwart, a boat's built-in
+> hull seating, a bus's bench seat. A bench standing *loose* on a deck or in a
+> bus still is one, exactly as a car seat out of the car is a Chair.
+>
+> The old ruling saw the tension and accepted it. It was overturned because it
+> contradicts the `Chair` ruling two sections below — "fixed seating that is
+> part of a vehicle is not a Chair", which names boats — and one principle
+> across both classes beats two that disagree. Note the asymmetry in evidence:
+> the `Chair` ruling has a rate test behind it, and this one does not. Run the
+> same test on `bench` and it is confounded rather than confirming (boat 1.42x
+> base, but car 1.43x and train 1.40x, because benches and vehicles share
+> outdoor scenes and a platform bench *is* a Bench). What COCO does with
+> built-in boat seating is unmeasured; this rests on consistency.
+>
+> Benches already voted under the old rule are re-reviewed as their own pass
+> (#3755), not mid-run. The live wording is
+> `pile_config.SCALE_CLASS_RULES["bench"]`.
 
 ### `chair incl stools not couches`
 

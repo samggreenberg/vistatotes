@@ -61,7 +61,7 @@ ANNOTATIONS_URL = "http://images.cocodataset.org/annotations/annotations_trainva
 #:
 #: `photos-prod` is the *production* pile the Find slide scores: the same fifteen
 #: subjects in the same proportions, and not one frame in common with `photos`.
-#: That disjointness is the slide's whole claim — the detector was voted on one
+#: Sharing nothing is the slide's whole claim — the detector was voted on one
 #: pile and is now ranking media it has never seen — so it is enforced here
 #: rather than left to a comment (see `DISJOINT_FROM`).
 #:

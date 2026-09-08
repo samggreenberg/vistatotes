@@ -11,6 +11,12 @@ This re-ranks those three classes with the scene term stripped and nothing else
 changed. If `boat` and `kite` keep a positive delta, the qualifier is not what
 put them there.
 
+Lives beside `pool_hardness.py` rather than in the report directory. It needs the
+GRID, the pile and this repo's sibling modules, where a report directory holds
+only a `figures.py` that rebuilds from `measurements/` alone -- and deptry scans
+`docs/`, so a sibling import from there reads as an undeclared dependency and
+blocks the suite for every branch.
+
 Statistic is `pool_hardness.py`'s own -- `win_rates` and `auc` are imported, not
 reimplemented.
 """
@@ -22,20 +28,16 @@ import pickle
 import sys
 from pathlib import Path
 
-PILE = "/exp/sgreenberg/projects/vts-remeasure/scripts/experiments/pile"
-CALIB = "/exp/sgreenberg/projects/vts-remeasure/scripts/experiments/calibration"
-sys.path.insert(0, PILE)
-sys.path.insert(0, CALIB)
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE.parent / "calibration"))
 
 import numpy as np  # noqa: E402
 import pile_config as pc  # noqa: E402
 import pool_hardness as ph  # noqa: E402  (runs pc.setup_env() on import)
 
 BARE = {"boat": "a boat", "kite": "a kite", "car": "a car"}
-OUT = Path(
-    "/exp/sgreenberg/projects/vts-remeasure/docs/experiments/"
-    "2026-09-07-pool-hardness-3680/measurements/query_ablation.json"
-)
+OUT = HERE.parents[2] / "docs/experiments/2026-09-07-pool-hardness-3680" / "measurements" / "query_ablation.json"
 
 
 def main() -> int:

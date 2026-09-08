@@ -148,7 +148,7 @@ comfortable coincidence.
 
 Re-ranking those three with the scene term stripped and nothing else changed
 ([`measurements/query_ablation.json`](measurements/query_ablation.json),
-`python query_ablation.py`):
+`python scripts/experiments/pile/query_ablation.py`):
 
 | class | shipped query | delta | bare query | delta | shift |
 |---|---|---|---|---|---|

@@ -1264,22 +1264,24 @@ class NameGroup(NamedTuple):
 #: excludes `hot dog` on meaning rather than on its score; the group is
 #: adjudicated before anything is inherited; and a member measurable on its own
 #: keeps its own verdict either way (``name_evidence.py``).
+#: **Members with a common non-class sense are excluded** (#3662, criterion
+#: pre-registered on the issue 2026-09-07 before any re-run). A name earns its
+#: place in a declared group by what it *denotes*, and `vessel` in VG is a
+#: container or a blood vessel, `crane` is the machine, `lab` is a laboratory
+#: and `tip` is a gratuity. #3636 would not declare a group afresh after seeing
+#: which member sank it -- that is how a study fits its own answer -- so the
+#: rule was written down first, applied to EVERY group including the ones that
+#: passed, and each exclusion is recorded on the issue with the other sense it
+#: carries.
 SCALE_VG_GROUPS: dict[str, tuple[NameGroup, ...]] = {
     "bicycle": (
         NameGroup(
             key="part",
             criterion="a VG name for a part of a bicycle",
             names=(
-                "bars",
                 "bicycle tire",
                 "bike tire",
-                "frame",
                 "front wheel",
-                "rack",
-                "tire",
-                "tires",
-                "wheel",
-                "wheels",
             ),
         ),
     ),
@@ -1288,10 +1290,7 @@ SCALE_VG_GROUPS: dict[str, tuple[NameGroup, ...]] = {
             key="species",
             criterion="a VG name denoting a species or kind of bird",
             names=(
-                "chicken",
                 "chickens",
-                "crane",
-                "dove",
                 "duck",
                 "ducks",
                 "eagle",
@@ -1311,7 +1310,6 @@ SCALE_VG_GROUPS: dict[str, tuple[NameGroup, ...]] = {
                 "seagull",
                 "seagulls",
                 "swan",
-                "turkey",
             ),
         ),
     ),
@@ -1334,27 +1332,35 @@ SCALE_VG_GROUPS: dict[str, tuple[NameGroup, ...]] = {
                 "sail boat",
                 "sailboat",
                 "sailboats",
-                "ship",
-                "vessel",
                 "yacht",
             ),
         ),
         NameGroup(
             key="mooring",
             criterion="a VG name for a place where vessels are moored (not open water or a shoreline)",
-            names=("dock", "harbor", "marina"),
+            names=("marina",),
         ),
         NameGroup(
             key="part",
             criterion="a VG name for a part of a vessel",
-            names=("bow", "cabin", "hull", "mast", "oar", "sail", "sails"),
+            names=(
+                "hull",
+                "mast",
+                "oar",
+                "sail",
+                "sails",
+            ),
         ),
     ),
     "book": (
         NameGroup(
             key="part",
             criterion="a VG name for a part of a book",
-            names=("binding", "book cover", "cover", "page", "pages", "spine", "title"),
+            names=(
+                "binding",
+                "book cover",
+                "pages",
+            ),
         ),
     ),
     "bus": (
@@ -1366,7 +1372,7 @@ SCALE_VG_GROUPS: dict[str, tuple[NameGroup, ...]] = {
         NameGroup(
             key="part",
             criterion="a VG name for a part of a bus specifically (not a part any vehicle has)",
-            names=("bus front", "top level", "upper level"),
+            names=("bus front",),
         ),
     ),
     "clock": (
@@ -1378,48 +1384,62 @@ SCALE_VG_GROUPS: dict[str, tuple[NameGroup, ...]] = {
         NameGroup(
             key="dial",
             criterion="a VG name for a clock's dial taken as a whole (not a marking on it)",
-            names=("clock face", "clock faces", "clockface", "dial", "dials"),
+            names=(
+                "clock face",
+                "clock faces",
+                "clockface",
+                "dials",
+            ),
         ),
         NameGroup(
             key="marking",
             criterion="a VG name for a marking on a clock face",
-            names=("black numbers", "numeral", "numerals", "roman numerals"),
+            names=("roman numerals",),
         ),
         NameGroup(
             key="part",
             criterion="a VG name for a part of a clock other than its dial or its markings",
-            names=("clock frame", "hands"),
+            names=("clock frame",),
         ),
     ),
     "dog": (
         NameGroup(
             key="breed",
             criterion="a VG name for a dog breed or life stage",
-            names=("bulldog", "dalmation", "lab", "poodle", "puppy"),
+            names=(
+                "bulldog",
+                "dalmation",
+                "poodle",
+                "puppy",
+            ),
         ),
         NameGroup(
             key="part",
             criterion="a VG name for a part of a dog",
-            names=("dog's head", "fur"),
+            names=("dog's head",),
         ),
     ),
     "kite": (
         NameGroup(
             key="part",
             criterion="a VG name for a part of a kite",
-            names=("kite tail", "long tail", "string", "strings", "tail", "tails"),
+            names=("kite tail",),
         ),
     ),
     "knife": (
         NameGroup(
             key="subtype",
             criterion="a VG name for a kind of knife, by what it cuts",
-            names=("butter knife", "butterknife", "cake server", "cutter"),
+            names=(
+                "butter knife",
+                "butterknife",
+                "cake server",
+            ),
         ),
         NameGroup(
             key="part",
             criterion="a VG name for a part of a knife",
-            names=("blade", "handle", "handles", "knife blade", "tip"),
+            names=("knife blade",),
         ),
     ),
     "stop sign": (
@@ -1430,11 +1450,9 @@ SCALE_VG_GROUPS: dict[str, tuple[NameGroup, ...]] = {
                 "arrow sign",
                 "construction sign",
                 "direction sign",
-                "dollar sign",
                 "electric sign",
                 "handicapped sign",
                 "no parking sign",
-                "number sign",
                 "one way sign",
                 "street sign",
             ),

@@ -124,7 +124,6 @@ now covers all 25 classes, so #3618's "before the next rebuild" warning is spent
 
 <!-- item-sep -->
 
-- [ ] #3696 — whether a named off-COCO negative stratum is drawn in (changes what the pass covers)
 
 <!-- item-sep -->
 
@@ -193,6 +192,10 @@ now covers all 25 classes, so #3618's "before the next rebuild" warning is spent
   judgement per image, recorded as verdicts rather than corrections in VG's own
   shape (`scripts/experiments/pile/verdicts_to_corrections.py`'s existing
   contract). One rebuild at the end, not one per ruling. (human + Sonnet 5)
+
+<!-- item-sep -->
+
+- [ ] #3696 — emit VG's silence rate from the pass's own answers, as an upper bound (Sonnet 5)
 
 <!-- item-sep -->
 

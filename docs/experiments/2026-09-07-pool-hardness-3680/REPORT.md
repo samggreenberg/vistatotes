@@ -7,7 +7,8 @@ not uniform across the class list, it spans `-0.066` to `+0.020` in AUC and the
 it predicted. It expected indoor tabletop classes to find the pool harder;
 every indoor tabletop class finds it **easier**, `book` — which the hypothesis
 named — included. The five classes that still find the pool harder are
-`bird`, `knife`, `dog`, `boat`, `kite`: outdoor and animal.
+`bird`, `knife`, `dog`, `boat`, `kite`: outdoor and animal. **Which five,
+though, is partly a property of the query rather than the class** — see §5.
 
 **Recommendation: keep the single shared pool, and stop calling it the
 hard-negative set.** For 19 of 25 classes #3667's cross-class admission is
@@ -137,7 +138,52 @@ of that class's habitat survives the exclusion*, and it will keep moving every
 time *C* grows. That is a more uncomfortable property than the one #3680
 proposed, because it means the control drifts with the class list.
 
-## 5. Recommendation
+## 5. Query phrasing moves the answer as much as class identity does
+
+Three of the twenty-five typed queries name a scene: `a boat on the water`,
+`a kite in the sky`, `a car on the street`. The pool is "images holding none of
+*C*", so a query naming water or sky targets exactly the stratum the pool
+retains. Two of those three sit in the pool-harder five, which is not a
+comfortable coincidence.
+
+Re-ranking those three with the scene term stripped and nothing else changed
+([`measurements/query_ablation.json`](measurements/query_ablation.json),
+`python query_ablation.py`):
+
+| class | shipped query | delta | bare query | delta | shift |
+|---|---|---|---|---|---|
+| `boat` | `a boat on the water` | `+0.008` | `a boat` | **`-0.003`** | `-0.010` |
+| `kite` | `a kite in the sky` | `+0.004` | `a kite` | `+0.002` | `-0.002` |
+| `car` | `a car on the street` | `-0.013` | `a car` | **`+0.029`** | `+0.041` |
+
+All six intervals exclude zero. **Two of the three cross the axis.** `boat`
+leaves the pool-harder set and `car` joins it, so under bare queries the five
+would be `bird`, `knife`, `dog`, `kite`, `car` — the same count, different
+membership. Only `kite` is indifferent to its qualifier.
+
+`car`'s shift of `0.041` is the point worth keeping. That is comparable to the
+largest *class-level* effect in the whole study (`bottle` at `-0.066`), produced
+by deleting three words from a query. Whatever this measurement is sensitive to,
+it is not sensitive to class identity alone.
+
+**This corrects the reasoning in an earlier draft of this report**, which argued
+the qualifier could not be driving the result *because* `car` carried one and
+still landed on the cross-harder side. That inference was backwards: the
+qualifier is precisely what put `car` there.
+
+What the ablation does **not** disturb:
+
+* the **premise** — difficulty is non-uniform and the sign flips — which it
+  strengthens, by adding a second axis the construction does not control;
+* the **mechanism refutation** — none of the three ablated classes is an indoor
+  tabletop class, and `book`, `bottle`, `bench`, `vase` and `chair` all carry
+  bare queries already and keep their positions;
+* the **recommendation** in §6, which does not depend on which five.
+
+The figures and the headline table report the **shipped** queries, because those
+are the openings the harness actually uses; the ablation is the control on them.
+
+## 6. Recommendation
 
 **Keep one shared pool.** The measured spread does not justify per-class
 hard-negative mining:
@@ -158,18 +204,15 @@ AUC in difficulty, so comparing `bottle`'s cost to `kite`'s silently compares
 two different problems. The register should cite this study, and
 `pool_hardness.py` should be the thing anyone re-runs after *C* changes.
 
-## 6. Limits
+## 7. Limits
 
 * **One cell, one embedder.** Measured on `siglip` whole-image only. The
   ordering could differ under the region arm, which sees patches rather than a
   single vector.
-* **Scene qualifiers are a partial confound.** Two of the five pool-harder
-  classes carry a scene term in their query — `boat` is `'a boat on the water'`
-  and `kite` is `'a kite in the sky'` — which targets exactly the scenes the
-  pool retains. It does not explain the result: `car` is `'a car on the
-  street'` and sits on the cross-harder side at `-0.013`, and `bird`, `knife`
-  and `dog` are bare nouns. But the two largest scene-qualified queries landing
-  in the five-class group is not nothing, and a query-ablation would settle it.
+* **Scene qualifiers are a real confound, now measured.** Settled in §5 rather
+  than left as a caveat: stripping the scene term flips `boat` and `car` across
+  the axis and moves `car` by `0.041`. The headline count survives; the
+  membership of the five does not.
 * **The pile is a moving target.** These numbers describe the pile as built
   2026-09-07. A `vg_scale` rebuild changes membership, and a peer session
   reports the pile is already stale by 30 positives against `corrections.json`
@@ -178,7 +221,7 @@ two different problems. The register should cite this study, and
   spread is real and tightly bounded, but this is a statement about the shape
   of the negative sets, not a claim that any class is badly measured.
 
-## 7. Follow-ups
+## 8. Follow-ups
 
 * **#3743** — does the exclusion filter explain the split? The §4 mechanism is
   testable directly: rebuild the pool at *C* = 12 and at *C* = 25 and check
@@ -187,3 +230,6 @@ two different problems. The register should cite this study, and
   during this study's sibling run, not this measurement.
 * Re-run `pool_hardness.py` after the next `vg_scale` rebuild, and again
   whenever *C* grows, since §4 predicts the deltas move with the class list.
+* The query ablation in §5 covered the three scene-qualified queries only.
+  Whether the other twenty-two would move under *added* qualifiers is
+  untested, and §5 suggests they would.

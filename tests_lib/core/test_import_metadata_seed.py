@@ -93,10 +93,20 @@ class TestFastPackagesDistributions:
         can only *add* names, and which extras appear depends on what the venv
         happens to record (and on the stdlib's own per-version inference).
         Losing an entry would be a real break; gaining one is not.
+
+        ``__pycache__`` is the one name held out, and it is not an import name.
+        A single-module distribution records ``__pycache__/<mod>.cpython-*.pyc``
+        beside its ``.py``, so the stdlib's inference reports ``__pycache__`` as
+        a top-level name of every such package -- three of them on the GRID venv
+        (`typing_extensions`, `threadpoolctl`, `matplotlib`), and none in the
+        container this test was written in, which is why it passed there and
+        fails here. :func:`_inferred_top_level` drops the name on purpose,
+        because nothing can import it; asserting it survives would pin a stdlib
+        artifact as a contract.
         """
         fast = fast_packages_distributions()
-        real = original_packages_distributions()
-        assert {name: fast.get(name) for name in real} == dict(real)
+        real = {n: d for n, d in original_packages_distributions().items() if n != "__pycache__"}
+        assert {name: fast.get(name) for name in real} == real
 
 
 class TestSeed:

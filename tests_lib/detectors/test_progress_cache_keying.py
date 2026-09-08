@@ -58,7 +58,6 @@ class TestActiveCacheResolution:
         lp.clear_progress_cache()
 
         assert lp._caches == {}
-        assert lp._monitored_pools == {}
 
 
 class TestCacheBound:
@@ -92,31 +91,3 @@ class TestCacheBound:
 
             assert lp._caches[active.key] is active
             assert len(lp._caches) == lp._MAX_CACHED_PAIRS
-
-
-class TestPoolLifetime:
-    def test_pool_survives_while_a_cache_still_uses_its_dataset(self):
-        lp.clear_progress_cache()
-        with lp._progress_lock:
-            active = lp._active_cache()
-            dataset_id = active.key[0]
-            lp._monitored_pools[dataset_id] = lp._MonitoredPool(ids=[1], X=None, id_set={1})
-            _seed((dataset_id, "det_sibling"))
-
-            lp._active_cache()
-
-            assert dataset_id in lp._monitored_pools
-
-    def test_pool_is_pruned_once_no_cache_refers_to_its_dataset(self):
-        lp.clear_progress_cache()
-        with lp._progress_lock:
-            lp._monitored_pools["ds_gone"] = lp._MonitoredPool(ids=[1], X=None, id_set={1})
-            _seed(("ds_gone", "det_gone"))
-
-            # Evict the only cache over ``ds_gone`` by overflowing the bound.
-            for i in range(lp._MAX_CACHED_PAIRS):
-                _seed(("ds_live", f"det{i}"))
-            lp._active_cache()
-
-            assert ("ds_gone", "det_gone") not in lp._caches
-            assert "ds_gone" not in lp._monitored_pools

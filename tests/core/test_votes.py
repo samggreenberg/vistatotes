@@ -708,22 +708,47 @@ class TestStableIndicatorThresholds:
         assert result["status"] == "yellow", "Gap entries (None) should be excluded, leaving only 4 real entries"
 
 
+def _sorted_clips(n: int, seed: int) -> dict[int, dict]:
+    """A tiny single-vector clips dict, as a dataset snapshot would supply."""
+    import numpy as np
+
+    rng = np.random.RandomState(seed)
+    return {i: {"embeddings": {"clap": rng.randn(8).astype(np.float32)}, "embedder": "clap"} for i in range(n)}
+
+
+def _inject_for_history(clips: dict[int, dict], history, steps=None) -> None:
+    """Inject a trained head for the label set after each step in *steps*.
+
+    Only a learned sort puts a model on a step (#3757), so a test that wants one
+    has to stand in for the sort.  ``steps=None`` means every step that has both
+    polarities, i.e. a sort kept up with every vote.
+    """
+    import numpy as np
+    import torch
+
+    from vtscore.training.mlp import train_model
+
+    good: dict[int, None] = {}
+    bad: dict[int, None] = {}
+    for t, (mid, label, _) in enumerate(history):
+        (good if label == "good" else bad)[mid] = None
+        if not good or not bad or (steps is not None and t not in steps):
+            continue
+        ids = list(good) + list(bad)
+        X = torch.tensor(np.array([media_embedding(clips[i]) for i in ids]), dtype=torch.float32)
+        y = torch.tensor([1.0] * len(good) + [0.0] * len(bad)).unsqueeze(1)
+        inject_live_model(dict(good), dict(bad), train_model(X, y, 8), 0.5)
+
+
 class TestStabilitySkipsUnchangedModel:
     """Stability should not be recorded when the training data hasn't changed."""
 
     def test_unchanged_training_data_skips_stability(self, client):
         """When good/bad IDs don't change between steps, stability should be None."""
-        from vtscore.detectors.labeling_progress import clear_progress_cache
+        from vtscore.detectors.labeling_progress import _advance_cache, clear_progress_cache
 
         clear_progress_cache()
-
-        # Build a minimal clips_dict with embeddings
-        import numpy as np
-
-        rng = np.random.RandomState(42)
-        clips = {}
-        for i in range(10):
-            clips[i] = {"embeddings": {"clap": rng.randn(8).astype(np.float32)}, "embedder": "clap"}
+        clips = _sorted_clips(10, seed=42)
 
         # Label history: vote good on 0, bad on 1, then vote good on 0 AGAIN
         # The third event doesn't change the training data (0 is already good).
@@ -732,11 +757,14 @@ class TestStabilitySkipsUnchangedModel:
             (1, "bad", 2.0),
             (0, "good", 3.0),  # no-op: 0 is already good
         ]
+        # Models throughout, so an absent stability entry can only be the
+        # unchanged-labelset rule and not the no-detector one.
+        _inject_for_history(clips, history)
 
-        _ensure_cache(clips, history, inclusion_value=0)
+        _advance_cache(clips, history, 0)
 
         assert len(_prog_cache().steps) == 3
-        # Steps 0 and 1 change the training data; they should attempt training.
+        assert _prog_cache().steps[1]["model"] is not None
         # Step 2 has the same good/bad IDs as step 1; stability should be None.
         assert _prog_cache().steps[2]["stability"] is None, (
             "Stability should not be recorded when training data didn't change"
@@ -744,16 +772,10 @@ class TestStabilitySkipsUnchangedModel:
 
     def test_changed_training_data_records_stability(self, client):
         """When good/bad IDs DO change, stability should be computed (once a prior model exists)."""
-        from vtscore.detectors.labeling_progress import clear_progress_cache
+        from vtscore.detectors.labeling_progress import _advance_cache, clear_progress_cache
 
         clear_progress_cache()
-
-        import numpy as np
-
-        rng = np.random.RandomState(43)
-        clips = {}
-        for i in range(20):
-            clips[i] = {"embeddings": {"clap": rng.randn(8).astype(np.float32)}, "embedder": "clap"}
+        clips = _sorted_clips(20, seed=43)
 
         # Each step changes the training data
         history = [
@@ -763,8 +785,9 @@ class TestStabilitySkipsUnchangedModel:
             (3, "bad", 4.0),  # new model
             (4, "good", 5.0),  # new model
         ]
+        _inject_for_history(clips, history)
 
-        _ensure_cache(clips, history, inclusion_value=0)
+        _advance_cache(clips, history, 0)
 
         assert len(_prog_cache().steps) == 5
         # Step 0: only good votes, no model → stability None
@@ -776,6 +799,33 @@ class TestStabilitySkipsUnchangedModel:
             assert _prog_cache().steps[i]["stability"] is not None, (
                 f"Step {i} changed training data and should have stability"
             )
+
+    def test_step_without_a_trained_detector_records_nothing(self, client):
+        """A label set no sort ran against carries neither a model nor a flip count.
+
+        This is the coalesced vote - the one the cache used to fill with a
+        stand-in of its own, which is what made the plotted curve alternate
+        between two model families (#3757).
+        """
+        from vtscore.detectors.labeling_progress import _advance_cache, clear_progress_cache
+
+        clear_progress_cache()
+        clips = _sorted_clips(20, seed=44)
+        history = [
+            (0, "good", 1.0),
+            (1, "bad", 2.0),
+            (2, "good", 3.0),
+            (3, "bad", 4.0),
+        ]
+        # Only the sort at step 1 kept up; steps 2 and 3 were coalesced away.
+        _inject_for_history(clips, history, steps={1})
+
+        _advance_cache(clips, history, 0)
+
+        assert _prog_cache().steps[1]["model"] is not None
+        for i in (2, 3):
+            assert _prog_cache().steps[i]["model"] is None, f"step {i} must not invent a detector"
+            assert _prog_cache().steps[i]["stability"] is None
 
 
 class TestLiveModelReuse:
@@ -823,12 +873,15 @@ class TestLiveModelReuse:
         assert step["model"] is live_model, "Should reuse the injected live model"
         assert step["threshold"] == live_threshold, "Should use the injected threshold"
 
-    def test_non_matching_label_set_retrains(self, client):
-        """When no live model matches, _ensure_cache should train normally."""
+    def test_non_matching_label_set_gets_no_model(self, client):
+        """A live model keyed to another label set must not be adopted.
+
+        And nothing is trained to stand in for it either: the step is left
+        modelless, so the series simply has no point there (#3757)."""
         import numpy as np
         import torch
 
-        from vtscore.detectors.labeling_progress import clear_progress_cache
+        from vtscore.detectors.labeling_progress import _advance_cache, clear_progress_cache
         from vtscore.training.mlp import train_model
 
         clear_progress_cache()
@@ -855,11 +908,12 @@ class TestLiveModelReuse:
             (1, "bad", 2.0),
         ]
 
-        _ensure_cache(clips, history, inclusion_value=0)
+        _advance_cache(clips, history, 0)
 
         # Step 1 should NOT use the injected model (different label set)
         step = _prog_cache().steps[1]
         assert step["model"] is not live_model, "Should not use a live model with mismatched labels"
+        assert step["model"] is None, "and must not fall back to a locally trained stand-in"
 
     def test_clear_cache_removes_live_models(self, client):
         """clear_progress_cache should also clear injected live models."""
@@ -904,7 +958,7 @@ class TestLiveModelReuse:
         import numpy as np
         import torch
 
-        from vtscore.detectors.labeling_progress import clear_progress_cache
+        from vtscore.detectors.labeling_progress import _advance_cache, clear_progress_cache
         from vtscore.training.mlp import train_model
 
         clear_progress_cache()
@@ -930,9 +984,12 @@ class TestLiveModelReuse:
         X = torch.tensor(np.array(embs), dtype=torch.float32)
         y = torch.tensor([1.0, 1.0, 1.0, 0.0, 0.0]).unsqueeze(1)
         live_model = train_model(X, y, 8)
+        # Step 3's sort too, so step 4 has a previous step's predictions to be
+        # compared against; a lone model has nothing to measure movement from.
+        _inject_for_history(clips, history, steps={3})
         inject_live_model(good, bad, live_model, 0.55)
 
-        _ensure_cache(clips, history, inclusion_value=0)
+        _advance_cache(clips, history, 0)
 
         # Step 4 should use the live model
         step4 = _prog_cache().steps[4]

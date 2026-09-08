@@ -12,10 +12,13 @@ These tests pin the three pieces that fixed it:
 
 * :func:`cached_indicator_history` reads the cache and **never advances it**,
   reporting ``complete=False`` instead, and never blocks on ``_progress_lock``.
-* The stability pass's monitored pool is materialised once per dataset rather
-  than once per label step.
 * The fallback coverage-atlas build applies the same depth cap as every other
   build site.
+
+``complete`` means "the cache is caught up", never "every label step has a
+point": since #3757 only the steps the app trained a detector for carry one, so
+these tests inject live models where they need a series to be non-empty, the
+same way a learned sort does.
 """
 
 from __future__ import annotations
@@ -34,10 +37,18 @@ def _active_cache() -> lp._ProgressCache:
         return lp._active_cache()
 
 
-def _pool_tensor():
-    """The single memoised stability pool tensor, or ``None`` when none is built."""
-    tensors = [pool.X for pool in lp._monitored_pools.values()]
-    return tensors[0] if tensors else None
+def _inject_models(history: list[tuple[int, str, float]]) -> None:
+    """Give every label set in *history* a live model, as a sort per vote would.
+
+    Only steps whose label set had a sort run against it carry a model (#3757),
+    so a test that wants a point per step has to say so.
+    """
+    good: dict[int, None] = {}
+    bad: dict[int, None] = {}
+    for mid, label, _ in history:
+        (good if label == "good" else bad)[mid] = None
+        if good and bad:
+            lp.inject_live_model(dict(good), dict(bad), _linear_model(), 0.5)
 
 
 def _linear_model(dim: int = 8):
@@ -81,20 +92,6 @@ class TestCachedIndicatorHistory:
         assert data == []
         # No steps were built: the cache is exactly as cold as we left it.
         assert _active_cache().steps == []
-
-    def test_warm_cache_returns_series_for_every_metric(self):
-        clips = _clips(60)
-        history = _history(8)
-        good, bad = _votes(8)
-        lp.clear_progress_cache()
-
-        # Advance the cache the way the background worker does.
-        lp.calculate_error_cost_over_time(clips, history, good, bad, 0)
-
-        for metric in ("smart", "stable", "diverse"):
-            data, complete = lp.cached_indicator_history(metric, clips, history, good, bad, 0)
-            assert complete is True, metric
-            assert len(data) > 0, metric
 
     def test_partially_advanced_cache_reports_incomplete(self):
         """A cache covering only a prefix must not yield a truncated plot."""
@@ -163,79 +160,43 @@ class TestCachedIndicatorHistory:
         assert complete is True
 
 
-class TestMonitoredPoolReuse:
-    def test_pool_tensor_is_built_once_per_cache_lifetime(self):
-        """Advancing further steps must reuse the pool, not re-materialise it.
-
-        Rebuilding it per step was an O(N x D) numpy materialisation on every
-        label-history step and dominated the cost of advancing the cache.
-        """
-        clips = _clips(200)
-        good, bad = _votes(6)
+class TestSeriesCoverTrainedStepsOnly:
+    def test_every_metric_has_a_point_when_every_step_was_sorted(self):
+        """With a sort behind each label set, Smart and Stable are dense again."""
+        clips = _clips(60)
+        history = _history(8)
+        good, bad = _votes(8)
         lp.clear_progress_cache()
+        _inject_models(history)
 
-        lp.calculate_prediction_stability_over_time(clips, _history(6), 0)
-        first = _pool_tensor()
-        assert first is not None
+        lp.calculate_error_cost_over_time(clips, history, good, bad, 0)
 
-        # Advance the cache with more steps: same pool object, no rebuild.
-        lp.calculate_prediction_stability_over_time(clips, _history(12), 0)
-        assert _pool_tensor() is first
+        for metric in ("smart", "stable", "diverse"):
+            data, complete = lp.cached_indicator_history(metric, clips, history, good, bad, 0)
+            assert complete is True, metric
+            assert len(data) > 0, metric
 
-    def test_pool_is_shared_by_every_detector_over_one_dataset(self):
-        """The pool is a pure function of ``clips_dict``, so it is keyed by dataset.
+    def test_complete_but_empty_when_nothing_was_ever_sorted(self):
+        """A caught-up cache with no trained detector reports an empty Smart series.
 
-        Caching several ``(dataset, detector)`` pairs at once must not multiply
-        the biggest thing this module holds - the pool tensor is up to
-        ``_STABILITY_MAX_SAMPLES`` x embedding-dim floats.
+        Not ``complete=False``: there is nothing left to compute, and sending the
+        modal to the async job would only have it recompute the same emptiness.
+        Diversity is unaffected - it measures the votes, not a detector.
         """
         clips = _clips(60)
+        history = _history(8)
+        good, bad = _votes(8)
         lp.clear_progress_cache()
 
-        lp.calculate_prediction_stability_over_time(clips, _history(6), 0)
-        first = _pool_tensor()
-        assert first is not None
-        dataset_id = _active_cache().key[0]
+        lp.calculate_error_cost_over_time(clips, history, good, bad, 0)
 
-        # A second detector over the same dataset must reuse that tensor rather
-        # than materialise its own.
-        other = lp._ProgressCache(key=(dataset_id, "det_other"), good_ids={0, 2}, bad_ids={1, 3})
-        with lp._progress_lock:
-            lp._compute_step_stability(
-                other,
-                _linear_model(),
-                threshold=0.5,
-                clips_dict=clips,
-                all_media_ids=sorted(clips),
-                t=1,
-                num_labels=4,
-            )
-
-        assert lp._monitored_pools[dataset_id].X is first
-        assert len(lp._monitored_pools) == 1
-
-    def test_pool_is_dropped_on_cache_clear(self):
-        """Medias may have changed, so the derived pool must not survive."""
-        clips = _clips(60)
-        lp.clear_progress_cache()
-        lp.calculate_prediction_stability_over_time(clips, _history(6), 0)
-        assert _pool_tensor() is not None
-
-        lp.clear_progress_cache()
-
-        assert lp._monitored_pools == {}
-
-    def test_stability_counts_match_the_unsampled_pool(self):
-        """Scoring the whole pool and dropping labels must not change the counts."""
-        clips = _clips(60)
-        lp.clear_progress_cache()
-
-        stability = lp.calculate_prediction_stability_over_time(clips, _history(6), 0)
-
-        assert stability
-        for entry in stability:
-            # 60 medias, `num_labels` of them labeled at that step.
-            assert entry["num_unlabeled"] == 60 - entry["num_labels"]
+        for metric in ("smart", "stable"):
+            data, complete = lp.cached_indicator_history(metric, clips, history, good, bad, 0)
+            assert complete is True, metric
+            assert data == [], metric
+        diverse, complete = lp.cached_indicator_history("diverse", clips, history, good, bad, 0)
+        assert complete is True
+        assert len(diverse) > 0
 
 
 class TestFallbackAtlasDepth:

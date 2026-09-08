@@ -47,7 +47,12 @@ _METRIC_VALIDATOR = validate.OneOf(["smart", "stable", "diverse"])
 
 
 class ErrorCostPointSchema(Schema):
-    """One step of the error-cost series (``_eval_cached_models``)."""
+    """One step of the error-cost series (``_eval_cached_models``).
+
+    One point per label step the app **trained a detector for**, not per label
+    step: a step whose label set no learned sort ran against carries no model
+    and is absent from the series, so ``num_labels`` is not contiguous across
+    points (issue #3757)."""
 
     num_labels = fields.Integer(required=True)
     error_cost = fields.Float(

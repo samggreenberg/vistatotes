@@ -79,8 +79,19 @@ GET /api/indicator-score-history
 
 Returns per-step indicator data straight from the cache that the
 `labeling-status` background worker advances. This route is **read-only**: it
-never advances the cache and never retrains a model, so it returns promptly
+never advances the cache and never trains a model, so it returns promptly
 whatever the dataset size or label-history length.
+
+`smart` carries one point per label step the app actually trained a detector
+for — that is, per step whose label set a learned sort ran against. `stable`
+carries one per such step after the first, since each entry compares a detector
+against the one trained before it. Steps in between are absent from both, so the
+series are shorter than the label history and their `num_labels` values are not
+contiguous. `diverse` measures the votes rather than a detector and does have a
+point per step.
+
+A `complete: true` response with an empty `smart` history is therefore a real
+answer, not a miss: it means nothing has been trained yet.
 
 When the cache does not yet cover the whole label history — the normal state
 while the user is actively labeling, since `labeling-status` defers the advance

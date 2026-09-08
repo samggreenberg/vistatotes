@@ -78,6 +78,22 @@ export class ProgressModalComponent implements OnInit {
     }
   }
 
+  /**
+   * What to say when the series comes back empty.
+   *
+   * Smart and Stable plot one point per detector the app actually trained, so
+   * they stay empty until a Learn sort has run — labelling alone adds nothing
+   * to them. Telling the user to label more would send them somewhere that
+   * never fills the chart. Diverse measures the votes themselves, so there the
+   * original advice is the right one.
+   */
+  get emptyMessage(): string {
+    return this.metric() === 'diverse'
+      ? 'No coverage history available yet. Label more items to build up history.'
+      : 'No history yet. Each point is a detector this session trained, so sort by Learn ' +
+        '(or let Autopilot do it) and a point appears for every training run.';
+  }
+
   ngOnInit(): void {
     // Always try the cached read first: it never advances the per-step cache,
     // so it returns immediately whether or not the cache is warm. When the

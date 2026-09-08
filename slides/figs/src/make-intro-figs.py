@@ -207,7 +207,35 @@ CONTOUR_STEP = 0.02
 #: dent in the boundary that nothing in the field explains. At this width the
 #: curve is a smooth closed loop that separates the checks from the crosses
 #: with room on both sides, which is what the slide is claiming.
-KERNEL_SCALE = 1.45
+#:
+#: **It also decides how much of the retrain the audience has to ignore**, and
+#: that is what set the number (#3763). An RBF SVM's decision function is a sum
+#: of kernels plus a bias, and the bias is refitted along with everything else:
+#: adding one Good vote pushes the curve out around that vote *and* slides the
+#: whole level set, so the far side of the loop creeps inward for reasons
+#: nothing on the slide explains. The build asks the room to watch one thing —
+#: the curve reaching out to cover the item they just answered — and every unit
+#: of far-side creep is a second thing moving at the same time.
+#:
+#: A wider kernel spreads one vote's influence further and makes that creep
+#: worse; a narrower one localises it, at the cost of the lumpiness above.
+#: Measured on the settled field, as (expansion within 1.5 units of the answered
+#: item) against (motion more than 4 units away):
+#:
+#:     width   expansion   far motion   far max
+#:      1.10       0.62        0.14       0.15
+#:      1.15       0.63        0.11       0.14
+#:      1.25       0.65        0.05       0.09
+#:      1.30       0.65        0.05       0.12
+#:      1.35       0.66        0.07       0.19
+#:      1.45       0.66        0.15       0.27
+#:
+#: 1.30 sits in the floor of that trough: the intended motion is what it always
+#: was and the distraction is a third of what 1.45 paid. Below it the far field
+#: creeps again *and* the retrained loop loses convexity — it encloses 0.984 of
+#: its own hull's area at 1.30 and 0.962 at 1.10 — which is the shape complaint
+#: above coming back. Re-measure both columns if the field or the votes change.
+KERNEL_SCALE = 1.30
 
 #: How far the looser and the tighter cut sit from the shipped one, in figure
 #: units. Set geometrically rather than as a fraction of the votes' margin,
@@ -292,7 +320,7 @@ FIELD_CANDIDATES = 48
 
 
 @functools.lru_cache(maxsize=1)
-def _field() -> np.ndarray:
+def _blue_noise() -> np.ndarray:
     """A fixed field of items in 2D, spread evenly without being regular.
 
     Blue-noise rather than uniform: a uniform draw clumps *and* voids, and both
@@ -322,6 +350,76 @@ def _field() -> np.ndarray:
     return np.array(pts)
 
 
+def _surrounded(p: np.ndarray, ring: np.ndarray) -> bool:
+    """Does `p` sit *inside* the ring of points `ring` — with them all around it?
+
+    The test is angular rather than geometric because that is the claim being
+    made: an item nobody would ask about is one with a Good in every direction
+    from it. Sort the bearings to each of `ring` and ask whether any gap
+    between consecutive bearings reaches half a turn; if one does, every ring
+    point lies within one half-plane and `p` is outside them rather than among
+    them. (For points in general position this is exactly "inside the convex
+    hull", and it needs no hull.)
+    """
+    bearing = np.sort(np.arctan2(*(ring - p).T[::-1]))
+    gaps = np.diff(np.concatenate([bearing, bearing[:1] + 2 * np.pi]))
+    return bool(gaps.max() < np.pi)
+
+
+def _obvious_spot(pts: np.ndarray, ring: np.ndarray) -> np.ndarray:
+    """Where to draw the one item the slide calls an *obvious* match.
+
+    The roomiest point that has a Good vote in every direction from it: sample
+    the box the Goods span, keep what `_surrounded` accepts, and take whichever
+    candidate is furthest from the nearest thing already drawn.
+
+    This is a *placed* item — placed outright, where `_scene` places the item
+    the app asks about by pinning it and re-fitting until it stays put. It
+    exists because the honest alternative does not: the stage
+    wants an unlabeled item the detector is already sure about, and picking the
+    unlabeled item furthest inside the boundary — which is what this did — is
+    not the same claim at all. On an elongated loop the deepest point by
+    distance-to-curve sits out along the minor axis, and the one it chose sat
+    **south of all five Good votes** with nothing but hollow circles beneath it:
+    an item a reasonable person would want checked, captioned as one nobody
+    needs to ask about (#3763). Meanwhile the middle of the votes — the one
+    place on the slide where "obviously" is beyond argument — was empty, because
+    the field is blue noise and the five votes are spread across it by design:
+    no unlabeled item sits inside their hull at all. So the figure draws one
+    there, exactly as it places the item the app asks about, and for the same
+    reason: where a dot goes is the one thing this drawing is free to choose.
+    """
+    lo, hi = ring.min(axis=0), ring.max(axis=0)
+    axes = [np.linspace(a, b, 90) for a, b in zip(lo, hi)]
+    grid = np.stack(np.meshgrid(*axes, indexing="ij"), axis=-1).reshape(-1, 2)
+    inside = np.array([_surrounded(p, ring) for p in grid])
+    if not inside.any():
+        raise SystemExit("no point is surrounded by the Good votes — they are not a ring")
+    room = np.hypot(*(pts[:, None, :] - grid[None, :, :]).transpose(2, 0, 1)).min(axis=0)
+    room[~inside] = -1.0
+    return grid[int(np.argmax(room))]
+
+
+@functools.lru_cache(maxsize=1)
+def _field() -> np.ndarray:
+    """The blue-noise field, plus the obvious match the figure draws on purpose.
+
+    Appended rather than mixed in, so every index into the field is the index
+    it was before this item existed — and, more to the point, so `_seed_votes`
+    (which runs on the noise alone) cannot pick it. Seeding a vote on an item
+    placed at the middle of the votes would be circular, and would silently
+    restart the whole story from five different items.
+    """
+    base = _blue_noise()
+    good, _bad = _seed_votes()
+    return np.vstack([base, _obvious_spot(base, base[list(good)])])
+
+
+def _obvious() -> int:
+    """The index of that placed item — the last one in the field."""
+    return len(_blue_noise())
+
+
 #: The concept the user is actually looking for, as the ground truth the field
 #: was drawn against: items inside this disc are matches. Nothing in the figure
 #: draws it — the whole point is that only the user knows where it is. Placed
@@ -329,6 +427,11 @@ def _field() -> np.ndarray:
 #: near the title reserve in the opposite corner.
 TRUE_CENTRE = np.array([10.7, 4.25])
 TRUE_RADIUS = 1.65
+
+
+def _matches(pts: np.ndarray) -> np.ndarray:
+    """Which of `pts` fall inside the concept."""
+    return np.hypot(*(pts - TRUE_CENTRE).T) < TRUE_RADIUS
 
 
 @functools.lru_cache(maxsize=1)
@@ -341,7 +444,7 @@ def _truth() -> np.ndarray:
     the drawing's one arbitrary choice — where to put a dot — silently relabel
     the data it is a drawing of.
     """
-    return np.hypot(*(_field() - TRUE_CENTRE).T) < TRUE_RADIUS
+    return _matches(_field())
 
 
 def _spread(pts: np.ndarray, among: np.ndarray, count: int) -> tuple[int, ...]:
@@ -374,7 +477,9 @@ def _seed_votes() -> tuple[tuple[int, ...], tuple[int, ...]]:
     that the detector they imply is a smooth loop around the concept rather
     than a shape argued from three points in one corner.
     """
-    pts, truth = _field(), _truth()
+    # On the noise alone, for the reason `_field` gives.
+    pts = _blue_noise()
+    truth = _matches(pts)
     good = _spread(pts, np.flatnonzero(truth), 5)
     # Three near-misses and two from the rest of the field. Not a cosmetic
     # split: the app asks about the items it cannot call, so most of what comes
@@ -511,17 +616,26 @@ def _obvious_pair(curve: np.ndarray, model: SVC, pts: np.ndarray, labeled: tuple
     they say the useful question is neither the most likely nor the least, and
     a halo round three high scorers cannot say that (#3246).
 
-    The Good is the one furthest inside; the Bad is chosen from the far side of
-    the field rather than by depth alone, because "deepest outside" on a curve
-    that wraps one corner of the field is just the opposite corner, which reads
-    as an item picked for being far away rather than for being obvious.
+    The Good is the item `_obvious_spot` placed among the Good votes; the Bad is
+    chosen from the far side of the field rather than by depth alone, because
+    "deepest outside" on a curve that wraps one corner of the field is just the
+    opposite corner, which reads as an item picked for being far away rather
+    than for being obvious.
+
+    Both halves are checked against the drawing rather than assumed, because
+    both are claims the caption makes out loud: the Good has to be well inside
+    the curve *and* have a vote in every direction from it, and the Bad has to
+    be well outside.
     """
     d, _ = _gap(curve, pts)
     inside = model.decision_function(pts) > 0
-    depth = np.where(inside, d, -1.0)
-    depth[list(labeled)] = -1.0
-    good = int(np.argmax(depth))
-    assert depth[good] >= OBVIOUS_GAP, "no unlabeled item sits clearly inside the boundary"
+    good = _obvious()
+    assert good not in labeled, "the placed obvious match was voted on"
+    assert inside[good], "the placed obvious match sits outside the boundary"
+    assert d[good] >= OBVIOUS_GAP, "the placed obvious match is not clearly inside the boundary"
+    assert _surrounded(pts[good], pts[list(_seed_votes()[0])]), (
+        "the placed obvious match drifted out of the ring of Good votes"
+    )
 
     # Kept off the edges of the canvas: the deepest-outside item is usually a
     # corner, and a halo half off the slide reads as a crop rather than as a
@@ -529,7 +643,7 @@ def _obvious_pair(curve: np.ndarray, model: SVC, pts: np.ndarray, labeled: tuple
     # makes "the model is not asking about this one either" obvious.
     inset = 1.35
     outside = np.where(~inside, d, -1.0)
-    outside[list(labeled)] = -1.0
+    outside[list(labeled) + [good]] = -1.0
     outside[((pts < inset) | (pts > np.array(CANVAS) - inset)).any(axis=1)] = -1.0
     bad = int(np.argmax(outside))
     assert outside[bad] >= OBVIOUS_GAP, "no unlabeled item sits clearly outside the boundary"
@@ -761,6 +875,14 @@ def _scene() -> tuple[np.ndarray, SVC, SVC, np.ndarray, np.ndarray, int, int, tu
     the model already called it a match — so answering it Good taught the model
     nothing and the retrained boundary barely moved, which is the one thing
     this figure exists to show.
+
+    A third is placed before the settling starts rather than during it: the
+    obvious match, drawn into the middle of the Good votes by `_obvious_spot`
+    (see there for why the blue noise never supplies one). It needs no pin —
+    it sits a clear unit and a half from anything else and further still from
+    either boundary, so no rule in `_relax` ever touches it — but `_obvious_pair`
+    checks on every run that it has not drifted out of the ring it is the point
+    of.
 
     The roles are re-derived from the settled positions in the outer pass, so
     the figure cannot end up singling out an item that was nearest the line

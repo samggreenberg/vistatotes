@@ -91,6 +91,55 @@ free and already available: the class list was chosen so annotator accuracy can
 be scored against COCO on the anchored half without extra review. Build that
 scoring into the pass rather than discovering the drift afterwards.
 
+## Settle before the pass starts
+
+Each of these is an open issue, carried here as a pointer because the *order*
+matters and nothing else records it. They move the designated set, change what
+the pass is asked to cover, or bill it for work it does not need. None is large
+on its own — tens of images each. The cost is that every one of them forces a
+**rebuild**, and a rebuild reshuffles which images fill a cell: #3667 measured 41
+positives out and 40 in with nothing relevant altered, and three rebuilds once
+retired 577 of 743 reviewed images. Human answers are the only input here that
+cannot be regenerated, so a rebuild *after* the pass throws some of them away.
+
+Land or dismiss all of them, rebuild once, then freeze the roster — in that
+order. The VG-name audit itself is no longer among them: `SCALE_VG_NAMES_AUDITED`
+now covers all 25 classes, so #3618's "before the next rebuild" warning is spent.
+
+<!-- item-sep -->
+
+- [ ] #3663 — misspellings and typed variants never reached the candidate list (moves membership)
+
+<!-- item-sep -->
+
+- [ ] #3662 — one polysemous member sinks `boat`'s pooled group (moves membership)
+
+<!-- item-sep -->
+
+- [ ] #3605 — `bike` is still unresolved for `bicycle`, and most of it is not a bicycle (moves membership)
+
+<!-- item-sep -->
+
+- [ ] #3655 — the ambiguous exclusion is global where `evaluable_categories` could make it per-class (moves membership)
+
+<!-- item-sep -->
+
+- [ ] #3696 — whether a named off-COCO negative stratum is drawn in (changes what the pass covers)
+
+<!-- item-sep -->
+
+- [ ] #3616 — a reviewer's rebox silently moves an image between bands (the band statistic above, arriving as a bug)
+
+<!-- item-sep -->
+
+- [ ] #3669 — slate import re-embeds vectors the pile already holds (bills the pass three times over for its own images)
+
+<!-- item-sep -->
+
+- [ ] #3686 — the text-sort false-negative hunt covers the stratum this pass answers outright (do one, not both)
+
+<!-- item-sep -->
+
 ## Open work
 
 <!-- item-sep -->

@@ -10,7 +10,7 @@
  *
  *   make-detector  `figs/ui-make-detector[.buildN].webp`  — name the concept
  *   train-loop     `figs/ui-train-loop[.buildN].webp`     — answer, repeatedly
- *   find           `figs/ui-find[.buildN].webp`           — score unseen media
+ *   find           `figs/ui-find*.webp`                    — score unseen media
  *   region-voting  `figs/ui-region-voting.webp`           — vote on a region
  *
  * The detector in the first group is the detector the second group trains and
@@ -588,12 +588,35 @@ async function shootTrainLoop(page) {
 }
 
 /**
+ * Scroll the left panel's virtual viewport, and let it re-render.
+ *
+ * It is a `cdk-virtual-scroll-viewport`, so what is in the DOM is a window onto
+ * the ranking rather than the ranking — and the panel scrolls itself to the
+ * selected item on arrival, which is how the first version of the Find shot
+ * came out photographing position 4200px with the top of the list nowhere in
+ * frame. Drive it explicitly instead of hoping.
+ */
+async function scrollResults(page, to) {
+  const viewport = page.locator('.panel-left .cdk-virtual-scroll-viewport').first();
+  await viewport.evaluate((el, top) => el.scrollTo({ top, behavior: 'instant' }), to);
+  await page.waitForTimeout(1800);
+}
+
+/**
  * Step 3 — run it over the media nobody voted on.
  *
- * Two pages: the dashboard with the *production* pile selected beside the
- * detector, and the Find view once it has scored all of it. `photos-prod` does
- * not share a single frame with `photos` (`coco_fixture.DISJOINT_FROM`), which
- * is the only reason this slide is allowed to say what it says.
+ * Two slides out of one session. `ui-find[.build1]` is the click-by-click one:
+ * the dashboard with the *production* pile selected beside the detector, then
+ * the top of the ranking it produces. `photos-prod` does not share a single
+ * frame with `photos` (`coco_fixture.DISJOINT_FROM`), which is the only reason
+ * that slide is allowed to say what it says.
+ *
+ * `ui-find-line` is the same screen scrolled down to the line the tool drew
+ * through the ranking, and it is a separate slide rather than a third build
+ * page for a reason the house rules are explicit about: a build page adds ink
+ * and moves nothing, and this one moves the whole left panel. It is also not a
+ * reveal but a second observation — the deck's hand-off into `vote-boundary`,
+ * which spends the next ten minutes on where that line should go.
  */
 async function shootFind(page) {
   await openDashboard(page);
@@ -611,7 +634,48 @@ async function shootFind(page) {
   await page.waitForSelector('.find-wait-overlay', { state: 'detached', timeout: 300000 })
     .catch(() => {});
   await page.waitForTimeout(3000);
+
+  // The best match in the centre, and the best matches beside it. Selecting the
+  // top item re-scrolls the panel to it, so the scroll goes after the click.
+  await scrollResults(page, 0);
+  await page.locator('.panel-left .thumbnail-wrap').first().click();
+  await page.waitForTimeout(1500);
+  await scrollResults(page, 0);
   await shoot(page, 'ui-find');
+
+  // Then the line. Its offset is read off the rendered list rather than
+  // computed from a rank, because how many items make a row is the panel's
+  // business (thumbnail size, panel width) and not something this script knows.
+  const line = await page.evaluate(() => {
+    const viewport = document.querySelector('.panel-left .cdk-virtual-scroll-viewport');
+    const marker = viewport?.querySelector('.media-threshold-line');
+    if (!viewport) return null;
+    if (!marker) return 'offscreen';
+    return viewport.scrollTop + marker.getBoundingClientRect().top
+      - viewport.getBoundingClientRect().top;
+  });
+  if (line === null || line === 'offscreen') {
+    // Virtualised: the marker is only in the DOM once it is near the window, so
+    // walk down until it appears rather than guessing a pixel offset.
+    for (let top = 0; top < 40000; top += 500) {
+      await scrollResults(page, top);
+      if (await page.locator('.media-threshold-line').count()) break;
+    }
+  } else {
+    await scrollResults(page, Math.max(0, line - 260));
+  }
+  const marker = page.locator('.media-threshold-line').first();
+  if (!(await marker.count())) throw new Error('no threshold line in the Find ranking');
+  // Centre it: whatever the walk above landed on, the line should sit in the
+  // middle of the panel with matches above it and rejects below.
+  const centred = await page.evaluate(() => {
+    const viewport = document.querySelector('.panel-left .cdk-virtual-scroll-viewport');
+    const rect = viewport.querySelector('.media-threshold-line').getBoundingClientRect();
+    const box = viewport.getBoundingClientRect();
+    return viewport.scrollTop + rect.top - box.top - box.height / 2;
+  });
+  await scrollResults(page, Math.max(0, centred));
+  await shoot(page, 'ui-find-line');
 }
 
 async function shootRegionVoting(page, voted) {

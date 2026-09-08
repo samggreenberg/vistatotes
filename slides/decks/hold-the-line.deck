@@ -31,6 +31,7 @@ slides:
   make-detector
   train-loop
   find-results
+  find-line
   vote-boundary
 
   # 2 — Calibration

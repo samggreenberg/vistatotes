@@ -1925,6 +1925,25 @@ XQUANT_FLOW_STAGES = 7
 #: 15pt label renders at 21.2px here, against the fold-anchored figure's 22.6px
 #: and the theme's 20px floor; the figure is height-limited in that slot, so
 #: the extra width is free and only the 0.65 units of extra height are spent.
+#:
+#: **The gauge row ends flush with the bottom of this canvas, and stays that
+#: way.** It is the tightest bottom margin of the deck's nineteen figures — 1.8%
+#: of the canvas below the last ink, about 13px on a 720px slide, against 9.3%
+#: (58px) for `calib-walk-flow`, which draws the same `_quantile_gauge` bars
+#: with room under them. Nothing is clipped, and it was checked (#3763); the
+#: bars simply read as more cramped than their twins three slides later.
+#:
+#: It is left alone because padding it is not available. The figure is
+#: height-limited, so its scale is `720 / XQUANT_CANVAS[1]` and *any* height
+#: added to the canvas shrinks the drawing: matching the walk figure's margin
+#: costs 1.1 units, which takes a 15pt label from 20.3px to 18.8px and
+#: `slide_figure.save()` refuses to write it. Nor can the height be found
+#: inside the drawing — the largest empty band anywhere in it is 0.35 units.
+#: The repair that would work is the one `slides/STYLE.md` names for a
+#: height-bound figure — move rows sideways so the whole thing is shorter, and
+#: spend the recovered units below the gauges — and that is a relayout of the
+#: densest schematic in the deck, not a padding change. Do it deliberately or
+#: not at all.
 XQUANT_CANVAS = (20.45, 13.99)
 
 #: The two fold panels' vote glyphs here, sized the same way and to the same

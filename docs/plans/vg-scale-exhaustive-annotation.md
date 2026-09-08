@@ -132,14 +132,14 @@ now covers all 25 classes, so #3618's "before the next rebuild" warning is spent
 
 <!-- item-sep -->
 
-- [ ] #3726 — a rebox replaces the class's whole instance set, spending the band decision above
+- [ ] #3726 — a rebox replaces the class's whole instance set, spending the band decision above (implemented as #3740, awaiting the owner's ruling — do not start it again)
 
 <!-- item-sep -->
 
 
 <!-- item-sep -->
 
-- [ ] #3662 — one polysemous member sinks `boat`'s pooled group (moves membership)
+- [ ] #3662 — one polysemous member sinks `boat`'s pooled group (criterion pre-registered and run; #3741 awaits the owner's ruling — do not start it again)
 
 <!-- item-sep -->
 

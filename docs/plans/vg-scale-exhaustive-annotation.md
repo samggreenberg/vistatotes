@@ -110,6 +110,10 @@ now covers all 25 classes, so #3618's "before the next rebuild" warning is spent
 
 <!-- item-sep -->
 
+- [ ] #3729 — every human verdict exists only on purgeable scratch, with no second copy anywhere
+
+<!-- item-sep -->
+
 - [ ] #3727 — a confirmed verdict writes no correction, so the build cannot tell an answered image from an unopened one
 
 <!-- item-sep -->

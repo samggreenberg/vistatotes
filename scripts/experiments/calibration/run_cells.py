@@ -21,6 +21,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+from pathlib import Path
 
 import common
 
@@ -189,6 +190,45 @@ def check_declared_opening(ds: str, emb: str, cat: str, seed_mode: str) -> None:
     )
 
 
+def cell_progress(idx: int, n_launched: int, results: Path | None = None) -> str:
+    """``cell i/N`` for the task log, qualified when the study was truncated (#3736).
+
+    ``n_launched`` is ``len(cells)``: the grid this task recomputes from its own
+    environment, which is the grid that was *launched*.  A study cut mid-run --
+    ``scancel`` on the tail of the array plus a rewritten ``grid_shape.json`` --
+    leaves every surviving task still reporting that larger number, so a reader
+    watching a log sees a denominator no one intends to reach.  Job 622816 was
+    cut from 3,750 cells to 1,875 and a peer session read ``cell 1496/3750`` as
+    ~40% done; it was 76% done.  The number is well-formed, plausible, and wrong
+    only in the direction that makes a run look less finished than it is, which
+    is the direction that gets believed.
+
+    ``results/grid_shape.json`` is the file that knows: ``launch_scale.sh``
+    writes it and ``analyze_scale.py`` reads it for exactly this denominator, so
+    the authoritative count already exists and the task log simply never asked.
+
+    **The enumeration is not truncated to match, and must not be.** ``idx``
+    indexes into ``cells`` to resolve ``(dataset, embedder, category, seed)``;
+    shortening that list would shift the mapping and run the wrong cells
+    silently.  Only the reported denominator is at issue, so only the report is
+    qualified -- both numbers are named, and the launched one keeps its place.
+
+    A missing, unreadable, or malformed shape file leaves the plain form: a log
+    line is not worth failing a cell over, and a task run by hand from a bare
+    results dir has no shape file by construction.
+    """
+    plain = f"cell {idx}/{n_launched}"
+    shape = (common.RESULTS if results is None else results) / "grid_shape.json"
+    try:
+        n_shape = int(json.loads(shape.read_text())["n_cells"])
+    except (OSError, ValueError, KeyError, TypeError):
+        return plain
+    if n_shape == n_launched:
+        return plain
+    verdict = "study truncated" if n_shape < n_launched else "grid_shape.json disagrees"
+    return f"{plain} launched (grid_shape.json: {n_shape} — {verdict})"
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Calibration: one cell (dataset,embedder,category,seed).")
     parser.add_argument("--index", type=int, default=None, help="Cell index; defaults to $SLURM_ARRAY_TASK_ID.")
@@ -212,7 +252,7 @@ def main(argv: list[str] | None = None) -> int:
     styles = cfg.styles_for(ds, emb)
     region_voting = cfg.region_voting_for(ds, emb)
     common.log(
-        f"cell {idx}/{len(cells)}: dataset={ds} embedder={emb} "
+        f"{cell_progress(idx, len(cells))}: dataset={ds} embedder={emb} "
         f"(learn={cfg.learn_embedder(emb)} text={cfg.text_embedder(emb)}) category={cat} seed={seed} "
         f"styles={styles} head={cfg.HEAD or 'default (production)'} safe_thresholds={cfg.SAFE_THRESHOLDS} "
         f"calibrate_count={cfg.CALIBRATE_COUNT} fold_counts={cfg.FOLD_COUNTS or 'off'} "

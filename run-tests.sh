@@ -156,6 +156,22 @@ fi
 # the child from re-wrapping itself. Set VTSEARCH_TEST_TIMEOUT=0 to opt out (for
 # a deliberately long run, e.g. GPU tests or a full coverage sweep).
 VTSEARCH_TEST_TIMEOUT=${VTSEARCH_TEST_TIMEOUT:-1800}
+
+# `-n auto` does NOT mean "one worker per CPU I was given". pytest-xdist asks
+# psutil for the MACHINE's physical cores and never looks at the cgroup, so a
+# SLURM job with --cpus-per-task=8 on a 40-thread node starts ~20 workers, each
+# importing torch. Measured (#3721): 90 oom_kill events in a 32G allocation, the
+# workers dying one at a time so the run WEDGES rather than fails, and the only
+# thing printed is the wall-clock cap above -- whose message then sends the
+# reader hunting for a hung network step. Two runs lost 30 minutes each to it.
+#
+# The env var beats every detection path in xdist/plugin.py. On an unconstrained
+# box the affinity mask is every core, so this is a no-op there; it only bites
+# where the cgroup is narrower than the machine, which is exactly the GRID.
+if [[ -z "${PYTEST_XDIST_AUTO_NUM_WORKERS:-}" ]]; then
+    PYTEST_XDIST_AUTO_NUM_WORKERS=$(python -c 'import os; print(len(os.sched_getaffinity(0)))' 2>/dev/null || echo "")
+    [[ -n "$PYTEST_XDIST_AUTO_NUM_WORKERS" ]] && export PYTEST_XDIST_AUTO_NUM_WORKERS
+fi
 if [[ -z "${_VT_TIMEOUT_WRAPPED:-}" && "$VTSEARCH_TEST_TIMEOUT" != "0" ]] \
     && command -v timeout >/dev/null 2>&1; then
     export _VT_TIMEOUT_WRAPPED=1

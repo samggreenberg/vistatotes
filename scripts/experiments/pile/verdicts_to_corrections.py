@@ -80,6 +80,7 @@ from collections import Counter
 from pathlib import Path
 
 import pile_config as pc
+from pilebuild.corrections import write_json_locked
 
 pc.setup_env()
 
@@ -283,7 +284,7 @@ def main() -> int:
                 stats["negative_excluded_by_triage"] += 1
 
     rows = sorted(out.values(), key=lambda r: (r["class"], r["image_id"]))
-    Path(args.out).write_text(json.dumps(rows, indent=1) + "\n")
+    write_json_locked(Path(args.out), rows)
 
     print(f"\n{len(rows)} corrections written to {args.out}\n")
     for k, v in sorted(stats.items()):

@@ -1,0 +1,127 @@
+[
+  {
+    "detector": "backpack positives",
+    "labels_saved": 30,
+    "num_training": 30
+  },
+  {
+    "detector": "backpack",
+    "labels_saved": 300,
+    "num_training": 300
+  },
+  {
+    "detector": "bicycle audit",
+    "labels_saved": 0,
+    "num_training": 0
+  },
+  {
+    "detector": "bicycle positives",
+    "labels_saved": 30,
+    "num_training": 30
+  },
+  {
+    "detector": "bicycle",
+    "labels_saved": 356,
+    "num_training": 356
+  },
+  {
+    "detector": "bird positives",
+    "labels_saved": 30,
+    "num_training": 30
+  },
+  {
+    "detector": "bird",
+    "labels_saved": 300,
+    "num_training": 300
+  },
+  {
+    "detector": "boat audit",
+    "labels_saved": 0,
+    "num_training": 0
+  },
+  {
+    "detector": "boat positives",
+    "labels_saved": 30,
+    "num_training": 30
+  },
+  {
+    "detector": "book audit",
+    "labels_saved": 0,
+    "num_training": 0
+  },
+  {
+    "detector": "book positives",
+    "labels_saved": 30,
+    "num_training": 30
+  },
+  {
+    "detector": "bus audit",
+    "labels_saved": 0,
+    "num_training": 0
+  },
+  {
+    "detector": "bus positives",
+    "labels_saved": 30,
+    "num_training": 30
+  },
+  {
+    "detector": "clock audit",
+    "labels_saved": 0,
+    "num_training": 0
+  },
+  {
+    "detector": "clock positives",
+    "labels_saved": 30,
+    "num_training": 30
+  },
+  {
+    "detector": "dog audit",
+    "labels_saved": 0,
+    "num_training": 0
+  },
+  {
+    "detector": "dog positives",
+    "labels_saved": 30,
+    "num_training": 30
+  },
+  {
+    "detector": "kite audit",
+    "labels_saved": 0,
+    "num_training": 0
+  },
+  {
+    "detector": "kite positives",
+    "labels_saved": 30,
+    "num_training": 30
+  },
+  {
+    "detector": "knife audit",
+    "labels_saved": 0,
+    "num_training": 0
+  },
+  {
+    "detector": "knife positives",
+    "labels_saved": 30,
+    "num_training": 30
+  },
+  {
+    "detector": "stop sign audit",
+    "labels_saved": 0,
+    "num_training": 0
+  },
+  {
+    "detector": "stop sign positives",
+    "labels_saved": 30,
+    "num_training": 30
+  },
+  {
+    "detector": "umbrella audit",
+    "labels_saved": 0,
+    "num_training": 0
+  },
+  {
+    "detector": "umbrella positives",
+    "labels_saved": 30,
+    "num_training": 30
+  }
+]

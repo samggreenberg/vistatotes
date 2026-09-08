@@ -1,0 +1,52 @@
+[
+  {
+    "detector": "bicycle audit",
+    "labels_saved": 48,
+    "num_training": 48
+  },
+  {
+    "detector": "boat audit",
+    "labels_saved": 33,
+    "num_training": 33
+  },
+  {
+    "detector": "book audit",
+    "labels_saved": 40,
+    "num_training": 40
+  },
+  {
+    "detector": "bus audit",
+    "labels_saved": 30,
+    "num_training": 30
+  },
+  {
+    "detector": "clock audit",
+    "labels_saved": 37,
+    "num_training": 37
+  },
+  {
+    "detector": "dog audit",
+    "labels_saved": 46,
+    "num_training": 46
+  },
+  {
+    "detector": "kite audit",
+    "labels_saved": 57,
+    "num_training": 57
+  },
+  {
+    "detector": "knife audit",
+    "labels_saved": 67,
+    "num_training": 67
+  },
+  {
+    "detector": "stop sign audit",
+    "labels_saved": 50,
+    "num_training": 50
+  },
+  {
+    "detector": "umbrella audit",
+    "labels_saved": 52,
+    "num_training": 52
+  }
+]

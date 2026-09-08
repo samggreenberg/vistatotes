@@ -985,6 +985,91 @@ class TestNegativePoolProblems:
         assert audit.negative_pool_problems("vg_scale_deep", medias) == []
 
 
+class TestProvablePoolHoldsC:
+    """Whether the pool's claim is TRUE, not whether its provenance is (#3701).
+
+    `negative_pool_problems` asks who answered for a negative. This asks what
+    the answer was: a genuine `coco_scored` stamp and a COCO-confirmed `truck`
+    are perfectly compatible, and that pair is what #3588's ambiguous-table
+    route actually produced.
+    """
+
+    def _pool(self, n: int = 5) -> dict:
+        return {i: _pool_media() for i in range(n)}
+
+    def test_a_clean_pool_is_silent(self, audit):
+        held = dict.fromkeys(range(5), [])
+
+        assert audit.provable_pool_problems("vg_scale", self._pool(), held) == []
+
+    def test_a_negative_coco_says_holds_a_class_is_named(self, audit):
+        """The id and the class, because those are what diagnose the cause."""
+        held = dict.fromkeys(range(5), [])
+        held[3] = ["truck"]
+
+        (problem,) = audit.provable_pool_problems("vg_scale", self._pool(), held)
+
+        assert "1 of 5" in problem
+        assert "3 (truck)" in problem
+
+    def test_a_negative_the_build_did_not_anchor_is_not_checked(self, audit):
+        """The build's stamp, not the raw `coco_id` join -- measured, not assumed.
+
+        `anchor_to_coco` refuses a pairing whose aspect ratio drifts past
+        `MAX_ASPECT_DRIFT`, because a drifted pair is evidence the two files are
+        not the same picture. The first run of this check read the join instead
+        and reported three dirty negatives in `vg_scale_deep`; every one was a
+        drift reject, the worst pairing a 298x500 portrait with a 450x338
+        landscape. Such an image is in the pool on VG's silence, which is what
+        that composition allows, and COCO was never asked about it.
+        """
+        medias = {1: _pool_media(coco_scored=False)}
+
+        assert audit.provable_pool_problems("vg_scale_deep", medias, {1: ["dog"]}) == []
+
+    def test_a_positive_holding_its_own_class_is_not_a_pool_problem(self, audit):
+        """Every positive holds its class; reading them as pool members fires on all of them."""
+        medias = {1: {"categories": ["truck@small"], "evaluable_categories": ["truck@small"], "coco_scored": True}}
+
+        assert audit.provable_pool_problems("vg_scale", medias, {1: ["truck"]}) == []
+
+    def test_a_spare_makes_no_claim(self, audit):
+        """A spare is designated into no cell, so it asserts nothing to falsify."""
+        medias = {1: _pool_media(designated=False)}
+
+        assert audit.provable_pool_problems("vg_scale", medias, {1: ["truck"]}) == []
+
+    def test_the_examples_are_capped_and_the_count_is_not(self, audit):
+        held = dict.fromkeys(range(9), ["bus"])
+
+        (problem,) = audit.provable_pool_problems("vg_scale", self._pool(9), held)
+
+        assert "9 of 9" in problem
+        assert problem.count("(bus)") == 5
+        assert ", ..." in problem
+
+    def test_a_pool_coco_cannot_answer_for_is_untested_not_clean(self, audit):
+        """0 dirty out of 0 checked is the absence of a measurement, not a pass.
+
+        Under `provable` every designated negative is COCO-scored by
+        construction, so an empty join means the check did not run -- and a
+        check that cannot be told from a clean result is the shape that has cost
+        this directory a day more than once.
+        """
+        problems = audit.provable_pool_problems("vg_scale", self._pool(), {})
+
+        assert any("went untested" in p for p in problems)
+
+    def test_deep_is_exempt_from_the_untested_message(self, audit):
+        """`vg_scale_deep` is pinned to the pre-#3670 draw (#3690), so COCO may hold little of it."""
+        assert audit.provable_pool_problems("vg_scale_deep", self._pool(), {}) == []
+
+    def test_counts_separate_answerable_from_dirty(self, audit):
+        n_pool, n_checked, dirty = audit.pool_coco_counts(self._pool(4), {0: [], 1: ["bus", "car"]})
+
+        assert (n_pool, n_checked, dirty) == (4, 2, [(1, ["bus", "car"])])
+
+
 class TestCoverageRow:
     """Which retirements the coverage gate forgives, and which it must not (#3670)."""
 

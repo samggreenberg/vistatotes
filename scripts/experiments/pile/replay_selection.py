@@ -116,10 +116,21 @@ def _compare(
     print(f"positives: {add_total} would be added, {drop_total} would be dropped, over {len(per_cell)} cells")
     print(f"negatives: {neg_add} would be added, {neg_drop} would be dropped (pool of {len(want_neg)})")
     if per_cell:
-        worst = sorted(per_cell.items(), key=lambda kv: -(kv[1]["added"] + kv[1]["dropped"]))[:8]
+        # Say what was left out. This table shows the worst few cells, and a
+        # reader who sums it gets a number that disagrees with the header two
+        # lines above -- which is exactly how "26 positives over 8 cells" was
+        # reported from a run whose header said 30 over 12. The total is right
+        # and the table is a sample; only the silence about that was wrong.
+        shown = 8
+        worst = sorted(per_cell.items(), key=lambda kv: -(kv[1]["added"] + kv[1]["dropped"]))[:shown]
         print(f"  {'cell':<24}{'added':>8}{'dropped':>9}")
         for cell, row in worst:
             print(f"  {cell:<24}{row['added']:>8}{row['dropped']:>9}")
+        if len(per_cell) > shown:
+            print(
+                f"  ... and {len(per_cell) - shown} more cell(s) not shown; "
+                f"the {add_total}/{drop_total} above the table is the total, not the sum of these rows"
+            )
     return {
         "positives_added": add_total,
         "positives_dropped": drop_total,

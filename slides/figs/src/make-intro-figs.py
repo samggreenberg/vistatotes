@@ -18,11 +18,19 @@ is a genuine 2D analogue rather than a picture of the shipped model — VTSearch
 trains a linear SVM in embedding space, where the boundary is a hyperplane, and
 a hyperplane in two dimensions is a straight line that cannot enclose anything.
 An RBF SVM on two dimensions is the same object with the curvature the audience
-would otherwise have to imagine, so that is what is fitted here: every boundary
-on every stage is a real `sklearn` decision contour over the votes shown, the
+would otherwise have to imagine, so that is what is fitted here: the boundary on
+every stage is a real `sklearn` decision contour over the votes shown, the
 looser and tighter cuts are real level sets of that same decision function, and
 the item selected next is really the unlabeled point nearest the boundary — the
 app's own `Hard` rule.
+
+**With one exception, and it is deliberate.** The retrained boundary is the two
+real fits *spliced*: the new one where the answered vote reaches, the old one
+everywhere else, crossfaded between (`_Blended`). A plain refit moves the far
+side of the loop as well, by an amount that is the solver rebalancing its
+intercept rather than anything the vote means, and a page whose whole job is
+"watch the curve reach out and take that item in" cannot afford a second thing
+moving at the same time (#3763).
 
 **The slide carries the whole argument, so the figure carries seven stages.**
 The pile; the votes and the detector they imply; the same detector cut looser
@@ -513,6 +521,75 @@ def _fit(pts: np.ndarray, good: tuple[int, ...], bad: tuple[int, ...]) -> SVC:
     return model
 
 
+#: How far from the answered item the drawn retrain may differ from the
+#: boundary it replaces, in figure units: the new fit within `BLEND_INNER`, the
+#: old curve beyond `BLEND_OUTER`, a smooth crossfade between. Both are
+#: multiples of `KERNEL_SCALE`, because that is the length scale of the thing
+#: being kept — the bulge is one vote's kernel, and nothing outside a couple of
+#: widths of it belongs to this page.
+#:
+#: Set to the tightest window that costs the drawing nothing. Measured with the
+#: bulge's own peak held at 1.19 units throughout, against how sharply the drawn
+#: curve turns (99.5th percentile of the angle between 0.3-unit chords — the
+#: curve before the vote turns 19.2°, the raw refit 28.2°):
+#:
+#:     inner  outer   motion >2u   motion >3u   turn
+#:      1.95   3.90        0.243        0.176   28.3
+#:      1.56   2.86        0.113        0.000   28.2
+#:      1.43   2.60        0.075        0.003   28.2
+#:      1.30   2.34        0.036        0.007   29.4
+#:
+#: Tightening the window costs nothing at all until 1.30/2.34, where the curve
+#: starts turning harder than the refit it is made of — the crossfade becoming
+#: visible as a corner, which is the one thing this must not do. One notch
+#: wider than that is the answer.
+BLEND_INNER = 1.1 * KERNEL_SCALE
+BLEND_OUTER = 2.0 * KERNEL_SCALE
+
+
+class _Blended:
+    """The retrained detector near the answered item; the old one everywhere else.
+
+    The stage this draws has one job: show the boundary reaching out to take in
+    the item the user just answered Good. An honest refit does that **and**
+    something else — an RBF SVM's decision function is a sum of kernels plus a
+    refitted intercept, and adding a support vector rebalances the dual, so the
+    far side of the loop creeps by up to a fifth of a unit for reasons nothing
+    on the slide explains. Narrowing the kernel cut that to a third (see
+    `KERNEL_SCALE`) and could not remove it: the residue is not a constant
+    either, so it cannot be subtracted off as one — measured on the old curve,
+    the new model reads −0.09 three units from the answered item and −0.00 at
+    five, which one intercept correction cannot flatten (#3763).
+
+    So the drawn curve is spliced instead. `decision_function` crossfades the
+    two real fits with a smoothstep window on distance from the answered item:
+    inside `BLEND_INNER` it *is* the retrained model, beyond `BLEND_OUTER` it
+    *is* the model before the vote — not approximately, identically, so the far
+    side of the loop is the same ink on both pages and there is nothing there to
+    watch. Everything that reads a detector goes through `decision_function`, so
+    the drawn curve, the loose and tight cuts taken off it, the item the app asks
+    about next, and every assertion in `_scene` all apply to this and not to a
+    fit the slide never shows.
+
+    What it costs is worth naming: this is the one boundary in the figure that
+    is not a plain `sklearn` contour. It is bounded by two that are, it agrees
+    with one of them exactly over most of its length, and it is still checked
+    against the votes like any other — but a reader who assumed "every curve
+    here is a fit" would be wrong about this one.
+    """
+
+    def __init__(self, before: SVC, after: SVC, at: np.ndarray) -> None:
+        self.before, self.after, self.at = before, after, np.asarray(at, dtype=float)
+
+    def decision_function(self, X: np.ndarray) -> np.ndarray:
+        X = np.atleast_2d(np.asarray(X, dtype=float))
+        reach = np.hypot(*(X - self.at).T)
+        t = np.clip((reach - BLEND_INNER) / (BLEND_OUTER - BLEND_INNER), 0.0, 1.0)
+        keep_new = 1.0 - t * t * (3.0 - 2.0 * t)
+        before = self.before.decision_function(X)
+        return before + keep_new * (self.after.decision_function(X) - before)
+
+
 def _contour(model: SVC, level: float = 0.0) -> np.ndarray:
     """A level set of the detector, as a dense set of points lying on it.
 
@@ -845,7 +922,9 @@ def _settle(
     cramped: frozenset[int] = frozenset()
     for pass_number in range(3 * SETTLE_PATIENCE):
         first = _fit(pts, seed_good, seed_bad)
-        second = _fit(pts, seed_good + (asked,), seed_bad)
+        # The *drawn* retrain, not the raw one — the field has to settle against
+        # the curve the slide shows. See `_Blended`.
+        second = _Blended(first, _fit(pts, seed_good + (asked,), seed_bad), pts[asked])
         curve, curve_after = _contour(first), _contour(second)
         pts, violations = _relax(pts, [(first, curve), (second, curve_after)], pins, cramped)
         if not violations:
@@ -943,6 +1022,14 @@ def _scene() -> tuple[np.ndarray, SVC, SVC, np.ndarray, np.ndarray, int, int, tu
     assert int(np.argmin(after)) == asked_again, "the next question is not the item nearest the retrained line"
     shift = _shift(curve, curve_after)
     assert shift >= BOUNDARY_SHIFT, f"the retrained boundary barely moved ({shift:.2f} units) — nothing to see"
+    # And the other half of the same claim: everywhere the vote does not reach,
+    # the retrained curve is not merely close to the one before it but *is* it.
+    # A reveal adds ink and moves nothing else (`slides/STYLE.md`); this is that
+    # rule applied to the one page of the build that redraws a curve.
+    reach = np.hypot(*(curve_after - pts[asked]).T)
+    away = curve_after[reach >= BLEND_OUTER]
+    assert len(away), "the blend window swallowed the whole boundary — nothing is held fixed"
+    assert _gap(curve, away)[0].max() <= CONTOUR_STEP, "the retrained curve leaves the old one outside the blend window"
     assert not any(_in_notch(p, R) for p in pts), "an item sits in the slide's title reserve"
     # The looser and the tighter cut have to be genuine alternatives: if either
     # of them misreads a vote, the votes *can* choose between them and the

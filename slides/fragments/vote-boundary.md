@@ -32,8 +32,11 @@
 <!-- **d** — Two items nobody should be asked about: the model wins either bet.
      **e** — So it asks about this one, on the line, where it cannot call it. -->
 
-<!-- **f** — Good. Retrain, and the boundary moves; dashed is where it was. A
-     Bad there would have pulled it in on that side. -->
+<!-- **f** — Good. Retrain, and the boundary moves; dashed is where it was.
+     Worth pointing at what *didn't* move: the rest of the loop is exactly the
+     line it was a page ago. One answer changed the detector's mind about one
+     neighbourhood, which is the whole shape of learning from a handful of
+     votes. A Bad there would have pulled it in on that side instead. -->
 
 <!-- **g** — The loop closes: a different item is now on the line. -->
 

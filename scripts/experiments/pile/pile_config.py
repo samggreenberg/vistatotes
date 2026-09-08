@@ -2314,6 +2314,12 @@ CORRECTION_SOURCE_CONFIRMED = "human_confirmed"
 #: luck rather than a policy.
 SCALE_LABELSETS = Path(os.environ.get("VTS_SCALE_LABELSETS", f"/exp/{USER}/vgscale-3156-labelsets"))
 
+#: The #3588 promotion campaign's working directory -- the review that cleared
+#: the thirteen classes now in *C*. A separate campaign with its own verdicts,
+#: its own slates and its own corrections output, and the live
+#: `corrections.json` is the UNION of it and the #3156 one (#3732).
+SCALE_WORK_3588 = Path(os.environ.get("VTS_SCALE_WORK_3588", str(PILE.parent / "classes-3588")))
+
 #: The roots :data:`HUMAN_RECORD` sources are written against, so an inventory
 #: row is portable between users and machines instead of embedding one person's
 #: home directory the way the review scripts' defaults did.
@@ -2321,6 +2327,7 @@ RECORD_ROOTS: dict[str, Path] = {
     "PILE": PILE,
     "WORK": SCALE_WORK,
     "LABELSETS": SCALE_LABELSETS,
+    "WORK3588": SCALE_WORK_3588,
     "EXP": Path(os.environ.get("VTS_EXP_HOME", f"/exp/{USER}")),
 }
 
@@ -2407,6 +2414,23 @@ HUMAN_RECORD: tuple[HumanArtifact, ...] = (
         "second opinions on reviewer/reference disagreements, with the reasoning that decided them",
     ),
     HumanArtifact(
+        "{WORK3588}/verdicts_*.json",
+        "human",
+        "the #3588 promotion campaign's verdicts -- a second review, in its own directory, and "
+        "absent from this inventory until #3732 noticed the live corrections file depends on it",
+    ),
+    HumanArtifact(
+        "{WORK3588}/corrections_13.json",
+        "human",
+        "that campaign's corrections output, merged into the live `corrections.json` and not "
+        "reproducible without the campaign's own verdicts",
+    ),
+    HumanArtifact(
+        "{WORK3588}/slates*/*/manifest.csv",
+        "support",
+        "which (image, class, cell) each of the promotion campaign's slate rows was",
+    ),
+    HumanArtifact(
         "{WORK}/slates*/*/manifest.csv",
         "support",
         "which (image, class, cell) each slate row was: without it a labelset is a pile of "
@@ -2414,16 +2438,16 @@ HUMAN_RECORD: tuple[HumanArtifact, ...] = (
     ),
     HumanArtifact(
         "{PILE}/corrections.json",
-        # `derived` was the obvious reading and it is wrong, which is why the
-        # tier is a declared field rather than inferred from who wrote a file.
-        # Re-running `verdicts_to_corrections.py` with its own committed
-        # defaults reproduces 488 of the live file's 640 rows, and no invocation
-        # anyone could reconstruct reproduces all of them: 379 rows rest on
-        # verdict files, triage flags and adjudications whose combination nobody
-        # wrote down. Until that is recovered this file is a primary record.
+        # Reproducible again as of #3732, and kept `human` anyway. The recipe
+        # that produces it is now this script's defaults -- three verdict files
+        # UNION the #3588 campaign's own corrections output -- and it was
+        # recovered from a session transcript, not from anything in the repo.
+        # A file whose reproduction depends on a second campaign's scratch
+        # directory surviving is not `derived` in the sense that word is used
+        # here: losing that directory makes this the only copy again.
         "human",
-        "the verdicts the build actually reads, and NOT reproducible from the inputs any "
-        "documented invocation names -- measured, not assumed",
+        "the verdicts the build actually reads; reproducible only from the recovered two-campaign "
+        "recipe in `verdicts_to_corrections.py`, and only while `{WORK3588}` survives",
     ),
     HumanArtifact(
         "{PILE}/vg_scale_roster.json",

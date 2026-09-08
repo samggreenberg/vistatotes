@@ -1,0 +1,201 @@
+image_id,class,stratum,cell,text_score,reference,exhaustive,n_boxes,detector,driver
+2387068,Vehicles,boundary,,0.1055,,no,0,Vehicles,kite
+2393864,Vehicles,boundary,,0.1016,present,yes,0,Vehicles,fire hydrant
+2392337,Vehicles,boundary,,0.101,present,yes,0,Vehicles,sink
+2315792,Vehicles,boundary,,0.0966,present,yes,0,Vehicles,bench
+2360117,Vehicles,boundary,,0.0912,present,yes,0,Vehicles,kite
+2384924,Vehicles,boundary,,0.0906,present,yes,0,Vehicles,truck
+2334934,Vehicles,boundary,,0.0893,present,yes,0,Vehicles,kite
+2322248,Vehicles,boundary,,0.0874,present,yes,0,Vehicles,kite
+2391377,Vehicles,boundary,,0.0874,,no,0,Vehicles,kite
+2326762,Vehicles,boundary,,0.085,,no,0,Vehicles,sink
+498270,Vehicles,boundary,,0.0849,,no,0,Vehicles,boat
+2400821,Vehicles,boundary,,0.0844,present,yes,0,Vehicles,sink
+2385504,Vehicles,boundary,,0.0834,present,yes,0,Vehicles,kite
+2367901,Vehicles,boundary,,0.0832,,no,0,Vehicles,stop sign
+2339643,Vehicles,boundary,,0.0827,present,yes,0,Vehicles,kite
+2325700,Vehicles,boundary,,0.0819,present,yes,0,Vehicles,kite
+3561,Vehicles,boundary,,0.0818,,no,0,Vehicles,chair
+2404693,Vehicles,boundary,,0.0817,,no,0,Vehicles,kite
+2395745,Vehicles,boundary,,0.0806,,no,0,Vehicles,kite
+2394130,Vehicles,boundary,,0.0803,present,yes,0,Vehicles,kite
+2322535,Vehicles,boundary,,0.0799,present,yes,0,Vehicles,kite
+2352709,Vehicles,boundary,,0.0792,,no,0,Vehicles,kite
+2411912,Vehicles,boundary,,0.0786,present,yes,0,Vehicles,stop sign
+2346019,Vehicles,boundary,,0.0784,present,yes,0,Vehicles,stop sign
+2383707,Vehicles,boundary,,0.077,,no,0,Vehicles,kite
+2365421,Vehicles,boundary,,0.0766,present,yes,0,Vehicles,cell phone
+2325332,Vehicles,boundary,,0.0766,present,yes,0,Vehicles,truck
+2331220,Vehicles,boundary,,0.0759,,no,0,Vehicles,kite
+2361029,Vehicles,boundary,,0.0758,,no,0,Vehicles,cell phone
+2376806,Vehicles,boundary,,0.0755,present,yes,0,Vehicles,stop sign
+2402410,Vehicles,boundary,,0.0753,,no,0,Vehicles,stop sign
+2379075,Vehicles,boundary,,0.0751,,no,0,Vehicles,dog
+2374487,Vehicles,boundary,,0.0749,present,yes,0,Vehicles,stop sign
+2350610,Vehicles,boundary,,0.0745,present,yes,0,Vehicles,kite
+2392128,Vehicles,boundary,,0.0745,present,yes,0,Vehicles,stop sign
+2333001,Vehicles,boundary,,0.0739,present,yes,0,Vehicles,kite
+1159420,Vehicles,boundary,,0.0735,present,yes,0,Vehicles,truck
+2392264,Vehicles,boundary,,0.0734,,no,0,Vehicles,stop sign
+2358316,Vehicles,boundary,,0.0732,present,yes,0,Vehicles,sink
+2393671,Vehicles,boundary,,0.073,present,yes,0,Vehicles,dog
+2323658,Vehicles,boundary,,0.0729,,no,0,Vehicles,dog
+2407548,Vehicles,boundary,,0.0729,,no,0,Vehicles,bus
+2407502,Vehicles,boundary,,0.0728,present,yes,0,Vehicles,spoon
+2367117,Vehicles,boundary,,0.0723,,no,0,Vehicles,kite
+2327398,Vehicles,boundary,,0.0721,present,yes,0,Vehicles,kite
+2350334,Vehicles,boundary,,0.0718,present,yes,0,Vehicles,knife
+2369018,Vehicles,boundary,,0.0714,,no,0,Vehicles,kite
+2399091,Vehicles,boundary,,0.0711,,no,0,Vehicles,sink
+2358000,Vehicles,boundary,,0.0706,present,yes,0,Vehicles,cell phone
+2336745,Vehicles,boundary,,0.0704,,no,0,Vehicles,bus
+2413072,Vehicles,boundary,,0.0701,,no,0,Vehicles,stop sign
+2391765,Vehicles,boundary,,0.0697,present,yes,0,Vehicles,chair
+2330568,Vehicles,boundary,,0.0697,present,yes,0,Vehicles,bus
+2410628,Vehicles,boundary,,0.0695,,no,0,Vehicles,dog
+2348108,Vehicles,boundary,,0.0692,,no,0,Vehicles,stop sign
+2354790,Vehicles,boundary,,0.0692,present,yes,0,Vehicles,bus
+2394898,Vehicles,boundary,,0.0685,,no,0,Vehicles,dog
+2416246,Vehicles,boundary,,0.0685,present,yes,0,Vehicles,stop sign
+2316125,Vehicles,boundary,,0.0684,,no,0,Vehicles,kite
+2327098,Vehicles,boundary,,0.0683,,no,0,Vehicles,sink
+2362065,Vehicles,boundary,,0.0679,present,yes,0,Vehicles,sink
+2336569,Vehicles,boundary,,0.0676,present,yes,0,Vehicles,stop sign
+2413495,Vehicles,boundary,,0.0673,present,yes,0,Vehicles,stop sign
+2338255,Vehicles,boundary,,0.0673,present,yes,0,Vehicles,bench
+2362762,Vehicles,boundary,,0.067,present,yes,0,Vehicles,vase
+2322849,Vehicles,boundary,,0.0669,,no,0,Vehicles,backpack
+2392420,Vehicles,boundary,,0.0667,present,yes,0,Vehicles,vase
+2329296,Vehicles,boundary,,0.0665,present,yes,0,Vehicles,stop sign
+2416700,Vehicles,boundary,,0.0664,present,yes,0,Vehicles,cell phone
+2417852,Vehicles,boundary,,0.0664,,no,0,Vehicles,boat
+4185,Vehicles,boundary,,0.0662,,no,0,Vehicles,stop sign
+2325379,Vehicles,boundary,,0.0661,,no,0,Vehicles,kite
+2368073,Vehicles,boundary,,0.0661,,no,0,Vehicles,stop sign
+2355890,Vehicles,boundary,,0.066,present,yes,0,Vehicles,stop sign
+1592013,Vehicles,boundary,,0.0657,present,yes,0,Vehicles,bench
+2417678,Vehicles,boundary,,0.0657,,no,0,Vehicles,kite
+2360975,Vehicles,boundary,,0.0656,present,yes,0,Vehicles,kite
+2407927,Vehicles,boundary,,0.0656,,no,0,Vehicles,bowl
+2355650,Vehicles,boundary,,0.0656,,no,0,Vehicles,stop sign
+2415598,Vehicles,boundary,,0.0652,,no,0,Vehicles,sink
+2393732,Vehicles,boundary,,0.0648,,no,0,Vehicles,stop sign
+2398807,Vehicles,boundary,,0.0647,,no,0,Vehicles,stop sign
+2360,Vehicles,boundary,,0.0646,,no,0,Vehicles,stop sign
+2400101,Vehicles,boundary,,0.0644,,no,0,Vehicles,kite
+2380685,Vehicles,boundary,,0.0641,,no,0,Vehicles,sink
+1986,Vehicles,boundary,,0.0639,,no,0,Vehicles,cell phone
+2353986,Vehicles,boundary,,0.0638,,no,0,Vehicles,kite
+2388314,Vehicles,boundary,,0.0637,present,yes,0,Vehicles,bench
+2383506,Vehicles,boundary,,0.0634,present,yes,0,Vehicles,sink
+2379050,Vehicles,boundary,,0.0632,present,yes,0,Vehicles,dog
+2323842,Vehicles,boundary,,0.0627,,no,0,Vehicles,kite
+2372457,Vehicles,boundary,,0.0624,,no,0,Vehicles,spoon
+2363995,Vehicles,boundary,,0.062,,no,0,Vehicles,sink
+2346929,Vehicles,boundary,,0.0619,,no,0,Vehicles,bus
+2343839,Vehicles,boundary,,0.0618,present,yes,0,Vehicles,stop sign
+2417271,Vehicles,boundary,,0.0617,present,yes,0,Vehicles,cell phone
+2399554,Vehicles,boundary,,0.0616,,no,0,Vehicles,sink
+2393952,Vehicles,boundary,,0.0616,,no,0,Vehicles,sink
+2398287,Vehicles,boundary,,0.0614,present,yes,0,Vehicles,bowl
+2380089,Vehicles,boundary,,0.0613,present,yes,0,Vehicles,kite
+2379377,Vehicles,random,,0.006,,no,0,Vehicles,bird
+2389518,Vehicles,random,,0.0262,,no,0,Vehicles,boat
+2387690,Vehicles,random,,0.0414,present,yes,0,Vehicles,bus
+2341258,Vehicles,random,,0.0075,,no,0,Vehicles,bench
+2343133,Vehicles,random,,0.0122,,no,0,Vehicles,bench
+2410471,Vehicles,random,,0.0238,,no,0,Vehicles,bird
+2338452,Vehicles,random,,0.0149,present,yes,0,Vehicles,bird
+2399496,Vehicles,random,,0.0389,,no,0,Vehicles,kite
+655,Vehicles,random,,0.0285,,no,0,Vehicles,boat
+2406950,Vehicles,random,,0.0483,,no,0,Vehicles,bowl
+2416176,Vehicles,random,,0.0246,,no,0,Vehicles,bus
+2379431,Vehicles,random,,0.0299,present,yes,0,Vehicles,bus
+2386624,Vehicles,random,,0.0363,present,yes,0,Vehicles,dog
+2376171,Vehicles,random,,0.0455,,no,0,Vehicles,bicycle
+2342757,Vehicles,random,,0.0091,,no,0,Vehicles,car
+2370802,Vehicles,random,,0.0289,present,yes,0,Vehicles,stop sign
+2379036,Vehicles,random,,0.0487,,no,0,Vehicles,kite
+2372245,Vehicles,random,,0.0584,,no,0,Vehicles,stop sign
+1556,Vehicles,random,,0.0293,,no,0,Vehicles,car
+2328476,Vehicles,random,,0.0054,,no,0,Vehicles,bench
+2379254,Vehicles,random,,0.0072,present,yes,0,Vehicles,dog
+2334823,Vehicles,random,,0.0328,present,yes,0,Vehicles,kite
+2413407,Vehicles,random,,0.0297,,no,0,Vehicles,spoon
+1490,Vehicles,random,,0.0228,,no,0,Vehicles,bench
+2368814,Vehicles,random,,0.0076,,no,0,Vehicles,bird
+2408671,Vehicles,random,,0.048,present,yes,0,Vehicles,bowl
+2381000,Vehicles,random,,0.0398,present,yes,0,Vehicles,cup
+2410237,Vehicles,random,,0.0191,present,yes,0,Vehicles,fork
+2395379,Vehicles,random,,0.0472,,no,0,Vehicles,sink
+2375949,Vehicles,random,,0.0249,,no,0,Vehicles,cup
+2415129,Vehicles,random,,0.0367,present,yes,0,Vehicles,kite
+2399434,Vehicles,random,,0.0178,,no,0,Vehicles,bowl
+2382828,Vehicles,random,,0.0059,present,yes,0,Vehicles,dog
+2364216,Vehicles,random,,0.0505,present,yes,0,Vehicles,bus
+2416508,Vehicles,random,,0.0089,,no,0,Vehicles,bird
+2323085,Vehicles,random,,0.0491,present,yes,0,Vehicles,kite
+2334729,Vehicles,random,,0.0472,,no,0,Vehicles,bus
+2411277,Vehicles,random,,0.0112,,no,0,Vehicles,bowl
+2392094,Vehicles,random,,0.0195,present,yes,0,Vehicles,truck
+2386347,Vehicles,random,,0.039,present,yes,0,Vehicles,bowl
+2340056,Vehicles,random,,0.0461,present,yes,0,Vehicles,knife
+2392807,Vehicles,random,,0.0315,present,yes,0,Vehicles,bus
+2382264,Vehicles,random,,0.0122,,no,0,Vehicles,dog
+2398852,Vehicles,random,,0.0303,,no,0,Vehicles,knife
+2336335,Vehicles,random,,0.0054,,no,0,Vehicles,car
+2357898,Vehicles,random,,0.0097,,no,0,Vehicles,bench
+2384185,Vehicles,random,,0.0402,,no,0,Vehicles,backpack
+2352095,Vehicles,random,,0.0262,present,yes,0,Vehicles,bus
+2385477,Vehicles,random,,0.0176,,no,0,Vehicles,kite
+2332648,Vehicles,random,,0.0099,,no,0,Vehicles,sink
+2368984,Vehicles,random,,0.0302,,no,0,Vehicles,bus
+2370144,Vehicles,random,,0.0122,,no,0,Vehicles,bowl
+2358419,Vehicles,random,,0.0443,,no,0,Vehicles,bus
+3801,Vehicles,random,,0.0487,,no,0,Vehicles,bench
+2315796,Vehicles,random,,0.0284,,no,0,Vehicles,car
+2370271,Vehicles,random,,0.0186,present,yes,0,Vehicles,bird
+2393325,Vehicles,random,,0.01,present,yes,0,Vehicles,cup
+2388486,Vehicles,random,,0.0236,present,yes,0,Vehicles,bowl
+1592557,Vehicles,random,,0.0233,,no,0,Vehicles,fork
+497980,Vehicles,random,,0.0123,,no,0,Vehicles,bench
+2403285,Vehicles,random,,0.019,present,yes,0,Vehicles,kite
+2411445,Vehicles,random,,0.0491,,no,0,Vehicles,bicycle
+2402404,Vehicles,random,,0.032,,no,0,Vehicles,umbrella
+2341076,Vehicles,random,,0.0401,present,yes,0,Vehicles,bowl
+2392734,Vehicles,random,,0.0268,present,yes,0,Vehicles,kite
+2320550,Vehicles,random,,0.0117,present,yes,0,Vehicles,bench
+2318153,Vehicles,random,,0.0302,present,yes,0,Vehicles,fork
+2358239,Vehicles,random,,0.0114,present,yes,0,Vehicles,bird
+2373243,Vehicles,random,,0.013,,no,0,Vehicles,bird
+2392277,Vehicles,random,,0.0255,,no,0,Vehicles,bowl
+4214,Vehicles,random,,0.0134,,no,0,Vehicles,fork
+2352911,Vehicles,random,,0.0331,,no,0,Vehicles,bowl
+2329538,Vehicles,random,,0.0147,,no,0,Vehicles,bench
+2409231,Vehicles,random,,0.017,,no,0,Vehicles,bowl
+2321487,Vehicles,random,,0.0043,present,yes,0,Vehicles,bird
+2386652,Vehicles,random,,0.014,present,yes,0,Vehicles,bird
+2316043,Vehicles,random,,0.0192,present,yes,0,Vehicles,car
+2340667,Vehicles,random,,0.02,,no,0,Vehicles,bicycle
+2353402,Vehicles,random,,0.0515,,no,0,Vehicles,bus
+1593184,Vehicles,random,,0.0417,present,yes,0,Vehicles,dog
+2392480,Vehicles,random,,0.0531,,no,0,Vehicles,bowl
+2361524,Vehicles,random,,0.0098,present,yes,0,Vehicles,boat
+2334397,Vehicles,random,,0.007,,no,0,Vehicles,bowl
+2320159,Vehicles,random,,0.0198,present,yes,0,Vehicles,spoon
+2359994,Vehicles,random,,0.02,,no,0,Vehicles,bus
+2366442,Vehicles,random,,0.0404,present,yes,0,Vehicles,bowl
+2380376,Vehicles,random,,0.0097,,no,0,Vehicles,car
+2416293,Vehicles,random,,0.0191,present,yes,0,Vehicles,kite
+2335019,Vehicles,random,,0.0156,,no,0,Vehicles,bench
+2374137,Vehicles,random,,0.0087,,no,0,Vehicles,dog
+2316533,Vehicles,random,,0.025,present,yes,0,Vehicles,kite
+2372204,Vehicles,random,,0.0081,,no,0,Vehicles,bowl
+2364952,Vehicles,random,,0.0186,present,yes,0,Vehicles,bird
+2327535,Vehicles,random,,0.0311,,no,0,Vehicles,cup
+1159799,Vehicles,random,,0.0239,,no,0,Vehicles,bowl
+61589,Vehicles,random,,0.0178,,no,0,Vehicles,kite
+2396098,Vehicles,random,,0.0475,present,yes,0,Vehicles,bench
+2363160,Vehicles,random,,0.0104,present,yes,0,Vehicles,bird
+2357470,Vehicles,random,,0.0348,present,yes,0,Vehicles,dog
+2410026,Vehicles,random,,0.0285,,no,0,Vehicles,kite

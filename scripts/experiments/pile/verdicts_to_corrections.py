@@ -1,5 +1,20 @@
 """Turn review verdicts into the corrections file the builder merges before banding.
 
+**The live file is the union of TWO campaigns, and that was nearly lost** (#3732).
+Re-running this with its previous defaults reproduced 488 of the live file's 640
+rows and silently dropped 384 -- because the #3588 promotion review happened in
+its own directory, with its own verdicts and its own output, and somebody merged
+that output in by hand. Nothing recorded it. The recipe was recovered from a
+session transcript and is now the default: three verdict files from the #3156
+campaign, merged with `corrections_13.json` from the #3588 one. Verified to
+reproduce the live file exactly -- 0 rows dropped, 0 changed once the
+`box_space` field and the `claude_triage` -> `human_review` relabel that later
+commits introduced are accounted for.
+
+Keep it that way: an input added to a campaign has to be added here, or the next
+regeneration is a deletion. :func:`~pilebuild.corrections.dropped_rows` refuses
+one that shrinks the file, which is the backstop rather than the plan.
+
 Three sources feed one file, and they are *not* interchangeable:
 
 * **human verdicts** (`ingest_slate.py`) -- the reviewer's Good/Bad on slate
@@ -115,8 +130,19 @@ def main() -> int:
     base = pc.PILE.parent / "vgscale-3156"
     ap.add_argument(
         "--verdicts",
-        default=f"{base / 'verdicts_20260820b.json'},/exp/sgreenberg/vgscale-3156-labelsets/verdicts_audit_20260825.json",
+        default=",".join(
+            [
+                str(base / "verdicts_20260820b.json"),
+                str(pc.SCALE_LABELSETS / "verdicts_audit_20260825.json"),
+                str(pc.SCALE_LABELSETS / "verdicts_redef_20260825.json"),
+            ]
+        ),
         help="verdict files, comma-separated; later files win",
+    )
+    ap.add_argument(
+        "--merge",
+        default=str(pc.SCALE_WORK_3588 / "corrections_13.json"),
+        help="corrections files from OTHER campaigns, merged in after this run's rows; later wins",
     )
     ap.add_argument("--triage", default=str(base / "tri_flags_all.json"))
     ap.add_argument("--adjudication", default=str(base / "adjudication_ml_20260820.json"))
@@ -304,6 +330,18 @@ def main() -> int:
                 stats["negative_excluded_by_triage"] += 1
 
     rows = sorted(out.values(), key=lambda r: (r["class"], r["image_id"]))
+    # Another campaign's rows, merged after ours so that its own adjudication of
+    # a shared pair wins -- it reviewed the pair in the context it was asked in.
+    for path in filter(None, args.merge.split(",")):
+        if not Path(path).exists():
+            print(f"  merge source missing, skipped: {path}")
+            continue
+        merged = json.loads(Path(path).read_text())
+        rows_by_key = {(int(r["image_id"]), r["class"]): r for r in rows}
+        rows_by_key.update({(int(r["image_id"]), r["class"]): r for r in merged})
+        rows = sorted(rows_by_key.values(), key=lambda r: (int(r["image_id"]), r["class"]))
+        print(f"  merged {len(merged)} rows from {Path(path).name}; {len(rows)} total")
+
     # Refuse to shrink the file. See `dropped_rows`: the inputs that produced
     # what is on disk are not the ones this script defaults to, so a well-meant
     # re-run is a deletion of rows no one can regenerate.

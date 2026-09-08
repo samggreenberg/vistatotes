@@ -328,12 +328,12 @@
     "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
   },
   "PILE__corrections.json": {
-    "bytes": 149930,
+    "bytes": 191185,
     "rel": "corrections.json",
-    "sha256": "823be2edbb3fb70b5104fd7a907cbc158e9a08b047ecd9f35f6be1431dd262aa",
+    "sha256": "4f785cadc3d533a211f944f6168f80dbef6ce66eb1f18cf10887cce8a9f84fbb",
     "source": "{PILE}/corrections.json",
     "tier": "human",
-    "why": "the verdicts the build actually reads, and NOT reproducible from the inputs any documented invocation names -- measured, not assumed"
+    "why": "the verdicts the build actually reads; reproducible only from the recovered two-campaign recipe in `verdicts_to_corrections.py`, and only while `{WORK3588}` survives"
   },
   "PILE__vg_scale_deep_roster.json": {
     "bytes": 488665,
@@ -350,6 +350,262 @@
     "source": "{PILE}/vg_scale_roster.json",
     "tier": "derived",
     "why": "the membership a review was carried out against; a build rewrites it, and losing it means the next rebuild reshuffles reviewed images away"
+  },
+  "WORK3588__corrections_13.json": {
+    "bytes": 112411,
+    "rel": "corrections_13.json",
+    "sha256": "3fa5ec101522dc660920ddbdc2c5c846a992a0eac211f694e9594061ee1ea59c",
+    "source": "{WORK3588}/corrections_13.json",
+    "tier": "human",
+    "why": "that campaign's corrections output, merged into the live `corrections.json` and not reproducible without the campaign's own verdicts"
+  },
+  "WORK3588__slates__Backpack__manifest.csv": {
+    "bytes": 11447,
+    "rel": "slates/Backpack/manifest.csv",
+    "sha256": "742441ac4e11c2c2b88940f79a4cd0b44cdd84f4779e1972f14c02d84d5582bd",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Bench__manifest.csv": {
+    "bytes": 10253,
+    "rel": "slates/Bench/manifest.csv",
+    "sha256": "893d525f6735bfdd80ebde797f8ebc4823bb9abf02d9d35afa27b27c78cf5584",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Book__manifest.csv": {
+    "bytes": 9847,
+    "rel": "slates/Book/manifest.csv",
+    "sha256": "db5337bc14088b91750bf7e498f264f88f25f726dee2b54c3e68fa7781b1fbc8",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Cell_Phone__manifest.csv": {
+    "bytes": 12249,
+    "rel": "slates/Cell_Phone/manifest.csv",
+    "sha256": "5fb372a956df65d5f357064327fac84caf3fa2d51f5c87719045d6271fb79ac7",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Chair__manifest.csv": {
+    "bytes": 10249,
+    "rel": "slates/Chair/manifest.csv",
+    "sha256": "1eb438d756ff7ab769291abd2c2f2e9184c856f6d97bd4c9e382d8d37c1e016f",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Clock__manifest.csv": {
+    "bytes": 10247,
+    "rel": "slates/Clock/manifest.csv",
+    "sha256": "517df95c4c5ae49ba87c0e5ad4fc61e60d998cabd52a57e2b96115227603042e",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Fire_Hydrant__manifest.csv": {
+    "bytes": 13048,
+    "rel": "slates/Fire_Hydrant/manifest.csv",
+    "sha256": "b2c6ada7685b52fd21dc943b989da8cc1be52f1a0c294c511becafa858841be7",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Handheld_Objects__manifest.csv": {
+    "bytes": 14739,
+    "rel": "slates/Handheld_Objects/manifest.csv",
+    "sha256": "319ce7d753fe18d788def2cca4773f8f8de2e26ee420e60906ae4f22dc3d54a2",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Outdoor_Objects__manifest.csv": {
+    "bytes": 14339,
+    "rel": "slates/Outdoor_Objects/manifest.csv",
+    "sha256": "f9b0e42e6e90b0db81f78845883a5ef7d09b6ac1de6daddd3aa28c4af5ba161c",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Stop_Sign__manifest.csv": {
+    "bytes": 11847,
+    "rel": "slates/Stop_Sign/manifest.csv",
+    "sha256": "ee5cde776b9fa68ef3def419ade5ef8351f46280fcc637d36313372313a2fad4",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Street_Objects__manifest.csv": {
+    "bytes": 13939,
+    "rel": "slates/Street_Objects/manifest.csv",
+    "sha256": "60a0b0bc585df754cccf0b213776005b700e26835f49b68264bbee0bfa4923ab",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Table_Objects__manifest.csv": {
+    "bytes": 13453,
+    "rel": "slates/Table_Objects/manifest.csv",
+    "sha256": "45ee5a52606aa589c5af6db1f848573a99476a83a3f152c49843f3770107de12",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Umbrella__manifest.csv": {
+    "bytes": 11447,
+    "rel": "slates/Umbrella/manifest.csv",
+    "sha256": "f5039198c1a15adcfea1b78174b445e9d71b921e70d98a5c2790d5b48c214431",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Vehicles__manifest.csv": {
+    "bytes": 11539,
+    "rel": "slates/Vehicles/manifest.csv",
+    "sha256": "9bf782c87a1f41e632152dba452383341df3d3edb5e7109c10445621093274e8",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__bench_not_chairs__manifest.csv": {
+    "bytes": 18323,
+    "rel": "slates/bench_not_chairs/manifest.csv",
+    "sha256": "3e1d11db60cf6a9582bed852afe33bad11710aa7ced2b93663496f42944dc759",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__bottle_incl_jars__manifest.csv": {
+    "bytes": 18749,
+    "rel": "slates/bottle_incl_jars/manifest.csv",
+    "sha256": "519a7e917655516ff254b896c42833a42d74d572e428d0df2125f01115004b90",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__bowl_incl_plates_and_dishes__manifest.csv": {
+    "bytes": 27986,
+    "rel": "slates/bowl_incl_plates_and_dishes/manifest.csv",
+    "sha256": "883a298f8e797193e8527d15d113aae474c851a161da972bbb55253ae332b2c0",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__car_incl_SUVs_and_minivans__manifest.csv": {
+    "bytes": 20732,
+    "rel": "slates/car_incl_SUVs_and_minivans/manifest.csv",
+    "sha256": "e25b7686a4f88f4db500912b91162373559150ed1114e99d44e859676dbb74e6",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__cell_phone_not_landlines__manifest.csv": {
+    "bytes": 22448,
+    "rel": "slates/cell_phone_not_landlines/manifest.csv",
+    "sha256": "28cf53ed7dbe8f24c87b6ce9f0a631b7b053032dbcf09fcce49eb210edf1469f",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__chair_incl_stools_not_couches__manifest.csv": {
+    "bytes": 22304,
+    "rel": "slates/chair_incl_stools_not_couches/manifest.csv",
+    "sha256": "6195f1ba859d07523f73bdff3d8531c7e3e4545212f55931406e059aa69c2b6c",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__cup_incl_mugs_and_glasses_not_stemware__manifest.csv": {
+    "bytes": 24357,
+    "rel": "slates/cup_incl_mugs_and_glasses_not_stemware/manifest.csv",
+    "sha256": "5e0323a1b40d13227f50a674ba2ee679c0e17f72ded59aab8aec1a76f4bffa6d",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__fire_hydrant_not_standpipes__manifest.csv": {
+    "bytes": 23950,
+    "rel": "slates/fire_hydrant_not_standpipes/manifest.csv",
+    "sha256": "8a10a9e7dbfb63d3b6a768fca9b013351721bcf3fb6b0474f02e24cb38c1af3a",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__fork_incl_plastic__manifest.csv": {
+    "bytes": 18403,
+    "rel": "slates/fork_incl_plastic/manifest.csv",
+    "sha256": "69acece971a8fd113037932a6ac64fda3b61619ce499269395937fa61381ffcb",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__sink_basin_not_counter__manifest.csv": {
+    "bytes": 19874,
+    "rel": "slates/sink_basin_not_counter/manifest.csv",
+    "sha256": "9aaef3fcced5c55037fdefd7e453c990e80f84165203daed73804a703a28bb3e",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__spoon_incl_plastic_not_spatulas__manifest.csv": {
+    "bytes": 22916,
+    "rel": "slates/spoon_incl_plastic_not_spatulas/manifest.csv",
+    "sha256": "7acb5b9e977d6dd8c9b7853dd93ecb5a6c9142bc47c023fa544be19d5cf15814",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__truck_incl_vans_not_SUVs__manifest.csv": {
+    "bytes": 20791,
+    "rel": "slates/truck_incl_vans_not_SUVs/manifest.csv",
+    "sha256": "5ca01d773ee66f2f8943518f269e385f859c1e28caa6e060164036811fa3f863",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__vase_incl_pots_and_planters__manifest.csv": {
+    "bytes": 21339,
+    "rel": "slates/vase_incl_pots_and_planters/manifest.csv",
+    "sha256": "4ebc3434991585d501e11fa8d3b67a2b56f1b6da040975c2b05f7cc1954a29c4",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates_cup_v2__cup_incl_mugs_glasses_and_stemware__manifest.csv": {
+    "bytes": 23159,
+    "rel": "slates_cup_v2/cup_incl_mugs_glasses_and_stemware/manifest.csv",
+    "sha256": "f5d2602f4c8d44d747507dbd3cc45accba2c2e72d00fda68c083bdf511380d84",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates_cupmerged__cup_incl_mugs_glasses_and_stemware__manifest.csv": {
+    "bytes": 23164,
+    "rel": "slates_cupmerged/cup_incl_mugs_glasses_and_stemware/manifest.csv",
+    "sha256": "e41a38977dce4bd4b0d1bc31602f084d920626def62e0971d6decfc66d8fd8ab",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__verdicts_20260903.json": {
+    "bytes": 308974,
+    "rel": "verdicts_20260903.json",
+    "sha256": "31fcdacdca5d723c1974a673e373e5ac7047f0ab1cbf93b66010e7afc6cb72ee",
+    "source": "{WORK3588}/verdicts_*.json",
+    "tier": "human",
+    "why": "the #3588 promotion campaign's verdicts -- a second review, in its own directory, and absent from this inventory until #3732 noticed the live corrections file depends on it"
+  },
+  "WORK3588__verdicts_20260904.json": {
+    "bytes": 1001779,
+    "rel": "verdicts_20260904.json",
+    "sha256": "a5113ca18872625838ffdeef2869f1bc3716e660d6104b101a87a3c6224b8008",
+    "source": "{WORK3588}/verdicts_*.json",
+    "tier": "human",
+    "why": "the #3588 promotion campaign's verdicts -- a second review, in its own directory, and absent from this inventory until #3732 noticed the live corrections file depends on it"
   },
   "WORK__adjudicate_ml.json": {
     "bytes": 1524,

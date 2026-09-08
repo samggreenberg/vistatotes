@@ -52,6 +52,15 @@ meaningful if the first N rows are a sample of the queue rather than of whatever
 the id order happens to group together, so the queue is shuffled once under a
 fixed seed: reproducible, and unbiased in class, band and source.
 
+**The queue gates on the roster, because a worklist for a set that can move is
+worse than no worklist.** `designate_cells` fills a cell from the roster first
+and backfills the rest by `rank`, so an image that is *not* pinned can be
+displaced by a rebuild that changed something else entirely -- 41 positives out
+and 40 in with nothing relevant altered (#3667). Annotating an unpinned image is
+therefore work with no guarantee of a home, which is why this exits non-zero and
+names `make_roster.py` rather than printing a warning nobody reads. The queue
+file is still written: the failure is "do not start yet", not "nothing to see".
+
 **What the queue cannot carry is an answer key.** Every row is off-COCO by
 construction, so no row in it can be scored against COCO. That is not a gap in
 the worklist -- it is why the review tooling mixes a minority of anchored images
@@ -187,6 +196,27 @@ def band_columns(rows: list[dict], bands: tuple[str, ...]) -> tuple[str, ...]:
     return tuple(b for b in bands if b in seen)
 
 
+def roster_gaps(rows: list[dict], roster: dict) -> tuple[int, int, list[str]]:
+    """``(pinned, unpinned, examples)`` over the queue's ``(image, cell)`` designations.
+
+    Counted per designation rather than per image: an image pinned in two of its
+    three cells is two-thirds safe, and reporting it as "pinned" would hide the
+    cell it can still be displaced from.
+    """
+    cells = {c: {int(i) for i in ids} for c, ids in (roster.get("cells") or {}).items()}
+    pinned = unpinned = 0
+    missing: list[str] = []
+    for row in rows:
+        for cell in row["cells"]:
+            if row["image_id"] in cells.get(cell, frozenset()):
+                pinned += 1
+            else:
+                unpinned += 1
+                if len(missing) < 5:
+                    missing.append(f"{row['image_id']} in {cell}")
+    return pinned, unpinned, missing
+
+
 def print_table(rows: list[dict], bands: tuple[str, ...]) -> None:
     """Per-class counts, banded -- the numbers the plan says arrive for free."""
     per_class, per_cell, _ = counts(rows)
@@ -291,9 +321,27 @@ def main() -> int:
         "per_class": dict(per_class),
         "per_cell": dict(per_cell),
     }
+    # #3727: a worklist is only worth annotating if the set it names is pinned.
+    # Checked after the queue is written, because the file is still useful --
+    # the non-zero exit says "do not start yet", not "nothing was produced".
+    gate = 0
+    if not pc.ROSTER.exists():
+        log(f"FAIL: no roster at {pc.ROSTER} -- run `make_roster.py --cell {cell}` before annotating")
+        gate = 1
+    else:
+        pinned, unpinned, examples = roster_gaps(rows, json.loads(pc.ROSTER.read_text()))
+        summary["roster"] = str(pc.ROSTER)
+        summary["roster_pinned"] = pinned
+        summary["roster_unpinned"] = unpinned
+        log(f"roster pins {pinned} of {pinned + unpinned} of the queue's designations")
+        if unpinned:
+            log(f"FAIL: {unpinned} designation(s) unpinned, e.g. {', '.join(examples)}")
+            log(f"      A rebuild can displace those. Run `make_roster.py --cell {cell}` first.")
+            gate = 1
+
     Path(args.summary).write_text(json.dumps(summary, indent=2) + "\n")
     log(f"wrote {out} and {args.summary}")
-    return 0
+    return gate
 
 
 if __name__ == "__main__":

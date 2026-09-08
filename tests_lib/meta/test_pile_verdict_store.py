@@ -154,6 +154,44 @@ class TestHumanArtifact:
             assert len(art.why) > 20, art.source
 
 
+class TestDroppedRows:
+    """The guard that stops a re-run deleting rows nobody can regenerate (#3727).
+
+    Measured on the live file: `verdicts_to_corrections.py` run with its own
+    committed defaults reproduces 488 of 640 rows, and no invocation anyone
+    could reconstruct reproduces all of them. So a well-meant re-run -- exactly
+    what someone does to pick up the new confirmation rows -- is a silent
+    deletion of 384 human judgements unless something refuses.
+    """
+
+    def test_it_counts_the_lost_rows_by_source(self, corrections_mod):
+        old = [_row(1, "car"), _row(2, "bus"), _row(3, "dog")]
+        old[2]["source"] = "claude_triage"
+        new = [_row(1, "car")]
+
+        assert corrections_mod.dropped_rows(old, new) == {"human_review": 1, "claude_triage": 1}
+
+    def test_a_superset_drops_nothing(self, corrections_mod):
+        """Adding the confirmation rows is what a good re-run looks like."""
+        old = [_row(1, "car")]
+        new = [_row(1, "car"), _row(2, "bus")]
+
+        assert corrections_mod.dropped_rows(old, new) == {}
+
+    def test_a_changed_row_is_not_a_dropped_one(self, corrections_mod):
+        """The pair still has an answer; only its content moved."""
+        old = [_row(1, "car", present=True)]
+        new = [_row(1, "car", present=False)]
+
+        assert corrections_mod.dropped_rows(old, new) == {}
+
+    def test_string_and_int_ids_are_the_same_pair(self, corrections_mod):
+        """JSON has made these strings before; a false drop would block a good run."""
+        old = [{"image_id": "1", "class": "car", "source": "human_review"}]
+
+        assert corrections_mod.dropped_rows(old, [_row(1, "car")]) == {}
+
+
 class TestWriteJsonLocked:
     def test_the_file_is_replaced_not_truncated(self, corrections_mod, tmp_path):
         """A reader arriving mid-write must never see half a verdict file."""

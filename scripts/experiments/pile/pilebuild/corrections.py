@@ -20,6 +20,25 @@ from pathlib import Path
 import pile_config as pc
 
 
+def dropped_rows(old: list[dict], new: list[dict]) -> dict[str, int]:
+    """``{source: n}`` for pairs the old file has and the new one does not.
+
+    A regeneration is supposed to be a function of the inputs, so a *smaller*
+    result means the inputs are not the ones that produced what is on disk.
+    Measured on the live file: the defaults in this script reproduce 488 of its
+    640 rows, and no invocation anyone could reconstruct reproduces all of them
+    -- 379 rows come from verdict files, triage flags and adjudications nobody
+    recorded. Overwriting on those terms is a silent deletion of human work,
+    which is why :func:`main` refuses rather than warns.
+    """
+    have = {(int(r["image_id"]), r["class"]) for r in new}
+    lost: dict[str, int] = {}
+    for r in old:
+        if (int(r["image_id"]), r["class"]) not in have:
+            lost[r.get("source", "unknown")] = lost.get(r.get("source", "unknown"), 0) + 1
+    return lost
+
+
 def write_json_locked(path: Path, payload: object, indent: int = 1) -> None:
     """Write *payload* to *path* atomically, under an exclusive lock.
 

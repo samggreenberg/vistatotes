@@ -17,6 +17,14 @@ HTTP hop to authenticate, and the memory cost is one dataset at a time -- but
 it does mean this must not run while the app is up on the same data dir, since
 both would write the registry. Stop the app first.
 
+**Every image is embedded again, and the pile already holds its vector** (#3669).
+The importer takes a folder and computes; there is no reuse path, so a slate
+drawn from the pile pays ~1.2 s/image on CPU for numbers that exist on disk.
+This now prints the device it resolved and what that implies for the slate in
+front of it, because the failure was silent: `auto` becomes CUDA or CPU
+depending on which partition the job landed on, and a twelve-minute import of
+200 images looks exactly like a slow one.
+
 Usage::
 
     python import_slates.py --slates /expscratch/$USER/classes-3588/slates
@@ -55,6 +63,27 @@ def main() -> int:
 
     index = json.loads((Path(args.slates) / "slates.json").read_text())
     log(f"{len(index)} slates under {args.slates}")
+    total_images = sum(int(e.get("n") or 0) for e in index)
+
+    # WHICH DEVICE, before anything is embedded, and before --dry-run returns --
+    # planning the run is exactly what a dry run is for (#3669). The embedder
+    # resolves `auto` against whatever host it lands on, so the same command is
+    # minutes on a GPU node and hours on a CPU one, and nothing said so: the
+    # #3588 pass paid ~12 minutes for well under a minute of GPU work, and a
+    # slate import sent to the wrong partition looked exactly like a slow one.
+    #
+    # `app` lives at the repo root; this script runs from scripts/experiments/pile.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+    from vtscore.config import resolve_device  # noqa: PLC0415
+
+    device = resolve_device()
+    # 1.2 s/image measured on CPU (#3669: 200 images, 238 s). The GPU figure is
+    # an order-of-magnitude placeholder and is labelled as one rather than
+    # quoted: nobody has timed this import on a GPU.
+    rate, sure = (1.2, "measured") if device == "cpu" else (0.05, "guessed")
+    log(f"embedding device: {device} -- {total_images} images, roughly {total_images * rate / 60:.0f} min ({sure})")
+    if device == "cpu":
+        log("  every one of those vectors is already in the pile; a CPU import is hours (#3669)")
 
     if args.dry_run:
         for e in index:
@@ -67,8 +96,6 @@ def main() -> int:
     os.environ.setdefault("VTSEARCH_MODELS_DIR", str(pc.PILE / "models"))
     os.environ.setdefault("HF_HOME", str(pc.PILE / "models"))
 
-    # `app` lives at the repo root; this script runs from scripts/experiments/pile.
-    sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
     import app  # noqa: F401, PLC0415  -- wires the registries
 
     from vtscore.datasets import registry as ds_registry  # noqa: PLC0415

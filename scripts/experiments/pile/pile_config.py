@@ -157,6 +157,23 @@ SCALE_CROSS_CLASS_NEGATIVES = True
 
 #: The upper cut mirrors ``MAX_VOTED_AREA``: a box covering >80% of the image
 #: is not a region, it is the image.
+#:
+#: **The band is a VIEW over every instance, not a replacement for them, and
+#: that is a decision** (2026-09-07, ``docs/plans/vg-scale-exhaustive-annotation.md``).
+#: :func:`~pilebuild.loaders.vg_scale.band_for` summarises a class's boxes in an
+#: image by their **union**, which is what one Good vote drags in the app and is
+#: what #3156 measured -- and the build keeps every instance box behind it
+#: (``band_candidates`` stores them all; ``_emit_medias`` writes one region per
+#: box). Keep it that way. The union is derivable from the instances and the
+#: instances are not derivable from the union, so a summary chosen at eval time
+#: -- largest, smallest, count, density -- stays available at no cost, while
+#: collapsing the set at build time would end that permanently and silently.
+#:
+#: The shipped band statistic does **not** move as a result: changing it now
+#: would restate what #3156 measured under its own name. What the decision buys
+#: is the option, and what it costs is one invariant to defend -- a review that
+#: replaces a class's instance set with one drawn box spends the option without
+#: anyone deciding to (#3726).
 PATCH_AREA = 1 / 196
 LEAF_AREA = 1 / 12
 MAX_VOTED_AREA = 0.80

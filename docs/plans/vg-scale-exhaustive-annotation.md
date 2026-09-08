@@ -77,12 +77,14 @@ change, 41 positives out and 40 in on a rebuild with nothing relevant altered
 
 ## Two decisions this forces
 
-**The band statistic.** Banding is currently the **union** box over a class's
-instances, on the stated ground that a union is what one Good vote drags in the
-app. An exhaustively annotated set carries every instance, so union, largest,
-smallest and count are all derivable and the summary can move to eval time. That
-is a change to what #3156 measured, and it is a decision, not a detail: pick it
-deliberately and say so where the band is defined.
+**The band statistic — decided 2026-09-07: the band stays the union, and every
+instance stays behind it.** The union is what one Good vote drags in the app and
+is what #3156 measured, so the shipped statistic does not move; the instances
+are kept because the union is derivable from them and they are not derivable
+from it, which leaves largest, smallest, count and density available at eval
+time for free. Recorded beside `BOX_BANDS` in `pile_config`. The build already
+stores every instance — what this now commits us to defending is that **review**
+does not quietly collapse the set (#3726).
 
 **Two label sources of unequal quality.** COCO on one half and our annotators on
 the other means provenance would correlate with *label noise* instead of with
@@ -105,6 +107,14 @@ cannot be regenerated, so a rebuild *after* the pass throws some of them away.
 Land or dismiss all of them, rebuild once, then freeze the roster — in that
 order. The VG-name audit itself is no longer among them: `SCALE_VG_NAMES_AUDITED`
 now covers all 25 classes, so #3618's "before the next rebuild" warning is spent.
+
+<!-- item-sep -->
+
+- [ ] #3727 — a confirmed verdict writes no correction, so the build cannot tell an answered image from an unopened one
+
+<!-- item-sep -->
+
+- [ ] #3726 — a rebox replaces the class's whole instance set, spending the band decision above
 
 <!-- item-sep -->
 
@@ -180,11 +190,6 @@ now covers all 25 classes, so #3618's "before the next rebuild" warning is spent
 
 <!-- item-sep -->
 
-- **Decide the band statistic, and record the decision where the band is
-  defined.** Union (today), largest, or per-instance with a summary chosen at
-  eval time. Carrying every instance box is the option that keeps the choice
-  open, and is what makes band a query. See the two-decisions section above.
-  (human)
 
 <!-- item-sep -->
 

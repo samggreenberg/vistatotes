@@ -156,6 +156,96 @@ class TestApplyCorrections:
         assert "bus" not in labels[7]
 
 
+class TestReboxDesignates:
+    """A reviewer's box designates an instance; the set is kept (#3726).
+
+    The box does two things at once, and the build used to hear one of them.
+    Sam's description of what he was doing: *"there was a different,
+    more-prominent example elsewhere in the image"* -- so the box is usually a
+    **different instance**, not a correction of the drawn one.
+
+    Replacing the set hears the designation and throws the annotation away: 26 of
+    470 boxed corrections collapsed a multi-instance set, `book` 713617 from 14
+    boxes to 1. Merging without designating hears the annotation and loses the
+    choice, because `band_for` would union the drawn box with the others and the
+    image would not move to the band the reviewer picked -- overturning #3616.
+    """
+
+    def test_the_other_instances_survive_a_rebox(self, vgs):
+        drawn = [0.5, 0.5, 0.6, 0.6]
+        others = [[10.0, 10.0, 20.0, 20.0], [30.0, 30.0, 44.0, 44.0]]
+        labels = {7: {"bowl": [list(b) for b in others]}}
+        designated: dict[tuple[int, str], list[list[float]]] = {}
+
+        vgs.apply_corrections(
+            labels, {(7, "bowl"): _verdict(True, [drawn])}, {7: (100, 100)}, set(), designated=designated
+        )
+
+        assert [[50.0, 50.0, 60.0, 60.0], *others] == labels[7]["bowl"], "the reviewer's box leads, the rest remain"
+        assert designated[(7, "bowl")] == [[50.0, 50.0, 60.0, 60.0]]
+
+    def test_without_the_dict_the_old_behaviour_is_exact(self, vgs):
+        """Every caller that only wants labels keeps the pre-#3726 semantics."""
+        labels = {7: {"bowl": [[10.0, 10.0, 20.0, 20.0]]}}
+
+        vgs.apply_corrections(labels, {(7, "bowl"): _verdict(True, [[0.5, 0.5, 0.6, 0.6]])}, {7: (100, 100)}, set())
+
+        assert labels[7]["bowl"] == [[50.0, 50.0, 60.0, 60.0]]
+
+    def test_a_designation_that_repeats_an_instance_is_not_stored_twice(self, vgs):
+        same = [[50.0, 50.0, 60.0, 60.0]]
+        labels = {7: {"bowl": [list(b) for b in same]}}
+
+        vgs.apply_corrections(
+            labels, {(7, "bowl"): _verdict(True, [[0.5, 0.5, 0.6, 0.6]])}, {7: (100, 100)}, set(), designated={}
+        )
+
+        assert labels[7]["bowl"] == same
+
+    def test_the_band_follows_the_designated_box_not_the_union(self, vgs, pc):
+        """#3616's ruling, kept: the image moves to the band the reviewer picked.
+
+        The union over a small box and a large one lands in a different band from
+        the small box alone -- which is exactly the case that made this a choice
+        rather than a merge.
+        """
+        small = [0.0, 0.0, 5.0, 5.0]  # 25/10_000 -- inside `small`
+        large = [0.0, 0.0, 70.0, 70.0]  # 0.49 of the frame: inside `large`, and the union stays bandable
+        labels = {7: {"bowl": [small, large]}}
+
+        _supply, _boxes, _clean = vgs.band_candidates(
+            labels, {7: (100, 100)}, set(), classes=("bowl",), designated={(7, "bowl"): [small]}
+        )
+        by_union = vgs.band_for([small, large], 100, 100)
+        by_designation = vgs.band_for([small], 100, 100)
+
+        assert by_union != by_designation, "the fixture must actually separate the two readings"
+        assert 7 in _supply["bowl"][by_designation]
+        assert 7 not in _supply["bowl"].get(by_union, [])
+
+    def test_the_cell_still_carries_every_instance(self, vgs):
+        """The band is a view; the boxes are the record (the 2026-09-07 decision)."""
+        small = [0.0, 0.0, 5.0, 5.0]
+        large = [0.0, 0.0, 70.0, 70.0]  # 0.49 of the frame: inside `large`, and the union stays bandable
+        labels = {7: {"bowl": [small, large]}}
+
+        _supply, boxes_for, _clean = vgs.band_candidates(
+            labels, {7: (100, 100)}, set(), classes=("bowl",), designated={(7, "bowl"): [small]}
+        )
+
+        (cell,) = [k for k in boxes_for if k[0] == 7]
+        assert boxes_for[cell] == [small, large]
+
+    def test_an_undesignated_class_bands_by_the_union_as_before(self, vgs):
+        small = [0.0, 0.0, 5.0, 5.0]
+        large = [0.0, 0.0, 70.0, 70.0]  # 0.49 of the frame: inside `large`, and the union stays bandable
+        labels = {7: {"bowl": [small, large]}}
+
+        supply, _boxes, _clean = vgs.band_candidates(labels, {7: (100, 100)}, set(), classes=("bowl",), designated={})
+
+        assert 7 in supply["bowl"][vgs.band_for([small, large], 100, 100)]
+
+
 class TestAnchorToCoco:
     """COCO's exhaustive labels replace VG's, except where the copies disagree."""
 

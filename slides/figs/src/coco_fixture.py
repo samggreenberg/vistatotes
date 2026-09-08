@@ -59,6 +59,12 @@ ANNOTATIONS_URL = "http://images.cocodataset.org/annotations/annotations_trainva
 #: giraffes makes the detector look better than it is, and the deck's whole
 #: point is that the boundary is hard.
 #:
+#: `photos-prod` is the *production* pile the Find slide scores: the same fifteen
+#: subjects in the same proportions, and not one frame in common with `photos`.
+#: That disjointness is the slide's whole claim — the detector was voted on one
+#: pile and is now ranking media it has never seen — so it is enforced here
+#: rather than left to a comment (see `DISJOINT_FROM`).
+#:
 #: `photo-regions` is much smaller: it is embedded with DINOv2 patch, which is
 #: many times the work per image, and the shot only ever shows one item and the
 #: strip of thumbnails beside it.
@@ -80,6 +86,23 @@ PLANS = {
         "umbrella": 12,
         "sandwich": 12,
     },
+    "photos-prod": {
+        "book": 40,
+        "laptop": 16,
+        "tv": 16,
+        "keyboard": 12,
+        "cell phone": 16,
+        "clock": 16,
+        "vase": 12,
+        "chair": 16,
+        "pizza": 14,
+        "dog": 14,
+        "bird": 14,
+        "bicycle": 14,
+        "bus": 14,
+        "umbrella": 14,
+        "sandwich": 12,
+    },
     "photo-regions": {
         "book": 14,
         "laptop": 8,
@@ -88,6 +111,19 @@ PLANS = {
         "bicycle": 6,
     },
 }
+
+
+#: Corpora that must not share a single frame with another, as
+#: `{plan: the plan it stands clear of}`.
+#:
+#: The Find slide claims the detector is ranking media nobody voted on. A
+#: `photos-prod` built by re-running the same "largest box first" selection
+#: would hand back exactly the frames `photos` already took, and the claim
+#: would be false in the one figure that makes it. So the reserved plan's
+#: frames are struck out of the candidate list before the second plan chooses,
+#: which leaves `photos-prod` the next-best frames of each category rather than
+#: a reshuffle.
+DISJOINT_FROM = {"photos-prod": "photos"}
 
 
 def ensure_corpus() -> Path:
@@ -108,13 +144,17 @@ def ensure_corpus() -> Path:
     return CORPUS
 
 
-def _roster(plan: dict[str, int]) -> dict[str, list[str]]:
+def _roster(plan: dict[str, int], reserved: frozenset[str] = frozenset()) -> dict[str, list[str]]:
     """Which COCO frames fill each category of *plan*, deterministically.
 
     A frame lands in the category whose box covers most of it, and only in one:
     a photograph of a laptop beside a stack of books is a book photograph as
     far as this corpus is concerned, and filing it under `laptop` would put a
     true positive in the negatives. `book` is resolved first for that reason.
+
+    *reserved* is a set of COCO file names another plan has already claimed;
+    they are struck out before this plan chooses, which is how a disjoint
+    corpus is built (see `DISJOINT_FROM`).
     """
     data = json.loads(ANNOTATIONS.read_text())
     names = {c["id"]: c["name"] for c in data["categories"]}
@@ -134,7 +174,10 @@ def _roster(plan: dict[str, int]) -> dict[str, list[str]]:
         candidates = [
             (-cell[category], image_id)
             for image_id, cell in share.items()
-            if category in cell and image_id not in taken and (category == "book" or "book" not in cell)
+            if category in cell
+            and image_id not in taken
+            and frames[image_id]["file_name"] not in reserved
+            and (category == "book" or "book" not in cell)
         ]
         candidates.sort()
         chosen = [image_id for _, image_id in candidates[:count]]
@@ -145,13 +188,21 @@ def _roster(plan: dict[str, int]) -> dict[str, list[str]]:
     return roster
 
 
+def _reserved_for(name: str) -> frozenset[str]:
+    """The frames *name* must not take, because another corpus holds them."""
+    other = DISJOINT_FROM.get(name)
+    if other is None:
+        return frozenset()
+    return frozenset(f for files in _roster(PLANS[other]).values() for f in files)
+
+
 def build_fixture(name: str) -> Path:
     """Materialise one fixture under `data/slide-fixtures/`, and return its path."""
     root = FIXTURES / name
     if root.is_dir() and any(root.iterdir()):
         return root
     ensure_corpus()
-    for category, files in _roster(PLANS[name]).items():
+    for category, files in _roster(PLANS[name], _reserved_for(name)).items():
         folder = root / category.replace(" ", "-")
         folder.mkdir(parents=True, exist_ok=True)
         for file in files:

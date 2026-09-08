@@ -2,8 +2,12 @@
 # Mildly technical audience with no prior exposure to VTSearch: the opening
 # third builds the tool, and lands on the one object the whole talk is about —
 # a line through a ranking that decides twice, what comes back and what you are
-# asked next. Then the ideas, in order: four iterations on where the line goes,
-# then the same machinery walked a second time along the Inclusion axis — where
+# asked next. That first third is deliberately click-by-click — make a
+# detector, answer questions, run it over media nobody voted on — because a
+# room that has not seen the tool cannot be told about a threshold inside it.
+#
+# Then the ideas, in order: four iterations on where the line goes, then the
+# same machinery walked a second time along the Inclusion axis — where
 # the *user* wants it — and then the epilogue that closed the cut-rule question
 # for good.
 #
@@ -24,7 +28,9 @@ slides:
   # 1 — VTSearch
   outline-hold-the-line +at1
   problem
-  ui-tour
+  make-detector
+  train-loop
+  find-results
   vote-boundary
 
   # 2 — Calibration

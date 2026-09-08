@@ -230,9 +230,10 @@ rewrites the whole archive.
 - **SVG for diagrams** with a few dozen shapes: smaller, and genuinely
   diffable.
 - **WebP for screenshots.** A screenshot is a photograph behind UI chrome,
-  which is the one thing PNG is bad at: the two UI figures weigh 2.7 MB as PNG
-  and 0.4 MB as WebP at a quality no projector resolves the difference at — and
-  they are re-shot on every GUI change, so the cost is paid again and again.
+  which is the one thing PNG is bad at: measured on the two UI figures this
+  started with, 2.7 MB as PNG against 0.4 MB as WebP, at a quality no projector
+  resolves the difference at — and there are a dozen of them now, re-shot on
+  every GUI change, so the cost is paid again and again.
   Marp rasterises through Chromium, which reads WebP natively.
 - Iterate in the working tree and `--amend` while a figure is still ugly, so
   only the final render becomes permanent history.
@@ -244,19 +245,34 @@ plot can be regenerated when the underlying numbers move —
 (see [`STYLE.md`](STYLE.md)) and refuses to write a figure whose labels would
 be unreadable in its slot.
 
-**Screenshots of the app are generated too.** `figs/ui-three-panel.webp` and
-`figs/ui-region-voting.webp` come from `figs/src/shoot-ui-figs.mjs`, which builds
-a corpus of real photographs out of COCO val2017 (`figs/src/coco_fixture.py`
-downloads it and files it by subject), trains a detector on **books** by voting
-— the deck's running example, and a concept with real near-misses in that pile —
-and drives headless chromium:
+**Screenshots of the app are generated too.** `figs/ui-make-detector*.webp`,
+`figs/ui-train-loop*.webp`, `figs/ui-find*.webp` and `figs/ui-region-voting.webp`
+come from `figs/src/shoot-ui-figs.mjs`, which builds a corpus of real
+photographs out of COCO val2017 (`figs/src/coco_fixture.py` downloads it and
+files it by subject), trains a detector on **books** by voting — the deck's
+running example, and a concept with real near-misses in that pile — and drives
+headless chromium:
 
 ```bash
 cd scripts/screenshots && npm install     # once — playwright lives here
 node ../../slides/figs/src/shoot-ui-figs.mjs
 ```
 
-Every step is idempotent, so a re-run after a GUI change is just the captures.
+The first three groups are **one session**, shot in the order a user works:
+create the detector through the modal, answer what autopilot serves until the
+Good and Bad piles have something in them, then run the trained head over
+`photos-prod` — a second COCO corpus that shares no frame with the one the
+votes came from, so the Find slide's claim that it is scoring unseen media is
+enforced by `coco_fixture.DISJOINT_FROM` rather than asserted in a caption.
+Nothing is staged through the API that a slide says was done by hand: the
+button `train-loop` clicks is chosen from the served item's own file name, so
+the piles are a real session's.
+
+The expensive steps are idempotent — the corpora are downloaded, filed and
+embedded only if absent — so a re-run after a GUI change is the captures plus a
+few minutes of clicking. The intro detector is deliberately *not*: it is deleted
+and re-made every run, because the first shot's subject is a dashboard that does
+not have one yet.
 It deliberately does **not** reuse the docs shots in
 `docs/user/screenshots.manifest.ts`: those are taken against the synthetic
 `syn-imgs` fixture because the user guide walks the reader through that dataset,

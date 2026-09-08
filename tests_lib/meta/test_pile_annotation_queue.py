@@ -187,6 +187,37 @@ class TestBandColumns:
         assert aq.band_columns(rows, ("small", "medium", "large")) == ("small", "large")
 
 
+class TestRosterGaps:
+    """The queue refuses to be a worklist for a set a rebuild can reshuffle (#3727)."""
+
+    def test_a_roster_that_pins_the_queue_has_no_gap(self, aq):
+        rows = aq.queue_rows({1: _positive(["bus@small", "car@large"], iid=1)})
+
+        pinned, unpinned, examples = aq.roster_gaps(rows, {"cells": {"bus@small": [1], "car@large": [1]}})
+
+        assert (pinned, unpinned, examples) == (2, 0, [])
+
+    def test_gaps_are_counted_per_designation_not_per_image(self, aq):
+        """An image pinned in two of its three cells is not a pinned image."""
+        rows = aq.queue_rows({1: _positive(["bus@small", "car@large"], iid=1)})
+
+        pinned, unpinned, examples = aq.roster_gaps(rows, {"cells": {"bus@small": [1]}})
+
+        assert (pinned, unpinned) == (1, 1)
+        assert examples == ["1 in car@large"]
+
+    def test_an_empty_roster_pins_nothing(self, aq):
+        rows = aq.queue_rows({1: _positive(["bus@small"], iid=1)})
+
+        assert aq.roster_gaps(rows, {}) == (0, 1, ["1 in bus@small"])
+
+    def test_string_ids_in_a_roster_still_match(self, aq):
+        """JSON round-trips have made these strings before; a false gap is a false alarm."""
+        rows = aq.queue_rows({1: _positive(["bus@small"], iid=1)})
+
+        assert aq.roster_gaps(rows, {"cells": {"bus@small": ["1"]}}) == (1, 0, [])
+
+
 class TestCounts:
     def test_a_class_is_counted_once_per_image_and_a_cell_once_per_designation(self, aq):
         """Two bands of one class are two cells and one image owing one judgement."""

@@ -383,6 +383,13 @@ def apply_corrections(
     that class instead -- neither a positive nor a negative -- which is precisely
     what the third value is for.
 
+    **A confirmation is not that row, and the difference is a deletion.** A
+    verdict carrying :data:`pile_config.CORRECTION_SOURCE_CONFIRMED` says the
+    reviewer looked and agreed with the box already there; it also carries no
+    boxes, so reading it by shape would pop the class and retire the positive it
+    confirms. It is answered first, and answered by changing nothing except the
+    fact that somebody answered (#3727).
+
     **A verdict on a class outside *C* is skipped**, and that is not a nicety.
     `corrections.json` is shared by every build of this family, so it holds rows
     for classes a given build does not have: #3588's negative pass added
@@ -403,6 +410,14 @@ def apply_corrections(
     unbanded: set[tuple[int, str]] = set()
     for (iid, name), verdict in corrections.items():
         if iid not in labels or name not in in_c:
+            continue
+        if verdict.get("source") == pc.CORRECTION_SOURCE_CONFIRMED:
+            # A confirmation asserts that the label already there is right, so
+            # there is nothing to merge -- but it is still an answer, and the
+            # pair has to read as reviewed downstream (#3727). It must not fall
+            # through: with no boxes the `present` branch below POPS the class,
+            # which would delete the positive the reviewer just confirmed.
+            exhaustive.add(iid)
             continue
         if verdict.get("present"):
             boxes = correction_boxes_px(verdict, *box_dims[iid])

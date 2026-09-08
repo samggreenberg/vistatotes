@@ -121,6 +121,40 @@ class TestApplyCorrections:
         assert vgs.apply_corrections(labels, {(99, "bus"): _verdict(True)}, {}, set()) == set()
         assert labels == {}
 
+    def test_a_confirmation_changes_nothing_but_the_fact_that_someone_answered(self, vgs, pc):
+        """#3727's row: the reviewer agreed with the box already there.
+
+        The boxes it carries are empty, which is the *same shape* as a boxless
+        `present` -- and that row pops the class. Reading a confirmation by
+        shape would therefore retire the positive it confirms, so the branch is
+        on the source.
+        """
+        boxes = [[1.0, 1.0, 2.0, 2.0]]
+        labels = {7: {"bus": boxes}}
+        exhaustive: set[int] = set()
+
+        unbanded = vgs.apply_corrections(
+            labels,
+            {(7, "bus"): {"present": True, "boxes": [], "source": pc.CORRECTION_SOURCE_CONFIRMED}},
+            {7: (640, 480)},
+            exhaustive,
+        )
+
+        assert labels[7]["bus"] == boxes, "the confirmed positive must survive its own confirmation"
+        assert unbanded == set()
+        assert exhaustive == {7}, "someone looked, and the build has to know it"
+
+    def test_a_boxless_present_from_a_review_still_unbands(self, vgs):
+        """The contrast the branch above must not swallow: same shape, other meaning."""
+        labels = {7: {"bus": [[1.0, 1.0, 2.0, 2.0]]}}
+
+        unbanded = vgs.apply_corrections(
+            labels, {(7, "bus"): {"present": True, "boxes": [], "source": "human_review"}}, {7: (640, 480)}, set()
+        )
+
+        assert unbanded == {(7, "bus")}
+        assert "bus" not in labels[7]
+
 
 class TestAnchorToCoco:
     """COCO's exhaustive labels replace VG's, except where the copies disagree."""
@@ -796,6 +830,42 @@ class TestDesignateCells:
 
         assert chosen == [1, 2, 3] or set(chosen) == {1, 2, 3}
         assert f"UNDER-SUPPLIED {cell}" in capsys.readouterr().out
+
+
+class TestConfirmationKeepsItsSeat:
+    """A confirmed positive must outrank an unreviewed one for a seat (#3727).
+
+    This is the whole point of writing the row: `designate_cells` reads
+    `corrections` to decide who keeps a place when a rebuild reshuffles, and a
+    confirmation used to leave no row at all -- so the pass's modal answer, on
+    the class whose cell the image is actually in, bought it nothing.
+    """
+
+    def _supply(self, pc, cls: str, band: str, ids: list[int]):
+        supply = {c: {b: [] for b in pc.BOX_BANDS} for c in pc.SCALE_CLASSES}
+        supply[cls][band] = list(ids)
+        return supply
+
+    def test_a_confirmed_image_takes_a_seat_from_an_unreviewed_one(self, vgs, pc):
+        cls, band = pc.SCALE_CLASSES[0], next(iter(pc.BOX_BANDS))
+        cell = pc.scale_cell(cls, band)
+        pool = list(range(1000, 1000 + pc.SCALE_N_POS + 50))
+        unlucky = [i for i in pool if i not in vgs.designate_cells(self._supply(pc, cls, band, pool), {}, {})[cell]]
+        assert unlucky, "test needs a pool larger than the cell"
+
+        confirmed = {
+            (unlucky[0], cls): {
+                "image_id": unlucky[0],
+                "class": cls,
+                "present": True,
+                "boxes": [],
+                "source": pc.CORRECTION_SOURCE_CONFIRMED,
+            }
+        }
+
+        chosen = vgs.designate_cells(self._supply(pc, cls, band, pool), confirmed, {})[cell]
+
+        assert unlucky[0] in chosen
 
 
 class TestDisqualifiedNegatives:

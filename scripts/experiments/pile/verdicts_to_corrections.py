@@ -80,7 +80,7 @@ from collections import Counter
 from pathlib import Path
 
 import pile_config as pc
-from pilebuild.corrections import write_json_locked
+from pilebuild.corrections import dropped_rows, write_json_locked
 
 pc.setup_env()
 
@@ -124,6 +124,11 @@ def main() -> int:
     ap.add_argument("--slates", default=f"{base / 'slates'},{base / 'slates_pos2'}")
     ap.add_argument("--include-maybes", action="store_true", help="apply triage maybes too (default: no)")
     ap.add_argument("--out", default=str(pc.PILE / "corrections.json"))
+    ap.add_argument(
+        "--allow-loss",
+        action="store_true",
+        help="write even when the result drops rows the existing file has (it is human work; see --help)",
+    )
     args = ap.parse_args()
 
     # (image, class) -> manifest row, for the band of a reviewed positive.
@@ -215,6 +220,21 @@ def main() -> int:
                         stats["positive_reboxed_band_moved"] += 1
                         moves.append((key[1], key[0], band, new_band or "oversize"))
                 else:
+                    # A confirmation changes no label, and until #3727 it wrote
+                    # no row either -- so a pair a human had agreed with was
+                    # indistinguishable from one nobody had opened, and
+                    # `designate_cells` (which reads `corrections` to decide who
+                    # keeps a seat) gave it no priority. It is written as a
+                    # verdict with no boxes and its own source, never as a
+                    # boxless `present`: see `pile_config`'s constant.
+                    out[key] = {
+                        "image_id": key[0],
+                        "class": key[1],
+                        "present": True,
+                        "boxes": [],
+                        "box_space": pc.CORRECTION_BOX_SPACE,
+                        "source": pc.CORRECTION_SOURCE_CONFIRMED,
+                    }
                     stats["positive_confirmed"] += 1
                 continue
             # Rejected. Small band: not confirmed is not absent.
@@ -284,7 +304,20 @@ def main() -> int:
                 stats["negative_excluded_by_triage"] += 1
 
     rows = sorted(out.values(), key=lambda r: (r["class"], r["image_id"]))
-    write_json_locked(Path(args.out), rows)
+    # Refuse to shrink the file. See `dropped_rows`: the inputs that produced
+    # what is on disk are not the ones this script defaults to, so a well-meant
+    # re-run is a deletion of rows no one can regenerate.
+    out_path = Path(args.out)
+    if out_path.exists():
+        lost = dropped_rows(json.loads(out_path.read_text()), rows)
+        if lost and not args.allow_loss:
+            print(f"\nREFUSING to write {out_path}: it holds {sum(lost.values())} rows this run does not produce")
+            for source, n in sorted(lost.items(), key=lambda kv: -kv[1]):
+                print(f"    {n:>4}  {source}")
+            print("  Those came from inputs this invocation was not given. Add them with --verdicts /")
+            print("  --adjudication / --slates / --triage, or pass --allow-loss if the drop is intended.")
+            return 2
+    write_json_locked(out_path, rows)
 
     print(f"\n{len(rows)} corrections written to {args.out}\n")
     for k, v in sorted(stats.items()):

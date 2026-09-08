@@ -10,6 +10,7 @@ verified clean (#3297).
 
 from __future__ import annotations
 
+import json
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -94,6 +95,105 @@ def negative_pool_problems(ds: str, medias: dict) -> list[str]:
     return problems
 
 
+def coco_held_by() -> dict[int, list[str]]:
+    """``VG image id -> the classes of C COCO annotates it with``, empty for none.
+
+    Keyed on VG's ids because that is what a cell carries, and *absent* rather
+    than empty for an image COCO never scored: "annotated and holds none" and
+    "never annotated" are the two facts this whole pool rests on distinguishing,
+    so they must not be the same value here either.
+    """
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    import coco_anchor as ca  # noqa: PLC0415
+
+    try:
+        image_data, instances = ca.ensure_sources(pc.PILE / "coco_anchor", fetch=False)
+    except SystemExit:
+        # Missing sources must not abort the whole of --verify; the pool check
+        # reports the gap itself, and says the claim went untested.
+        log("NOTE: coco_anchor sources are not staged, so the pool cannot be checked against COCO")
+        return {}
+    truth = ca.coco_truth(instances, set(pc.SCALE_CLASSES))
+    with image_data.open() as fh:
+        coco_of = {int(m["image_id"]): int(m["coco_id"]) for m in json.load(fh) if m.get("coco_id")}
+    return {i: sorted(c for c, boxes in truth[cid].items() if boxes) for i, cid in coco_of.items() if cid in truth}
+
+
+def pool_coco_counts(medias: dict, held_by: dict[int, list[str]]) -> tuple[int, int, list[tuple[int, list[str]]]]:
+    """``(designated negatives, how many COCO can answer for, the dirty ones)``.
+
+    Split out from the message below so the clean case still has numbers to
+    print: "the pool is clean" and "the check could not run" are the same empty
+    list of problems, and a measurement that cannot be told from its own absence
+    is the failure this directory keeps re-learning (#3667, #3299).
+
+    Spares are excluded exactly as in :func:`negative_pool_problems` -- they are
+    designated into no cell, so they make no claim -- and so are positives,
+    which hold their class by definition.
+
+    **Only images the build itself anchored are checked**, which is what the
+    ``coco_scored`` stamp says. A ``coco_id`` in `image_data.json` is a *wider*
+    claim than the build acts on: `anchor_to_coco` refuses a pairing whose
+    aspect ratio drifts by more than `MAX_ASPECT_DRIFT`, precisely because a
+    drifted pair is evidence the two files are not the same picture. Reading the
+    raw join instead reported three dirty negatives in `vg_scale_deep` on the
+    first run of this check, and all three were drift rejects -- drift 0.025,
+    0.119 and 0.552 against a 0.01 limit, the last pairing a 298x500 portrait
+    with a 450x338 landscape. Those images entered the pool on VG's silence,
+    which is what deep's composition allows, and COCO was never asked about
+    them. Asserting COCO's answer for a pairing the build rejected does not test
+    the pool's claim; it invents a different one.
+    """
+    pool = [(i, m) for i, m in medias.items() if not m.get("categories") and m.get("evaluable_categories")]
+    checked = [i for i, m in pool if m.get("coco_scored") and i in held_by]
+    dirty = sorted((i, held_by[i]) for i in checked if held_by[i])
+    return len(pool), len(checked), dirty
+
+
+def provable_pool_problems(ds: str, medias: dict, held_by: dict[int, list[str]]) -> list[str]:
+    """Does the pool hold none of *C*, by COCO's own annotation? (#3701)
+
+    :func:`negative_pool_problems` tests the pool's **provenance** -- every
+    designated negative carries a ``coco_scored`` stamp -- and a true stamp is
+    not the claim. An image can be COCO-scored, hold a `truck`, and still be
+    designated a negative for every class, if a pass upstream of the draw
+    removed the label: an ambiguous-table entry naming another class in *C* pops
+    that class's boxes, and on an anchored image the ``exhaustive`` exemption
+    suppresses the compensating ``unbanded`` pair, so ``band_candidates`` files
+    a COCO-confirmed truck as clean (#3588). A config guard now blocks that one
+    route; this tests the *property*, which holds however it was violated.
+
+    **Named, not repaired, and deliberately not dropped.** An image that reaches
+    the pool holding a class of *C* means an upstream pass is wrong; removing it
+    leaves the pool clean and the cause invisible. The ids are what turn "the
+    pool is dirty" into a diagnosis -- in the #3588 case they said `truck` at
+    once.
+    """
+    n_pool, n_checked, dirty = pool_coco_counts(medias, held_by)
+    if not n_pool:
+        return []
+    if not n_checked:
+        # Under `provable` every negative is COCO-scored by construction, so
+        # nothing to check means the join is missing -- not that the pool is
+        # fine. `vg_scale_deep` is pinned to the pre-#3670 draw (#3690) and may
+        # legitimately have little COCO can answer for.
+        if pc.SCALE_NEG_COMPOSITION == "provable" and ds != "vg_scale_deep":
+            return [
+                f"{ds}: composition=provable, but COCO could answer for none of the {n_pool} designated "
+                "negatives -- the pool's claim went untested. Either `coco_anchor/image_data.json` is not "
+                "staged, or this cell predates the `coco_scored` stamp; rebuild it"
+            ]
+        return []
+    if not dirty:
+        return []
+    shown = ", ".join(f"{i} ({'/'.join(cs)})" for i, cs in dirty[:5])
+    return [
+        f"{ds}: {len(dirty)} of {n_checked} designated negatives hold a class of C by COCO's own "
+        f"annotation -- e.g. {shown}{', ...' if len(dirty) > 5 else ''}. A pass upstream of the draw "
+        "put them there; find it rather than dropping them"
+    ]
+
+
 def verify() -> int:
     """Load every present cell and check it is usable. Returns an exit code."""
     io = cells_io()
@@ -176,12 +276,21 @@ def verify() -> int:
 
     # One cell per vg_scale-family dataset: the pool is the same set of images in
     # every embedder's copy, so a second one would only repeat the finding.
+    held_by: dict[int, list[str]] | None = None
     for ds in pc.DATASETS:
         if not str(pc.DATASETS[ds].get("kind", "")).startswith("vg_scale"):
             continue
         path = next((p for p in (pc.cell_path(ds, e) for _d, e in pc.cells() if _d == ds) if p.exists()), None)
         if path is not None:
-            problems += negative_pool_problems(ds, io.load_medias(path))
+            pool_medias = io.load_medias(path)
+            problems += negative_pool_problems(ds, pool_medias)
+            # Read once for every dataset: `coco_truth` parses 490 MB of COCO
+            # annotation, and the pool is the same population in each of them.
+            if held_by is None:
+                held_by = coco_held_by()
+            problems += provable_pool_problems(ds, pool_medias, held_by)
+            n_pool, n_checked, dirty = pool_coco_counts(pool_medias, held_by)
+            log(f"{ds}: pool vs COCO -- {n_checked}/{n_pool} negatives answerable, {len(dirty)} hold a class of C")
 
     # A derived cell that no longer matches its parent. `vg_scale_any` is a
     # relabel of the built `vg_scale` pickle and shares its vectors, so it

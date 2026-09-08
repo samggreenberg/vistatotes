@@ -105,7 +105,15 @@ retired 577 of 743 reviewed images. Human answers are the only input here that
 cannot be regenerated, so a rebuild *after* the pass throws some of them away.
 
 Land or dismiss all of them, rebuild once, then freeze the roster — in that
-order. The VG-name audit itself is no longer among them: `SCALE_VG_NAMES_AUDITED`
+order.
+
+Two have already left the list on measurement rather than on work. **#3663** is
+refuted: the misspellings it named are in VG and reachable by an edit-distance
+search, they were scored by the same three cuts, and **none clears them** — the
+real ones carry 3–5 images each. **#3655** moves the *negative* pool, which the
+pass does not annotate, so it is not a blocker for it at all; its stated cost is
+also a use the datasheet already refuses, and its stated benefit is nearly inert
+against a pool that is 18x over-subscribed. The VG-name audit itself is no longer among them: `SCALE_VG_NAMES_AUDITED`
 now covers all 25 classes, so #3618's "before the next rebuild" warning is spent.
 
 <!-- item-sep -->
@@ -122,7 +130,6 @@ now covers all 25 classes, so #3618's "before the next rebuild" warning is spent
 
 <!-- item-sep -->
 
-- [ ] #3663 — misspellings and typed variants never reached the candidate list (moves membership)
 
 <!-- item-sep -->
 
@@ -130,11 +137,10 @@ now covers all 25 classes, so #3618's "before the next rebuild" warning is spent
 
 <!-- item-sep -->
 
-- [ ] #3605 — `bike` is still unresolved for `bicycle`, and most of it is not a bicycle (moves membership)
+- [ ] #3605 — `bike` is still unresolved for `bicycle`; measured 2026-09-07 as too big to fold into the pass (+9,963 images, ~4x)
 
 <!-- item-sep -->
 
-- [ ] #3655 — the ambiguous exclusion is global where `evaluable_categories` could make it per-class (moves membership)
 
 <!-- item-sep -->
 

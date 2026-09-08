@@ -488,6 +488,16 @@ region you want to vote good on.  After release the rectangle shows
 Then **press `→`** (or click **Good**) to submit a good vote with
 the region attached.
 
+**You can start the drag outside the image.**  A region that runs
+right to an edge is awkward to start from inside the picture, so a
+drag begun anywhere in the centre column - the empty space beside
+the image, or the band below it holding the image controls, the
+Good / Bad buttons and the metadata tray - anchors the rectangle at
+the point of the image nearest to where you pressed.  Buttons and
+sliders are the exception: a drag started on one still presses it,
+so the controls keep working normally (including while the Marquee
+toggle is on).
+
 The rectangle is stored in *normalised image coordinates* - it
 stays anchored to the same pixels of the image even if you zoom in,
 pan, or rotate before voting.  A click without dragging (a

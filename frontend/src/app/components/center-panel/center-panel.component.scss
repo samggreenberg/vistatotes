@@ -37,6 +37,13 @@
   // that a drag begun on one still does what it always did.
   &.region-draw {
     cursor: crosshair;
+
+    // The tray is out of the draw zone, so it must not advertise itself as in
+    // it. `auto` hands the cursor back to the UA, which means the I-beam over
+    // the selectable metadata text - the gesture that still works down here.
+    .metadata-tray {
+      cursor: auto;
+    }
   }
 }
 

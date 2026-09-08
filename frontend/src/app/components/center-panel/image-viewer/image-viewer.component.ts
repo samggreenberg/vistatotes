@@ -14,11 +14,18 @@ type DragMode =
 
 const MIN_BOX_SIZE = 0.01; // 1% of the image; below this we treat a draw as a stray click
 
-// Controls that keep their own click semantics when a region draw is started from
-// outside the canvas (see `tryStartOffCanvasDraw`). Without this, turning the
-// sticky Marquee toggle on would make the Good/Bad buttons and the zoom slider
-// unusable, because every mousedown on them would anchor a box instead.
-const OFF_CANVAS_DRAW_EXCLUDED = 'button, input, select, textarea, a, label, [role="button"], [contenteditable]';
+// What a region draw started from outside the canvas does NOT claim (see
+// `tryStartOffCanvasDraw`). Two different reasons:
+//
+//   - Interactive controls keep their own click semantics. Without this, turning
+//     the sticky Marquee toggle on would make the Good/Bad buttons and the zoom
+//     slider unusable, because every mousedown on them would anchor a box.
+//   - `.metadata-tray` is excluded wholesale, controls and prose alike. It sits at
+//     the very bottom of the panel, far enough from the image that a drag begun
+//     there reads as "select this text", not as "box that corner"; and selecting a
+//     filename or an MD5 by dragging across it is a thing people actually do.
+const OFF_CANVAS_DRAW_EXCLUDED =
+  'button, input, select, textarea, a, label, [role="button"], [contenteditable], .metadata-tray';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,

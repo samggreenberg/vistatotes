@@ -709,6 +709,21 @@ describe('ImageViewerComponent', () => {
       expect(prevented.value).toBe(false);
     });
 
+    // The tray is the bottom of the panel, far from the image and full of text
+    // people select by dragging; it is out of the draw zone entirely, prose and
+    // controls alike.
+    it('leaves the whole metadata tray alone, not just its controls', () => {
+      component.marqueeMode.set(true);
+      const tray = document.createElement('div');
+      tray.className = 'metadata-tray';
+      const value = document.createElement('span');
+      value.className = 'metadata-value';
+      tray.appendChild(value);
+      component.tryStartOffCanvasDraw(eventAt(30, 190, value, prevented));
+      expect(component.regionBox()).toBeNull();
+      expect(prevented.value).toBe(false);
+    });
+
     it('leaves a control alone when the mousedown lands on a child of it', () => {
       component.marqueeMode.set(true);
       const button = document.createElement('button');

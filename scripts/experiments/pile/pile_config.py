@@ -1809,6 +1809,19 @@ SCALE_CLASS_RULES: dict[str, ClassRule] = {
     # The cost is real and worth naming: a swan boat's passenger bench is
     # unambiguously built as seating for two or more, and it is now Bad. The line
     # is "part of a vehicle", not "not really seating".
+    #
+    # **This ruling rests on consistency, NOT on a measurement**, and that is a
+    # weaker footing than `chair`'s. The annotation guide settled `chair` with a
+    # rate test -- every vehicle class holds a chair BELOW COCO's base rate
+    # (airplane 0.14x, train 0.17x, bus 0.20x, boat 0.56x), which reads as
+    # annotators treating a vehicle interior as containing none. Run for `bench`
+    # the same test says the opposite -- boat 1.42x, train 1.40x, car 1.43x --
+    # and it is confounded rather than contradicting: benches and vehicles share
+    # outdoor scenes, so a waterfront bench behind a moored boat and a station
+    # bench beside a train both count. The guide itself rules a platform bench a
+    # Bench. Neither that test nor a box-containment test separates "in the
+    # vehicle" from "near it" for this class, so what COCO does with built-in
+    # boat seating is UNMEASURED. Rendered cases show genuine ones exist.
     "bench": ClassRule(
         name="bench not chairs",
         test=(

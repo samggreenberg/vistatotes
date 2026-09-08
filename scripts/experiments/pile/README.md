@@ -191,6 +191,28 @@ whole device, and so rejected a mobile phone sitting in a charging dock (#3612).
 A class absent from the table is its own definition and keeps the bare class
 name, which is what the manifests held before the table existed.
 
+## The one thing here that is not rebuildable
+
+Everything above is a cell, and a cell is purgeable: the pile lives on scratch
+precisely because any of it can be rebuilt from sources that are not. **Human
+verdicts cannot**, and until #3729 they sat on the same mount with nothing
+saying they were different in kind.
+
+`pile_config.HUMAN_RECORD` is the inventory — one row per artifact, each
+carrying the tier (`human`, `support`, `derived`) and the reason it is kept —
+and `verdict_store.py` keeps a canonical copy of it in
+[`human_record/`](human_record/README.md):
+
+```bash
+python verdict_store.py check      # do the working copies still match the repo?
+python verdict_store.py export     # update the repo from the working copies
+python verdict_store.py restore    # write them back out after a purge
+```
+
+`build_pile.py --verify` runs the check, because that is where a pile is
+declared healthy. A `human` divergence fails it; a `derived` one is a note,
+since every build rewrites those.
+
 ## Why this exists
 
 Before it, each study embedded its own datadir and then later studies

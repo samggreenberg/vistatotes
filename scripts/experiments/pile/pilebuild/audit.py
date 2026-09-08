@@ -353,6 +353,21 @@ def verify() -> int:
     except Exception as exc:  # noqa: BLE001 - an absent review is not a build failure
         log(f"  (review-coverage check skipped: {exc})")
 
+    # The human record is the one input a rebuild cannot regenerate, and it
+    # lives on the same purgeable mount as the cells (#3729). Checked here
+    # because this is where a pile is declared healthy, and an uncommitted
+    # verdict is the kind of loss nobody notices until the mount is cleared.
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import verdict_store  # noqa: PLC0415
+
+        log("")
+        log("human record:")
+        if verdict_store.do_check(strict=False) != 0:
+            problems.append("the human record on disk is not in the repository -- run `verdict_store.py export`")
+    except Exception as exc:  # noqa: BLE001 - a missing store is not a build failure
+        log(f"  (human-record check skipped: {exc})")
+
     if problems:
         log("")
         for p in problems:

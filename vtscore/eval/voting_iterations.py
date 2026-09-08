@@ -1872,9 +1872,19 @@ def simulate_voting_iterations(  # noqa: C901
         # over the still-unlabeled pool, Span the atlas's coverage.
         if flow is not None:
             recent_steps.append((step, threshold))
-            del recent_steps[:-SMART_WINDOW]  # the app regresses over the last 10 steps
+            # The app regresses over its last SMART_WINDOW *models*; here every
+            # step trains one, so the last SMART_WINDOW steps are the same set.
+            del recent_steps[:-SMART_WINDOW]
             flow.record_step(
-                _labelset_error_costs(recent_steps, good_votes, bad_votes, clips_dict, inclusion),
+                _labelset_error_costs(
+                    recent_steps,
+                    good_votes,
+                    bad_votes,
+                    clips_dict,
+                    inclusion,
+                    region_aware=region_aware,
+                    style_obj=style_obj,
+                ),
                 {cid: (1 if s >= threshold else 0) for cid, s in pool_scores.items()},
             )
             flow.update(

@@ -65,6 +65,7 @@ from __future__ import annotations
 
 import os
 
+from collections import OrderedDict
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Callable, Optional
 
@@ -298,12 +299,24 @@ class _FlattenedStyle:
     tree nodes for the HAC hybrids, raw patches for ``max_patch``).  The flattened
     ``(rows, seg_starts, ids)`` arrays are memoised per media-id set: region
     and patch vectors never change during a run, only the MLP weights do.
+
+    The memo is **LRU-bounded**, because two of its callers hand it an id set
+    that changes every step - the shrinking unlabeled pool, and the growing
+    labelset the Smart indicator is measured on - so an unbounded dict grows a
+    full flattened matrix per step.  A handful of entries is all any caller
+    needs live at once (the stable simulation set, plus whichever moving set is
+    being scored), and every miss costs only a re-flatten.
     """
 
     name = "abstract"
 
+    #: How many flattened id sets stay memoised.  Sized for the sets one
+    #: simulation step touches - the sim set, the pool, the labelset - with room
+    #: to spare, not for a run's whole history.
+    _MATRIX_CACHE_SIZE = 4
+
     def __init__(self) -> None:
-        self._matrix_cache: dict[frozenset[int], tuple[list[int], Any, Any]] = {}
+        self._matrix_cache: OrderedDict[frozenset[int], tuple[list[int], Any, Any]] = OrderedDict()
 
     def _rows_for_media(self, media: dict[str, Any]) -> "np.ndarray":
         raise NotImplementedError  # pragma: no cover - abstract hook
@@ -326,6 +339,7 @@ class _FlattenedStyle:
         key = frozenset(clips_dict)
         cached = self._matrix_cache.get(key)
         if cached is not None:
+            self._matrix_cache.move_to_end(key)
             return cached
         ids = sorted(clips_dict)
         blocks = [self._rows_for_media(clips_dict[cid]) for cid in ids]
@@ -337,6 +351,8 @@ class _FlattenedStyle:
         matrix = np.concatenate(blocks, axis=0).astype(np.float16, copy=False)
         result = (ids, matrix, seg_starts)
         self._matrix_cache[key] = result
+        while len(self._matrix_cache) > self._MATRIX_CACHE_SIZE:
+            self._matrix_cache.popitem(last=False)
         return result
 
     def score_media(self, model: "nn.Sequential", clips_dict: dict[int, dict[str, Any]]) -> dict[int, float]:

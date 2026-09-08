@@ -447,7 +447,7 @@ Build is the same order as the embedding-matrix work a dataset load already does
 - `vtscore/state/coverage.py`: atlas build/restore/resync helpers, vote wiring
 - `vtscore/training/thresholds/`: `calculate_cross_calibration_threshold`, `fold_anchored_gmm_threshold` (`anchored.py`), `calculate_safe_threshold` (`blend.py`), `calculate_gmm_threshold` (`gmm.py`), `conformal_threshold` (`conformal.py`)
 - `vtscore/detectors/training.py`: `train_and_score`, `train_and_threshold`, origin-based detector training
-- `vtscore/detectors/labeling_progress.py`: Cached per-step training and stability analysis
+- `vtscore/detectors/labeling_progress.py`: Per-step cache of the detectors the app trained, and their stability analysis
 - `vtscore/embedding/loader.py`: Model initialization and thread configuration
 - `vtscore/eval/voting_iterations.py`: Voting simulation evaluation
 - `vtscore/config/runtime.py`: `TRAIN_EPOCHS`; `vtscore/config/models.py`: the model IDs

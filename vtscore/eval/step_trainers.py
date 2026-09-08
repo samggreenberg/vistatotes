@@ -110,6 +110,9 @@ def _labelset_error_costs(
     bad_votes: dict[int, None],
     clips_dict: dict[int, dict[str, Any]],
     inclusion: int,
+    *,
+    region_aware: bool = False,
+    style_obj: Any = None,
 ) -> list[float]:
     """Weighted FPR/FNR of **every** recent model on the current labelled set.
 
@@ -123,6 +126,15 @@ def _labelset_error_costs(
     it was trained on instead would confound model change with labelset growth:
     autopilot deliberately votes boundary items, which are mispredicted at first
     and inflate the later costs of a frozen-cost history.
+
+    **In the arm's own scoring geometry** (issue #3757), for the same reason
+    :func:`_score_pool` is: a MaxPatch head is trained on a Good vote's boxed
+    patch and against every row of a Bad vote, and served by a max over those
+    rows, so scoring it on whole-image vectors measures a geometry it was never
+    fitted for - and the app, whose Smart curve this arm has to *be*, now scores
+    its cached heads through
+    :func:`~vtscore.detectors.training.scoring_rows_for_snap`.  Whole-image arms
+    keep the trainer-agnostic ``predict``, which is already their space.
 
     Deliberately *not* the held-out test split: those labels must never reach
     the vote order.  Returns ``[]`` when the labelset has no usable eval set
@@ -139,11 +151,31 @@ def _labelset_error_costs(
         return []
 
     fpr_weight, fnr_weight = inclusion_weights(inclusion)
+
+    if style_obj is not None or region_aware:
+        # The labelled subset only - the app builds its eval rows over exactly
+        # the voted media too.  The style memoises the flattened stack per
+        # media-id set, so the window's models share one build; the memo is
+        # LRU-bounded, so the id set growing by one each step costs a re-flatten
+        # rather than a retained matrix per step.
+        labelled = {cid: clips_dict[cid] for cid in ids if cid in clips_dict}
+        costs = []
+        for step, threshold in model_steps:
+            assert step.torch_model is not None
+            scored_ids, scored = score_sim_set_with_model(
+                step.torch_model, region_aware, labelled, None, sorted(labelled), style_obj
+            )
+            by_id = dict(zip(scored_ids, scored, strict=True))
+            scores = np.array([by_id[cid] for cid in ids if cid in by_id], dtype=np.float64)
+            kept = [lbl for cid, lbl in zip(ids, labels, strict=True) if cid in by_id]
+            costs.append(weighted_error_cost(scores, kept, threshold, fpr_weight, fnr_weight)[0])
+        return costs
+
     # One eval matrix, reused by every model in the window - the app's
-    # ``_build_eval_set`` builds its tensor once for the same reason.
+    # ``_build_eval_rows`` builds its rows once for the same reason.
     embs = np.array([media_embedding(clips_dict[cid]) for cid in ids])
 
-    costs: list[float] = []
+    costs = []
     for step, threshold in model_steps:
         scores = np.asarray(step.predict(embs)).ravel()
         costs.append(weighted_error_cost(scores, labels, threshold, fpr_weight, fnr_weight)[0])

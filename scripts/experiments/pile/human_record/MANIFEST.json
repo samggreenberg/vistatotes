@@ -223,6 +223,14 @@
     "tier": "human",
     "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
   },
+  "LABELSETS__dashboard_export_20260908.json": {
+    "bytes": 2223659,
+    "rel": "dashboard_export_20260908.json",
+    "sha256": "d3d7500c61acb9f15133abe2ea8272a1f9092126264da6bb131f19be8e528f58",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
   "LABELSETS__dog_audit.json": {
     "bytes": 55,
     "rel": "dog_audit.json",

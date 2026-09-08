@@ -107,7 +107,13 @@ cannot be regenerated, so a rebuild *after* the pass throws some of them away.
 Land or dismiss all of them, rebuild once, then freeze the roster — in that
 order.
 
-Two have already left the list on measurement rather than on work. **#3663** is
+Three have already left the list on measurement rather than on work. **#3686**
+was never a blocker: I filed it here as overlapping the pass, and it does not —
+the pass annotates off-COCO *positives* and that issue hunts false negatives in
+the *pool*. Its own premise is also pre-#3670: the shipped pool is now
+9,900/9,900 COCO-answerable with zero measured contamination, so the stratum it
+searches is empty. `vg_scale_deep`, whose 6,264 unprovable negatives are the
+only VG-silence population left in the pile, is where that instrument now points. **#3663** is
 refuted: the misspellings it named are in VG and reachable by an edit-distance
 search, they were scored by the same three cuts, and **none clears them** — the
 real ones carry 3–5 images each. **#3655** moves the *negative* pool, which the
@@ -155,7 +161,6 @@ now covers all 25 classes, so #3618's "before the next rebuild" warning is spent
 
 <!-- item-sep -->
 
-- [ ] #3686 — the text-sort false-negative hunt covers the stratum this pass answers outright (do one, not both)
 
 <!-- item-sep -->
 

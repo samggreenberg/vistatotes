@@ -33,17 +33,13 @@ stratum lacking exhaustive labels is the **off-COCO positives**:
 | positives, COCO-anchored | 2,037 (57.45%) | yes — COCO |
 | **positives, off-COCO** | **1,509 (42.55%)** | **no — this is the whole debt** |
 
-Scaled to the 25-class roster that is roughly **3,100–3,200 images**, and it is
-**one exhaustive pass per image** — a reviewer naming which of the 25 classes
-are present — rather than 25 binary votes. For scale, the pass already committed
-to for #3702 is ~400 cleared negatives per class, ~10,000 images. Counts from
+On the shipped 25-class cell the debt is **3,391 images**, 47.43% of its 7,150
+positives — counted by `scripts/experiments/pile/annotation_queue.py`, which
+emits the worklist itself (#3720). It is **one exhaustive pass per image** — a
+reviewer naming which of the 25 classes are present — rather than 25 binary
+votes. For scale, the pass already committed to for #3702 is ~400 cleared
+negatives per class, ~10,000 images. The 12-class counts above are from
 [the #3670 study](../experiments/2026-09-06-provable-negatives-3670/REPORT.md).
-
-**That estimate is here to say whether this is worth starting, and does not need
-refining.** The work has to be done whatever the number turns out to be, so
-sizing it more precisely buys nothing; the exact per-class counts arrive for
-free with the queue, as a byproduct of building the worklist rather than as a
-run of their own.
 
 **The zero-annotation version was measured and does not reach.**
 `scripts/experiments/pile/exact_supply.py` asks whether the COCO half alone
@@ -99,16 +95,7 @@ scoring into the pass rather than discovering the drift afterwards.
 
 <!-- item-sep -->
 
-- **Emit the annotation queue.** Not a measurement — the worklist. A reviewer
-  cannot start without knowing which images are off-COCO positives, and that is
-  a join between VG and COCO ids rather than something visible in the image. It
-  is cheap: `_emit_medias` stamps `coco_scored` on every media, so where the
-  shipped cell carries it the queue is `categories and not coco_scored` read
-  off the pickle, and where it does not the fallback is `image_data.json`'s
-  `coco_id` field (~100 MB) joined against the pickle's positives. Neither
-  needs `objects.json` or a compute node; `scripts/experiments/pile/exact_supply.py`
-  does, which is why it is the wrong tool here. The per-class counts fall out of
-  the queue for free — do not run anything extra to produce them. (Sonnet 5)
+- [ ] #3720 — Emit the annotation queue (Sonnet 5)
 
 <!-- item-sep -->
 

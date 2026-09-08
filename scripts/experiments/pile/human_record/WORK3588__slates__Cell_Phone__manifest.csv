@@ -1,0 +1,201 @@
+image_id,class,stratum,cell,text_score,reference,exhaustive,n_boxes,detector,driver
+2387068,Cell Phone,boundary,,0.1055,,no,0,Cell Phone,kite
+2393864,Cell Phone,boundary,,0.1016,present,yes,0,Cell Phone,fire hydrant
+2392337,Cell Phone,boundary,,0.101,absent,yes,0,Cell Phone,sink
+2315792,Cell Phone,boundary,,0.0966,absent,yes,0,Cell Phone,bench
+2360117,Cell Phone,boundary,,0.0912,absent,yes,0,Cell Phone,kite
+2384924,Cell Phone,boundary,,0.0906,absent,yes,0,Cell Phone,truck
+2334934,Cell Phone,boundary,,0.0893,absent,yes,0,Cell Phone,kite
+2322248,Cell Phone,boundary,,0.0874,absent,yes,0,Cell Phone,kite
+2391377,Cell Phone,boundary,,0.0874,,no,0,Cell Phone,kite
+2326762,Cell Phone,boundary,,0.085,,no,0,Cell Phone,sink
+498270,Cell Phone,boundary,,0.0849,,no,0,Cell Phone,boat
+2400821,Cell Phone,boundary,,0.0844,absent,yes,0,Cell Phone,sink
+2385504,Cell Phone,boundary,,0.0834,absent,yes,0,Cell Phone,kite
+2367901,Cell Phone,boundary,,0.0832,,no,0,Cell Phone,stop sign
+2339643,Cell Phone,boundary,,0.0827,absent,yes,0,Cell Phone,kite
+2325700,Cell Phone,boundary,,0.0819,absent,yes,0,Cell Phone,kite
+3561,Cell Phone,boundary,,0.0818,,no,0,Cell Phone,chair
+2404693,Cell Phone,boundary,,0.0817,,no,0,Cell Phone,kite
+2395745,Cell Phone,boundary,,0.0806,,no,0,Cell Phone,kite
+2394130,Cell Phone,boundary,,0.0803,absent,yes,0,Cell Phone,kite
+2322535,Cell Phone,boundary,,0.0799,absent,yes,0,Cell Phone,kite
+2352709,Cell Phone,boundary,,0.0792,,no,0,Cell Phone,kite
+2411912,Cell Phone,boundary,,0.0786,absent,yes,0,Cell Phone,stop sign
+2346019,Cell Phone,boundary,,0.0784,absent,yes,0,Cell Phone,stop sign
+2383707,Cell Phone,boundary,,0.077,,no,0,Cell Phone,kite
+2365421,Cell Phone,boundary,,0.0766,absent,yes,0,Cell Phone,cell phone
+2325332,Cell Phone,boundary,,0.0766,absent,yes,0,Cell Phone,truck
+2331220,Cell Phone,boundary,,0.0759,,no,0,Cell Phone,kite
+2361029,Cell Phone,boundary,,0.0758,,no,0,Cell Phone,cell phone
+2376806,Cell Phone,boundary,,0.0755,absent,yes,0,Cell Phone,stop sign
+2402410,Cell Phone,boundary,,0.0753,,no,0,Cell Phone,stop sign
+2379075,Cell Phone,boundary,,0.0751,,no,0,Cell Phone,dog
+2374487,Cell Phone,boundary,,0.0749,absent,yes,0,Cell Phone,stop sign
+2350610,Cell Phone,boundary,,0.0745,absent,yes,0,Cell Phone,kite
+2392128,Cell Phone,boundary,,0.0745,absent,yes,0,Cell Phone,stop sign
+2333001,Cell Phone,boundary,,0.0739,absent,yes,0,Cell Phone,kite
+1159420,Cell Phone,boundary,,0.0735,absent,yes,0,Cell Phone,truck
+2392264,Cell Phone,boundary,,0.0734,,no,0,Cell Phone,stop sign
+2358316,Cell Phone,boundary,,0.0732,absent,yes,0,Cell Phone,sink
+2393671,Cell Phone,boundary,,0.073,absent,yes,0,Cell Phone,dog
+2323658,Cell Phone,boundary,,0.0729,,no,0,Cell Phone,dog
+2407548,Cell Phone,boundary,,0.0729,,no,0,Cell Phone,bus
+2407502,Cell Phone,boundary,,0.0728,absent,yes,0,Cell Phone,spoon
+2367117,Cell Phone,boundary,,0.0723,,no,0,Cell Phone,kite
+2327398,Cell Phone,boundary,,0.0721,absent,yes,0,Cell Phone,kite
+2350334,Cell Phone,boundary,,0.0718,absent,yes,0,Cell Phone,knife
+2369018,Cell Phone,boundary,,0.0714,,no,0,Cell Phone,kite
+2399091,Cell Phone,boundary,,0.0711,,no,0,Cell Phone,sink
+2358000,Cell Phone,boundary,,0.0706,absent,yes,0,Cell Phone,cell phone
+2336745,Cell Phone,boundary,,0.0704,,no,0,Cell Phone,bus
+2413072,Cell Phone,boundary,,0.0701,,no,0,Cell Phone,stop sign
+2391765,Cell Phone,boundary,,0.0697,absent,yes,0,Cell Phone,chair
+2330568,Cell Phone,boundary,,0.0697,absent,yes,0,Cell Phone,bus
+2410628,Cell Phone,boundary,,0.0695,,no,0,Cell Phone,dog
+2348108,Cell Phone,boundary,,0.0692,,no,0,Cell Phone,stop sign
+2354790,Cell Phone,boundary,,0.0692,absent,yes,0,Cell Phone,bus
+2394898,Cell Phone,boundary,,0.0685,,no,0,Cell Phone,dog
+2416246,Cell Phone,boundary,,0.0685,absent,yes,0,Cell Phone,stop sign
+2316125,Cell Phone,boundary,,0.0684,,no,0,Cell Phone,kite
+2327098,Cell Phone,boundary,,0.0683,,no,0,Cell Phone,sink
+2362065,Cell Phone,boundary,,0.0679,absent,yes,0,Cell Phone,sink
+2336569,Cell Phone,boundary,,0.0676,absent,yes,0,Cell Phone,stop sign
+2413495,Cell Phone,boundary,,0.0673,absent,yes,0,Cell Phone,stop sign
+2338255,Cell Phone,boundary,,0.0673,absent,yes,0,Cell Phone,bench
+2362762,Cell Phone,boundary,,0.067,absent,yes,0,Cell Phone,vase
+2322849,Cell Phone,boundary,,0.0669,,no,0,Cell Phone,backpack
+2392420,Cell Phone,boundary,,0.0667,absent,yes,0,Cell Phone,vase
+2329296,Cell Phone,boundary,,0.0665,absent,yes,0,Cell Phone,stop sign
+2416700,Cell Phone,boundary,,0.0664,present,yes,0,Cell Phone,cell phone
+2417852,Cell Phone,boundary,,0.0664,,no,0,Cell Phone,boat
+4185,Cell Phone,boundary,,0.0662,,no,0,Cell Phone,stop sign
+2325379,Cell Phone,boundary,,0.0661,,no,0,Cell Phone,kite
+2368073,Cell Phone,boundary,,0.0661,,no,0,Cell Phone,stop sign
+2355890,Cell Phone,boundary,,0.066,absent,yes,0,Cell Phone,stop sign
+1592013,Cell Phone,boundary,,0.0657,absent,yes,0,Cell Phone,bench
+2417678,Cell Phone,boundary,,0.0657,,no,0,Cell Phone,kite
+2360975,Cell Phone,boundary,,0.0656,absent,yes,0,Cell Phone,kite
+2407927,Cell Phone,boundary,,0.0656,,no,0,Cell Phone,bowl
+2355650,Cell Phone,boundary,,0.0656,,no,0,Cell Phone,stop sign
+2415598,Cell Phone,boundary,,0.0652,,no,0,Cell Phone,sink
+2393732,Cell Phone,boundary,,0.0648,,no,0,Cell Phone,stop sign
+2398807,Cell Phone,boundary,,0.0647,,no,0,Cell Phone,stop sign
+2360,Cell Phone,boundary,,0.0646,,no,0,Cell Phone,stop sign
+2400101,Cell Phone,boundary,,0.0644,,no,0,Cell Phone,kite
+2380685,Cell Phone,boundary,,0.0641,,no,0,Cell Phone,sink
+1986,Cell Phone,boundary,,0.0639,,no,0,Cell Phone,cell phone
+2353986,Cell Phone,boundary,,0.0638,,no,0,Cell Phone,kite
+2388314,Cell Phone,boundary,,0.0637,absent,yes,0,Cell Phone,bench
+2383506,Cell Phone,boundary,,0.0634,absent,yes,0,Cell Phone,sink
+2379050,Cell Phone,boundary,,0.0632,absent,yes,0,Cell Phone,dog
+2323842,Cell Phone,boundary,,0.0627,,no,0,Cell Phone,kite
+2372457,Cell Phone,boundary,,0.0624,,no,0,Cell Phone,spoon
+2363995,Cell Phone,boundary,,0.062,,no,0,Cell Phone,sink
+2346929,Cell Phone,boundary,,0.0619,,no,0,Cell Phone,bus
+2343839,Cell Phone,boundary,,0.0618,absent,yes,0,Cell Phone,stop sign
+2417271,Cell Phone,boundary,,0.0617,absent,yes,0,Cell Phone,cell phone
+2399554,Cell Phone,boundary,,0.0616,,no,0,Cell Phone,sink
+2393952,Cell Phone,boundary,,0.0616,,no,0,Cell Phone,sink
+2398287,Cell Phone,boundary,,0.0614,absent,yes,0,Cell Phone,bowl
+2380089,Cell Phone,boundary,,0.0613,absent,yes,0,Cell Phone,kite
+2379377,Cell Phone,random,,0.006,,no,0,Cell Phone,bird
+2389518,Cell Phone,random,,0.0262,,no,0,Cell Phone,boat
+2387690,Cell Phone,random,,0.0414,absent,yes,0,Cell Phone,bus
+2341258,Cell Phone,random,,0.0075,,no,0,Cell Phone,bench
+2343133,Cell Phone,random,,0.0122,,no,0,Cell Phone,bench
+2410471,Cell Phone,random,,0.0238,,no,0,Cell Phone,bird
+2338452,Cell Phone,random,,0.0149,absent,yes,0,Cell Phone,bird
+2399496,Cell Phone,random,,0.0389,,no,0,Cell Phone,kite
+655,Cell Phone,random,,0.0285,,no,0,Cell Phone,boat
+2406950,Cell Phone,random,,0.0483,,no,0,Cell Phone,bowl
+2416176,Cell Phone,random,,0.0246,,no,0,Cell Phone,bus
+2379431,Cell Phone,random,,0.0299,absent,yes,0,Cell Phone,bus
+2386624,Cell Phone,random,,0.0363,absent,yes,0,Cell Phone,dog
+2376171,Cell Phone,random,,0.0455,,no,0,Cell Phone,bicycle
+2342757,Cell Phone,random,,0.0091,,no,0,Cell Phone,car
+2370802,Cell Phone,random,,0.0289,absent,yes,0,Cell Phone,stop sign
+2379036,Cell Phone,random,,0.0487,,no,0,Cell Phone,kite
+2372245,Cell Phone,random,,0.0584,,no,0,Cell Phone,stop sign
+1556,Cell Phone,random,,0.0293,,no,0,Cell Phone,car
+2328476,Cell Phone,random,,0.0054,,no,0,Cell Phone,bench
+2379254,Cell Phone,random,,0.0072,absent,yes,0,Cell Phone,dog
+2334823,Cell Phone,random,,0.0328,absent,yes,0,Cell Phone,kite
+2413407,Cell Phone,random,,0.0297,,no,0,Cell Phone,spoon
+1490,Cell Phone,random,,0.0228,,no,0,Cell Phone,bench
+2368814,Cell Phone,random,,0.0076,,no,0,Cell Phone,bird
+2408671,Cell Phone,random,,0.048,absent,yes,0,Cell Phone,bowl
+2381000,Cell Phone,random,,0.0398,absent,yes,0,Cell Phone,cup
+2410237,Cell Phone,random,,0.0191,absent,yes,0,Cell Phone,fork
+2395379,Cell Phone,random,,0.0472,,no,0,Cell Phone,sink
+2375949,Cell Phone,random,,0.0249,,no,0,Cell Phone,cup
+2415129,Cell Phone,random,,0.0367,absent,yes,0,Cell Phone,kite
+2399434,Cell Phone,random,,0.0178,,no,0,Cell Phone,bowl
+2382828,Cell Phone,random,,0.0059,absent,yes,0,Cell Phone,dog
+2364216,Cell Phone,random,,0.0505,absent,yes,0,Cell Phone,bus
+2416508,Cell Phone,random,,0.0089,,no,0,Cell Phone,bird
+2323085,Cell Phone,random,,0.0491,absent,yes,0,Cell Phone,kite
+2334729,Cell Phone,random,,0.0472,,no,0,Cell Phone,bus
+2411277,Cell Phone,random,,0.0112,,no,0,Cell Phone,bowl
+2392094,Cell Phone,random,,0.0195,absent,yes,0,Cell Phone,truck
+2386347,Cell Phone,random,,0.039,absent,yes,0,Cell Phone,bowl
+2340056,Cell Phone,random,,0.0461,absent,yes,0,Cell Phone,knife
+2392807,Cell Phone,random,,0.0315,absent,yes,0,Cell Phone,bus
+2382264,Cell Phone,random,,0.0122,,no,0,Cell Phone,dog
+2398852,Cell Phone,random,,0.0303,,no,0,Cell Phone,knife
+2336335,Cell Phone,random,,0.0054,,no,0,Cell Phone,car
+2357898,Cell Phone,random,,0.0097,,no,0,Cell Phone,bench
+2384185,Cell Phone,random,,0.0402,,no,0,Cell Phone,backpack
+2352095,Cell Phone,random,,0.0262,absent,yes,0,Cell Phone,bus
+2385477,Cell Phone,random,,0.0176,,no,0,Cell Phone,kite
+2332648,Cell Phone,random,,0.0099,,no,0,Cell Phone,sink
+2368984,Cell Phone,random,,0.0302,,no,0,Cell Phone,bus
+2370144,Cell Phone,random,,0.0122,,no,0,Cell Phone,bowl
+2358419,Cell Phone,random,,0.0443,,no,0,Cell Phone,bus
+3801,Cell Phone,random,,0.0487,,no,0,Cell Phone,bench
+2315796,Cell Phone,random,,0.0284,,no,0,Cell Phone,car
+2370271,Cell Phone,random,,0.0186,absent,yes,0,Cell Phone,bird
+2393325,Cell Phone,random,,0.01,absent,yes,0,Cell Phone,cup
+2388486,Cell Phone,random,,0.0236,absent,yes,0,Cell Phone,bowl
+1592557,Cell Phone,random,,0.0233,,no,0,Cell Phone,fork
+497980,Cell Phone,random,,0.0123,,no,0,Cell Phone,bench
+2403285,Cell Phone,random,,0.019,absent,yes,0,Cell Phone,kite
+2411445,Cell Phone,random,,0.0491,,no,0,Cell Phone,bicycle
+2402404,Cell Phone,random,,0.032,,no,0,Cell Phone,umbrella
+2341076,Cell Phone,random,,0.0401,absent,yes,0,Cell Phone,bowl
+2392734,Cell Phone,random,,0.0268,absent,yes,0,Cell Phone,kite
+2320550,Cell Phone,random,,0.0117,absent,yes,0,Cell Phone,bench
+2318153,Cell Phone,random,,0.0302,absent,yes,0,Cell Phone,fork
+2358239,Cell Phone,random,,0.0114,absent,yes,0,Cell Phone,bird
+2373243,Cell Phone,random,,0.013,,no,0,Cell Phone,bird
+2392277,Cell Phone,random,,0.0255,,no,0,Cell Phone,bowl
+4214,Cell Phone,random,,0.0134,,no,0,Cell Phone,fork
+2352911,Cell Phone,random,,0.0331,,no,0,Cell Phone,bowl
+2329538,Cell Phone,random,,0.0147,,no,0,Cell Phone,bench
+2409231,Cell Phone,random,,0.017,,no,0,Cell Phone,bowl
+2321487,Cell Phone,random,,0.0043,absent,yes,0,Cell Phone,bird
+2386652,Cell Phone,random,,0.014,absent,yes,0,Cell Phone,bird
+2316043,Cell Phone,random,,0.0192,absent,yes,0,Cell Phone,car
+2340667,Cell Phone,random,,0.02,,no,0,Cell Phone,bicycle
+2353402,Cell Phone,random,,0.0515,,no,0,Cell Phone,bus
+1593184,Cell Phone,random,,0.0417,absent,yes,0,Cell Phone,dog
+2392480,Cell Phone,random,,0.0531,,no,0,Cell Phone,bowl
+2361524,Cell Phone,random,,0.0098,absent,yes,0,Cell Phone,boat
+2334397,Cell Phone,random,,0.007,,no,0,Cell Phone,bowl
+2320159,Cell Phone,random,,0.0198,absent,yes,0,Cell Phone,spoon
+2359994,Cell Phone,random,,0.02,,no,0,Cell Phone,bus
+2366442,Cell Phone,random,,0.0404,absent,yes,0,Cell Phone,bowl
+2380376,Cell Phone,random,,0.0097,,no,0,Cell Phone,car
+2416293,Cell Phone,random,,0.0191,absent,yes,0,Cell Phone,kite
+2335019,Cell Phone,random,,0.0156,,no,0,Cell Phone,bench
+2374137,Cell Phone,random,,0.0087,,no,0,Cell Phone,dog
+2316533,Cell Phone,random,,0.025,absent,yes,0,Cell Phone,kite
+2372204,Cell Phone,random,,0.0081,,no,0,Cell Phone,bowl
+2364952,Cell Phone,random,,0.0186,absent,yes,0,Cell Phone,bird
+2327535,Cell Phone,random,,0.0311,,no,0,Cell Phone,cup
+1159799,Cell Phone,random,,0.0239,,no,0,Cell Phone,bowl
+61589,Cell Phone,random,,0.0178,,no,0,Cell Phone,kite
+2396098,Cell Phone,random,,0.0475,absent,yes,0,Cell Phone,bench
+2363160,Cell Phone,random,,0.0104,absent,yes,0,Cell Phone,bird
+2357470,Cell Phone,random,,0.0348,absent,yes,0,Cell Phone,dog
+2410026,Cell Phone,random,,0.0285,,no,0,Cell Phone,kite

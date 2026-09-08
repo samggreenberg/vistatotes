@@ -1,0 +1,201 @@
+image_id,class,stratum,cell,text_score,reference,exhaustive,n_boxes,detector,driver
+2387068,Street Objects,boundary,,0.1055,,no,0,Street Objects,kite
+2393864,Street Objects,boundary,,0.1016,present,yes,0,Street Objects,fire hydrant
+2392337,Street Objects,boundary,,0.101,present,yes,0,Street Objects,sink
+2315792,Street Objects,boundary,,0.0966,present,yes,0,Street Objects,bench
+2360117,Street Objects,boundary,,0.0912,present,yes,0,Street Objects,kite
+2384924,Street Objects,boundary,,0.0906,present,yes,0,Street Objects,truck
+2334934,Street Objects,boundary,,0.0893,present,yes,0,Street Objects,kite
+2322248,Street Objects,boundary,,0.0874,present,yes,0,Street Objects,kite
+2391377,Street Objects,boundary,,0.0874,,no,0,Street Objects,kite
+2326762,Street Objects,boundary,,0.085,,no,0,Street Objects,sink
+498270,Street Objects,boundary,,0.0849,,no,0,Street Objects,boat
+2400821,Street Objects,boundary,,0.0844,present,yes,0,Street Objects,sink
+2385504,Street Objects,boundary,,0.0834,present,yes,0,Street Objects,kite
+2367901,Street Objects,boundary,,0.0832,,no,0,Street Objects,stop sign
+2339643,Street Objects,boundary,,0.0827,present,yes,0,Street Objects,kite
+2325700,Street Objects,boundary,,0.0819,present,yes,0,Street Objects,kite
+3561,Street Objects,boundary,,0.0818,,no,0,Street Objects,chair
+2404693,Street Objects,boundary,,0.0817,,no,0,Street Objects,kite
+2395745,Street Objects,boundary,,0.0806,,no,0,Street Objects,kite
+2394130,Street Objects,boundary,,0.0803,present,yes,0,Street Objects,kite
+2322535,Street Objects,boundary,,0.0799,present,yes,0,Street Objects,kite
+2352709,Street Objects,boundary,,0.0792,,no,0,Street Objects,kite
+2411912,Street Objects,boundary,,0.0786,present,yes,0,Street Objects,stop sign
+2346019,Street Objects,boundary,,0.0784,present,yes,0,Street Objects,stop sign
+2383707,Street Objects,boundary,,0.077,,no,0,Street Objects,kite
+2365421,Street Objects,boundary,,0.0766,present,yes,0,Street Objects,cell phone
+2325332,Street Objects,boundary,,0.0766,present,yes,0,Street Objects,truck
+2331220,Street Objects,boundary,,0.0759,,no,0,Street Objects,kite
+2361029,Street Objects,boundary,,0.0758,,no,0,Street Objects,cell phone
+2376806,Street Objects,boundary,,0.0755,present,yes,0,Street Objects,stop sign
+2402410,Street Objects,boundary,,0.0753,,no,0,Street Objects,stop sign
+2379075,Street Objects,boundary,,0.0751,,no,0,Street Objects,dog
+2374487,Street Objects,boundary,,0.0749,present,yes,0,Street Objects,stop sign
+2350610,Street Objects,boundary,,0.0745,present,yes,0,Street Objects,kite
+2392128,Street Objects,boundary,,0.0745,present,yes,0,Street Objects,stop sign
+2333001,Street Objects,boundary,,0.0739,present,yes,0,Street Objects,kite
+1159420,Street Objects,boundary,,0.0735,present,yes,0,Street Objects,truck
+2392264,Street Objects,boundary,,0.0734,,no,0,Street Objects,stop sign
+2358316,Street Objects,boundary,,0.0732,present,yes,0,Street Objects,sink
+2393671,Street Objects,boundary,,0.073,present,yes,0,Street Objects,dog
+2323658,Street Objects,boundary,,0.0729,,no,0,Street Objects,dog
+2407548,Street Objects,boundary,,0.0729,,no,0,Street Objects,bus
+2407502,Street Objects,boundary,,0.0728,present,yes,0,Street Objects,spoon
+2367117,Street Objects,boundary,,0.0723,,no,0,Street Objects,kite
+2327398,Street Objects,boundary,,0.0721,present,yes,0,Street Objects,kite
+2350334,Street Objects,boundary,,0.0718,present,yes,0,Street Objects,knife
+2369018,Street Objects,boundary,,0.0714,,no,0,Street Objects,kite
+2399091,Street Objects,boundary,,0.0711,,no,0,Street Objects,sink
+2358000,Street Objects,boundary,,0.0706,present,yes,0,Street Objects,cell phone
+2336745,Street Objects,boundary,,0.0704,,no,0,Street Objects,bus
+2413072,Street Objects,boundary,,0.0701,,no,0,Street Objects,stop sign
+2391765,Street Objects,boundary,,0.0697,present,yes,0,Street Objects,chair
+2330568,Street Objects,boundary,,0.0697,present,yes,0,Street Objects,bus
+2410628,Street Objects,boundary,,0.0695,,no,0,Street Objects,dog
+2348108,Street Objects,boundary,,0.0692,,no,0,Street Objects,stop sign
+2354790,Street Objects,boundary,,0.0692,present,yes,0,Street Objects,bus
+2394898,Street Objects,boundary,,0.0685,,no,0,Street Objects,dog
+2416246,Street Objects,boundary,,0.0685,present,yes,0,Street Objects,stop sign
+2316125,Street Objects,boundary,,0.0684,,no,0,Street Objects,kite
+2327098,Street Objects,boundary,,0.0683,,no,0,Street Objects,sink
+2362065,Street Objects,boundary,,0.0679,present,yes,0,Street Objects,sink
+2336569,Street Objects,boundary,,0.0676,present,yes,0,Street Objects,stop sign
+2413495,Street Objects,boundary,,0.0673,present,yes,0,Street Objects,stop sign
+2338255,Street Objects,boundary,,0.0673,present,yes,0,Street Objects,bench
+2362762,Street Objects,boundary,,0.067,present,yes,0,Street Objects,vase
+2322849,Street Objects,boundary,,0.0669,,no,0,Street Objects,backpack
+2392420,Street Objects,boundary,,0.0667,present,yes,0,Street Objects,vase
+2329296,Street Objects,boundary,,0.0665,present,yes,0,Street Objects,stop sign
+2416700,Street Objects,boundary,,0.0664,present,yes,0,Street Objects,cell phone
+2417852,Street Objects,boundary,,0.0664,,no,0,Street Objects,boat
+4185,Street Objects,boundary,,0.0662,,no,0,Street Objects,stop sign
+2325379,Street Objects,boundary,,0.0661,,no,0,Street Objects,kite
+2368073,Street Objects,boundary,,0.0661,,no,0,Street Objects,stop sign
+2355890,Street Objects,boundary,,0.066,present,yes,0,Street Objects,stop sign
+1592013,Street Objects,boundary,,0.0657,present,yes,0,Street Objects,bench
+2417678,Street Objects,boundary,,0.0657,,no,0,Street Objects,kite
+2360975,Street Objects,boundary,,0.0656,present,yes,0,Street Objects,kite
+2407927,Street Objects,boundary,,0.0656,,no,0,Street Objects,bowl
+2355650,Street Objects,boundary,,0.0656,,no,0,Street Objects,stop sign
+2415598,Street Objects,boundary,,0.0652,,no,0,Street Objects,sink
+2393732,Street Objects,boundary,,0.0648,,no,0,Street Objects,stop sign
+2398807,Street Objects,boundary,,0.0647,,no,0,Street Objects,stop sign
+2360,Street Objects,boundary,,0.0646,,no,0,Street Objects,stop sign
+2400101,Street Objects,boundary,,0.0644,,no,0,Street Objects,kite
+2380685,Street Objects,boundary,,0.0641,,no,0,Street Objects,sink
+1986,Street Objects,boundary,,0.0639,,no,0,Street Objects,cell phone
+2353986,Street Objects,boundary,,0.0638,,no,0,Street Objects,kite
+2388314,Street Objects,boundary,,0.0637,present,yes,0,Street Objects,bench
+2383506,Street Objects,boundary,,0.0634,present,yes,0,Street Objects,sink
+2379050,Street Objects,boundary,,0.0632,present,yes,0,Street Objects,dog
+2323842,Street Objects,boundary,,0.0627,,no,0,Street Objects,kite
+2372457,Street Objects,boundary,,0.0624,,no,0,Street Objects,spoon
+2363995,Street Objects,boundary,,0.062,,no,0,Street Objects,sink
+2346929,Street Objects,boundary,,0.0619,,no,0,Street Objects,bus
+2343839,Street Objects,boundary,,0.0618,present,yes,0,Street Objects,stop sign
+2417271,Street Objects,boundary,,0.0617,present,yes,0,Street Objects,cell phone
+2399554,Street Objects,boundary,,0.0616,,no,0,Street Objects,sink
+2393952,Street Objects,boundary,,0.0616,,no,0,Street Objects,sink
+2398287,Street Objects,boundary,,0.0614,present,yes,0,Street Objects,bowl
+2380089,Street Objects,boundary,,0.0613,present,yes,0,Street Objects,kite
+2379377,Street Objects,random,,0.006,,no,0,Street Objects,bird
+2389518,Street Objects,random,,0.0262,,no,0,Street Objects,boat
+2387690,Street Objects,random,,0.0414,present,yes,0,Street Objects,bus
+2341258,Street Objects,random,,0.0075,,no,0,Street Objects,bench
+2343133,Street Objects,random,,0.0122,,no,0,Street Objects,bench
+2410471,Street Objects,random,,0.0238,,no,0,Street Objects,bird
+2338452,Street Objects,random,,0.0149,present,yes,0,Street Objects,bird
+2399496,Street Objects,random,,0.0389,,no,0,Street Objects,kite
+655,Street Objects,random,,0.0285,,no,0,Street Objects,boat
+2406950,Street Objects,random,,0.0483,,no,0,Street Objects,bowl
+2416176,Street Objects,random,,0.0246,,no,0,Street Objects,bus
+2379431,Street Objects,random,,0.0299,present,yes,0,Street Objects,bus
+2386624,Street Objects,random,,0.0363,present,yes,0,Street Objects,dog
+2376171,Street Objects,random,,0.0455,,no,0,Street Objects,bicycle
+2342757,Street Objects,random,,0.0091,,no,0,Street Objects,car
+2370802,Street Objects,random,,0.0289,present,yes,0,Street Objects,stop sign
+2379036,Street Objects,random,,0.0487,,no,0,Street Objects,kite
+2372245,Street Objects,random,,0.0584,,no,0,Street Objects,stop sign
+1556,Street Objects,random,,0.0293,,no,0,Street Objects,car
+2328476,Street Objects,random,,0.0054,,no,0,Street Objects,bench
+2379254,Street Objects,random,,0.0072,present,yes,0,Street Objects,dog
+2334823,Street Objects,random,,0.0328,present,yes,0,Street Objects,kite
+2413407,Street Objects,random,,0.0297,,no,0,Street Objects,spoon
+1490,Street Objects,random,,0.0228,,no,0,Street Objects,bench
+2368814,Street Objects,random,,0.0076,,no,0,Street Objects,bird
+2408671,Street Objects,random,,0.048,present,yes,0,Street Objects,bowl
+2381000,Street Objects,random,,0.0398,present,yes,0,Street Objects,cup
+2410237,Street Objects,random,,0.0191,present,yes,0,Street Objects,fork
+2395379,Street Objects,random,,0.0472,,no,0,Street Objects,sink
+2375949,Street Objects,random,,0.0249,,no,0,Street Objects,cup
+2415129,Street Objects,random,,0.0367,present,yes,0,Street Objects,kite
+2399434,Street Objects,random,,0.0178,,no,0,Street Objects,bowl
+2382828,Street Objects,random,,0.0059,present,yes,0,Street Objects,dog
+2364216,Street Objects,random,,0.0505,present,yes,0,Street Objects,bus
+2416508,Street Objects,random,,0.0089,,no,0,Street Objects,bird
+2323085,Street Objects,random,,0.0491,present,yes,0,Street Objects,kite
+2334729,Street Objects,random,,0.0472,,no,0,Street Objects,bus
+2411277,Street Objects,random,,0.0112,,no,0,Street Objects,bowl
+2392094,Street Objects,random,,0.0195,present,yes,0,Street Objects,truck
+2386347,Street Objects,random,,0.039,present,yes,0,Street Objects,bowl
+2340056,Street Objects,random,,0.0461,present,yes,0,Street Objects,knife
+2392807,Street Objects,random,,0.0315,present,yes,0,Street Objects,bus
+2382264,Street Objects,random,,0.0122,,no,0,Street Objects,dog
+2398852,Street Objects,random,,0.0303,,no,0,Street Objects,knife
+2336335,Street Objects,random,,0.0054,,no,0,Street Objects,car
+2357898,Street Objects,random,,0.0097,,no,0,Street Objects,bench
+2384185,Street Objects,random,,0.0402,,no,0,Street Objects,backpack
+2352095,Street Objects,random,,0.0262,present,yes,0,Street Objects,bus
+2385477,Street Objects,random,,0.0176,,no,0,Street Objects,kite
+2332648,Street Objects,random,,0.0099,,no,0,Street Objects,sink
+2368984,Street Objects,random,,0.0302,,no,0,Street Objects,bus
+2370144,Street Objects,random,,0.0122,,no,0,Street Objects,bowl
+2358419,Street Objects,random,,0.0443,,no,0,Street Objects,bus
+3801,Street Objects,random,,0.0487,,no,0,Street Objects,bench
+2315796,Street Objects,random,,0.0284,,no,0,Street Objects,car
+2370271,Street Objects,random,,0.0186,present,yes,0,Street Objects,bird
+2393325,Street Objects,random,,0.01,present,yes,0,Street Objects,cup
+2388486,Street Objects,random,,0.0236,present,yes,0,Street Objects,bowl
+1592557,Street Objects,random,,0.0233,,no,0,Street Objects,fork
+497980,Street Objects,random,,0.0123,,no,0,Street Objects,bench
+2403285,Street Objects,random,,0.019,present,yes,0,Street Objects,kite
+2411445,Street Objects,random,,0.0491,,no,0,Street Objects,bicycle
+2402404,Street Objects,random,,0.032,,no,0,Street Objects,umbrella
+2341076,Street Objects,random,,0.0401,present,yes,0,Street Objects,bowl
+2392734,Street Objects,random,,0.0268,present,yes,0,Street Objects,kite
+2320550,Street Objects,random,,0.0117,present,yes,0,Street Objects,bench
+2318153,Street Objects,random,,0.0302,present,yes,0,Street Objects,fork
+2358239,Street Objects,random,,0.0114,present,yes,0,Street Objects,bird
+2373243,Street Objects,random,,0.013,,no,0,Street Objects,bird
+2392277,Street Objects,random,,0.0255,,no,0,Street Objects,bowl
+4214,Street Objects,random,,0.0134,,no,0,Street Objects,fork
+2352911,Street Objects,random,,0.0331,,no,0,Street Objects,bowl
+2329538,Street Objects,random,,0.0147,,no,0,Street Objects,bench
+2409231,Street Objects,random,,0.017,,no,0,Street Objects,bowl
+2321487,Street Objects,random,,0.0043,present,yes,0,Street Objects,bird
+2386652,Street Objects,random,,0.014,present,yes,0,Street Objects,bird
+2316043,Street Objects,random,,0.0192,present,yes,0,Street Objects,car
+2340667,Street Objects,random,,0.02,,no,0,Street Objects,bicycle
+2353402,Street Objects,random,,0.0515,,no,0,Street Objects,bus
+1593184,Street Objects,random,,0.0417,present,yes,0,Street Objects,dog
+2392480,Street Objects,random,,0.0531,,no,0,Street Objects,bowl
+2361524,Street Objects,random,,0.0098,present,yes,0,Street Objects,boat
+2334397,Street Objects,random,,0.007,,no,0,Street Objects,bowl
+2320159,Street Objects,random,,0.0198,present,yes,0,Street Objects,spoon
+2359994,Street Objects,random,,0.02,,no,0,Street Objects,bus
+2366442,Street Objects,random,,0.0404,present,yes,0,Street Objects,bowl
+2380376,Street Objects,random,,0.0097,,no,0,Street Objects,car
+2416293,Street Objects,random,,0.0191,present,yes,0,Street Objects,kite
+2335019,Street Objects,random,,0.0156,,no,0,Street Objects,bench
+2374137,Street Objects,random,,0.0087,,no,0,Street Objects,dog
+2316533,Street Objects,random,,0.025,present,yes,0,Street Objects,kite
+2372204,Street Objects,random,,0.0081,,no,0,Street Objects,bowl
+2364952,Street Objects,random,,0.0186,present,yes,0,Street Objects,bird
+2327535,Street Objects,random,,0.0311,,no,0,Street Objects,cup
+1159799,Street Objects,random,,0.0239,,no,0,Street Objects,bowl
+61589,Street Objects,random,,0.0178,,no,0,Street Objects,kite
+2396098,Street Objects,random,,0.0475,present,yes,0,Street Objects,bench
+2363160,Street Objects,random,,0.0104,present,yes,0,Street Objects,bird
+2357470,Street Objects,random,,0.0348,present,yes,0,Street Objects,dog
+2410026,Street Objects,random,,0.0285,,no,0,Street Objects,kite

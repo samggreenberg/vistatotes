@@ -1,0 +1,201 @@
+image_id,class,stratum,cell,text_score,reference,exhaustive,n_boxes,detector,driver
+2387068,Stop Sign,boundary,,0.1055,,no,0,Stop Sign,kite
+2393864,Stop Sign,boundary,,0.1016,absent,yes,0,Stop Sign,fire hydrant
+2392337,Stop Sign,boundary,,0.101,absent,yes,0,Stop Sign,sink
+2315792,Stop Sign,boundary,,0.0966,absent,yes,0,Stop Sign,bench
+2360117,Stop Sign,boundary,,0.0912,absent,yes,0,Stop Sign,kite
+2384924,Stop Sign,boundary,,0.0906,absent,yes,0,Stop Sign,truck
+2334934,Stop Sign,boundary,,0.0893,absent,yes,0,Stop Sign,kite
+2322248,Stop Sign,boundary,,0.0874,absent,yes,0,Stop Sign,kite
+2391377,Stop Sign,boundary,,0.0874,,no,0,Stop Sign,kite
+2326762,Stop Sign,boundary,,0.085,,no,0,Stop Sign,sink
+498270,Stop Sign,boundary,,0.0849,,no,0,Stop Sign,boat
+2400821,Stop Sign,boundary,,0.0844,absent,yes,0,Stop Sign,sink
+2385504,Stop Sign,boundary,,0.0834,absent,yes,0,Stop Sign,kite
+2367901,Stop Sign,boundary,,0.0832,,no,0,Stop Sign,stop sign
+2339643,Stop Sign,boundary,,0.0827,absent,yes,0,Stop Sign,kite
+2325700,Stop Sign,boundary,,0.0819,absent,yes,0,Stop Sign,kite
+3561,Stop Sign,boundary,,0.0818,,no,0,Stop Sign,chair
+2404693,Stop Sign,boundary,,0.0817,,no,0,Stop Sign,kite
+2395745,Stop Sign,boundary,,0.0806,,no,0,Stop Sign,kite
+2394130,Stop Sign,boundary,,0.0803,absent,yes,0,Stop Sign,kite
+2322535,Stop Sign,boundary,,0.0799,absent,yes,0,Stop Sign,kite
+2352709,Stop Sign,boundary,,0.0792,,no,0,Stop Sign,kite
+2411912,Stop Sign,boundary,,0.0786,absent,yes,0,Stop Sign,stop sign
+2346019,Stop Sign,boundary,,0.0784,absent,yes,0,Stop Sign,stop sign
+2383707,Stop Sign,boundary,,0.077,,no,0,Stop Sign,kite
+2365421,Stop Sign,boundary,,0.0766,absent,yes,0,Stop Sign,cell phone
+2325332,Stop Sign,boundary,,0.0766,absent,yes,0,Stop Sign,truck
+2331220,Stop Sign,boundary,,0.0759,,no,0,Stop Sign,kite
+2361029,Stop Sign,boundary,,0.0758,,no,0,Stop Sign,cell phone
+2376806,Stop Sign,boundary,,0.0755,absent,yes,0,Stop Sign,stop sign
+2402410,Stop Sign,boundary,,0.0753,,no,0,Stop Sign,stop sign
+2379075,Stop Sign,boundary,,0.0751,,no,0,Stop Sign,dog
+2374487,Stop Sign,boundary,,0.0749,absent,yes,0,Stop Sign,stop sign
+2350610,Stop Sign,boundary,,0.0745,absent,yes,0,Stop Sign,kite
+2392128,Stop Sign,boundary,,0.0745,absent,yes,0,Stop Sign,stop sign
+2333001,Stop Sign,boundary,,0.0739,absent,yes,0,Stop Sign,kite
+1159420,Stop Sign,boundary,,0.0735,absent,yes,0,Stop Sign,truck
+2392264,Stop Sign,boundary,,0.0734,,no,0,Stop Sign,stop sign
+2358316,Stop Sign,boundary,,0.0732,absent,yes,0,Stop Sign,sink
+2393671,Stop Sign,boundary,,0.073,absent,yes,0,Stop Sign,dog
+2323658,Stop Sign,boundary,,0.0729,,no,0,Stop Sign,dog
+2407548,Stop Sign,boundary,,0.0729,,no,0,Stop Sign,bus
+2407502,Stop Sign,boundary,,0.0728,absent,yes,0,Stop Sign,spoon
+2367117,Stop Sign,boundary,,0.0723,,no,0,Stop Sign,kite
+2327398,Stop Sign,boundary,,0.0721,absent,yes,0,Stop Sign,kite
+2350334,Stop Sign,boundary,,0.0718,absent,yes,0,Stop Sign,knife
+2369018,Stop Sign,boundary,,0.0714,,no,0,Stop Sign,kite
+2399091,Stop Sign,boundary,,0.0711,,no,0,Stop Sign,sink
+2358000,Stop Sign,boundary,,0.0706,absent,yes,0,Stop Sign,cell phone
+2336745,Stop Sign,boundary,,0.0704,,no,0,Stop Sign,bus
+2413072,Stop Sign,boundary,,0.0701,,no,0,Stop Sign,stop sign
+2391765,Stop Sign,boundary,,0.0697,absent,yes,0,Stop Sign,chair
+2330568,Stop Sign,boundary,,0.0697,absent,yes,0,Stop Sign,bus
+2410628,Stop Sign,boundary,,0.0695,,no,0,Stop Sign,dog
+2348108,Stop Sign,boundary,,0.0692,,no,0,Stop Sign,stop sign
+2354790,Stop Sign,boundary,,0.0692,absent,yes,0,Stop Sign,bus
+2394898,Stop Sign,boundary,,0.0685,,no,0,Stop Sign,dog
+2416246,Stop Sign,boundary,,0.0685,absent,yes,0,Stop Sign,stop sign
+2316125,Stop Sign,boundary,,0.0684,,no,0,Stop Sign,kite
+2327098,Stop Sign,boundary,,0.0683,,no,0,Stop Sign,sink
+2362065,Stop Sign,boundary,,0.0679,absent,yes,0,Stop Sign,sink
+2336569,Stop Sign,boundary,,0.0676,absent,yes,0,Stop Sign,stop sign
+2413495,Stop Sign,boundary,,0.0673,absent,yes,0,Stop Sign,stop sign
+2338255,Stop Sign,boundary,,0.0673,absent,yes,0,Stop Sign,bench
+2362762,Stop Sign,boundary,,0.067,absent,yes,0,Stop Sign,vase
+2322849,Stop Sign,boundary,,0.0669,,no,0,Stop Sign,backpack
+2392420,Stop Sign,boundary,,0.0667,absent,yes,0,Stop Sign,vase
+2329296,Stop Sign,boundary,,0.0665,absent,yes,0,Stop Sign,stop sign
+2416700,Stop Sign,boundary,,0.0664,absent,yes,0,Stop Sign,cell phone
+2417852,Stop Sign,boundary,,0.0664,,no,0,Stop Sign,boat
+4185,Stop Sign,boundary,,0.0662,,no,0,Stop Sign,stop sign
+2325379,Stop Sign,boundary,,0.0661,,no,0,Stop Sign,kite
+2368073,Stop Sign,boundary,,0.0661,,no,0,Stop Sign,stop sign
+2355890,Stop Sign,boundary,,0.066,absent,yes,0,Stop Sign,stop sign
+1592013,Stop Sign,boundary,,0.0657,absent,yes,0,Stop Sign,bench
+2417678,Stop Sign,boundary,,0.0657,,no,0,Stop Sign,kite
+2360975,Stop Sign,boundary,,0.0656,absent,yes,0,Stop Sign,kite
+2407927,Stop Sign,boundary,,0.0656,,no,0,Stop Sign,bowl
+2355650,Stop Sign,boundary,,0.0656,,no,0,Stop Sign,stop sign
+2415598,Stop Sign,boundary,,0.0652,,no,0,Stop Sign,sink
+2393732,Stop Sign,boundary,,0.0648,,no,0,Stop Sign,stop sign
+2398807,Stop Sign,boundary,,0.0647,,no,0,Stop Sign,stop sign
+2360,Stop Sign,boundary,,0.0646,,no,0,Stop Sign,stop sign
+2400101,Stop Sign,boundary,,0.0644,,no,0,Stop Sign,kite
+2380685,Stop Sign,boundary,,0.0641,,no,0,Stop Sign,sink
+1986,Stop Sign,boundary,,0.0639,,no,0,Stop Sign,cell phone
+2353986,Stop Sign,boundary,,0.0638,,no,0,Stop Sign,kite
+2388314,Stop Sign,boundary,,0.0637,absent,yes,0,Stop Sign,bench
+2383506,Stop Sign,boundary,,0.0634,absent,yes,0,Stop Sign,sink
+2379050,Stop Sign,boundary,,0.0632,absent,yes,0,Stop Sign,dog
+2323842,Stop Sign,boundary,,0.0627,,no,0,Stop Sign,kite
+2372457,Stop Sign,boundary,,0.0624,,no,0,Stop Sign,spoon
+2363995,Stop Sign,boundary,,0.062,,no,0,Stop Sign,sink
+2346929,Stop Sign,boundary,,0.0619,,no,0,Stop Sign,bus
+2343839,Stop Sign,boundary,,0.0618,absent,yes,0,Stop Sign,stop sign
+2417271,Stop Sign,boundary,,0.0617,absent,yes,0,Stop Sign,cell phone
+2399554,Stop Sign,boundary,,0.0616,,no,0,Stop Sign,sink
+2393952,Stop Sign,boundary,,0.0616,,no,0,Stop Sign,sink
+2398287,Stop Sign,boundary,,0.0614,absent,yes,0,Stop Sign,bowl
+2380089,Stop Sign,boundary,,0.0613,absent,yes,0,Stop Sign,kite
+2379377,Stop Sign,random,,0.006,,no,0,Stop Sign,bird
+2389518,Stop Sign,random,,0.0262,,no,0,Stop Sign,boat
+2387690,Stop Sign,random,,0.0414,absent,yes,0,Stop Sign,bus
+2341258,Stop Sign,random,,0.0075,,no,0,Stop Sign,bench
+2343133,Stop Sign,random,,0.0122,,no,0,Stop Sign,bench
+2410471,Stop Sign,random,,0.0238,,no,0,Stop Sign,bird
+2338452,Stop Sign,random,,0.0149,absent,yes,0,Stop Sign,bird
+2399496,Stop Sign,random,,0.0389,,no,0,Stop Sign,kite
+655,Stop Sign,random,,0.0285,,no,0,Stop Sign,boat
+2406950,Stop Sign,random,,0.0483,,no,0,Stop Sign,bowl
+2416176,Stop Sign,random,,0.0246,,no,0,Stop Sign,bus
+2379431,Stop Sign,random,,0.0299,absent,yes,0,Stop Sign,bus
+2386624,Stop Sign,random,,0.0363,absent,yes,0,Stop Sign,dog
+2376171,Stop Sign,random,,0.0455,,no,0,Stop Sign,bicycle
+2342757,Stop Sign,random,,0.0091,,no,0,Stop Sign,car
+2370802,Stop Sign,random,,0.0289,absent,yes,0,Stop Sign,stop sign
+2379036,Stop Sign,random,,0.0487,,no,0,Stop Sign,kite
+2372245,Stop Sign,random,,0.0584,,no,0,Stop Sign,stop sign
+1556,Stop Sign,random,,0.0293,,no,0,Stop Sign,car
+2328476,Stop Sign,random,,0.0054,,no,0,Stop Sign,bench
+2379254,Stop Sign,random,,0.0072,absent,yes,0,Stop Sign,dog
+2334823,Stop Sign,random,,0.0328,absent,yes,0,Stop Sign,kite
+2413407,Stop Sign,random,,0.0297,,no,0,Stop Sign,spoon
+1490,Stop Sign,random,,0.0228,,no,0,Stop Sign,bench
+2368814,Stop Sign,random,,0.0076,,no,0,Stop Sign,bird
+2408671,Stop Sign,random,,0.048,absent,yes,0,Stop Sign,bowl
+2381000,Stop Sign,random,,0.0398,absent,yes,0,Stop Sign,cup
+2410237,Stop Sign,random,,0.0191,absent,yes,0,Stop Sign,fork
+2395379,Stop Sign,random,,0.0472,,no,0,Stop Sign,sink
+2375949,Stop Sign,random,,0.0249,,no,0,Stop Sign,cup
+2415129,Stop Sign,random,,0.0367,absent,yes,0,Stop Sign,kite
+2399434,Stop Sign,random,,0.0178,,no,0,Stop Sign,bowl
+2382828,Stop Sign,random,,0.0059,absent,yes,0,Stop Sign,dog
+2364216,Stop Sign,random,,0.0505,absent,yes,0,Stop Sign,bus
+2416508,Stop Sign,random,,0.0089,,no,0,Stop Sign,bird
+2323085,Stop Sign,random,,0.0491,absent,yes,0,Stop Sign,kite
+2334729,Stop Sign,random,,0.0472,,no,0,Stop Sign,bus
+2411277,Stop Sign,random,,0.0112,,no,0,Stop Sign,bowl
+2392094,Stop Sign,random,,0.0195,absent,yes,0,Stop Sign,truck
+2386347,Stop Sign,random,,0.039,absent,yes,0,Stop Sign,bowl
+2340056,Stop Sign,random,,0.0461,absent,yes,0,Stop Sign,knife
+2392807,Stop Sign,random,,0.0315,absent,yes,0,Stop Sign,bus
+2382264,Stop Sign,random,,0.0122,,no,0,Stop Sign,dog
+2398852,Stop Sign,random,,0.0303,,no,0,Stop Sign,knife
+2336335,Stop Sign,random,,0.0054,,no,0,Stop Sign,car
+2357898,Stop Sign,random,,0.0097,,no,0,Stop Sign,bench
+2384185,Stop Sign,random,,0.0402,,no,0,Stop Sign,backpack
+2352095,Stop Sign,random,,0.0262,absent,yes,0,Stop Sign,bus
+2385477,Stop Sign,random,,0.0176,,no,0,Stop Sign,kite
+2332648,Stop Sign,random,,0.0099,,no,0,Stop Sign,sink
+2368984,Stop Sign,random,,0.0302,,no,0,Stop Sign,bus
+2370144,Stop Sign,random,,0.0122,,no,0,Stop Sign,bowl
+2358419,Stop Sign,random,,0.0443,,no,0,Stop Sign,bus
+3801,Stop Sign,random,,0.0487,,no,0,Stop Sign,bench
+2315796,Stop Sign,random,,0.0284,,no,0,Stop Sign,car
+2370271,Stop Sign,random,,0.0186,absent,yes,0,Stop Sign,bird
+2393325,Stop Sign,random,,0.01,absent,yes,0,Stop Sign,cup
+2388486,Stop Sign,random,,0.0236,absent,yes,0,Stop Sign,bowl
+1592557,Stop Sign,random,,0.0233,,no,0,Stop Sign,fork
+497980,Stop Sign,random,,0.0123,,no,0,Stop Sign,bench
+2403285,Stop Sign,random,,0.019,absent,yes,0,Stop Sign,kite
+2411445,Stop Sign,random,,0.0491,,no,0,Stop Sign,bicycle
+2402404,Stop Sign,random,,0.032,,no,0,Stop Sign,umbrella
+2341076,Stop Sign,random,,0.0401,absent,yes,0,Stop Sign,bowl
+2392734,Stop Sign,random,,0.0268,absent,yes,0,Stop Sign,kite
+2320550,Stop Sign,random,,0.0117,absent,yes,0,Stop Sign,bench
+2318153,Stop Sign,random,,0.0302,absent,yes,0,Stop Sign,fork
+2358239,Stop Sign,random,,0.0114,absent,yes,0,Stop Sign,bird
+2373243,Stop Sign,random,,0.013,,no,0,Stop Sign,bird
+2392277,Stop Sign,random,,0.0255,,no,0,Stop Sign,bowl
+4214,Stop Sign,random,,0.0134,,no,0,Stop Sign,fork
+2352911,Stop Sign,random,,0.0331,,no,0,Stop Sign,bowl
+2329538,Stop Sign,random,,0.0147,,no,0,Stop Sign,bench
+2409231,Stop Sign,random,,0.017,,no,0,Stop Sign,bowl
+2321487,Stop Sign,random,,0.0043,absent,yes,0,Stop Sign,bird
+2386652,Stop Sign,random,,0.014,absent,yes,0,Stop Sign,bird
+2316043,Stop Sign,random,,0.0192,absent,yes,0,Stop Sign,car
+2340667,Stop Sign,random,,0.02,,no,0,Stop Sign,bicycle
+2353402,Stop Sign,random,,0.0515,,no,0,Stop Sign,bus
+1593184,Stop Sign,random,,0.0417,absent,yes,0,Stop Sign,dog
+2392480,Stop Sign,random,,0.0531,,no,0,Stop Sign,bowl
+2361524,Stop Sign,random,,0.0098,absent,yes,0,Stop Sign,boat
+2334397,Stop Sign,random,,0.007,,no,0,Stop Sign,bowl
+2320159,Stop Sign,random,,0.0198,absent,yes,0,Stop Sign,spoon
+2359994,Stop Sign,random,,0.02,,no,0,Stop Sign,bus
+2366442,Stop Sign,random,,0.0404,absent,yes,0,Stop Sign,bowl
+2380376,Stop Sign,random,,0.0097,,no,0,Stop Sign,car
+2416293,Stop Sign,random,,0.0191,absent,yes,0,Stop Sign,kite
+2335019,Stop Sign,random,,0.0156,,no,0,Stop Sign,bench
+2374137,Stop Sign,random,,0.0087,,no,0,Stop Sign,dog
+2316533,Stop Sign,random,,0.025,absent,yes,0,Stop Sign,kite
+2372204,Stop Sign,random,,0.0081,,no,0,Stop Sign,bowl
+2364952,Stop Sign,random,,0.0186,absent,yes,0,Stop Sign,bird
+2327535,Stop Sign,random,,0.0311,,no,0,Stop Sign,cup
+1159799,Stop Sign,random,,0.0239,,no,0,Stop Sign,bowl
+61589,Stop Sign,random,,0.0178,,no,0,Stop Sign,kite
+2396098,Stop Sign,random,,0.0475,absent,yes,0,Stop Sign,bench
+2363160,Stop Sign,random,,0.0104,absent,yes,0,Stop Sign,bird
+2357470,Stop Sign,random,,0.0348,absent,yes,0,Stop Sign,dog
+2410026,Stop Sign,random,,0.0285,,no,0,Stop Sign,kite

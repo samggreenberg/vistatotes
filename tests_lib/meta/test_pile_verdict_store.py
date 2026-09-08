@@ -192,6 +192,34 @@ class TestDroppedRows:
         assert corrections_mod.dropped_rows(old, [_row(1, "car")]) == {}
 
 
+class TestTwoCampaignInventory:
+    """The live corrections file is a union of two review campaigns (#3732).
+
+    Recovered from a session transcript after a regeneration with the previous
+    defaults dropped 384 rows: the #3588 promotion review ran in its own
+    directory, with its own verdicts and its own corrections output, and nothing
+    recorded that the live file depended on it. The inventory now has to reach
+    both, or #3729's store is a copy of half the record.
+    """
+
+    def test_the_promotion_campaign_is_in_the_inventory(self, pc):
+        roots = {art.root_token() for art in pc.HUMAN_RECORD}
+
+        assert "WORK3588" in roots, "the #3588 campaign's verdicts are part of the record"
+
+    def test_the_merged_corrections_output_is_kept(self, pc):
+        """`corrections_13.json` is merged into the live file and reproducible from nothing else here."""
+        sources = {art.source for art in pc.HUMAN_RECORD}
+
+        assert "{WORK3588}/corrections_13.json" in sources
+
+    def test_the_live_corrections_file_is_not_filed_as_derived(self, pc):
+        """Its reproduction depends on another campaign's scratch directory surviving."""
+        (art,) = [a for a in pc.HUMAN_RECORD if a.source == "{PILE}/corrections.json"]
+
+        assert art.tier == "human"
+
+
 class TestWriteJsonLocked:
     def test_the_file_is_replaced_not_truncated(self, corrections_mod, tmp_path):
         """A reader arriving mid-write must never see half a verdict file."""

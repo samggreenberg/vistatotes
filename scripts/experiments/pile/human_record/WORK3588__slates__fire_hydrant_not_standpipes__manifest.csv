@@ -1,0 +1,301 @@
+image_id,class,stratum,cell,text_score,reference,exhaustive,n_boxes,detector
+2382355,fire hydrant,boundary,,0.1256,absent,no,0,fire hydrant not standpipes
+2341194,fire hydrant,boundary,,0.1195,absent,no,0,fire hydrant not standpipes
+2413733,fire hydrant,boundary,,0.117,absent,no,0,fire hydrant not standpipes
+2412392,fire hydrant,boundary,,0.0968,absent,no,0,fire hydrant not standpipes
+2330522,fire hydrant,boundary,,0.0636,absent,no,0,fire hydrant not standpipes
+2340623,fire hydrant,boundary,,0.057,absent,no,0,fire hydrant not standpipes
+2333132,fire hydrant,boundary,,0.0509,absent,no,0,fire hydrant not standpipes
+2333976,fire hydrant,boundary,,0.0447,absent,no,0,fire hydrant not standpipes
+713057,fire hydrant,boundary,,0.044,absent,no,0,fire hydrant not standpipes
+2414448,fire hydrant,boundary,,0.0428,absent,no,0,fire hydrant not standpipes
+2377196,fire hydrant,boundary,,0.0421,absent,no,0,fire hydrant not standpipes
+2417715,fire hydrant,boundary,,0.0408,absent,no,0,fire hydrant not standpipes
+1860,fire hydrant,boundary,,0.0403,absent,no,0,fire hydrant not standpipes
+2372724,fire hydrant,boundary,,0.0398,absent,no,0,fire hydrant not standpipes
+2367,fire hydrant,boundary,,0.0388,absent,no,0,fire hydrant not standpipes
+2938,fire hydrant,boundary,,0.0379,absent,no,0,fire hydrant not standpipes
+2346981,fire hydrant,boundary,,0.0369,absent,no,0,fire hydrant not standpipes
+2406453,fire hydrant,boundary,,0.0351,absent,no,0,fire hydrant not standpipes
+2400917,fire hydrant,boundary,,0.0344,absent,no,0,fire hydrant not standpipes
+1159919,fire hydrant,boundary,,0.0339,absent,no,0,fire hydrant not standpipes
+2348897,fire hydrant,boundary,,0.0339,absent,no,0,fire hydrant not standpipes
+2341514,fire hydrant,boundary,,0.0338,absent,no,0,fire hydrant not standpipes
+2414433,fire hydrant,boundary,,0.0334,absent,no,0,fire hydrant not standpipes
+2380023,fire hydrant,boundary,,0.0329,absent,no,0,fire hydrant not standpipes
+1485,fire hydrant,boundary,,0.0321,absent,no,0,fire hydrant not standpipes
+1940,fire hydrant,boundary,,0.032,absent,no,0,fire hydrant not standpipes
+2429,fire hydrant,boundary,,0.0318,absent,no,0,fire hydrant not standpipes
+2397061,fire hydrant,boundary,,0.0316,absent,no,0,fire hydrant not standpipes
+1159536,fire hydrant,boundary,,0.0316,absent,no,0,fire hydrant not standpipes
+2336186,fire hydrant,boundary,,0.0315,absent,no,0,fire hydrant not standpipes
+2384073,fire hydrant,boundary,,0.0313,absent,no,0,fire hydrant not standpipes
+2331335,fire hydrant,boundary,,0.0307,absent,no,0,fire hydrant not standpipes
+2382053,fire hydrant,boundary,,0.0304,absent,no,0,fire hydrant not standpipes
+2344628,fire hydrant,boundary,,0.0296,absent,no,0,fire hydrant not standpipes
+3402,fire hydrant,boundary,,0.0293,absent,no,0,fire hydrant not standpipes
+2316381,fire hydrant,boundary,,0.0292,absent,no,0,fire hydrant not standpipes
+2350353,fire hydrant,boundary,,0.0291,absent,no,0,fire hydrant not standpipes
+1926,fire hydrant,boundary,,0.029,absent,no,0,fire hydrant not standpipes
+312,fire hydrant,boundary,,0.0288,absent,no,0,fire hydrant not standpipes
+1802,fire hydrant,boundary,,0.0288,absent,no,0,fire hydrant not standpipes
+3517,fire hydrant,boundary,,0.0288,absent,no,0,fire hydrant not standpipes
+2230,fire hydrant,boundary,,0.0284,absent,no,0,fire hydrant not standpipes
+2407670,fire hydrant,boundary,,0.0283,absent,no,0,fire hydrant not standpipes
+1423,fire hydrant,boundary,,0.0283,absent,no,0,fire hydrant not standpipes
+1862,fire hydrant,boundary,,0.0282,absent,no,0,fire hydrant not standpipes
+3831,fire hydrant,boundary,,0.0278,absent,no,0,fire hydrant not standpipes
+2327394,fire hydrant,boundary,,0.0273,absent,no,0,fire hydrant not standpipes
+3547,fire hydrant,boundary,,0.0269,absent,no,0,fire hydrant not standpipes
+2396794,fire hydrant,boundary,,0.0267,absent,no,0,fire hydrant not standpipes
+2399091,fire hydrant,boundary,,0.0266,absent,no,0,fire hydrant not standpipes
+2370170,fire hydrant,boundary,,0.0264,absent,no,0,fire hydrant not standpipes
+4714,fire hydrant,boundary,,0.0255,absent,no,0,fire hydrant not standpipes
+2371153,fire hydrant,boundary,,0.0249,absent,no,0,fire hydrant not standpipes
+2355650,fire hydrant,boundary,,0.0243,absent,no,0,fire hydrant not standpipes
+2363245,fire hydrant,boundary,,0.024,absent,no,0,fire hydrant not standpipes
+2325379,fire hydrant,boundary,,0.0234,absent,no,0,fire hydrant not standpipes
+3302,fire hydrant,boundary,,0.0233,absent,no,0,fire hydrant not standpipes
+2379130,fire hydrant,boundary,,0.0229,absent,no,0,fire hydrant not standpipes
+2360322,fire hydrant,boundary,,0.0227,absent,no,0,fire hydrant not standpipes
+2379657,fire hydrant,boundary,,0.0224,absent,no,0,fire hydrant not standpipes
+2368371,fire hydrant,boundary,,0.0223,absent,no,0,fire hydrant not standpipes
+2356689,fire hydrant,boundary,,0.0223,absent,no,0,fire hydrant not standpipes
+2352497,fire hydrant,boundary,,0.0219,absent,no,0,fire hydrant not standpipes
+833,fire hydrant,boundary,,0.0219,absent,no,0,fire hydrant not standpipes
+1553,fire hydrant,boundary,,0.0216,absent,no,0,fire hydrant not standpipes
+2407821,fire hydrant,boundary,,0.0213,absent,no,0,fire hydrant not standpipes
+2348108,fire hydrant,boundary,,0.021,absent,no,0,fire hydrant not standpipes
+2376417,fire hydrant,boundary,,0.021,absent,no,0,fire hydrant not standpipes
+2328305,fire hydrant,boundary,,0.0208,absent,no,0,fire hydrant not standpipes
+3144,fire hydrant,boundary,,0.0208,absent,no,0,fire hydrant not standpipes
+2368086,fire hydrant,boundary,,0.0206,absent,no,0,fire hydrant not standpipes
+1959,fire hydrant,boundary,,0.0203,absent,no,0,fire hydrant not standpipes
+2394368,fire hydrant,boundary,,0.0202,absent,no,0,fire hydrant not standpipes
+2368073,fire hydrant,boundary,,0.0201,absent,no,0,fire hydrant not standpipes
+2823,fire hydrant,boundary,,0.02,absent,no,0,fire hydrant not standpipes
+3464,fire hydrant,boundary,,0.0198,absent,no,0,fire hydrant not standpipes
+3409,fire hydrant,boundary,,0.0198,absent,no,0,fire hydrant not standpipes
+2461,fire hydrant,boundary,,0.0197,absent,no,0,fire hydrant not standpipes
+822,fire hydrant,boundary,,0.0191,absent,no,0,fire hydrant not standpipes
+3809,fire hydrant,boundary,,0.019,absent,no,0,fire hydrant not standpipes
+2330815,fire hydrant,boundary,,0.0189,absent,no,0,fire hydrant not standpipes
+2317420,fire hydrant,boundary,,0.0186,absent,no,0,fire hydrant not standpipes
+2397932,fire hydrant,boundary,,0.0185,absent,no,0,fire hydrant not standpipes
+1821,fire hydrant,boundary,,0.0184,absent,no,0,fire hydrant not standpipes
+2398675,fire hydrant,boundary,,0.0181,absent,no,0,fire hydrant not standpipes
+2231,fire hydrant,boundary,,0.0181,absent,no,0,fire hydrant not standpipes
+1592575,fire hydrant,boundary,,0.0177,absent,no,0,fire hydrant not standpipes
+3420,fire hydrant,boundary,,0.0176,absent,no,0,fire hydrant not standpipes
+2362384,fire hydrant,boundary,,0.0175,absent,no,0,fire hydrant not standpipes
+2375608,fire hydrant,boundary,,0.0173,absent,no,0,fire hydrant not standpipes
+2365331,fire hydrant,boundary,,0.0173,absent,no,0,fire hydrant not standpipes
+2318383,fire hydrant,boundary,,0.0173,absent,no,0,fire hydrant not standpipes
+1160144,fire hydrant,boundary,,0.0172,absent,no,0,fire hydrant not standpipes
+1908,fire hydrant,boundary,,0.0172,absent,no,0,fire hydrant not standpipes
+2327550,fire hydrant,boundary,,0.0171,absent,no,0,fire hydrant not standpipes
+2346624,fire hydrant,boundary,,0.0171,absent,no,0,fire hydrant not standpipes
+2367538,fire hydrant,boundary,,0.017,absent,no,0,fire hydrant not standpipes
+2353523,fire hydrant,boundary,,0.0169,absent,no,0,fire hydrant not standpipes
+2364933,fire hydrant,boundary,,0.0169,absent,no,0,fire hydrant not standpipes
+4742,fire hydrant,boundary,,0.0167,absent,no,0,fire hydrant not standpipes
+2417232,fire hydrant,boundary,,0.0166,absent,no,0,fire hydrant not standpipes
+2335654,fire hydrant,boundary,,0.0166,absent,no,0,fire hydrant not standpipes
+2335210,fire hydrant,boundary,,0.0165,absent,no,0,fire hydrant not standpipes
+2398805,fire hydrant,boundary,,0.0165,absent,no,0,fire hydrant not standpipes
+2359376,fire hydrant,boundary,,0.0164,absent,no,0,fire hydrant not standpipes
+2353058,fire hydrant,boundary,,0.016,absent,no,0,fire hydrant not standpipes
+3363,fire hydrant,boundary,,0.0157,absent,no,0,fire hydrant not standpipes
+2814,fire hydrant,boundary,,0.0157,absent,no,0,fire hydrant not standpipes
+2331516,fire hydrant,boundary,,0.0156,absent,no,0,fire hydrant not standpipes
+2316790,fire hydrant,boundary,,0.0155,absent,no,0,fire hydrant not standpipes
+2362604,fire hydrant,boundary,,0.0155,absent,no,0,fire hydrant not standpipes
+2393732,fire hydrant,boundary,,0.0155,absent,no,0,fire hydrant not standpipes
+285971,fire hydrant,boundary,,0.0155,absent,no,0,fire hydrant not standpipes
+2393876,fire hydrant,boundary,,0.0152,absent,no,0,fire hydrant not standpipes
+2317040,fire hydrant,boundary,,0.015,absent,no,0,fire hydrant not standpipes
+1716,fire hydrant,boundary,,0.0147,absent,no,0,fire hydrant not standpipes
+2415598,fire hydrant,boundary,,0.0147,absent,no,0,fire hydrant not standpipes
+2586,fire hydrant,boundary,,0.0146,absent,no,0,fire hydrant not standpipes
+2334729,fire hydrant,boundary,,0.0143,absent,no,0,fire hydrant not standpipes
+2397825,fire hydrant,boundary,,0.0141,absent,no,0,fire hydrant not standpipes
+2046,fire hydrant,boundary,,0.0141,absent,no,0,fire hydrant not standpipes
+1455,fire hydrant,boundary,,0.0139,absent,no,0,fire hydrant not standpipes
+1592949,fire hydrant,boundary,,0.0138,absent,no,0,fire hydrant not standpipes
+834,fire hydrant,boundary,,0.0138,absent,no,0,fire hydrant not standpipes
+4185,fire hydrant,boundary,,0.0137,absent,no,0,fire hydrant not standpipes
+2982,fire hydrant,boundary,,0.0136,absent,no,0,fire hydrant not standpipes
+2382681,fire hydrant,boundary,,0.0135,absent,no,0,fire hydrant not standpipes
+2389243,fire hydrant,boundary,,0.0135,absent,no,0,fire hydrant not standpipes
+2403995,fire hydrant,boundary,,0.0134,absent,no,0,fire hydrant not standpipes
+2397370,fire hydrant,boundary,,0.0134,absent,no,0,fire hydrant not standpipes
+2356826,fire hydrant,boundary,,0.013,absent,no,0,fire hydrant not standpipes
+2349351,fire hydrant,boundary,,0.013,absent,no,0,fire hydrant not standpipes
+2334324,fire hydrant,boundary,,0.0129,absent,no,0,fire hydrant not standpipes
+2402410,fire hydrant,boundary,,0.0128,absent,no,0,fire hydrant not standpipes
+2327380,fire hydrant,boundary,,0.0128,absent,no,0,fire hydrant not standpipes
+2416997,fire hydrant,boundary,,0.0127,absent,no,0,fire hydrant not standpipes
+2392264,fire hydrant,boundary,,0.0123,absent,no,0,fire hydrant not standpipes
+2404999,fire hydrant,boundary,,0.0121,absent,no,0,fire hydrant not standpipes
+2368150,fire hydrant,boundary,,0.0121,absent,no,0,fire hydrant not standpipes
+2372324,fire hydrant,boundary,,0.0121,absent,no,0,fire hydrant not standpipes
+3187,fire hydrant,boundary,,0.0119,absent,no,0,fire hydrant not standpipes
+2371208,fire hydrant,boundary,,0.0115,absent,no,0,fire hydrant not standpipes
+2332766,fire hydrant,boundary,,0.0113,absent,no,0,fire hydrant not standpipes
+2636,fire hydrant,boundary,,0.0112,absent,no,0,fire hydrant not standpipes
+2351835,fire hydrant,boundary,,0.0112,absent,no,0,fire hydrant not standpipes
+2321393,fire hydrant,boundary,,0.0112,absent,no,0,fire hydrant not standpipes
+3801,fire hydrant,boundary,,0.011,absent,no,0,fire hydrant not standpipes
+1383,fire hydrant,boundary,,0.011,absent,no,0,fire hydrant not standpipes
+2344411,fire hydrant,boundary,,0.011,absent,no,0,fire hydrant not standpipes
+2347450,fire hydrant,boundary,,0.011,absent,no,0,fire hydrant not standpipes
+2367739,fire hydrant,boundary,,0.0108,absent,no,0,fire hydrant not standpipes
+4119,fire hydrant,boundary,,0.0108,absent,no,0,fire hydrant not standpipes
+2318858,fire hydrant,boundary,,0.0107,absent,no,0,fire hydrant not standpipes
+2336467,fire hydrant,boundary,,0.0106,absent,no,0,fire hydrant not standpipes
+2372881,fire hydrant,boundary,,0.0105,absent,no,0,fire hydrant not standpipes
+2412600,fire hydrant,boundary,,0.0104,absent,no,0,fire hydrant not standpipes
+2412586,fire hydrant,boundary,,0.0103,absent,no,0,fire hydrant not standpipes
+2327529,fire hydrant,boundary,,0.0103,absent,no,0,fire hydrant not standpipes
+2385956,fire hydrant,boundary,,0.0101,absent,no,0,fire hydrant not standpipes
+2367901,fire hydrant,boundary,,0.01,absent,no,0,fire hydrant not standpipes
+2401954,fire hydrant,boundary,,0.0642,absent,yes,0,fire hydrant not standpipes
+2378930,fire hydrant,boundary,,0.0553,absent,yes,0,fire hydrant not standpipes
+2346974,fire hydrant,boundary,,0.048,absent,yes,0,fire hydrant not standpipes
+2352404,fire hydrant,boundary,,0.0473,absent,yes,0,fire hydrant not standpipes
+2344023,fire hydrant,boundary,,0.047,absent,yes,0,fire hydrant not standpipes
+2386909,fire hydrant,boundary,,0.0433,absent,yes,0,fire hydrant not standpipes
+2325368,fire hydrant,boundary,,0.0424,absent,yes,0,fire hydrant not standpipes
+2335533,fire hydrant,boundary,,0.0418,absent,yes,0,fire hydrant not standpipes
+2376806,fire hydrant,boundary,,0.0391,absent,yes,0,fire hydrant not standpipes
+2380193,fire hydrant,boundary,,0.039,absent,yes,0,fire hydrant not standpipes
+2387602,fire hydrant,boundary,,0.0379,absent,yes,0,fire hydrant not standpipes
+2407930,fire hydrant,boundary,,0.037,absent,yes,0,fire hydrant not standpipes
+2416226,fire hydrant,boundary,,0.0367,absent,yes,0,fire hydrant not standpipes
+2398378,fire hydrant,boundary,,0.0365,absent,yes,0,fire hydrant not standpipes
+2327797,fire hydrant,boundary,,0.0341,absent,yes,0,fire hydrant not standpipes
+2394120,fire hydrant,boundary,,0.0335,absent,yes,0,fire hydrant not standpipes
+2332319,fire hydrant,boundary,,0.0334,absent,yes,0,fire hydrant not standpipes
+2368478,fire hydrant,boundary,,0.0317,absent,yes,0,fire hydrant not standpipes
+2365422,fire hydrant,boundary,,0.0313,absent,yes,0,fire hydrant not standpipes
+2370418,fire hydrant,boundary,,0.0311,absent,yes,0,fire hydrant not standpipes
+2382257,fire hydrant,boundary,,0.0303,absent,yes,0,fire hydrant not standpipes
+2369709,fire hydrant,boundary,,0.0295,absent,yes,0,fire hydrant not standpipes
+2346366,fire hydrant,boundary,,0.0294,absent,yes,0,fire hydrant not standpipes
+2391360,fire hydrant,boundary,,0.0291,absent,yes,0,fire hydrant not standpipes
+2409590,fire hydrant,boundary,,0.0288,absent,yes,0,fire hydrant not standpipes
+2389348,fire hydrant,boundary,,0.0284,absent,yes,0,fire hydrant not standpipes
+2375571,fire hydrant,boundary,,0.0269,absent,yes,0,fire hydrant not standpipes
+2411912,fire hydrant,boundary,,0.0265,absent,yes,0,fire hydrant not standpipes
+2397024,fire hydrant,boundary,,0.0261,absent,yes,0,fire hydrant not standpipes
+2391856,fire hydrant,boundary,,0.0254,absent,yes,0,fire hydrant not standpipes
+2332039,fire hydrant,boundary,,0.0248,absent,yes,0,fire hydrant not standpipes
+2349902,fire hydrant,boundary,,0.0247,absent,yes,0,fire hydrant not standpipes
+2363826,fire hydrant,boundary,,0.0243,absent,yes,0,fire hydrant not standpipes
+2349571,fire hydrant,boundary,,0.0236,absent,yes,0,fire hydrant not standpipes
+285878,fire hydrant,boundary,,0.0236,absent,yes,0,fire hydrant not standpipes
+2373439,fire hydrant,boundary,,0.0235,absent,yes,0,fire hydrant not standpipes
+2338822,fire hydrant,boundary,,0.0231,absent,yes,0,fire hydrant not standpipes
+2361377,fire hydrant,boundary,,0.0228,absent,yes,0,fire hydrant not standpipes
+2392055,fire hydrant,boundary,,0.0227,absent,yes,0,fire hydrant not standpipes
+2377771,fire hydrant,boundary,,0.0222,absent,yes,0,fire hydrant not standpipes
+2615,fire hydrant,random,,-0.0099,absent,no,0,fire hydrant not standpipes
+2333876,fire hydrant,random,,-0.0523,absent,no,0,fire hydrant not standpipes
+2390933,fire hydrant,random,,-0.0553,absent,no,0,fire hydrant not standpipes
+2363003,fire hydrant,random,,-0.0511,absent,no,0,fire hydrant not standpipes
+2322618,fire hydrant,random,,-0.0325,absent,no,0,fire hydrant not standpipes
+2337180,fire hydrant,random,,-0.0395,absent,no,0,fire hydrant not standpipes
+2396609,fire hydrant,random,,-0.0413,absent,no,0,fire hydrant not standpipes
+2390662,fire hydrant,random,,-0.0371,absent,no,0,fire hydrant not standpipes
+2330232,fire hydrant,random,,-0.0463,absent,no,0,fire hydrant not standpipes
+2342264,fire hydrant,random,,-0.0171,absent,no,0,fire hydrant not standpipes
+2359631,fire hydrant,random,,-0.0358,absent,no,0,fire hydrant not standpipes
+2385288,fire hydrant,random,,-0.0141,absent,no,0,fire hydrant not standpipes
+2392796,fire hydrant,random,,-0.0238,absent,no,0,fire hydrant not standpipes
+2388956,fire hydrant,random,,-0.0307,absent,no,0,fire hydrant not standpipes
+2346523,fire hydrant,random,,-0.0022,absent,no,0,fire hydrant not standpipes
+2317422,fire hydrant,random,,-0.0584,absent,no,0,fire hydrant not standpipes
+2338705,fire hydrant,random,,-0.0149,absent,no,0,fire hydrant not standpipes
+2346009,fire hydrant,random,,-0.0418,absent,no,0,fire hydrant not standpipes
+2406194,fire hydrant,random,,-0.0394,absent,no,0,fire hydrant not standpipes
+2321050,fire hydrant,random,,-0.0329,absent,no,0,fire hydrant not standpipes
+682,fire hydrant,random,,-0.055,absent,no,0,fire hydrant not standpipes
+2383885,fire hydrant,random,,-0.0395,absent,no,0,fire hydrant not standpipes
+2317100,fire hydrant,random,,-0.0425,absent,no,0,fire hydrant not standpipes
+2344752,fire hydrant,random,,0.0057,absent,no,0,fire hydrant not standpipes
+2388959,fire hydrant,random,,-0.0065,absent,no,0,fire hydrant not standpipes
+2363779,fire hydrant,random,,0.0032,absent,no,0,fire hydrant not standpipes
+2370848,fire hydrant,random,,-0.0407,absent,no,0,fire hydrant not standpipes
+2350673,fire hydrant,random,,-0.0082,absent,no,0,fire hydrant not standpipes
+2401070,fire hydrant,random,,-0.032,absent,no,0,fire hydrant not standpipes
+2376266,fire hydrant,random,,-0.0505,absent,no,0,fire hydrant not standpipes
+2337594,fire hydrant,random,,-0.0198,absent,no,0,fire hydrant not standpipes
+1159387,fire hydrant,random,,0.0035,absent,no,0,fire hydrant not standpipes
+2376717,fire hydrant,random,,-0.055,absent,no,0,fire hydrant not standpipes
+3593,fire hydrant,random,,-0.0149,absent,no,0,fire hydrant not standpipes
+2395554,fire hydrant,random,,-0.0245,absent,no,0,fire hydrant not standpipes
+2369563,fire hydrant,random,,-0.028,absent,no,0,fire hydrant not standpipes
+2398885,fire hydrant,random,,-0.0055,absent,no,0,fire hydrant not standpipes
+2348365,fire hydrant,random,,-0.0267,absent,no,0,fire hydrant not standpipes
+2369286,fire hydrant,random,,-0.0233,absent,no,0,fire hydrant not standpipes
+152,fire hydrant,random,,-0.0281,absent,no,0,fire hydrant not standpipes
+2396384,fire hydrant,random,,-0.0385,absent,no,0,fire hydrant not standpipes
+2344503,fire hydrant,random,,-0.0458,absent,no,0,fire hydrant not standpipes
+2321447,fire hydrant,random,,-0.0117,absent,no,0,fire hydrant not standpipes
+2416812,fire hydrant,random,,-0.0434,absent,no,0,fire hydrant not standpipes
+2359332,fire hydrant,random,,-0.0275,absent,no,0,fire hydrant not standpipes
+2351017,fire hydrant,random,,-0.0363,absent,no,0,fire hydrant not standpipes
+2377978,fire hydrant,random,,-0.0073,absent,no,0,fire hydrant not standpipes
+2331678,fire hydrant,random,,-0.0427,absent,no,0,fire hydrant not standpipes
+2357320,fire hydrant,random,,-0.0129,absent,no,0,fire hydrant not standpipes
+2416645,fire hydrant,random,,-0.006,absent,no,0,fire hydrant not standpipes
+2319420,fire hydrant,random,,-0.0243,absent,no,0,fire hydrant not standpipes
+2315784,fire hydrant,random,,-0.0263,absent,no,0,fire hydrant not standpipes
+2372397,fire hydrant,random,,-0.0669,absent,no,0,fire hydrant not standpipes
+2319102,fire hydrant,random,,-0.0276,absent,no,0,fire hydrant not standpipes
+2393005,fire hydrant,random,,-0.0177,absent,no,0,fire hydrant not standpipes
+2349553,fire hydrant,random,,-0.0258,absent,no,0,fire hydrant not standpipes
+497956,fire hydrant,random,,-0.0341,absent,yes,0,fire hydrant not standpipes
+2348471,fire hydrant,random,,-0.0327,absent,yes,0,fire hydrant not standpipes
+2383864,fire hydrant,random,,-0.0344,absent,yes,0,fire hydrant not standpipes
+2336173,fire hydrant,random,,-0.0445,absent,yes,0,fire hydrant not standpipes
+2322133,fire hydrant,random,,0.0168,absent,yes,0,fire hydrant not standpipes
+2332397,fire hydrant,random,,-0.0291,absent,yes,0,fire hydrant not standpipes
+2378612,fire hydrant,random,,0.0026,absent,yes,0,fire hydrant not standpipes
+2335553,fire hydrant,random,,-0.0129,absent,yes,0,fire hydrant not standpipes
+2358581,fire hydrant,random,,-0.0062,absent,yes,0,fire hydrant not standpipes
+2325031,fire hydrant,random,,-0.0463,absent,yes,0,fire hydrant not standpipes
+2386652,fire hydrant,random,,-0.0453,absent,yes,0,fire hydrant not standpipes
+2333001,fire hydrant,random,,-0.0108,absent,yes,0,fire hydrant not standpipes
+2417119,fire hydrant,random,,0.0066,absent,yes,0,fire hydrant not standpipes
+2414412,fire hydrant,random,,-0.036,absent,yes,0,fire hydrant not standpipes
+2325349,fire hydrant,positive_boxed,fire hydrant@small,0.0,present,no,1,fire hydrant not standpipes
+2410185,fire hydrant,positive_boxed,fire hydrant@small,0.0,present,yes,1,fire hydrant not standpipes
+2345193,fire hydrant,positive_boxed,fire hydrant@small,0.0,present,yes,1,fire hydrant not standpipes
+2344943,fire hydrant,positive_boxed,fire hydrant@small,0.0,present,yes,1,fire hydrant not standpipes
+2411127,fire hydrant,positive_boxed,fire hydrant@small,0.0,present,yes,1,fire hydrant not standpipes
+2376552,fire hydrant,positive_boxed,fire hydrant@small,0.0,present,yes,1,fire hydrant not standpipes
+1592389,fire hydrant,positive_boxed,fire hydrant@small,0.0,present,yes,1,fire hydrant not standpipes
+2323403,fire hydrant,positive_boxed,fire hydrant@small,0.0,present,yes,1,fire hydrant not standpipes
+2356021,fire hydrant,positive_boxed,fire hydrant@small,0.0,present,yes,1,fire hydrant not standpipes
+2376761,fire hydrant,positive_boxed,fire hydrant@small,0.0,present,no,1,fire hydrant not standpipes
+2344564,fire hydrant,positive_boxed,fire hydrant@medium,0.0,present,yes,1,fire hydrant not standpipes
+2365398,fire hydrant,positive_boxed,fire hydrant@medium,0.0,present,no,1,fire hydrant not standpipes
+2401802,fire hydrant,positive_boxed,fire hydrant@medium,0.0,present,yes,1,fire hydrant not standpipes
+2339867,fire hydrant,positive_boxed,fire hydrant@medium,0.0,present,yes,1,fire hydrant not standpipes
+2382810,fire hydrant,positive_boxed,fire hydrant@medium,0.0,present,no,1,fire hydrant not standpipes
+2411359,fire hydrant,positive_boxed,fire hydrant@medium,0.0,present,yes,1,fire hydrant not standpipes
+2415144,fire hydrant,positive_boxed,fire hydrant@medium,0.0,present,no,1,fire hydrant not standpipes
+2332947,fire hydrant,positive_boxed,fire hydrant@medium,0.0,present,yes,1,fire hydrant not standpipes
+2370788,fire hydrant,positive_boxed,fire hydrant@medium,0.0,present,yes,1,fire hydrant not standpipes
+713602,fire hydrant,positive_boxed,fire hydrant@medium,0.0,present,yes,1,fire hydrant not standpipes
+2387239,fire hydrant,positive_boxed,fire hydrant@large,0.0,present,yes,1,fire hydrant not standpipes
+2357983,fire hydrant,positive_boxed,fire hydrant@large,0.0,present,no,1,fire hydrant not standpipes
+2330185,fire hydrant,positive_boxed,fire hydrant@large,0.0,present,yes,1,fire hydrant not standpipes
+2399952,fire hydrant,positive_boxed,fire hydrant@large,0.0,present,no,1,fire hydrant not standpipes
+2360501,fire hydrant,positive_boxed,fire hydrant@large,0.0,present,yes,1,fire hydrant not standpipes
+2410512,fire hydrant,positive_boxed,fire hydrant@large,0.0,present,yes,1,fire hydrant not standpipes
+2361699,fire hydrant,positive_boxed,fire hydrant@large,0.0,present,yes,1,fire hydrant not standpipes
+2395605,fire hydrant,positive_boxed,fire hydrant@large,0.0,present,yes,1,fire hydrant not standpipes
+2388408,fire hydrant,positive_boxed,fire hydrant@large,0.0,present,no,1,fire hydrant not standpipes
+2318588,fire hydrant,positive_boxed,fire hydrant@large,0.0,present,no,1,fire hydrant not standpipes

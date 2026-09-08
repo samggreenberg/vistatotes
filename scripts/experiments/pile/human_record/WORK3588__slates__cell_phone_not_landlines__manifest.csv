@@ -1,0 +1,301 @@
+image_id,class,stratum,cell,text_score,reference,exhaustive,n_boxes,detector
+2361957,cell phone,boundary,,0.1115,absent,no,0,cell phone not landlines
+2334641,cell phone,boundary,,0.1102,absent,no,0,cell phone not landlines
+107908,cell phone,boundary,,0.0787,absent,no,0,cell phone not landlines
+2361029,cell phone,boundary,,0.0758,absent,no,0,cell phone not landlines
+2381190,cell phone,boundary,,0.0744,absent,no,0,cell phone not landlines
+1986,cell phone,boundary,,0.0639,absent,no,0,cell phone not landlines
+1159560,cell phone,boundary,,0.0609,absent,no,0,cell phone not landlines
+2392709,cell phone,boundary,,0.0532,absent,no,0,cell phone not landlines
+2385586,cell phone,boundary,,0.0436,absent,no,0,cell phone not landlines
+2331335,cell phone,boundary,,0.0435,absent,no,0,cell phone not landlines
+2333132,cell phone,boundary,,0.041,absent,no,0,cell phone not landlines
+3546,cell phone,boundary,,0.0403,absent,no,0,cell phone not landlines
+2385084,cell phone,boundary,,0.0378,absent,no,0,cell phone not landlines
+2389955,cell phone,boundary,,0.0369,absent,no,0,cell phone not landlines
+4119,cell phone,boundary,,0.0362,absent,no,0,cell phone not landlines
+2391817,cell phone,boundary,,0.036,absent,no,0,cell phone not landlines
+2374224,cell phone,boundary,,0.0359,absent,no,0,cell phone not landlines
+2382944,cell phone,boundary,,0.0353,absent,no,0,cell phone not landlines
+713057,cell phone,boundary,,0.0351,absent,no,0,cell phone not landlines
+2350085,cell phone,boundary,,0.0327,absent,no,0,cell phone not landlines
+2316989,cell phone,boundary,,0.0319,absent,no,0,cell phone not landlines
+2328360,cell phone,boundary,,0.0317,absent,no,0,cell phone not landlines
+2323502,cell phone,boundary,,0.0313,absent,no,0,cell phone not landlines
+2365126,cell phone,boundary,,0.031,absent,no,0,cell phone not landlines
+2400917,cell phone,boundary,,0.0305,absent,no,0,cell phone not landlines
+2368618,cell phone,boundary,,0.0296,absent,no,0,cell phone not landlines
+2399824,cell phone,boundary,,0.0295,absent,no,0,cell phone not landlines
+1592588,cell phone,boundary,,0.0288,absent,no,0,cell phone not landlines
+2367,cell phone,boundary,,0.0287,absent,no,0,cell phone not landlines
+2385956,cell phone,boundary,,0.0285,absent,no,0,cell phone not landlines
+2406885,cell phone,boundary,,0.0285,absent,no,0,cell phone not landlines
+2354355,cell phone,boundary,,0.0284,absent,no,0,cell phone not landlines
+2388336,cell phone,boundary,,0.0283,absent,no,0,cell phone not landlines
+2386056,cell phone,boundary,,0.0282,absent,no,0,cell phone not landlines
+2371208,cell phone,boundary,,0.028,absent,no,0,cell phone not landlines
+2360753,cell phone,boundary,,0.028,absent,no,0,cell phone not landlines
+2407642,cell phone,boundary,,0.0275,absent,no,0,cell phone not landlines
+2372953,cell phone,boundary,,0.0266,absent,no,0,cell phone not landlines
+2316790,cell phone,boundary,,0.0264,absent,no,0,cell phone not landlines
+2384968,cell phone,boundary,,0.0261,absent,no,0,cell phone not landlines
+2334354,cell phone,boundary,,0.0257,absent,no,0,cell phone not landlines
+2322731,cell phone,boundary,,0.0249,absent,no,0,cell phone not landlines
+2376326,cell phone,boundary,,0.0248,absent,no,0,cell phone not landlines
+3402,cell phone,boundary,,0.0239,absent,no,0,cell phone not landlines
+2336186,cell phone,boundary,,0.0229,absent,no,0,cell phone not landlines
+3561,cell phone,boundary,,0.0229,absent,no,0,cell phone not landlines
+2403697,cell phone,boundary,,0.0221,absent,no,0,cell phone not landlines
+2408107,cell phone,boundary,,0.022,absent,no,0,cell phone not landlines
+2412923,cell phone,boundary,,0.0218,absent,no,0,cell phone not landlines
+2343784,cell phone,boundary,,0.0217,absent,no,0,cell phone not landlines
+2413072,cell phone,boundary,,0.0215,absent,no,0,cell phone not landlines
+2323361,cell phone,boundary,,0.0214,absent,no,0,cell phone not landlines
+2327380,cell phone,boundary,,0.0213,absent,no,0,cell phone not landlines
+127,cell phone,boundary,,0.0207,absent,no,0,cell phone not landlines
+2321827,cell phone,boundary,,0.0206,absent,no,0,cell phone not landlines
+2402381,cell phone,boundary,,0.0206,absent,no,0,cell phone not landlines
+2402185,cell phone,boundary,,0.0203,absent,no,0,cell phone not landlines
+2407548,cell phone,boundary,,0.0201,absent,no,0,cell phone not landlines
+1159755,cell phone,boundary,,0.02,absent,no,0,cell phone not landlines
+148,cell phone,boundary,,0.0198,absent,no,0,cell phone not landlines
+2382826,cell phone,boundary,,0.0197,absent,no,0,cell phone not landlines
+2334598,cell phone,boundary,,0.0197,absent,no,0,cell phone not landlines
+2416228,cell phone,boundary,,0.0195,absent,no,0,cell phone not landlines
+2331786,cell phone,boundary,,0.0195,absent,no,0,cell phone not landlines
+2317476,cell phone,boundary,,0.0195,absent,no,0,cell phone not landlines
+2367538,cell phone,boundary,,0.0195,absent,no,0,cell phone not landlines
+1862,cell phone,boundary,,0.0191,absent,no,0,cell phone not landlines
+2332116,cell phone,boundary,,0.0191,absent,no,0,cell phone not landlines
+2365331,cell phone,boundary,,0.0189,absent,no,0,cell phone not landlines
+2367739,cell phone,boundary,,0.0188,absent,no,0,cell phone not landlines
+2347667,cell phone,boundary,,0.0187,absent,no,0,cell phone not landlines
+2412600,cell phone,boundary,,0.0186,absent,no,0,cell phone not landlines
+2396785,cell phone,boundary,,0.0182,absent,no,0,cell phone not landlines
+2368073,cell phone,boundary,,0.0181,absent,no,0,cell phone not landlines
+2353986,cell phone,boundary,,0.0178,absent,no,0,cell phone not landlines
+2355374,cell phone,boundary,,0.0176,absent,no,0,cell phone not landlines
+2386874,cell phone,boundary,,0.0173,absent,no,0,cell phone not landlines
+2318309,cell phone,boundary,,0.0173,absent,no,0,cell phone not landlines
+2398807,cell phone,boundary,,0.0169,absent,no,0,cell phone not landlines
+2398805,cell phone,boundary,,0.0167,absent,no,0,cell phone not landlines
+2396794,cell phone,boundary,,0.0166,absent,no,0,cell phone not landlines
+2335125,cell phone,boundary,,0.0165,absent,no,0,cell phone not landlines
+3409,cell phone,boundary,,0.0165,absent,no,0,cell phone not landlines
+2348739,cell phone,boundary,,0.0164,absent,no,0,cell phone not landlines
+2429,cell phone,boundary,,0.0162,absent,no,0,cell phone not landlines
+2322223,cell phone,boundary,,0.016,absent,no,0,cell phone not landlines
+2398675,cell phone,boundary,,0.0159,absent,no,0,cell phone not landlines
+4611,cell phone,boundary,,0.0157,absent,no,0,cell phone not landlines
+2387652,cell phone,boundary,,0.0156,absent,no,0,cell phone not landlines
+2404864,cell phone,boundary,,0.0153,absent,no,0,cell phone not landlines
+2367901,cell phone,boundary,,0.0151,absent,no,0,cell phone not landlines
+2388806,cell phone,boundary,,0.0151,absent,no,0,cell phone not landlines
+2398671,cell phone,boundary,,0.015,absent,no,0,cell phone not landlines
+409,cell phone,boundary,,0.015,absent,no,0,cell phone not landlines
+2398973,cell phone,boundary,,0.0149,absent,no,0,cell phone not landlines
+2348873,cell phone,boundary,,0.0146,absent,no,0,cell phone not landlines
+2372524,cell phone,boundary,,0.0143,absent,no,0,cell phone not landlines
+2378474,cell phone,boundary,,0.0143,absent,no,0,cell phone not landlines
+2341890,cell phone,boundary,,0.0143,absent,no,0,cell phone not landlines
+2335210,cell phone,boundary,,0.0139,absent,no,0,cell phone not landlines
+2335149,cell phone,boundary,,0.0138,absent,no,0,cell phone not landlines
+1444,cell phone,boundary,,0.0137,absent,no,0,cell phone not landlines
+2374526,cell phone,boundary,,0.0136,absent,no,0,cell phone not landlines
+2406453,cell phone,boundary,,0.0135,absent,no,0,cell phone not landlines
+1390,cell phone,boundary,,0.0134,absent,no,0,cell phone not landlines
+2401896,cell phone,boundary,,0.0133,absent,no,0,cell phone not landlines
+2367860,cell phone,boundary,,0.0133,absent,no,0,cell phone not landlines
+2379514,cell phone,boundary,,0.0133,absent,no,0,cell phone not landlines
+2390855,cell phone,boundary,,0.0132,absent,no,0,cell phone not landlines
+703,cell phone,boundary,,0.0129,absent,no,0,cell phone not landlines
+2338112,cell phone,boundary,,0.0128,absent,no,0,cell phone not landlines
+2375837,cell phone,boundary,,0.0128,absent,no,0,cell phone not landlines
+2335738,cell phone,boundary,,0.0128,absent,no,0,cell phone not landlines
+2349351,cell phone,boundary,,0.0128,absent,no,0,cell phone not landlines
+2416141,cell phone,boundary,,0.0125,absent,no,0,cell phone not landlines
+2391445,cell phone,boundary,,0.0124,absent,no,0,cell phone not landlines
+2412754,cell phone,boundary,,0.0123,absent,no,0,cell phone not landlines
+3228,cell phone,boundary,,0.0122,absent,no,0,cell phone not landlines
+2372245,cell phone,boundary,,0.0121,absent,no,0,cell phone not landlines
+2340623,cell phone,boundary,,0.0119,absent,no,0,cell phone not landlines
+2404527,cell phone,boundary,,0.0117,absent,no,0,cell phone not landlines
+2317732,cell phone,boundary,,0.0115,absent,no,0,cell phone not landlines
+2407008,cell phone,boundary,,0.0114,absent,no,0,cell phone not landlines
+2351745,cell phone,boundary,,0.0113,absent,no,0,cell phone not landlines
+2332854,cell phone,boundary,,0.0113,absent,no,0,cell phone not landlines
+2360054,cell phone,boundary,,0.0112,absent,no,0,cell phone not landlines
+2315680,cell phone,boundary,,0.011,absent,no,0,cell phone not landlines
+2370146,cell phone,boundary,,0.011,absent,no,0,cell phone not landlines
+2319786,cell phone,boundary,,0.011,absent,no,0,cell phone not landlines
+3831,cell phone,boundary,,0.0108,absent,no,0,cell phone not landlines
+2316449,cell phone,boundary,,0.0108,absent,no,0,cell phone not landlines
+2366570,cell phone,boundary,,0.0107,absent,no,0,cell phone not landlines
+2413,cell phone,boundary,,0.0107,absent,no,0,cell phone not landlines
+2318011,cell phone,boundary,,0.0107,absent,no,0,cell phone not landlines
+429,cell phone,boundary,,0.0105,absent,no,0,cell phone not landlines
+2402483,cell phone,boundary,,0.0105,absent,no,0,cell phone not landlines
+2400459,cell phone,boundary,,0.0104,absent,no,0,cell phone not landlines
+2346981,cell phone,boundary,,0.0103,absent,no,0,cell phone not landlines
+3593,cell phone,boundary,,0.0102,absent,no,0,cell phone not landlines
+2230,cell phone,boundary,,0.0102,absent,no,0,cell phone not landlines
+2347686,cell phone,boundary,,0.01,absent,no,0,cell phone not landlines
+2261,cell phone,boundary,,0.01,absent,no,0,cell phone not landlines
+2355752,cell phone,boundary,,0.0099,absent,no,0,cell phone not landlines
+2364933,cell phone,boundary,,0.0099,absent,no,0,cell phone not landlines
+2410755,cell phone,boundary,,0.0099,absent,no,0,cell phone not landlines
+2528,cell phone,boundary,,0.0097,absent,no,0,cell phone not landlines
+2365474,cell phone,boundary,,0.0097,absent,no,0,cell phone not landlines
+2407670,cell phone,boundary,,0.0096,absent,no,0,cell phone not landlines
+2330232,cell phone,boundary,,0.0096,absent,no,0,cell phone not landlines
+2383870,cell phone,boundary,,0.0096,absent,no,0,cell phone not landlines
+2343220,cell phone,boundary,,0.0095,absent,no,0,cell phone not landlines
+3851,cell phone,boundary,,0.0094,absent,no,0,cell phone not landlines
+2513,cell phone,boundary,,0.0094,absent,no,0,cell phone not landlines
+2350353,cell phone,boundary,,0.0093,absent,no,0,cell phone not landlines
+1592771,cell phone,boundary,,0.0093,absent,no,0,cell phone not landlines
+107979,cell phone,boundary,,0.0093,absent,no,0,cell phone not landlines
+2359135,cell phone,boundary,,0.0092,absent,no,0,cell phone not landlines
+2345965,cell phone,boundary,,0.0092,absent,no,0,cell phone not landlines
+2328620,cell phone,boundary,,0.0092,absent,no,0,cell phone not landlines
+2363784,cell phone,boundary,,0.0092,absent,no,0,cell phone not landlines
+2365421,cell phone,boundary,,0.0766,absent,yes,0,cell phone not landlines
+2358000,cell phone,boundary,,0.0706,absent,yes,0,cell phone not landlines
+2417271,cell phone,boundary,,0.0617,absent,yes,0,cell phone not landlines
+2335797,cell phone,boundary,,0.0522,absent,yes,0,cell phone not landlines
+2367470,cell phone,boundary,,0.0501,absent,yes,0,cell phone not landlines
+2398378,cell phone,boundary,,0.0365,absent,yes,0,cell phone not landlines
+2349157,cell phone,boundary,,0.036,absent,yes,0,cell phone not landlines
+2338822,cell phone,boundary,,0.0353,absent,yes,0,cell phone not landlines
+2377105,cell phone,boundary,,0.0332,absent,yes,0,cell phone not landlines
+2416821,cell phone,boundary,,0.032,absent,yes,0,cell phone not landlines
+2406371,cell phone,boundary,,0.0319,absent,yes,0,cell phone not landlines
+2411915,cell phone,boundary,,0.0314,absent,yes,0,cell phone not landlines
+2409385,cell phone,boundary,,0.0313,absent,yes,0,cell phone not landlines
+2380193,cell phone,boundary,,0.0312,absent,yes,0,cell phone not landlines
+2378930,cell phone,boundary,,0.031,absent,yes,0,cell phone not landlines
+2349865,cell phone,boundary,,0.0307,absent,yes,0,cell phone not landlines
+2330211,cell phone,boundary,,0.0299,absent,yes,0,cell phone not landlines
+2401954,cell phone,boundary,,0.0294,absent,yes,0,cell phone not landlines
+2413495,cell phone,boundary,,0.0282,absent,yes,0,cell phone not landlines
+2349902,cell phone,boundary,,0.0278,absent,yes,0,cell phone not landlines
+2391649,cell phone,boundary,,0.0277,absent,yes,0,cell phone not landlines
+2328391,cell phone,boundary,,0.0257,absent,yes,0,cell phone not landlines
+2410942,cell phone,boundary,,0.0255,absent,yes,0,cell phone not landlines
+2346019,cell phone,boundary,,0.0249,absent,yes,0,cell phone not landlines
+2367000,cell phone,boundary,,0.0246,absent,yes,0,cell phone not landlines
+2380273,cell phone,boundary,,0.0242,absent,yes,0,cell phone not landlines
+1159761,cell phone,boundary,,0.0239,absent,yes,0,cell phone not landlines
+2398070,cell phone,boundary,,0.0237,absent,yes,0,cell phone not landlines
+2405441,cell phone,boundary,,0.0232,absent,yes,0,cell phone not landlines
+2332239,cell phone,boundary,,0.023,absent,yes,0,cell phone not landlines
+2409067,cell phone,boundary,,0.0224,absent,yes,0,cell phone not landlines
+2387750,cell phone,boundary,,0.0218,absent,yes,0,cell phone not landlines
+2330963,cell phone,boundary,,0.0211,absent,yes,0,cell phone not landlines
+2359032,cell phone,boundary,,0.0207,absent,yes,0,cell phone not landlines
+2370407,cell phone,boundary,,0.0201,absent,yes,0,cell phone not landlines
+2321209,cell phone,boundary,,0.0198,absent,yes,0,cell phone not landlines
+2347342,cell phone,boundary,,0.0187,absent,yes,0,cell phone not landlines
+2328329,cell phone,boundary,,0.0186,absent,yes,0,cell phone not landlines
+2318306,cell phone,boundary,,0.0184,absent,yes,0,cell phone not landlines
+2366281,cell phone,boundary,,0.0183,absent,yes,0,cell phone not landlines
+2323581,cell phone,random,,-0.004,absent,no,0,cell phone not landlines
+2317040,cell phone,random,,-0.017,absent,no,0,cell phone not landlines
+3293,cell phone,random,,-0.0225,absent,no,0,cell phone not landlines
+2331007,cell phone,random,,-0.0321,absent,no,0,cell phone not landlines
+2371399,cell phone,random,,-0.0298,absent,no,0,cell phone not landlines
+2338326,cell phone,random,,-0.0409,absent,no,0,cell phone not landlines
+2397360,cell phone,random,,-0.0138,absent,no,0,cell phone not landlines
+2356826,cell phone,random,,-0.0163,absent,no,0,cell phone not landlines
+2349065,cell phone,random,,-0.0357,absent,no,0,cell phone not landlines
+2417232,cell phone,random,,-0.0234,absent,no,0,cell phone not landlines
+2326205,cell phone,random,,-0.016,absent,no,0,cell phone not landlines
+4139,cell phone,random,,-0.0359,absent,no,0,cell phone not landlines
+2368554,cell phone,random,,-0.0112,absent,no,0,cell phone not landlines
+2383840,cell phone,random,,-0.0112,absent,no,0,cell phone not landlines
+2417356,cell phone,random,,-0.003,absent,no,0,cell phone not landlines
+2395696,cell phone,random,,-0.0051,absent,no,0,cell phone not landlines
+2398852,cell phone,random,,-0.0017,absent,no,0,cell phone not landlines
+2394624,cell phone,random,,0.003,absent,no,0,cell phone not landlines
+2319460,cell phone,random,,-0.0201,absent,no,0,cell phone not landlines
+2321787,cell phone,random,,-0.0219,absent,no,0,cell phone not landlines
+2317427,cell phone,random,,-0.0306,absent,no,0,cell phone not landlines
+2434,cell phone,random,,-0.0182,absent,no,0,cell phone not landlines
+2346063,cell phone,random,,-0.0223,absent,no,0,cell phone not landlines
+2362115,cell phone,random,,0.0019,absent,no,0,cell phone not landlines
+2383117,cell phone,random,,-0.0248,absent,no,0,cell phone not landlines
+2382030,cell phone,random,,-0.0413,absent,no,0,cell phone not landlines
+2324289,cell phone,random,,-0.0222,absent,no,0,cell phone not landlines
+2321178,cell phone,random,,-0.0175,absent,no,0,cell phone not landlines
+2325780,cell phone,random,,-0.0318,absent,no,0,cell phone not landlines
+2355650,cell phone,random,,-0.0343,absent,no,0,cell phone not landlines
+2349791,cell phone,random,,-0.0185,absent,no,0,cell phone not landlines
+2342573,cell phone,random,,-0.037,absent,no,0,cell phone not landlines
+2389572,cell phone,random,,0.0014,absent,no,0,cell phone not landlines
+2385601,cell phone,random,,-0.0121,absent,no,0,cell phone not landlines
+2361774,cell phone,random,,-0.012,absent,no,0,cell phone not landlines
+2386661,cell phone,random,,-0.0102,absent,no,0,cell phone not landlines
+2375429,cell phone,random,,-0.0115,absent,no,0,cell phone not landlines
+2387836,cell phone,random,,-0.0251,absent,no,0,cell phone not landlines
+1159600,cell phone,random,,-0.0335,absent,no,0,cell phone not landlines
+2365315,cell phone,random,,-0.0153,absent,no,0,cell phone not landlines
+2337511,cell phone,random,,-0.0034,absent,no,0,cell phone not landlines
+2344069,cell phone,random,,-0.0097,absent,no,0,cell phone not landlines
+2344364,cell phone,random,,0.007,absent,no,0,cell phone not landlines
+2368086,cell phone,random,,-0.0223,absent,no,0,cell phone not landlines
+2410787,cell phone,random,,-0.0283,absent,no,0,cell phone not landlines
+2336599,cell phone,random,,-0.046,absent,no,0,cell phone not landlines
+2378828,cell phone,random,,-0.0084,absent,no,0,cell phone not landlines
+2352949,cell phone,random,,-0.0042,absent,no,0,cell phone not landlines
+2415279,cell phone,random,,-0.033,absent,no,0,cell phone not landlines
+2412456,cell phone,random,,-0.013,absent,no,0,cell phone not landlines
+2366066,cell phone,random,,-0.0185,absent,no,0,cell phone not landlines
+2403328,cell phone,random,,-0.0056,absent,no,0,cell phone not landlines
+2408003,cell phone,random,,-0.0102,absent,no,0,cell phone not landlines
+2416033,cell phone,random,,-0.0261,absent,no,0,cell phone not landlines
+2357702,cell phone,random,,-0.0249,absent,no,0,cell phone not landlines
+1485,cell phone,random,,0.0084,absent,no,0,cell phone not landlines
+2413475,cell phone,random,,-0.0366,absent,yes,0,cell phone not landlines
+2320178,cell phone,random,,-0.0182,absent,yes,0,cell phone not landlines
+2371089,cell phone,random,,-0.0155,absent,yes,0,cell phone not landlines
+2400122,cell phone,random,,-0.0217,absent,yes,0,cell phone not landlines
+2372793,cell phone,random,,-0.0327,absent,yes,0,cell phone not landlines
+2412475,cell phone,random,,-0.0376,absent,yes,0,cell phone not landlines
+2382287,cell phone,random,,-0.0317,absent,yes,0,cell phone not landlines
+2361758,cell phone,random,,-0.0319,absent,yes,0,cell phone not landlines
+2411598,cell phone,random,,-0.0218,absent,yes,0,cell phone not landlines
+2378899,cell phone,random,,-0.045,absent,yes,0,cell phone not landlines
+2381144,cell phone,random,,-0.0103,absent,yes,0,cell phone not landlines
+2362065,cell phone,random,,-0.0243,absent,yes,0,cell phone not landlines
+2354018,cell phone,random,,-0.0452,absent,yes,0,cell phone not landlines
+2338181,cell phone,random,,-0.0235,absent,yes,0,cell phone not landlines
+2392745,cell phone,positive_boxed,cell phone@small,0.0,present,no,1,cell phone not landlines
+2316765,cell phone,positive_boxed,cell phone@small,0.0,present,yes,1,cell phone not landlines
+2387374,cell phone,positive_boxed,cell phone@small,0.0,present,yes,1,cell phone not landlines
+2416560,cell phone,positive_boxed,cell phone@small,0.0,present,no,1,cell phone not landlines
+2370072,cell phone,positive_boxed,cell phone@small,0.0,present,yes,1,cell phone not landlines
+2378621,cell phone,positive_boxed,cell phone@small,0.0,present,no,1,cell phone not landlines
+2326750,cell phone,positive_boxed,cell phone@small,0.0,present,yes,1,cell phone not landlines
+2326771,cell phone,positive_boxed,cell phone@small,0.0,present,yes,1,cell phone not landlines
+2326447,cell phone,positive_boxed,cell phone@small,0.0,present,yes,1,cell phone not landlines
+2398157,cell phone,positive_boxed,cell phone@small,0.0,present,no,1,cell phone not landlines
+2335001,cell phone,positive_boxed,cell phone@medium,0.0,present,no,1,cell phone not landlines
+2399671,cell phone,positive_boxed,cell phone@medium,0.0,present,yes,1,cell phone not landlines
+2380065,cell phone,positive_boxed,cell phone@medium,0.0,present,yes,1,cell phone not landlines
+2359383,cell phone,positive_boxed,cell phone@medium,0.0,present,yes,1,cell phone not landlines
+2391847,cell phone,positive_boxed,cell phone@medium,0.0,present,no,1,cell phone not landlines
+2364572,cell phone,positive_boxed,cell phone@medium,0.0,present,no,1,cell phone not landlines
+2318669,cell phone,positive_boxed,cell phone@medium,0.0,present,no,1,cell phone not landlines
+2405860,cell phone,positive_boxed,cell phone@medium,0.0,present,no,1,cell phone not landlines
+2400661,cell phone,positive_boxed,cell phone@medium,0.0,present,yes,1,cell phone not landlines
+2387021,cell phone,positive_boxed,cell phone@medium,0.0,present,no,1,cell phone not landlines
+2376527,cell phone,positive_boxed,cell phone@large,0.0,present,yes,1,cell phone not landlines
+2317680,cell phone,positive_boxed,cell phone@large,0.0,present,yes,1,cell phone not landlines
+2386332,cell phone,positive_boxed,cell phone@large,0.0,present,no,1,cell phone not landlines
+2405611,cell phone,positive_boxed,cell phone@large,0.0,present,no,1,cell phone not landlines
+2366425,cell phone,positive_boxed,cell phone@large,0.0,present,no,1,cell phone not landlines
+2413892,cell phone,positive_boxed,cell phone@large,0.0,present,yes,1,cell phone not landlines
+2402521,cell phone,positive_boxed,cell phone@large,0.0,present,yes,1,cell phone not landlines
+2381660,cell phone,positive_boxed,cell phone@large,0.0,present,no,1,cell phone not landlines
+2346644,cell phone,positive_boxed,cell phone@large,0.0,present,no,1,cell phone not landlines
+2328733,cell phone,positive_boxed,cell phone@large,0.0,present,no,1,cell phone not landlines

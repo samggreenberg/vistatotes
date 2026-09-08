@@ -1,0 +1,201 @@
+image_id,class,stratum,cell,text_score,reference,exhaustive,n_boxes,detector,driver
+2387068,Chair,boundary,,0.1055,,no,0,Chair,kite
+2393864,Chair,boundary,,0.1016,absent,yes,0,Chair,fire hydrant
+2392337,Chair,boundary,,0.101,absent,yes,0,Chair,sink
+2315792,Chair,boundary,,0.0966,absent,yes,0,Chair,bench
+2360117,Chair,boundary,,0.0912,absent,yes,0,Chair,kite
+2384924,Chair,boundary,,0.0906,absent,yes,0,Chair,truck
+2334934,Chair,boundary,,0.0893,absent,yes,0,Chair,kite
+2322248,Chair,boundary,,0.0874,absent,yes,0,Chair,kite
+2391377,Chair,boundary,,0.0874,,no,0,Chair,kite
+2326762,Chair,boundary,,0.085,,no,0,Chair,sink
+498270,Chair,boundary,,0.0849,,no,0,Chair,boat
+2400821,Chair,boundary,,0.0844,absent,yes,0,Chair,sink
+2385504,Chair,boundary,,0.0834,absent,yes,0,Chair,kite
+2367901,Chair,boundary,,0.0832,,no,0,Chair,stop sign
+2339643,Chair,boundary,,0.0827,absent,yes,0,Chair,kite
+2325700,Chair,boundary,,0.0819,absent,yes,0,Chair,kite
+3561,Chair,boundary,,0.0818,,no,0,Chair,chair
+2404693,Chair,boundary,,0.0817,,no,0,Chair,kite
+2395745,Chair,boundary,,0.0806,,no,0,Chair,kite
+2394130,Chair,boundary,,0.0803,absent,yes,0,Chair,kite
+2322535,Chair,boundary,,0.0799,absent,yes,0,Chair,kite
+2352709,Chair,boundary,,0.0792,,no,0,Chair,kite
+2411912,Chair,boundary,,0.0786,absent,yes,0,Chair,stop sign
+2346019,Chair,boundary,,0.0784,absent,yes,0,Chair,stop sign
+2383707,Chair,boundary,,0.077,,no,0,Chair,kite
+2365421,Chair,boundary,,0.0766,absent,yes,0,Chair,cell phone
+2325332,Chair,boundary,,0.0766,absent,yes,0,Chair,truck
+2331220,Chair,boundary,,0.0759,,no,0,Chair,kite
+2361029,Chair,boundary,,0.0758,,no,0,Chair,cell phone
+2376806,Chair,boundary,,0.0755,absent,yes,0,Chair,stop sign
+2402410,Chair,boundary,,0.0753,,no,0,Chair,stop sign
+2379075,Chair,boundary,,0.0751,,no,0,Chair,dog
+2374487,Chair,boundary,,0.0749,absent,yes,0,Chair,stop sign
+2350610,Chair,boundary,,0.0745,absent,yes,0,Chair,kite
+2392128,Chair,boundary,,0.0745,absent,yes,0,Chair,stop sign
+2333001,Chair,boundary,,0.0739,absent,yes,0,Chair,kite
+1159420,Chair,boundary,,0.0735,absent,yes,0,Chair,truck
+2392264,Chair,boundary,,0.0734,,no,0,Chair,stop sign
+2358316,Chair,boundary,,0.0732,absent,yes,0,Chair,sink
+2393671,Chair,boundary,,0.073,absent,yes,0,Chair,dog
+2323658,Chair,boundary,,0.0729,,no,0,Chair,dog
+2407548,Chair,boundary,,0.0729,,no,0,Chair,bus
+2407502,Chair,boundary,,0.0728,absent,yes,0,Chair,spoon
+2367117,Chair,boundary,,0.0723,,no,0,Chair,kite
+2327398,Chair,boundary,,0.0721,absent,yes,0,Chair,kite
+2350334,Chair,boundary,,0.0718,absent,yes,0,Chair,knife
+2369018,Chair,boundary,,0.0714,,no,0,Chair,kite
+2399091,Chair,boundary,,0.0711,,no,0,Chair,sink
+2358000,Chair,boundary,,0.0706,absent,yes,0,Chair,cell phone
+2336745,Chair,boundary,,0.0704,,no,0,Chair,bus
+2413072,Chair,boundary,,0.0701,,no,0,Chair,stop sign
+2391765,Chair,boundary,,0.0697,absent,yes,0,Chair,chair
+2330568,Chair,boundary,,0.0697,absent,yes,0,Chair,bus
+2410628,Chair,boundary,,0.0695,,no,0,Chair,dog
+2348108,Chair,boundary,,0.0692,,no,0,Chair,stop sign
+2354790,Chair,boundary,,0.0692,absent,yes,0,Chair,bus
+2394898,Chair,boundary,,0.0685,,no,0,Chair,dog
+2416246,Chair,boundary,,0.0685,absent,yes,0,Chair,stop sign
+2316125,Chair,boundary,,0.0684,,no,0,Chair,kite
+2327098,Chair,boundary,,0.0683,,no,0,Chair,sink
+2362065,Chair,boundary,,0.0679,absent,yes,0,Chair,sink
+2336569,Chair,boundary,,0.0676,absent,yes,0,Chair,stop sign
+2413495,Chair,boundary,,0.0673,absent,yes,0,Chair,stop sign
+2338255,Chair,boundary,,0.0673,absent,yes,0,Chair,bench
+2362762,Chair,boundary,,0.067,absent,yes,0,Chair,vase
+2322849,Chair,boundary,,0.0669,,no,0,Chair,backpack
+2392420,Chair,boundary,,0.0667,absent,yes,0,Chair,vase
+2329296,Chair,boundary,,0.0665,absent,yes,0,Chair,stop sign
+2416700,Chair,boundary,,0.0664,absent,yes,0,Chair,cell phone
+2417852,Chair,boundary,,0.0664,,no,0,Chair,boat
+4185,Chair,boundary,,0.0662,,no,0,Chair,stop sign
+2325379,Chair,boundary,,0.0661,,no,0,Chair,kite
+2368073,Chair,boundary,,0.0661,,no,0,Chair,stop sign
+2355890,Chair,boundary,,0.066,absent,yes,0,Chair,stop sign
+1592013,Chair,boundary,,0.0657,absent,yes,0,Chair,bench
+2417678,Chair,boundary,,0.0657,,no,0,Chair,kite
+2360975,Chair,boundary,,0.0656,absent,yes,0,Chair,kite
+2407927,Chair,boundary,,0.0656,,no,0,Chair,bowl
+2355650,Chair,boundary,,0.0656,,no,0,Chair,stop sign
+2415598,Chair,boundary,,0.0652,,no,0,Chair,sink
+2393732,Chair,boundary,,0.0648,,no,0,Chair,stop sign
+2398807,Chair,boundary,,0.0647,,no,0,Chair,stop sign
+2360,Chair,boundary,,0.0646,,no,0,Chair,stop sign
+2400101,Chair,boundary,,0.0644,,no,0,Chair,kite
+2380685,Chair,boundary,,0.0641,,no,0,Chair,sink
+1986,Chair,boundary,,0.0639,,no,0,Chair,cell phone
+2353986,Chair,boundary,,0.0638,,no,0,Chair,kite
+2388314,Chair,boundary,,0.0637,absent,yes,0,Chair,bench
+2383506,Chair,boundary,,0.0634,absent,yes,0,Chair,sink
+2379050,Chair,boundary,,0.0632,absent,yes,0,Chair,dog
+2323842,Chair,boundary,,0.0627,,no,0,Chair,kite
+2372457,Chair,boundary,,0.0624,,no,0,Chair,spoon
+2363995,Chair,boundary,,0.062,,no,0,Chair,sink
+2346929,Chair,boundary,,0.0619,,no,0,Chair,bus
+2343839,Chair,boundary,,0.0618,absent,yes,0,Chair,stop sign
+2417271,Chair,boundary,,0.0617,absent,yes,0,Chair,cell phone
+2399554,Chair,boundary,,0.0616,,no,0,Chair,sink
+2393952,Chair,boundary,,0.0616,,no,0,Chair,sink
+2398287,Chair,boundary,,0.0614,absent,yes,0,Chair,bowl
+2380089,Chair,boundary,,0.0613,absent,yes,0,Chair,kite
+2379377,Chair,random,,0.006,,no,0,Chair,bird
+2389518,Chair,random,,0.0262,,no,0,Chair,boat
+2387690,Chair,random,,0.0414,absent,yes,0,Chair,bus
+2341258,Chair,random,,0.0075,,no,0,Chair,bench
+2343133,Chair,random,,0.0122,,no,0,Chair,bench
+2410471,Chair,random,,0.0238,,no,0,Chair,bird
+2338452,Chair,random,,0.0149,absent,yes,0,Chair,bird
+2399496,Chair,random,,0.0389,,no,0,Chair,kite
+655,Chair,random,,0.0285,,no,0,Chair,boat
+2406950,Chair,random,,0.0483,,no,0,Chair,bowl
+2416176,Chair,random,,0.0246,,no,0,Chair,bus
+2379431,Chair,random,,0.0299,absent,yes,0,Chair,bus
+2386624,Chair,random,,0.0363,absent,yes,0,Chair,dog
+2376171,Chair,random,,0.0455,,no,0,Chair,bicycle
+2342757,Chair,random,,0.0091,,no,0,Chair,car
+2370802,Chair,random,,0.0289,absent,yes,0,Chair,stop sign
+2379036,Chair,random,,0.0487,,no,0,Chair,kite
+2372245,Chair,random,,0.0584,,no,0,Chair,stop sign
+1556,Chair,random,,0.0293,,no,0,Chair,car
+2328476,Chair,random,,0.0054,,no,0,Chair,bench
+2379254,Chair,random,,0.0072,absent,yes,0,Chair,dog
+2334823,Chair,random,,0.0328,absent,yes,0,Chair,kite
+2413407,Chair,random,,0.0297,,no,0,Chair,spoon
+1490,Chair,random,,0.0228,,no,0,Chair,bench
+2368814,Chair,random,,0.0076,,no,0,Chair,bird
+2408671,Chair,random,,0.048,absent,yes,0,Chair,bowl
+2381000,Chair,random,,0.0398,absent,yes,0,Chair,cup
+2410237,Chair,random,,0.0191,absent,yes,0,Chair,fork
+2395379,Chair,random,,0.0472,,no,0,Chair,sink
+2375949,Chair,random,,0.0249,,no,0,Chair,cup
+2415129,Chair,random,,0.0367,absent,yes,0,Chair,kite
+2399434,Chair,random,,0.0178,,no,0,Chair,bowl
+2382828,Chair,random,,0.0059,absent,yes,0,Chair,dog
+2364216,Chair,random,,0.0505,absent,yes,0,Chair,bus
+2416508,Chair,random,,0.0089,,no,0,Chair,bird
+2323085,Chair,random,,0.0491,absent,yes,0,Chair,kite
+2334729,Chair,random,,0.0472,,no,0,Chair,bus
+2411277,Chair,random,,0.0112,,no,0,Chair,bowl
+2392094,Chair,random,,0.0195,absent,yes,0,Chair,truck
+2386347,Chair,random,,0.039,absent,yes,0,Chair,bowl
+2340056,Chair,random,,0.0461,absent,yes,0,Chair,knife
+2392807,Chair,random,,0.0315,absent,yes,0,Chair,bus
+2382264,Chair,random,,0.0122,,no,0,Chair,dog
+2398852,Chair,random,,0.0303,,no,0,Chair,knife
+2336335,Chair,random,,0.0054,,no,0,Chair,car
+2357898,Chair,random,,0.0097,,no,0,Chair,bench
+2384185,Chair,random,,0.0402,,no,0,Chair,backpack
+2352095,Chair,random,,0.0262,absent,yes,0,Chair,bus
+2385477,Chair,random,,0.0176,,no,0,Chair,kite
+2332648,Chair,random,,0.0099,,no,0,Chair,sink
+2368984,Chair,random,,0.0302,,no,0,Chair,bus
+2370144,Chair,random,,0.0122,,no,0,Chair,bowl
+2358419,Chair,random,,0.0443,,no,0,Chair,bus
+3801,Chair,random,,0.0487,,no,0,Chair,bench
+2315796,Chair,random,,0.0284,,no,0,Chair,car
+2370271,Chair,random,,0.0186,absent,yes,0,Chair,bird
+2393325,Chair,random,,0.01,absent,yes,0,Chair,cup
+2388486,Chair,random,,0.0236,present,yes,0,Chair,bowl
+1592557,Chair,random,,0.0233,,no,0,Chair,fork
+497980,Chair,random,,0.0123,,no,0,Chair,bench
+2403285,Chair,random,,0.019,absent,yes,0,Chair,kite
+2411445,Chair,random,,0.0491,,no,0,Chair,bicycle
+2402404,Chair,random,,0.032,,no,0,Chair,umbrella
+2341076,Chair,random,,0.0401,absent,yes,0,Chair,bowl
+2392734,Chair,random,,0.0268,absent,yes,0,Chair,kite
+2320550,Chair,random,,0.0117,absent,yes,0,Chair,bench
+2318153,Chair,random,,0.0302,absent,yes,0,Chair,fork
+2358239,Chair,random,,0.0114,absent,yes,0,Chair,bird
+2373243,Chair,random,,0.013,,no,0,Chair,bird
+2392277,Chair,random,,0.0255,,no,0,Chair,bowl
+4214,Chair,random,,0.0134,,no,0,Chair,fork
+2352911,Chair,random,,0.0331,,no,0,Chair,bowl
+2329538,Chair,random,,0.0147,,no,0,Chair,bench
+2409231,Chair,random,,0.017,,no,0,Chair,bowl
+2321487,Chair,random,,0.0043,absent,yes,0,Chair,bird
+2386652,Chair,random,,0.014,absent,yes,0,Chair,bird
+2316043,Chair,random,,0.0192,absent,yes,0,Chair,car
+2340667,Chair,random,,0.02,,no,0,Chair,bicycle
+2353402,Chair,random,,0.0515,,no,0,Chair,bus
+1593184,Chair,random,,0.0417,absent,yes,0,Chair,dog
+2392480,Chair,random,,0.0531,,no,0,Chair,bowl
+2361524,Chair,random,,0.0098,absent,yes,0,Chair,boat
+2334397,Chair,random,,0.007,,no,0,Chair,bowl
+2320159,Chair,random,,0.0198,present,yes,0,Chair,spoon
+2359994,Chair,random,,0.02,,no,0,Chair,bus
+2366442,Chair,random,,0.0404,absent,yes,0,Chair,bowl
+2380376,Chair,random,,0.0097,,no,0,Chair,car
+2416293,Chair,random,,0.0191,absent,yes,0,Chair,kite
+2335019,Chair,random,,0.0156,,no,0,Chair,bench
+2374137,Chair,random,,0.0087,,no,0,Chair,dog
+2316533,Chair,random,,0.025,absent,yes,0,Chair,kite
+2372204,Chair,random,,0.0081,,no,0,Chair,bowl
+2364952,Chair,random,,0.0186,absent,yes,0,Chair,bird
+2327535,Chair,random,,0.0311,,no,0,Chair,cup
+1159799,Chair,random,,0.0239,,no,0,Chair,bowl
+61589,Chair,random,,0.0178,,no,0,Chair,kite
+2396098,Chair,random,,0.0475,absent,yes,0,Chair,bench
+2363160,Chair,random,,0.0104,absent,yes,0,Chair,bird
+2357470,Chair,random,,0.0348,absent,yes,0,Chair,dog
+2410026,Chair,random,,0.0285,,no,0,Chair,kite

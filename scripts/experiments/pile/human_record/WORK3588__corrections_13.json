@@ -68,45 +68,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 596,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 615,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.6265311804008908,
-        0.5757238307349666,
-        0.6808184855233853,
-        0.6503340757238307
-      ]
-    ],
-    "class": "bird",
-    "image_id": 750,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 775,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.4894295302013423,
@@ -227,14 +188,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 1630,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.5941275167785235,
@@ -275,14 +228,6 @@
     ],
     "class": "vase",
     "image_id": 1821,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 1869,
     "present": true,
     "source": "human_review"
   },
@@ -330,14 +275,6 @@
     "image_id": 1990,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2175,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -415,14 +352,6 @@
     "source": "human_review"
   },
   {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 2309,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
     "boxes": [],
     "class": "bus",
     "image_id": 2321,
@@ -468,14 +397,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2370,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.32432885906040265,
@@ -493,21 +414,6 @@
     "box_space": "normalised",
     "boxes": [
       [
-        0.20037661104233107,
-        0.5544833889993275,
-        0.2621039722314495,
-        0.658945077165528
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2409,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
         0.387751677852349,
         0.3838926174496644,
         0.6192953020134229,
@@ -516,14 +422,6 @@
     ],
     "class": "truck",
     "image_id": 2429,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "bicycle",
-    "image_id": 2430,
     "present": true,
     "source": "human_review"
   },
@@ -559,14 +457,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 2504,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.725,
@@ -599,21 +489,6 @@
     "box_space": "normalised",
     "boxes": [
       [
-        0.14110738255033553,
-        0.7919463087248322,
-        0.2931208053691275,
-        0.9234899328859061
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2833,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
         0.9563087248322146,
         0.6668456375838926,
         1.0,
@@ -622,21 +497,6 @@
     ],
     "class": "car",
     "image_id": 2938,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.5697383073496659,
-        0.6102449888641426,
-        0.7050389755011136,
-        0.6826280623608018
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 3081,
     "present": true,
     "source": "human_review"
   },
@@ -732,14 +592,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 3390,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.0,
@@ -767,14 +619,6 @@
     "image_id": 3420,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 3424,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -863,21 +707,6 @@
     ],
     "class": "spoon",
     "image_id": 3603,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.3678651426556953,
-        0.4780379857435332,
-        0.43875453251498664,
-        0.5119476741998478
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 3819,
     "present": true,
     "source": "human_review"
   },
@@ -1004,21 +833,6 @@
     "box_space": "normalised",
     "boxes": [
       [
-        0.47192349036657566,
-        0.016557604600725105,
-        0.596116925189936,
-        0.18240508674897193
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 4575,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
         0.5481333892617449,
         0.3275167785234899,
         0.6417260906040269,
@@ -1115,21 +929,6 @@
     "box_space": "normalised",
     "boxes": [
       [
-        0.32592392425835487,
-        0.8496644295302014,
-        0.5674167460964753,
-        0.9959731543624161
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 61520,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
         0.09681208053691272,
         0.13288590604026845,
         0.7793624161073825,
@@ -1155,29 +954,6 @@
     "image_id": 150327,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.8009903261325504,
-        0.887248322147651,
-        0.9338329750419464,
-        1.0
-      ]
-    ],
-    "class": "bird",
-    "image_id": 150391,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 285639,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -1255,21 +1031,6 @@
     "source": "human_review"
   },
   {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.4229046979865772,
-        0.4147651006711409,
-        0.6983087248322147,
-        0.7302013422818792
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 498037,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
     "boxes": [],
     "class": "umbrella",
     "image_id": 498085,
@@ -1308,14 +1069,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 498379,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.22406274503442863,
@@ -1328,21 +1081,6 @@
     "image_id": 713057,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.18440973678691275,
-        0.6281879194630873,
-        0.49328531354865773,
-        1.0
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 713222,
-    "present": true,
-    "source": "human_rebox"
   },
   {
     "box_space": "normalised",
@@ -1365,29 +1103,6 @@
     "image_id": 713503,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.03010324592845213,
-        0.005567928730512249,
-        0.6610757194807907,
-        0.2817371937639198
-      ]
-    ],
-    "class": "book",
-    "image_id": 713617,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 713645,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -1436,29 +1151,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 713701,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.9229329722279738,
-        0.0,
-        1.0,
-        0.12132132981036989
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 713717,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.24439426908557046,
@@ -1471,14 +1163,6 @@
     "image_id": 713745,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 713776,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "boxes": [],
@@ -1501,30 +1185,6 @@
     "image_id": 713885,
     "present": true,
     "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 713886,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 713918,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 713944,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "boxes": [],
@@ -1609,14 +1269,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 1159712,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.8025167785234899,
@@ -1643,21 +1295,6 @@
     "image_id": 1159859,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.9074195666447801,
-        0.4039489728918488,
-        0.9468154957321077,
-        0.457558848487096
-      ]
-    ],
-    "class": "bus",
-    "image_id": 1159868,
-    "present": true,
-    "source": "human_rebox"
   },
   {
     "box_space": "normalised",
@@ -1750,71 +1387,11 @@
     "source": "human_review"
   },
   {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.43708053691275167,
-        0.7557046979865771,
-        0.5800335570469799,
-        0.8791946308724832
-      ]
-    ],
-    "class": "bird",
-    "image_id": 1591909,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
     "boxes": [],
     "class": "bus",
     "image_id": 1591950,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.3680415367172484,
-        0.4128158884103102,
-        0.43349062608989775,
-        0.5502150081516991
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 1592005,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.32348993288590605,
-        0.4,
-        0.4214765100671141,
-        0.5181208053691275
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 1592062,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.6749835850295469,
-        0.645554248771583,
-        0.7327642810242941,
-        0.8036690164726934
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 1592213,
-    "present": true,
-    "source": "human_rebox"
   },
   {
     "box_space": "normalised",
@@ -1830,14 +1407,6 @@
     "image_id": 1592248,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 1592412,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -1901,22 +1470,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 1592623,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 1592665,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.6905279991610739,
@@ -1929,14 +1482,6 @@
     "image_id": 1592749,
     "present": true,
     "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 1592922,
-    "present": true,
-    "source": "human_review"
   },
   {
     "box_space": "normalised",
@@ -2067,14 +1612,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2315518,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.3794476614699332,
@@ -2104,57 +1641,11 @@
     "source": "human_review"
   },
   {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.321993288590604,
-        0.5114093959731544,
-        0.3355234899328859,
-        0.553020134228188
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2315657,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
     "boxes": [],
     "class": "knife",
     "image_id": 2315892,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.37768456375838927,
-        0.44563758389261743,
-        0.49144295302013424,
-        0.7476510067114094
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2316277,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2316453,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2316675,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -2177,21 +1668,6 @@
     "image_id": 2316807,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.09727114093959727,
-        0.29261744966442954,
-        0.9134563758389262,
-        0.7704697986577181
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2316907,
-    "present": true,
-    "source": "human_rebox"
   },
   {
     "boxes": [],
@@ -2232,14 +1708,6 @@
   {
     "box_space": "normalised",
     "boxes": [],
-    "class": "stop sign",
-    "image_id": 2317403,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
     "class": "car",
     "image_id": 2317509,
     "present": true,
@@ -2276,14 +1744,6 @@
     "source": "human_review"
   },
   {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2318093,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
     "boxes": [],
     "class": "stop sign",
     "image_id": 2318201,
@@ -2296,14 +1756,6 @@
     "image_id": 2318224,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2318316,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "boxes": [],
@@ -2328,57 +1780,11 @@
     "source": "human_review"
   },
   {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.16151677852348997,
-        0.43355704697986575,
-        0.20724563758389264,
-        0.5248322147651007
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2318811,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
     "boxes": [],
     "class": "knife",
     "image_id": 2318894,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2319030,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.440722581682273,
-        0.17583892617449665,
-        0.4929670859623036,
-        0.22550335570469798
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2319032,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2319847,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -2405,14 +1811,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2320221,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.05167785234899329,
@@ -2425,22 +1823,6 @@
     "image_id": 2320267,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2320348,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 2320452,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "boxes": [],
@@ -2510,14 +1892,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 2321730,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.2401971193347356,
@@ -2530,29 +1904,6 @@
     "image_id": 2321827,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.618793288590604,
-        0.28456375838926173,
-        1.0,
-        0.5812080536912752
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2322102,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2322164,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "boxes": [],
@@ -2580,37 +1931,6 @@
     "box_space": "normalised",
     "boxes": [
       [
-        0.3884146738776308,
-        0.6778523489932886,
-        0.5219912686518537,
-        0.9852348993288591
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2322942,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2323092,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 2323147,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
         0.19485458612975393,
         0.19463087248322147,
         0.6422818791946309,
@@ -2626,21 +1946,6 @@
     "box_space": "normalised",
     "boxes": [
       [
-        0.11027919463087246,
-        0.31543624161073824,
-        0.12933422818791945,
-        0.3704697986577181
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2323476,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
         0.0,
         0.48997772828507796,
         0.056566154995132255,
@@ -2651,14 +1956,6 @@
     "image_id": 2323925,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2324065,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -2694,21 +1991,6 @@
     "box_space": "normalised",
     "boxes": [
       [
-        0.28142684563758386,
-        0.2536912751677852,
-        1.0,
-        1.0
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2324437,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
         0.3057046979865772,
         0.48322147651006714,
         0.6751677852348993,
@@ -2719,14 +2001,6 @@
     "image_id": 2324495,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 2324684,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "boxes": [],
@@ -2754,37 +2028,6 @@
     "box_space": "normalised",
     "boxes": [
       [
-        0.6343959731543625,
-        0.5355704697986577,
-        0.7219798657718121,
-        0.7610738255033557
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2325292,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2325349,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2325470,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
         0.0,
         0.0,
         0.9978187919463087,
@@ -2795,14 +2038,6 @@
     "image_id": 2325472,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 2325749,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -2818,37 +2053,6 @@
     "image_id": 2326091,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2326111,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.2538590604026845,
-        0.45503355704697984,
-        0.6706375838926175,
-        0.8832214765100671
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2326519,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2326542,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -2897,50 +2101,11 @@
     "source": "human_review"
   },
   {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2327572,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.0,
-        0.40939597315436244,
-        0.22063758389261742,
-        0.836241610738255
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2327806,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2327968,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
     "boxes": [],
     "class": "clock",
     "image_id": 2328001,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2328272,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -2958,14 +2123,6 @@
     "source": "human_review"
   },
   {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2328550,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
     "boxes": [],
     "class": "dog",
     "image_id": 2328716,
@@ -2978,21 +2135,6 @@
     "image_id": 2328716,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.0,
-        0.0,
-        1.0,
-        0.1091314031180401
-      ]
-    ],
-    "class": "umbrella",
-    "image_id": 2328892,
-    "present": true,
-    "source": "human_rebox"
   },
   {
     "boxes": [],
@@ -3016,29 +2158,6 @@
     "source": "claude_triage"
   },
   {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.3403191610318559,
-        0.12806236080178174,
-        0.8536387166676699,
-        0.8652561247216035
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2330109,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2330329,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
     "boxes": [],
     "class": "book",
     "image_id": 2330512,
@@ -3057,29 +2176,6 @@
     ],
     "class": "fire hydrant",
     "image_id": 2330522,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2330761,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.6731748329621381,
-        0.765033407572383,
-        0.8341124721603563,
-        0.8986636971046771
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2330917,
     "present": true,
     "source": "human_review"
   },
@@ -3122,21 +2218,6 @@
     "source": "claude_triage"
   },
   {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.3920780369233232,
-        0.7472687138050796,
-        0.550272620199467,
-        0.9743468243335983
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2331543,
-    "present": true,
-    "source": "human_review"
-  },
-  {
     "boxes": [],
     "class": "dog",
     "image_id": 2331560,
@@ -3160,14 +2241,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2331975,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.710739420935412,
@@ -3183,38 +2256,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2332254,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2332254,
-    "note": "vintage school-patrol STOP paddle, not octagonal sign; COCO error",
-    "present": false,
-    "source": "human_reject+adjudicated"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 2332287,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2332290,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.06019597315436246,
@@ -3227,21 +2268,6 @@
     "image_id": 2332432,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.00922818791946305,
-        0.5355704697986577,
-        0.03842281879194628,
-        0.574496644295302
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2332474,
-    "present": true,
-    "source": "human_rebox"
   },
   {
     "boxes": [],
@@ -3279,30 +2305,6 @@
     "image_id": 2332766,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2332843,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 2333179,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2333197,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -3388,14 +2390,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2334452,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.20827740492170022,
@@ -3411,14 +2405,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2334591,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.765268456375839,
@@ -3431,30 +2417,6 @@
     "image_id": 2334641,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2334751,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2334776,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2334962,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -3488,29 +2450,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 2335315,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.0,
-        0.35523385300668153,
-        0.6865256124721604,
-        0.9688195991091314
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2335335,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.3368523489932886,
@@ -3526,14 +2465,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2335626,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.18892617449664428,
@@ -3544,21 +2475,6 @@
     ],
     "class": "cup",
     "image_id": 2335733,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.22455679579776758,
-        0.010471699656278657,
-        0.5705843729481287,
-        0.8983989270100453
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2335749,
     "present": true,
     "source": "human_review"
   },
@@ -3581,61 +2497,6 @@
     "box_space": "normalised",
     "boxes": [
       [
-        0.025883221476510045,
-        0.6456375838926175,
-        0.21899999999999997,
-        0.9476510067114094
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2336197,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2336558,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2336693,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 2336890,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2336960,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2336963,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
         0.26378897550111363,
         0.2962138084632517,
         0.7296798440979955,
@@ -3646,22 +2507,6 @@
     "image_id": 2337087,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2337198,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2337403,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -3679,49 +2524,11 @@
     "source": "human_review"
   },
   {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.333103355704698,
-        0.738255033557047,
-        0.5337208053691275,
-        1.0
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2337703,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
     "boxes": [],
     "class": "umbrella",
     "image_id": 2337804,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2337808,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.14554496644295298,
-        0.6053691275167785,
-        0.39227785234899326,
-        1.0
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2337816,
-    "present": true,
-    "source": "human_rebox"
   },
   {
     "box_space": "normalised",
@@ -3744,14 +2551,6 @@
     "image_id": 2337963,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 2338527,
-    "note": "box on hedge, no umbrella; COCO error",
-    "present": false,
-    "source": "human_reject+adjudicated"
   },
   {
     "box_space": "normalised",
@@ -3797,21 +2596,6 @@
     "image_id": 2339146,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.0,
-        0.17852348993288591,
-        0.5514187919463087,
-        1.0
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2339253,
-    "present": true,
-    "source": "human_rebox"
   },
   {
     "box_space": "normalised",
@@ -3875,14 +2659,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2339697,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.5256711409395973,
@@ -3902,29 +2678,6 @@
     "image_id": 2340101,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2340216,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.6211315436241611,
-        0.5409395973154363,
-        0.8213785234899329,
-        0.7557046979865771
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2340247,
-    "present": true,
-    "source": "human_rebox"
   },
   {
     "boxes": [],
@@ -3972,14 +2725,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2341161,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.2056567593480345,
@@ -3994,34 +2739,11 @@
     "source": "human_review"
   },
   {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 2341560,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
     "boxes": [],
     "class": "umbrella",
     "image_id": 2341653,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.609510067114094,
-        0.3624161073825503,
-        0.721255033557047,
-        0.4375838926174497
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2341783,
-    "present": true,
-    "source": "human_rebox"
   },
   {
     "boxes": [],
@@ -4036,76 +2758,6 @@
     "image_id": 2341961,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 2342008,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2342192,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2342219,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.5530278396436525,
-        0.43875278396436523,
-        0.6672416481069042,
-        0.6080178173719376
-      ]
-    ],
-    "class": "dog",
-    "image_id": 2342285,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2342293,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2342543,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.8880872483221477,
-        0.3932885906040268,
-        0.9384228187919463,
-        0.4791946308724832
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2342547,
-    "present": true,
-    "source": "human_rebox"
   },
   {
     "box_space": "normalised",
@@ -4128,60 +2780,6 @@
     "image_id": 2343021,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.5735634963822884,
-        0.2442953020134228,
-        0.6058105084950723,
-        0.29261744966442954
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2343026,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2343166,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.7171879194630872,
-        0.5785234899328859,
-        0.7495637583892617,
-        0.6080536912751678
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2343325,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 2343537,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2343699,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -4229,14 +2827,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2344297,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.5706681514476615,
@@ -4262,29 +2852,6 @@
     ],
     "class": "bowl",
     "image_id": 2344503,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2344508,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.0,
-        0.38523489932885907,
-        0.3268312816279654,
-        0.723489932885906
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2344692,
     "present": true,
     "source": "human_review"
   },
@@ -4344,21 +2911,6 @@
     "box_space": "normalised",
     "boxes": [
       [
-        0.8736523489932886,
-        0.636241610738255,
-        0.9287449664429531,
-        0.7315436241610739
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2346175,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
         0.44317037017566746,
         0.3823407209834311,
         0.5356462746563114,
@@ -4382,22 +2934,6 @@
     ],
     "class": "truck",
     "image_id": 2346500,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "boxes": [],
-    "class": "backpack",
-    "image_id": 2346517,
-    "note": "single-strap messenger bag; handbag under COCO taxonomy",
-    "present": false,
-    "source": "human_reject+adjudicated"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2346598,
     "present": true,
     "source": "human_review"
   },
@@ -4435,60 +2971,6 @@
     "box_space": "normalised",
     "boxes": [
       [
-        0.2039433166513522,
-        0.7619433110727516,
-        0.2194696734343414,
-        0.846037064510734
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2346923,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2347574,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2347670,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2347904,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.11132695953415203,
-        0.5590530411403036,
-        0.19695717994191564,
-        0.7041038128163475
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2348149,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
         0.5456615732620362,
         0.30684563758389266,
         0.6268975464163986,
@@ -4499,14 +2981,6 @@
     "image_id": 2348196,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2348707,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -4555,14 +3029,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2348850,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.19055821927962607,
@@ -4607,14 +3073,6 @@
     "source": "human_review"
   },
   {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2349237,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
     "boxes": [],
     "class": "stop sign",
     "image_id": 2349493,
@@ -4640,75 +3098,6 @@
     "box_space": "normalised",
     "boxes": [
       [
-        0.0,
-        0.7463087248322148,
-        0.3055637583892617,
-        1.0
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2349789,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2350170,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2350329,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2350501,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.4002697986577181,
-        0.4993288590604027,
-        0.46919328859060405,
-        0.5691275167785235
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2350557,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.15838926174496645,
-        0.35704697986577183,
-        0.6590604026845638,
-        0.8671140939597315
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2350692,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
         0.2410913140311804,
         0.2505567928730512,
         0.3129175946547884,
@@ -4721,66 +3110,11 @@
     "source": "human_review"
   },
   {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2350863,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2350951,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2350986,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
     "boxes": [],
     "class": "umbrella",
     "image_id": 2351014,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 2351365,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2351785,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.14020385457416645,
-        0.3181208053691275,
-        0.7341815310626997,
-        0.687248322147651
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2352009,
-    "present": true,
-    "source": "human_rebox"
   },
   {
     "box_space": "normalised",
@@ -4799,22 +3133,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2352140,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2352202,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.0,
@@ -4830,75 +3148,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2352448,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.9198026845637584,
-        0.28053691275167786,
-        0.9650644295302013,
-        0.348993288590604
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2352463,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2352568,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.008786647827622725,
-        0.676510067114094,
-        0.841089720946662,
-        1.0
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2352746,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2352866,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.07363585746102447,
-        0.052338530066815145,
-        0.13543986636971045,
-        0.1403118040089087
-      ]
-    ],
-    "class": "kite",
-    "image_id": 2353059,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.0,
@@ -4911,45 +3160,6 @@
     "image_id": 2353092,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.0,
-        0.0,
-        0.6644402684563758,
-        0.9140939597315436
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2353209,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2353651,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2353702,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 2353728,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -4975,37 +3185,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2354865,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.0975771812080537,
-        0.17583892617449665,
-        0.20316107382550336,
-        0.3825503355704698
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2354933,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 2355027,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.4806978470675575,
@@ -5018,76 +3197,6 @@
     "image_id": 2355359,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2356096,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.4865367483296214,
-        0.16592427616926503,
-        0.7931514476614699,
-        0.5044543429844098
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2356315,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2356374,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2356397,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2356466,
-    "note": "box on fence/flowers, nothing dog-like",
-    "present": false,
-    "source": "human_reject+adjudicated"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.18523489932885906,
-        0.3503355704697987,
-        0.5906040268456376,
-        0.6348993288590604
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2356531,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2356673,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -5106,30 +3215,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2357116,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2357166,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2357167,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.3653463087248322,
@@ -5142,14 +3227,6 @@
     "image_id": 2357224,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2357483,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -5182,57 +3259,11 @@
     "source": "human_rebox"
   },
   {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.3907718120805369,
-        0.12483221476510067,
-        0.7098993288590604,
-        0.4791946308724832
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2358456,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.7793046979865772,
-        0.6550335570469799,
-        0.8617959731543624,
-        0.9087248322147651
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2358679,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2358767,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
     "boxes": [],
     "class": "umbrella",
     "image_id": 2359098,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2359232,
-    "note": "no-entry circle, COCO annotator error",
-    "present": false,
-    "source": "human_reject+adjudicated"
   },
   {
     "box_space": "normalised",
@@ -5255,14 +3286,6 @@
     "image_id": 2360312,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 2360394,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -5310,27 +3333,11 @@
     "source": "human_review"
   },
   {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 2360891,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
     "boxes": [],
     "class": "umbrella",
     "image_id": 2361028,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2361398,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "boxes": [],
@@ -5360,21 +3367,6 @@
     "image_id": 2361820,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.6053904860756275,
-        0.5626055531368296,
-        0.7005244841065835,
-        0.6867408592409978
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2361879,
-    "present": true,
-    "source": "human_review"
   },
   {
     "box_space": "normalised",
@@ -5423,14 +3415,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2363028,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.23640536912751678,
@@ -5476,22 +3460,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2364412,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 2364852,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.38736107382550333,
@@ -5504,59 +3472,6 @@
     "image_id": 2364933,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2365149,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.0,
-        0.07015590200445435,
-        0.6348830734966593,
-        0.9743875278396437
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2365412,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.07063758389261741,
-        0.11946308724832215,
-        0.7944630872483222,
-        0.8214765100671141
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2365606,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.5633758389261745,
-        0.4389261744966443,
-        0.6348523489932886,
-        0.5825503355704698
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2365838,
-    "present": true,
-    "source": "human_rebox"
   },
   {
     "box_space": "normalised",
@@ -5612,37 +3527,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2366643,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.14923489932885906,
-        0.4483221476510067,
-        0.6700832214765101,
-        0.9449664429530201
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2367129,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2367287,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.04546979865771809,
@@ -5681,37 +3565,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2367982,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 2368114,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.3742906458797327,
-        0.3752783964365256,
-        0.5878853006681515,
-        0.920935412026726
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2368439,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.029022818791946344,
@@ -5727,69 +3580,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 2368612,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2368663,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2368714,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2368777,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.45794183445190156,
-        0.09798657718120805,
-        0.7156599552572707,
-        0.4174496644295302
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2368828,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 2368914,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2369084,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.0,
@@ -5802,21 +3592,6 @@
     "image_id": 2369101,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.7660456375838927,
-        0.2536912751677852,
-        0.8025879194630873,
-        0.3785234899328859
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2369251,
-    "present": true,
-    "source": "human_rebox"
   },
   {
     "boxes": [],
@@ -5872,29 +3647,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2369771,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.3201342281879195,
-        0.5154362416107383,
-        0.7997762863534675,
-        0.7516778523489933
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2369887,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.0,
@@ -5944,14 +3696,6 @@
     "image_id": 2370146,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2370344,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -6009,29 +3753,6 @@
     "box_space": "normalised",
     "boxes": [
       [
-        0.3031879194630872,
-        0.8577181208053691,
-        0.38674496644295303,
-        0.9154362416107382
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2370546,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2370705,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
         0.16021256365881217,
         0.8193934784821764,
         0.21276289922928196,
@@ -6047,29 +3768,6 @@
     "box_space": "normalised",
     "boxes": [
       [
-        0.43871317767150264,
-        0.7046979865771812,
-        0.9993368966764458,
-        1.0
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2370839,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2370845,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
         0.20221494503121795,
         0.5355704697986577,
         0.9255357432031236,
@@ -6080,14 +3778,6 @@
     "image_id": 2370857,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2371528,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -6121,29 +3811,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 2372162,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.9295476510067116,
-        0.7718120805369127,
-        1.0,
-        0.9583892617449664
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2372252,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.0,
@@ -6158,30 +3825,6 @@
     "source": "human_review"
   },
   {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2372378,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2372421,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2372580,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
     "boxes": [],
     "class": "dog",
     "image_id": 2372586,
@@ -6189,81 +3832,11 @@
     "source": "claude_triage"
   },
   {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.05834855233853004,
-        0.2739420935412027,
-        0.43658908685968817,
-        0.811804008908686
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2372821,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2372831,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2372951,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2372973,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 2373213,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2373305,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
     "boxes": [],
     "class": "boat",
     "image_id": 2373385,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.46472983050164257,
-        0.3932885906040268,
-        0.9847129008202834,
-        0.8697986577181208
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2373541,
-    "present": true,
-    "source": "human_rebox"
   },
   {
     "box_space": "normalised",
@@ -6281,50 +3854,11 @@
     "source": "human_review"
   },
   {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2373758,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2373787,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2373885,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
     "boxes": [],
     "class": "stop sign",
     "image_id": 2373888,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.22352443368213748,
-        0.4931526395885774,
-        0.3036775308041507,
-        0.6164538455627694
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2374274,
-    "present": true,
-    "source": "human_review"
   },
   {
     "box_space": "normalised",
@@ -6350,14 +3884,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 2374535,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.0,
@@ -6370,52 +3896,6 @@
     "image_id": 2374665,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.8547748039136412,
-        0.42416107382550333,
-        0.9336136492277837,
-        0.47248322147651006
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2374765,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2374800,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.40687919463087246,
-        0.676510067114094,
-        0.5196308724832215,
-        0.7691275167785235
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2374866,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2375002,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -6449,37 +3929,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 2375766,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 2375908,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.3040268456375839,
-        0.4657718120805369,
-        0.8230425055928412,
-        0.9422818791946309
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2375989,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.611988864142539,
@@ -6501,34 +3950,11 @@
     "source": "claude_triage"
   },
   {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.35855704697986573,
-        0.5785234899328859,
-        0.8890939597315437,
-        0.6456375838926175
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2376794,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
     "boxes": [],
     "class": "stop sign",
     "image_id": 2376820,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2376988,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -6622,38 +4048,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2377871,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2378225,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 2378367,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 2378383,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.5166107382550336,
@@ -6705,110 +4099,11 @@
     "source": "claude_triage"
   },
   {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.7596953020134228,
-        0.5449664429530201,
-        0.8079691275167785,
-        0.5798657718120805
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2378987,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2379006,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
     "boxes": [],
     "class": "stop sign",
     "image_id": 2379325,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.9063046979865772,
-        0.6375838926174496,
-        0.9518966442953022,
-        0.6644295302013423
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2379354,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.8276845637583893,
-        0.723489932885906,
-        0.8689597315436242,
-        0.7677852348993288
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2379594,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.35798246475372386,
-        0.6576197562579621,
-        0.5598658533191996,
-        1.0
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2379785,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.7105275167785235,
-        0.9570469798657718,
-        0.7686348993288591,
-        1.0
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2379908,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2379926,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2379939,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -6827,14 +4122,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2380308,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.0,
@@ -6847,37 +4134,6 @@
     "image_id": 2380435,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2380577,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.6728390070348509,
-        0.06174496644295302,
-        0.7395487992237406,
-        0.13691275167785236
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2380649,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2381015,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "boxes": [],
@@ -6905,21 +4161,6 @@
     "box_space": "normalised",
     "boxes": [
       [
-        0.8056209755367085,
-        0.3208053691275168,
-        0.9226962712879644,
-        0.46442953020134226
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2381204,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
         0.5434872483221477,
         0.7261744966442953,
         0.7398523489932886,
@@ -6930,21 +4171,6 @@
     "image_id": 2381463,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.30349476993772295,
-        0.2697986577181208,
-        0.6461192736360523,
-        0.5302013422818792
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2381555,
-    "present": true,
-    "source": "human_rebox"
   },
   {
     "boxes": [],
@@ -6983,34 +4209,11 @@
     "source": "human_review"
   },
   {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.05438255033557051,
-        0.7154362416107383,
-        0.16679865771812083,
-        0.8617449664429531
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2382120,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
     "boxes": [],
     "class": "knife",
     "image_id": 2382170,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 2382231,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -7044,30 +4247,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2382374,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2382611,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2382747,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.2561443098755708,
@@ -7080,30 +4259,6 @@
     "image_id": 2383000,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2383001,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 2383272,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2383359,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -7121,79 +4276,11 @@
     "source": "human_review"
   },
   {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.2907850779510022,
-        0.18930957683741648,
-        0.6332126948775055,
-        0.6057906458797327
-      ]
-    ],
-    "class": "kite",
-    "image_id": 2383505,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.00517817371937643,
-        0.6608386637098509,
-        0.04192650334075728,
-        0.704045790658626
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2383673,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.3584765100671141,
-        0.3275167785234899,
-        0.8023154362416108,
-        0.8738255033557047
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2383791,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
     "boxes": [],
     "class": "bus",
     "image_id": 2383834,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.7328655684360382,
-        0.8187919463087249,
-        0.8609924750864348,
-        0.8993288590604027
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2383865,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2383997,
-    "present": true,
-    "source": "human_review"
   },
   {
     "box_space": "normalised",
@@ -7214,21 +4301,6 @@
     "box_space": "normalised",
     "boxes": [
       [
-        0.585738255033557,
-        0.1651006711409396,
-        0.7336979865771812,
-        0.49261744966442955
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2384401,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
         0.3231342281879195,
         0.7516778523489933,
         0.41426174496644297,
@@ -7237,14 +4309,6 @@
     ],
     "class": "cell phone",
     "image_id": 2384968,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2385070,
     "present": true,
     "source": "human_review"
   },
@@ -7262,22 +4326,6 @@
     "image_id": 2385084,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2385740,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2386025,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "boxes": [],
@@ -7300,30 +4348,6 @@
     "image_id": 2386755,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 2386803,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2386939,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2387140,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -7364,14 +4388,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 2387641,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.10939597315436239,
@@ -7399,14 +4415,6 @@
     "image_id": 2388119,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2388142,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -7444,74 +4452,6 @@
     "image_id": 2388433,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.389337416481069,
-        0.29287305122494434,
-        0.6114977728285078,
-        0.8151447661469933
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2388503,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.7323217834993864,
-        0.420400135963205,
-        0.7876531392492108,
-        0.5300089168771429
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2388521,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2388612,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.7162110547279968,
-        0.5691275167785235,
-        0.7557701751514159,
-        0.6228187919463087
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2388734,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.5689597315436241,
-        0.0013422818791946308,
-        0.9303691275167786,
-        0.3812080536912752
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2388880,
-    "present": true,
-    "source": "human_rebox"
   },
   {
     "box_space": "normalised",
@@ -7559,30 +4499,6 @@
     "source": "human_review"
   },
   {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2389092,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2389258,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2389485,
-    "present": true,
-    "source": "human_review"
-  },
-  {
     "boxes": [],
     "class": "bicycle",
     "image_id": 2389591,
@@ -7590,58 +4506,11 @@
     "source": "claude_triage"
   },
   {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.6256013422818792,
-        0.8590604026845637,
-        0.70963355704698,
-        1.0
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2389758,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 2390096,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2390207,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
     "boxes": [],
     "class": "knife",
     "image_id": 2390345,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2390477,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2390576,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -7689,14 +4558,6 @@
     "source": "human_review"
   },
   {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2391402,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
     "boxes": [],
     "class": "bicycle",
     "image_id": 2391557,
@@ -7716,37 +4577,6 @@
     "image_id": 2391763,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2391949,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.0,
-        0.1342281879194631,
-        0.18540268456375836,
-        0.36778523489932885
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2392231,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2392288,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -7809,14 +4639,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2392879,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.39417754482776873,
@@ -7861,14 +4683,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 2393447,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.7817371937639198,
@@ -7894,14 +4708,6 @@
     ],
     "class": "bowl",
     "image_id": 2393561,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2393752,
     "present": true,
     "source": "human_review"
   },
@@ -7982,22 +4788,6 @@
   },
   {
     "boxes": [],
-    "class": "bus",
-    "image_id": 2394171,
-    "note": "SF cable car, rail-borne; COCO inconsistency case",
-    "present": false,
-    "source": "human_reject+adjudicated"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2394240,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "boxes": [],
     "class": "clock",
     "image_id": 2394287,
     "present": true,
@@ -8030,21 +4820,6 @@
     ],
     "class": "truck",
     "image_id": 2394368,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.4807569645797146,
-        0.2894860347689078,
-        0.5987088612593432,
-        0.43978760775307574
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2394529,
     "present": true,
     "source": "human_review"
   },
@@ -8084,68 +4859,6 @@
     "image_id": 2394798,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2394863,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2394890,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.5212639198218263,
-        0.4131403118040089,
-        0.9114755011135857,
-        0.6024498886414253
-      ]
-    ],
-    "class": "boat",
-    "image_id": 2395308,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2395403,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.5572104677060133,
-        0.37861915367483295,
-        0.7426224944320713,
-        0.6469933184855234
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2395430,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2395456,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -8209,21 +4922,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [
-      [
-        0.030201342281879196,
-        0.4348993288590604,
-        0.9769574944071588,
-        0.8523489932885906
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2396159,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [],
     "class": "car",
     "image_id": 2396256,
@@ -8272,37 +4970,6 @@
     ],
     "class": "cup",
     "image_id": 2396302,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.3819599109131403,
-        0.33407572383073497,
-        0.6907943578322198,
-        0.8596881959910914
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2396303,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2396590,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "bicycle",
-    "image_id": 2396637,
     "present": true,
     "source": "human_review"
   },
@@ -8418,14 +5085,6 @@
     "source": "human_review"
   },
   {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2398137,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
     "boxes": [],
     "class": "knife",
     "image_id": 2398490,
@@ -8501,14 +5160,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2398959,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.2785114045618247,
@@ -8523,53 +5174,6 @@
     "source": "human_review"
   },
   {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2399379,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2399486,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2399800,
-    "note": "no-motorcycles prohibition circle, COCO error",
-    "present": false,
-    "source": "human_reject+adjudicated"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 2400082,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.0721102449888642,
-        0.36525612472160357,
-        0.13030623608017822,
-        0.42316258351893093
-      ]
-    ],
-    "class": "boat",
-    "image_id": 2400286,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
     "boxes": [],
     "class": "kite",
     "image_id": 2400291,
@@ -8582,150 +5186,12 @@
     "image_id": 2400291,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.1652684563758389,
-        0.31543624161073824,
-        0.19043624161073824,
-        0.425503355704698
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2400332,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.35920134228187917,
-        0.40939597315436244,
-        0.983185234899329,
-        1.0
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2400362,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "stop sign",
-    "image_id": 2400384,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.18816255007791755,
-        0.5512249443207127,
-        0.763347980497201,
-        0.9766146993318485
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2400401,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2400523,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2400657,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.32231543624161074,
-        0.2979865771812081,
-        0.44614093959731543,
-        0.4214765100671141
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2400881,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2400899,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.43406040268456375,
-        0.3395973154362416,
-        0.5578859060402684,
-        0.5557046979865772
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2400933,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.864559541796971,
-        0.20134228187919462,
-        0.947134474155803,
-        0.22416107382550335
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2401109,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2401159,
-    "present": true,
-    "source": "human_review"
   },
   {
     "box_space": "normalised",
     "boxes": [],
     "class": "car",
     "image_id": 2401386,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2401393,
     "present": true,
     "source": "human_review"
   },
@@ -8743,22 +5209,6 @@
     "image_id": 2401443,
     "present": true,
     "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2401581,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2401612,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -8789,14 +5239,6 @@
     "image_id": 2402104,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2402192,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -8841,44 +5283,6 @@
     "image_id": 2402637,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2402758,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.2941275167785235,
-        0.44563758389261743,
-        0.4401006711409396,
-        0.6832214765100671
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2402789,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.20956375838926172,
-        0.5449664429530201,
-        0.24580536912751677,
-        0.5731543624161074
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2402925,
-    "present": true,
-    "source": "human_rebox"
   },
   {
     "box_space": "normalised",
@@ -8935,26 +5339,10 @@
   {
     "box_space": "normalised",
     "boxes": [],
-    "class": "book",
-    "image_id": 2403463,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
     "class": "truck",
     "image_id": 2403553,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2403653,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -9003,14 +5391,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2404037,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.0,
@@ -9021,29 +5401,6 @@
     ],
     "class": "sink",
     "image_id": 2404099,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 2404246,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.09297703752523516,
-        0.7106530239853365,
-        0.1366855312487556,
-        0.7808601163549832
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2404289,
     "present": true,
     "source": "human_rebox"
   },
@@ -9086,14 +5443,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 2404479,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.35804147712575,
@@ -9106,14 +5455,6 @@
     "image_id": 2404527,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 2404582,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "boxes": [],
@@ -9153,42 +5494,11 @@
     "source": "human_review"
   },
   {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2405048,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
     "boxes": [],
     "class": "dog",
     "image_id": 2405193,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.5244988864142539,
-        0.5679287305122495,
-        0.6483296213808464,
-        0.6926503340757239
-      ]
-    ],
-    "class": "umbrella",
-    "image_id": 2405271,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "kite",
-    "image_id": 2405287,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -9211,14 +5521,6 @@
     "image_id": 2405346,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2406001,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -9297,14 +5599,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2406639,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.3554964410945235,
@@ -9319,72 +5613,11 @@
     "source": "human_review"
   },
   {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2406904,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
     "boxes": [],
     "class": "dog",
     "image_id": 2407397,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.1911035634743875,
-        0.21380846325167038,
-        0.5040790645879732,
-        0.9966592427616926
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2407743,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.19828859060402682,
-        0.1087248322147651,
-        0.5210080536912751,
-        0.9543624161073826
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2407806,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2407849,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.5464922048997772,
-        0.3574610244988864,
-        0.8514810690423162,
-        0.8396436525612472
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2408164,
-    "present": true,
-    "source": "human_review"
   },
   {
     "box_space": "normalised",
@@ -9403,14 +5636,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2408268,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.5176174496644296,
@@ -9423,21 +5648,6 @@
     "image_id": 2408317,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.0,
-        0.0077951002227171495,
-        0.8529688195991091,
-        0.2873051224944321
-      ]
-    ],
-    "class": "book",
-    "image_id": 2408366,
-    "present": true,
-    "source": "human_rebox"
   },
   {
     "box_space": "normalised",
@@ -9476,14 +5686,6 @@
     "image_id": 2409021,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2409034,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -9529,21 +5731,6 @@
     "image_id": 2409347,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.1763422818791946,
-        0.4040268456375839,
-        0.24278523489932885,
-        0.6187919463087248
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2409434,
-    "present": true,
-    "source": "human_rebox"
   },
   {
     "box_space": "normalised",
@@ -9606,89 +5793,11 @@
     "source": "human_review"
   },
   {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.672362163861862,
-        0.4965176794275191,
-        0.7316474746446132,
-        0.5789347009049305
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2410194,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2410215,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2410516,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2410527,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 2410687,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.009187640326735086,
-        0.472356548154865,
-        0.09258314483094603,
-        0.5414885944226013
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2410725,
-    "present": true,
-    "source": "human_review"
-  },
-  {
     "boxes": [],
     "class": "umbrella",
     "image_id": 2410872,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2411188,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "dog",
-    "image_id": 2411671,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "boxes": [],
@@ -9703,38 +5812,6 @@
     "image_id": 2411873,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2411995,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "knife",
-    "image_id": 2412481,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 2412536,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2412920,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -9753,22 +5830,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 2413215,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 2413380,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.3171852348993288,
@@ -9781,14 +5842,6 @@
     "image_id": 2413480,
     "present": true,
     "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "book",
-    "image_id": 2413601,
-    "present": true,
-    "source": "human_review"
   },
   {
     "boxes": [],
@@ -9818,21 +5871,6 @@
     "image_id": 2414120,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.028886030907230867,
-        0.716916897109137,
-        0.12180276365882373,
-        0.7872062389833988
-      ]
-    ],
-    "class": "bicycle",
-    "image_id": 2414132,
-    "present": true,
-    "source": "human_review"
   },
   {
     "box_space": "normalised",
@@ -9868,36 +5906,6 @@
     "box_space": "normalised",
     "boxes": [
       [
-        0.8481973154362417,
-        0.49261744966442955,
-        0.8678644295302014,
-        0.5167785234899329
-      ]
-    ],
-    "class": "bird",
-    "image_id": 2414459,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.13701073825503357,
-        0.3436241610738255,
-        0.18499463087248325,
-        0.5006711409395973
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2414575,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
         0.3182885906040268,
         0.614765100671141,
         0.6041946308724833,
@@ -9908,14 +5916,6 @@
     "image_id": 2414617,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 2414652,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -9948,42 +5948,11 @@
     "source": "human_review"
   },
   {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "bus",
-    "image_id": 2415747,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.4217785234899329,
-        0.508724832214765,
-        0.49418926174496647,
-        0.6885906040268457
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2416477,
-    "present": true,
-    "source": "human_rebox"
-  },
-  {
     "boxes": [],
     "class": "knife",
     "image_id": 2416567,
     "present": true,
     "source": "claude_triage"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2416624,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",
@@ -10017,14 +5986,6 @@
   },
   {
     "box_space": "normalised",
-    "boxes": [],
-    "class": "clock",
-    "image_id": 2416801,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
     "boxes": [
       [
         0.5559576837416481,
@@ -10035,21 +5996,6 @@
     ],
     "class": "bottle",
     "image_id": 2416821,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [
-      [
-        0.45210488610238375,
-        0.36193241470903026,
-        0.5431095010250763,
-        0.507466481675028
-      ]
-    ],
-    "class": "backpack",
-    "image_id": 2417108,
     "present": true,
     "source": "human_review"
   },
@@ -10089,30 +6035,6 @@
     "image_id": 2417159,
     "present": true,
     "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 2417174,
-    "present": true,
-    "source": "human_confirmed"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "umbrella",
-    "image_id": 2417217,
-    "present": true,
-    "source": "human_review"
-  },
-  {
-    "box_space": "normalised",
-    "boxes": [],
-    "class": "boat",
-    "image_id": 2417403,
-    "present": true,
-    "source": "human_confirmed"
   },
   {
     "box_space": "normalised",

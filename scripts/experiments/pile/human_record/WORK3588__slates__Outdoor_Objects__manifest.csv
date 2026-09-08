@@ -1,0 +1,201 @@
+image_id,class,stratum,cell,text_score,reference,exhaustive,n_boxes,detector,driver
+2387068,Outdoor Objects,boundary,,0.1055,,no,0,Outdoor Objects,kite
+2393864,Outdoor Objects,boundary,,0.1016,present,yes,0,Outdoor Objects,fire hydrant
+2392337,Outdoor Objects,boundary,,0.101,present,yes,0,Outdoor Objects,sink
+2315792,Outdoor Objects,boundary,,0.0966,present,yes,0,Outdoor Objects,bench
+2360117,Outdoor Objects,boundary,,0.0912,present,yes,0,Outdoor Objects,kite
+2384924,Outdoor Objects,boundary,,0.0906,present,yes,0,Outdoor Objects,truck
+2334934,Outdoor Objects,boundary,,0.0893,present,yes,0,Outdoor Objects,kite
+2322248,Outdoor Objects,boundary,,0.0874,present,yes,0,Outdoor Objects,kite
+2391377,Outdoor Objects,boundary,,0.0874,,no,0,Outdoor Objects,kite
+2326762,Outdoor Objects,boundary,,0.085,,no,0,Outdoor Objects,sink
+498270,Outdoor Objects,boundary,,0.0849,,no,0,Outdoor Objects,boat
+2400821,Outdoor Objects,boundary,,0.0844,present,yes,0,Outdoor Objects,sink
+2385504,Outdoor Objects,boundary,,0.0834,present,yes,0,Outdoor Objects,kite
+2367901,Outdoor Objects,boundary,,0.0832,,no,0,Outdoor Objects,stop sign
+2339643,Outdoor Objects,boundary,,0.0827,present,yes,0,Outdoor Objects,kite
+2325700,Outdoor Objects,boundary,,0.0819,present,yes,0,Outdoor Objects,kite
+3561,Outdoor Objects,boundary,,0.0818,,no,0,Outdoor Objects,chair
+2404693,Outdoor Objects,boundary,,0.0817,,no,0,Outdoor Objects,kite
+2395745,Outdoor Objects,boundary,,0.0806,,no,0,Outdoor Objects,kite
+2394130,Outdoor Objects,boundary,,0.0803,present,yes,0,Outdoor Objects,kite
+2322535,Outdoor Objects,boundary,,0.0799,present,yes,0,Outdoor Objects,kite
+2352709,Outdoor Objects,boundary,,0.0792,,no,0,Outdoor Objects,kite
+2411912,Outdoor Objects,boundary,,0.0786,present,yes,0,Outdoor Objects,stop sign
+2346019,Outdoor Objects,boundary,,0.0784,present,yes,0,Outdoor Objects,stop sign
+2383707,Outdoor Objects,boundary,,0.077,,no,0,Outdoor Objects,kite
+2365421,Outdoor Objects,boundary,,0.0766,present,yes,0,Outdoor Objects,cell phone
+2325332,Outdoor Objects,boundary,,0.0766,present,yes,0,Outdoor Objects,truck
+2331220,Outdoor Objects,boundary,,0.0759,,no,0,Outdoor Objects,kite
+2361029,Outdoor Objects,boundary,,0.0758,,no,0,Outdoor Objects,cell phone
+2376806,Outdoor Objects,boundary,,0.0755,present,yes,0,Outdoor Objects,stop sign
+2402410,Outdoor Objects,boundary,,0.0753,,no,0,Outdoor Objects,stop sign
+2379075,Outdoor Objects,boundary,,0.0751,,no,0,Outdoor Objects,dog
+2374487,Outdoor Objects,boundary,,0.0749,present,yes,0,Outdoor Objects,stop sign
+2350610,Outdoor Objects,boundary,,0.0745,present,yes,0,Outdoor Objects,kite
+2392128,Outdoor Objects,boundary,,0.0745,present,yes,0,Outdoor Objects,stop sign
+2333001,Outdoor Objects,boundary,,0.0739,present,yes,0,Outdoor Objects,kite
+1159420,Outdoor Objects,boundary,,0.0735,present,yes,0,Outdoor Objects,truck
+2392264,Outdoor Objects,boundary,,0.0734,,no,0,Outdoor Objects,stop sign
+2358316,Outdoor Objects,boundary,,0.0732,present,yes,0,Outdoor Objects,sink
+2393671,Outdoor Objects,boundary,,0.073,present,yes,0,Outdoor Objects,dog
+2323658,Outdoor Objects,boundary,,0.0729,,no,0,Outdoor Objects,dog
+2407548,Outdoor Objects,boundary,,0.0729,,no,0,Outdoor Objects,bus
+2407502,Outdoor Objects,boundary,,0.0728,present,yes,0,Outdoor Objects,spoon
+2367117,Outdoor Objects,boundary,,0.0723,,no,0,Outdoor Objects,kite
+2327398,Outdoor Objects,boundary,,0.0721,present,yes,0,Outdoor Objects,kite
+2350334,Outdoor Objects,boundary,,0.0718,present,yes,0,Outdoor Objects,knife
+2369018,Outdoor Objects,boundary,,0.0714,,no,0,Outdoor Objects,kite
+2399091,Outdoor Objects,boundary,,0.0711,,no,0,Outdoor Objects,sink
+2358000,Outdoor Objects,boundary,,0.0706,present,yes,0,Outdoor Objects,cell phone
+2336745,Outdoor Objects,boundary,,0.0704,,no,0,Outdoor Objects,bus
+2413072,Outdoor Objects,boundary,,0.0701,,no,0,Outdoor Objects,stop sign
+2391765,Outdoor Objects,boundary,,0.0697,present,yes,0,Outdoor Objects,chair
+2330568,Outdoor Objects,boundary,,0.0697,present,yes,0,Outdoor Objects,bus
+2410628,Outdoor Objects,boundary,,0.0695,,no,0,Outdoor Objects,dog
+2348108,Outdoor Objects,boundary,,0.0692,,no,0,Outdoor Objects,stop sign
+2354790,Outdoor Objects,boundary,,0.0692,present,yes,0,Outdoor Objects,bus
+2394898,Outdoor Objects,boundary,,0.0685,,no,0,Outdoor Objects,dog
+2416246,Outdoor Objects,boundary,,0.0685,present,yes,0,Outdoor Objects,stop sign
+2316125,Outdoor Objects,boundary,,0.0684,,no,0,Outdoor Objects,kite
+2327098,Outdoor Objects,boundary,,0.0683,,no,0,Outdoor Objects,sink
+2362065,Outdoor Objects,boundary,,0.0679,present,yes,0,Outdoor Objects,sink
+2336569,Outdoor Objects,boundary,,0.0676,present,yes,0,Outdoor Objects,stop sign
+2413495,Outdoor Objects,boundary,,0.0673,present,yes,0,Outdoor Objects,stop sign
+2338255,Outdoor Objects,boundary,,0.0673,present,yes,0,Outdoor Objects,bench
+2362762,Outdoor Objects,boundary,,0.067,present,yes,0,Outdoor Objects,vase
+2322849,Outdoor Objects,boundary,,0.0669,,no,0,Outdoor Objects,backpack
+2392420,Outdoor Objects,boundary,,0.0667,present,yes,0,Outdoor Objects,vase
+2329296,Outdoor Objects,boundary,,0.0665,present,yes,0,Outdoor Objects,stop sign
+2416700,Outdoor Objects,boundary,,0.0664,present,yes,0,Outdoor Objects,cell phone
+2417852,Outdoor Objects,boundary,,0.0664,,no,0,Outdoor Objects,boat
+4185,Outdoor Objects,boundary,,0.0662,,no,0,Outdoor Objects,stop sign
+2325379,Outdoor Objects,boundary,,0.0661,,no,0,Outdoor Objects,kite
+2368073,Outdoor Objects,boundary,,0.0661,,no,0,Outdoor Objects,stop sign
+2355890,Outdoor Objects,boundary,,0.066,present,yes,0,Outdoor Objects,stop sign
+1592013,Outdoor Objects,boundary,,0.0657,present,yes,0,Outdoor Objects,bench
+2417678,Outdoor Objects,boundary,,0.0657,,no,0,Outdoor Objects,kite
+2360975,Outdoor Objects,boundary,,0.0656,present,yes,0,Outdoor Objects,kite
+2407927,Outdoor Objects,boundary,,0.0656,,no,0,Outdoor Objects,bowl
+2355650,Outdoor Objects,boundary,,0.0656,,no,0,Outdoor Objects,stop sign
+2415598,Outdoor Objects,boundary,,0.0652,,no,0,Outdoor Objects,sink
+2393732,Outdoor Objects,boundary,,0.0648,,no,0,Outdoor Objects,stop sign
+2398807,Outdoor Objects,boundary,,0.0647,,no,0,Outdoor Objects,stop sign
+2360,Outdoor Objects,boundary,,0.0646,,no,0,Outdoor Objects,stop sign
+2400101,Outdoor Objects,boundary,,0.0644,,no,0,Outdoor Objects,kite
+2380685,Outdoor Objects,boundary,,0.0641,,no,0,Outdoor Objects,sink
+1986,Outdoor Objects,boundary,,0.0639,,no,0,Outdoor Objects,cell phone
+2353986,Outdoor Objects,boundary,,0.0638,,no,0,Outdoor Objects,kite
+2388314,Outdoor Objects,boundary,,0.0637,present,yes,0,Outdoor Objects,bench
+2383506,Outdoor Objects,boundary,,0.0634,present,yes,0,Outdoor Objects,sink
+2379050,Outdoor Objects,boundary,,0.0632,present,yes,0,Outdoor Objects,dog
+2323842,Outdoor Objects,boundary,,0.0627,,no,0,Outdoor Objects,kite
+2372457,Outdoor Objects,boundary,,0.0624,,no,0,Outdoor Objects,spoon
+2363995,Outdoor Objects,boundary,,0.062,,no,0,Outdoor Objects,sink
+2346929,Outdoor Objects,boundary,,0.0619,,no,0,Outdoor Objects,bus
+2343839,Outdoor Objects,boundary,,0.0618,present,yes,0,Outdoor Objects,stop sign
+2417271,Outdoor Objects,boundary,,0.0617,present,yes,0,Outdoor Objects,cell phone
+2399554,Outdoor Objects,boundary,,0.0616,,no,0,Outdoor Objects,sink
+2393952,Outdoor Objects,boundary,,0.0616,,no,0,Outdoor Objects,sink
+2398287,Outdoor Objects,boundary,,0.0614,present,yes,0,Outdoor Objects,bowl
+2380089,Outdoor Objects,boundary,,0.0613,present,yes,0,Outdoor Objects,kite
+2379377,Outdoor Objects,random,,0.006,,no,0,Outdoor Objects,bird
+2389518,Outdoor Objects,random,,0.0262,,no,0,Outdoor Objects,boat
+2387690,Outdoor Objects,random,,0.0414,present,yes,0,Outdoor Objects,bus
+2341258,Outdoor Objects,random,,0.0075,,no,0,Outdoor Objects,bench
+2343133,Outdoor Objects,random,,0.0122,,no,0,Outdoor Objects,bench
+2410471,Outdoor Objects,random,,0.0238,,no,0,Outdoor Objects,bird
+2338452,Outdoor Objects,random,,0.0149,present,yes,0,Outdoor Objects,bird
+2399496,Outdoor Objects,random,,0.0389,,no,0,Outdoor Objects,kite
+655,Outdoor Objects,random,,0.0285,,no,0,Outdoor Objects,boat
+2406950,Outdoor Objects,random,,0.0483,,no,0,Outdoor Objects,bowl
+2416176,Outdoor Objects,random,,0.0246,,no,0,Outdoor Objects,bus
+2379431,Outdoor Objects,random,,0.0299,present,yes,0,Outdoor Objects,bus
+2386624,Outdoor Objects,random,,0.0363,present,yes,0,Outdoor Objects,dog
+2376171,Outdoor Objects,random,,0.0455,,no,0,Outdoor Objects,bicycle
+2342757,Outdoor Objects,random,,0.0091,,no,0,Outdoor Objects,car
+2370802,Outdoor Objects,random,,0.0289,present,yes,0,Outdoor Objects,stop sign
+2379036,Outdoor Objects,random,,0.0487,,no,0,Outdoor Objects,kite
+2372245,Outdoor Objects,random,,0.0584,,no,0,Outdoor Objects,stop sign
+1556,Outdoor Objects,random,,0.0293,,no,0,Outdoor Objects,car
+2328476,Outdoor Objects,random,,0.0054,,no,0,Outdoor Objects,bench
+2379254,Outdoor Objects,random,,0.0072,present,yes,0,Outdoor Objects,dog
+2334823,Outdoor Objects,random,,0.0328,present,yes,0,Outdoor Objects,kite
+2413407,Outdoor Objects,random,,0.0297,,no,0,Outdoor Objects,spoon
+1490,Outdoor Objects,random,,0.0228,,no,0,Outdoor Objects,bench
+2368814,Outdoor Objects,random,,0.0076,,no,0,Outdoor Objects,bird
+2408671,Outdoor Objects,random,,0.048,present,yes,0,Outdoor Objects,bowl
+2381000,Outdoor Objects,random,,0.0398,present,yes,0,Outdoor Objects,cup
+2410237,Outdoor Objects,random,,0.0191,present,yes,0,Outdoor Objects,fork
+2395379,Outdoor Objects,random,,0.0472,,no,0,Outdoor Objects,sink
+2375949,Outdoor Objects,random,,0.0249,,no,0,Outdoor Objects,cup
+2415129,Outdoor Objects,random,,0.0367,present,yes,0,Outdoor Objects,kite
+2399434,Outdoor Objects,random,,0.0178,,no,0,Outdoor Objects,bowl
+2382828,Outdoor Objects,random,,0.0059,present,yes,0,Outdoor Objects,dog
+2364216,Outdoor Objects,random,,0.0505,present,yes,0,Outdoor Objects,bus
+2416508,Outdoor Objects,random,,0.0089,,no,0,Outdoor Objects,bird
+2323085,Outdoor Objects,random,,0.0491,present,yes,0,Outdoor Objects,kite
+2334729,Outdoor Objects,random,,0.0472,,no,0,Outdoor Objects,bus
+2411277,Outdoor Objects,random,,0.0112,,no,0,Outdoor Objects,bowl
+2392094,Outdoor Objects,random,,0.0195,present,yes,0,Outdoor Objects,truck
+2386347,Outdoor Objects,random,,0.039,present,yes,0,Outdoor Objects,bowl
+2340056,Outdoor Objects,random,,0.0461,present,yes,0,Outdoor Objects,knife
+2392807,Outdoor Objects,random,,0.0315,present,yes,0,Outdoor Objects,bus
+2382264,Outdoor Objects,random,,0.0122,,no,0,Outdoor Objects,dog
+2398852,Outdoor Objects,random,,0.0303,,no,0,Outdoor Objects,knife
+2336335,Outdoor Objects,random,,0.0054,,no,0,Outdoor Objects,car
+2357898,Outdoor Objects,random,,0.0097,,no,0,Outdoor Objects,bench
+2384185,Outdoor Objects,random,,0.0402,,no,0,Outdoor Objects,backpack
+2352095,Outdoor Objects,random,,0.0262,present,yes,0,Outdoor Objects,bus
+2385477,Outdoor Objects,random,,0.0176,,no,0,Outdoor Objects,kite
+2332648,Outdoor Objects,random,,0.0099,,no,0,Outdoor Objects,sink
+2368984,Outdoor Objects,random,,0.0302,,no,0,Outdoor Objects,bus
+2370144,Outdoor Objects,random,,0.0122,,no,0,Outdoor Objects,bowl
+2358419,Outdoor Objects,random,,0.0443,,no,0,Outdoor Objects,bus
+3801,Outdoor Objects,random,,0.0487,,no,0,Outdoor Objects,bench
+2315796,Outdoor Objects,random,,0.0284,,no,0,Outdoor Objects,car
+2370271,Outdoor Objects,random,,0.0186,present,yes,0,Outdoor Objects,bird
+2393325,Outdoor Objects,random,,0.01,present,yes,0,Outdoor Objects,cup
+2388486,Outdoor Objects,random,,0.0236,present,yes,0,Outdoor Objects,bowl
+1592557,Outdoor Objects,random,,0.0233,,no,0,Outdoor Objects,fork
+497980,Outdoor Objects,random,,0.0123,,no,0,Outdoor Objects,bench
+2403285,Outdoor Objects,random,,0.019,present,yes,0,Outdoor Objects,kite
+2411445,Outdoor Objects,random,,0.0491,,no,0,Outdoor Objects,bicycle
+2402404,Outdoor Objects,random,,0.032,,no,0,Outdoor Objects,umbrella
+2341076,Outdoor Objects,random,,0.0401,present,yes,0,Outdoor Objects,bowl
+2392734,Outdoor Objects,random,,0.0268,present,yes,0,Outdoor Objects,kite
+2320550,Outdoor Objects,random,,0.0117,present,yes,0,Outdoor Objects,bench
+2318153,Outdoor Objects,random,,0.0302,present,yes,0,Outdoor Objects,fork
+2358239,Outdoor Objects,random,,0.0114,present,yes,0,Outdoor Objects,bird
+2373243,Outdoor Objects,random,,0.013,,no,0,Outdoor Objects,bird
+2392277,Outdoor Objects,random,,0.0255,,no,0,Outdoor Objects,bowl
+4214,Outdoor Objects,random,,0.0134,,no,0,Outdoor Objects,fork
+2352911,Outdoor Objects,random,,0.0331,,no,0,Outdoor Objects,bowl
+2329538,Outdoor Objects,random,,0.0147,,no,0,Outdoor Objects,bench
+2409231,Outdoor Objects,random,,0.017,,no,0,Outdoor Objects,bowl
+2321487,Outdoor Objects,random,,0.0043,present,yes,0,Outdoor Objects,bird
+2386652,Outdoor Objects,random,,0.014,present,yes,0,Outdoor Objects,bird
+2316043,Outdoor Objects,random,,0.0192,present,yes,0,Outdoor Objects,car
+2340667,Outdoor Objects,random,,0.02,,no,0,Outdoor Objects,bicycle
+2353402,Outdoor Objects,random,,0.0515,,no,0,Outdoor Objects,bus
+1593184,Outdoor Objects,random,,0.0417,present,yes,0,Outdoor Objects,dog
+2392480,Outdoor Objects,random,,0.0531,,no,0,Outdoor Objects,bowl
+2361524,Outdoor Objects,random,,0.0098,present,yes,0,Outdoor Objects,boat
+2334397,Outdoor Objects,random,,0.007,,no,0,Outdoor Objects,bowl
+2320159,Outdoor Objects,random,,0.0198,present,yes,0,Outdoor Objects,spoon
+2359994,Outdoor Objects,random,,0.02,,no,0,Outdoor Objects,bus
+2366442,Outdoor Objects,random,,0.0404,present,yes,0,Outdoor Objects,bowl
+2380376,Outdoor Objects,random,,0.0097,,no,0,Outdoor Objects,car
+2416293,Outdoor Objects,random,,0.0191,present,yes,0,Outdoor Objects,kite
+2335019,Outdoor Objects,random,,0.0156,,no,0,Outdoor Objects,bench
+2374137,Outdoor Objects,random,,0.0087,,no,0,Outdoor Objects,dog
+2316533,Outdoor Objects,random,,0.025,present,yes,0,Outdoor Objects,kite
+2372204,Outdoor Objects,random,,0.0081,,no,0,Outdoor Objects,bowl
+2364952,Outdoor Objects,random,,0.0186,present,yes,0,Outdoor Objects,bird
+2327535,Outdoor Objects,random,,0.0311,,no,0,Outdoor Objects,cup
+1159799,Outdoor Objects,random,,0.0239,,no,0,Outdoor Objects,bowl
+61589,Outdoor Objects,random,,0.0178,,no,0,Outdoor Objects,kite
+2396098,Outdoor Objects,random,,0.0475,present,yes,0,Outdoor Objects,bench
+2363160,Outdoor Objects,random,,0.0104,present,yes,0,Outdoor Objects,bird
+2357470,Outdoor Objects,random,,0.0348,present,yes,0,Outdoor Objects,dog
+2410026,Outdoor Objects,random,,0.0285,,no,0,Outdoor Objects,kite

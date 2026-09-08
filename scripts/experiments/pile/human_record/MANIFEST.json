@@ -346,7 +346,7 @@
   "PILE__vg_scale_roster.json": {
     "bytes": 276220,
     "rel": "vg_scale_roster.json",
-    "sha256": "679eaaf12b11ec59429f613e60523622119fc0790112e3be0fdd54d1a9818238",
+    "sha256": "760c074d99b09b55367945728d7d76fbc50af46fac08b363a874d843cd4a1af9",
     "source": "{PILE}/vg_scale_roster.json",
     "tier": "derived",
     "why": "the membership a review was carried out against; a build rewrites it, and losing it means the next rebuild reshuffles reviewed images away"

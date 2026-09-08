@@ -1230,6 +1230,43 @@ class TestProvablePoolHoldsC:
         assert (n_pool, n_checked, dirty) == (4, 2, [(1, ["bus", "car"])])
 
 
+class TestBoxesImplyBand:
+    """`--verify`'s band check, after a rebox began designating (#3726, #3281).
+
+    The check exists to catch a coordinate-space mistake: a box normalised twice
+    is ~500x too small and sits on the frame origin, and the band is derived from
+    the same corrupted box so nothing else disagrees. Since #3726 the cell also
+    carries instances the band was NOT taken from, so the union is no longer the
+    only honest reading -- 37 of 7,500 boxes failed on the first rebuild after
+    that change, with correct data.
+    """
+
+    def test_the_union_implies_the_band(self, audit):
+        """The pre-#3726 reading, still the one that holds for an unreviewed image."""
+        assert audit.boxes_imply_band([[0.0, 0.0, 0.5, 0.5], [0.0, 0.0, 0.4, 0.4]], 0.2, 0.3)
+
+    def test_the_designated_box_implies_the_band(self, audit):
+        """A reviewed image: the head box bands the cell, the rest are carried."""
+        designated = [0.0, 0.0, 0.5, 0.5]  # 0.25
+        other = [0.0, 0.0, 0.9, 0.9]  # 0.81 -- union would be 0.81
+
+        assert audit.boxes_imply_band([designated, other], 0.2, 0.3)
+
+    def test_neither_reading_is_a_problem(self, audit):
+        assert not audit.boxes_imply_band([[0.0, 0.0, 0.9, 0.9]], 0.2, 0.3)
+
+    def test_a_double_normalised_box_still_fails(self, audit):
+        """#3281: ~500x too small and on the frame origin. Both readings must reject it."""
+        tiny = [0.0, 0.0, 0.001, 0.001]
+
+        assert not audit.boxes_imply_band([tiny], 0.2, 0.3)
+        assert not audit.boxes_imply_band([tiny, tiny], 0.2, 0.3)
+
+    def test_no_boxes_is_not_a_failure(self, audit):
+        """A cell with no stored region for the class is a different check's business."""
+        assert audit.boxes_imply_band([], 0.2, 0.3)
+
+
 class TestCoverageRow:
     """Which retirements the coverage gate forgives, and which it must not (#3670)."""
 

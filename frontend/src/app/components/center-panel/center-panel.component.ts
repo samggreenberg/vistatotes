@@ -415,6 +415,24 @@ export class CenterPanelComponent implements OnDestroy {
       });
   }
 
+  /** True while a Shift-drag (or the sticky Marquee toggle) would draw a region.
+   *  Drives the panel-wide crosshair, which is the only affordance saying the
+   *  gesture reaches past the image into the space below it. */
+  get regionDrawActive(): boolean {
+    return this.mediaType === 'image' && (this.imageViewer()?.regionDrawActive ?? false);
+  }
+
+  /** Off-canvas region-draw start: a Shift-drag begun on the toolbar strip, the
+   *  vote row, the metadata tray or the gaps between them anchors a box at the
+   *  nearest point on the image, exactly as one begun in the letterbox column
+   *  beside it always has. The viewer decides whether to claim the event and
+   *  ignores anything begun on an interactive control, so every click down here
+   *  keeps its current behaviour. */
+  onPanelMouseDown(event: MouseEvent): void {
+    if (this.mediaType !== 'image') return;
+    this.imageViewer()?.tryStartOffCanvasDraw(event);
+  }
+
   onRegionBoxChange(box: RegionBox | null): void {
     this.currentRegionBox = box;
     // Clearing the box also clears any pending bad-vote confirmation;

@@ -613,6 +613,159 @@ describe('ImageViewerComponent', () => {
     });
   });
 
+  // The sideways half of this gesture has always worked, because the letterbox
+  // columns beside a tall image are still inside `.image-wrap`. Below the image
+  // there is no such slack: the toolbar, vote row and metadata tray are siblings
+  // under `.center-panel`, so the panel delegates their mousedowns here.
+  describe('off-canvas draw start (tryStartOffCanvasDraw)', () => {
+    // The wrap is 100x100 at the viewport origin; anything the panel forwards
+    // is by construction outside it, so `contains` is always false here.
+    function setupWrap(component: ImageViewerComponent) {
+      component.renderedW.set(100);
+      component.renderedH.set(100);
+      (component as unknown as { wrapRef: () => ElementRef<HTMLDivElement> }).wrapRef = () => ({
+        nativeElement: {
+          contains: () => false,
+          getBoundingClientRect: () => ({
+            left: 0,
+            top: 0,
+            width: 100,
+            height: 100,
+            right: 100,
+            bottom: 100,
+            x: 0,
+            y: 0,
+            toJSON: () => ({}),
+          }),
+        } as unknown as HTMLDivElement,
+      } as ElementRef<HTMLDivElement>);
+    }
+
+    function eventAt(x: number, y: number, target: HTMLElement, prevented: { value: boolean }): MouseEvent {
+      return {
+        button: 0,
+        clientX: x,
+        clientY: y,
+        target,
+        preventDefault: () => {
+          prevented.value = true;
+        },
+      } as unknown as MouseEvent;
+    }
+
+    let prevented: { value: boolean };
+    let plainTarget: HTMLElement;
+
+    beforeEach(() => {
+      setupWrap(component);
+      prevented = { value: false };
+      plainTarget = document.createElement('div');
+    });
+
+    it('anchors at the nearest point on the image for a drag started BELOW it', () => {
+      component.shiftHeld.set(true);
+      // 40px below the wrap's bottom edge, a third of the way across.
+      component.tryStartOffCanvasDraw(eventAt(30, 140, plainTarget, prevented));
+
+      expect(component.regionBox()).not.toBeNull();
+      expect(component.regionBox()![0]).toBeCloseTo(0.3, 5);
+      expect(component.regionBox()![1]).toBeCloseTo(1, 5);
+    });
+
+    it('anchors at the nearest point for a drag started ABOVE it', () => {
+      component.shiftHeld.set(true);
+      component.tryStartOffCanvasDraw(eventAt(70, -25, plainTarget, prevented));
+
+      expect(component.regionBox()![0]).toBeCloseTo(0.7, 5);
+      expect(component.regionBox()![1]).toBeCloseTo(0, 5);
+    });
+
+    it('preventDefaults so the drag paints no native text selection', () => {
+      component.shiftHeld.set(true);
+      component.tryStartOffCanvasDraw(eventAt(30, 140, plainTarget, prevented));
+      expect(prevented.value).toBe(true);
+    });
+
+    it('works from the sticky Marquee toggle too, with no Shift held', () => {
+      component.marqueeMode.set(true);
+      component.tryStartOffCanvasDraw(eventAt(50, 160, plainTarget, prevented));
+      expect(component.regionBox()).not.toBeNull();
+    });
+
+    it('does nothing when neither Shift nor marquee mode is active', () => {
+      component.tryStartOffCanvasDraw(eventAt(30, 140, plainTarget, prevented));
+      expect(component.regionBox()).toBeNull();
+      expect(prevented.value).toBe(false);
+    });
+
+    // Every click on a control below the image keeps doing exactly what it did
+    // before — including while the sticky Marquee toggle is on, when there is no
+    // modifier to distinguish "draw" from "press the Good button".
+    it('leaves interactive controls alone', () => {
+      component.marqueeMode.set(true);
+      const button = document.createElement('button');
+      component.tryStartOffCanvasDraw(eventAt(30, 140, button, prevented));
+      expect(component.regionBox()).toBeNull();
+      expect(prevented.value).toBe(false);
+    });
+
+    // The tray is the bottom of the panel, far from the image and full of text
+    // people select by dragging; it is out of the draw zone entirely, prose and
+    // controls alike.
+    it('leaves the whole metadata tray alone, not just its controls', () => {
+      component.marqueeMode.set(true);
+      const tray = document.createElement('div');
+      tray.className = 'metadata-tray';
+      const value = document.createElement('span');
+      value.className = 'metadata-value';
+      tray.appendChild(value);
+      component.tryStartOffCanvasDraw(eventAt(30, 190, value, prevented));
+      expect(component.regionBox()).toBeNull();
+      expect(prevented.value).toBe(false);
+    });
+
+    it('leaves a control alone when the mousedown lands on a child of it', () => {
+      component.marqueeMode.set(true);
+      const button = document.createElement('button');
+      const icon = document.createElement('span');
+      button.appendChild(icon);
+      component.tryStartOffCanvasDraw(eventAt(30, 140, icon, prevented));
+      expect(component.regionBox()).toBeNull();
+    });
+
+    it('ignores an event that bubbled up from inside the canvas', () => {
+      component.shiftHeld.set(true);
+      (component as unknown as { wrapRef: () => ElementRef<HTMLDivElement> }).wrapRef = () => ({
+        nativeElement: {
+          contains: () => true,
+          getBoundingClientRect: () => ({
+            left: 0, top: 0, width: 100, height: 100, right: 100, bottom: 100, x: 0, y: 0, toJSON: () => ({}),
+          }),
+        } as unknown as HTMLDivElement,
+      } as ElementRef<HTMLDivElement>);
+
+      component.tryStartOffCanvasDraw(eventAt(30, 30, plainTarget, prevented));
+      // The wrap's own handler already owns this one; starting a second draw
+      // here would overwrite `previousBox` with the anchor it just set.
+      expect(component.regionBox()).toBeNull();
+    });
+
+    it('ignores a non-primary button', () => {
+      component.shiftHeld.set(true);
+      const ev = { ...eventAt(30, 140, plainTarget, prevented), button: 2 } as unknown as MouseEvent;
+      component.tryStartOffCanvasDraw(ev);
+      expect(component.regionBox()).toBeNull();
+    });
+
+    it('restores the prior box on a zero-area off-canvas click', () => {
+      component.regionBox.set([0.1, 0.1, 0.6, 0.6]);
+      component.shiftHeld.set(true);
+      component.tryStartOffCanvasDraw(eventAt(30, 140, plainTarget, prevented));
+      window.dispatchEvent(new MouseEvent('mouseup'));
+      expect(component.regionBox()).toEqual([0.1, 0.1, 0.6, 0.6]);
+    });
+  });
+
   describe('best-match highlight overlay', () => {
     it('starts off and flips on toggle', () => {
       expect(component.highlightMode()).toBe(false);

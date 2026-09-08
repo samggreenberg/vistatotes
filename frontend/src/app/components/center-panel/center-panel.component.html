@@ -1,4 +1,9 @@
-<div class="center-panel" [class.empty]="!media()">
+<div
+  class="center-panel"
+  [class.empty]="!media()"
+  [class.region-draw]="regionDrawActive"
+  (mousedown)="onPanelMouseDown($event)"
+>
   @if (!media()) {
     <p class="placeholder-text">Select a media item to view</p>
   } @else {

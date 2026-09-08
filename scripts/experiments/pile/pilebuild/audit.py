@@ -95,6 +95,32 @@ def negative_pool_problems(ds: str, medias: dict) -> list[str]:
     return problems
 
 
+def boxes_imply_band(boxes: list[list[float]], lo: float, hi: float) -> bool:
+    """Does this cell's stored geometry imply the band its name claims?
+
+    Two readings are accepted, because since #3726 a cell carries **every**
+    instance of its class while the band comes from the one the reviewer
+    designated -- which `apply_corrections` puts at the head of the list. The
+    union was the only reading before that, and 37 of 7,500 boxes failed this
+    check on the first rebuild afterwards: the data was right and the check was
+    still asserting the pre-#3726 invariant.
+
+    **Accepting either does not weaken what this exists to catch.** It is a
+    coordinate-space check (#3281): a box normalised twice is ~500x too small
+    and sits on the frame origin, so it lands in no band under either reading.
+    What it stops asserting is *which* instance the band was taken from -- a
+    fact the media dict does not record. Recording it is the right fix; until
+    then, inferring it here would be guessing.
+    """
+    if not boxes:
+        return True
+    union = (max(b[2] for b in boxes) - min(b[0] for b in boxes)) * (
+        max(b[3] for b in boxes) - min(b[1] for b in boxes)
+    )
+    designated = (boxes[0][2] - boxes[0][0]) * (boxes[0][3] - boxes[0][1])
+    return lo <= union < hi or lo <= designated < hi
+
+
 def coco_held_by() -> dict[int, list[str]]:
     """``VG image id -> the classes of C COCO annotates it with``, empty for none.
 
@@ -254,17 +280,15 @@ def verify() -> int:
                 boxes = [r["box"] for r in (m.get("regions") or []) if r.get("label") == cell]
                 if not boxes:
                     continue
-                area = (max(b[2] for b in boxes) - min(b[0] for b in boxes)) * (
-                    max(b[3] for b in boxes) - min(b[1] for b in boxes)
-                )
                 lo, hi = pc.BOX_BANDS[cell.rsplit("@", 1)[1]]
                 checked += 1
-                if not (lo <= area < hi):
+                if not boxes_imply_band(boxes, lo, hi):
                     bad += 1
         if checked and bad:
             problems.append(
                 f"{ds} x {emb}: {bad}/{checked} region boxes fall outside the band their cell "
-                f"name claims -- boxes and bands were measured in different pixel spaces"
+                f"name claims, by the union AND by the designated box -- boxes and bands were "
+                f"measured in different pixel spaces"
             )
         # The band check above compares a box against its own label, so it is
         # blind to a box corrupted BEFORE banding -- the band moves with it and

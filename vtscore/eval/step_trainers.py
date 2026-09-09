@@ -39,6 +39,7 @@ from vtscore.eval.step_model import (
     StepModel,
     good_training_vec,
     resolve_hidden_dim,
+    resolve_trainer_name,
     score_sim_set_with_model,
 )
 from vtscore.eval.sweep_trainers import _cross_calibrated_threshold, _parse_trainer_spec
@@ -249,6 +250,12 @@ def _train_and_calibrate(
     With an explicit *style_obj* (app pipeline only) the vote-to-vector assembly
     is delegated to the style (see :func:`_style_train_and_calibrate`).
     """
+    # Normalise here rather than trusting the caller: this dispatcher is reached
+    # directly (tests, the skyline arms) as well as through
+    # ``simulate_voting_iterations``, and an un-normalised ``"mlp"`` would fall
+    # through to the standalone-SVM branch and quietly measure the wrong thing
+    # (issue #3764).
+    trainer = resolve_trainer_name(trainer)
     if style_obj is not None:
         return _style_train_and_calibrate(
             style_obj,

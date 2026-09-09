@@ -101,9 +101,9 @@ def test_unknown_head_is_rejected_early():
         vi.simulate_voting_iterations(medias, target_category="cat0", seed=0, head="logreg", max_steps=1)
 
 
-def test_head_does_not_apply_to_the_svm_trainer():
+def test_head_does_not_apply_to_a_standalone_estimator():
     medias, _ = _planted_dataset(n_per_cat=6, seed=0)
-    with pytest.raises(ValueError, match="only applies to the production trainer"):
+    with pytest.raises(ValueError, match="only applies to trainer='app'"):
         vi.simulate_voting_iterations(
             medias, target_category="cat0", seed=0, trainer="svm_linear", head="linear", max_steps=1
         )
@@ -136,7 +136,7 @@ def test_linear_head_reaches_the_final_model_and_the_calibration_folds(style, he
     style_obj = None if style is None else resolve_style(style)
 
     step, threshold, _n, _timings, _details = step_trainers._train_and_calibrate(
-        "mlp",
+        "app",
         good_votes,
         bad_votes,
         medias,
@@ -166,7 +166,7 @@ def test_linear_head_reaches_the_final_model_and_the_calibration_folds(style, he
 def _default_arm_step(medias):
     good_votes, bad_votes = _votes(medias)
     return step_trainers._train_and_calibrate(
-        "mlp",
+        "app",
         good_votes,
         bad_votes,
         medias,
@@ -196,7 +196,7 @@ def test_the_mlp_arm_is_still_reachable_by_name():
     good_votes, bad_votes = _votes(medias)
 
     step, _threshold, n_labels, _t, _d = step_trainers._train_and_calibrate(
-        "mlp",
+        "app",
         good_votes,
         bad_votes,
         medias,

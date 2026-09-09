@@ -94,7 +94,7 @@ def _ident(cat, seed, t, embedder, style):
         "dataset": "vg_selftest",
         "category": cat,
         "strategy": "autopilot",
-        "trainer": "mlp",
+        "trainer": "app",
         "head": "linear_svm",
         "style": style,
         "embedder": embedder,

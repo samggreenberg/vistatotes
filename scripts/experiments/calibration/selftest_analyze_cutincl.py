@@ -145,7 +145,7 @@ def _fabricate(results: Path, rng: np.random.Generator) -> None:
                                     "dataset": ds,
                                     "category": cat,
                                     "strategy": "autopilot",
-                                    "trainer": "mlp",
+                                    "trainer": "app",
                                     "head": "linear",
                                     "style": style,
                                     "prevalence_arm": "native",

@@ -131,7 +131,7 @@ def _ident(cat: str, seed: int, t: int, embedder: str, style: str) -> dict:
         "dataset": "visual_genome_m",
         "category": cat,
         "strategy": "autopilot",
-        "trainer": "mlp",
+        "trainer": "app",
         "head": "linear",
         "style": style,
         "prevalence_arm": "natural",

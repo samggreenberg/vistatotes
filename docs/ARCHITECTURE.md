@@ -292,7 +292,7 @@ VTSearch/
 │   │   ├── __main__.py             CLI entry point (python -m vtscore.eval)
 │   │   ├── config.py               EvalConfig / arm definitions
 │   │   ├── runner.py               run_eval() orchestrator
-│   │   ├── trainers.py             Per-arm trainer wrappers
+│   │   ├── sweep_trainers.py       Standalone estimators for the label-curve/timing sweeps
 │   │   ├── patch_styles.py         Patch-scoring arms (max_patch default, whole_image, HAC, …)
 │   │   ├── evt_mixture.py          Gumbel/Normal mixture — the research arm behind the gumbel_* cuts
 │   │   ├── autopilot_flow.py       Ported autopilot loop (the app's TypeScript flow, re-implemented)

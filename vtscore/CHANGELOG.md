@@ -180,6 +180,25 @@ instead, since every commit on `dev` is effectively a new app release.)
 
 ### Changed
 
+- **The voting simulation's app arm is now `trainer="app"`, not `trainer="mlp"`**
+  (issue #3764). `vtscore.eval.voting_iterations.simulate_voting_iterations`
+  takes two knobs that both read as "which model?", and they used to collide on
+  the string `"mlp"`. `trainer` picks the **pipeline** — `"app"` is VTSearch's
+  own (`train_model` plus production fold calibration), anything `svm_*` is a
+  standalone estimator that thresholds itself — while `head` picks **what that
+  pipeline fits**, defaulting to the shipped `linear_svm`. So the old
+  `trainer="mlp"` trained no MLP, and meant something different again from
+  `SWEEP_TRAINERS["mlp"]` in the label-curve sweep, which genuinely is one.
+
+  The retired spelling is still accepted on input and normalised to `"app"`, so
+  archived launch scripts keep running unchanged; the `trainer` **result column
+  now records `app`**, which is the one visible break. Frames written before
+  this change keep the old value, so read a mixed corpus through a normalising
+  load (`scripts/experiments/mlp_vs_svm/summarize.py` does exactly that).
+
+  The error raised for `head=` on a standalone estimator now says which knob
+  the caller wanted.
+
 - **`JOB_MANAGERS` is now the single registry of every module-level
   `JobManager`, with visibility carried by the manager** (issue #3404). It
   previously held only the managers surfaced by `/api/jobs/active`, which
@@ -283,6 +302,17 @@ instead, since every commit on `dev` is effectively a new app release.)
   public API with no in-repo caller, and is documented as such.
 
 ### Deprecated
+
+- **`vtscore.eval.trainers` has moved to `vtscore.eval.sweep_trainers`**
+  (issue #3764). The package had two registries called "trainers": the
+  standalone estimators the label-curve and timing sweeps compare, and the
+  per-step pipelines the voting simulation runs (`vtscore.eval.step_trainers`).
+  The first is now named for its sweep, and its registry constant `TRAINERS` is
+  `SWEEP_TRAINERS`.
+
+  `vtscore.eval.trainers` remains as a thin re-export — including `TRAINERS` as
+  an alias — so existing imports keep working unchanged. New code should import
+  `vtscore.eval.sweep_trainers` directly.
 
 - **`vtscore.state.coverage_atlas` and `vtscore.state.near_dupes` have moved**
   (issue #3391). Both were pure algorithms filed under `state/`: neither

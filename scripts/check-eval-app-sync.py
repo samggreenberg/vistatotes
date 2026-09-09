@@ -300,7 +300,7 @@ MIRRORS: list[Mirror] = [
             "for step (fold calibration, full-data fit, fold-anchored threshold). A new stage "
             "here - or a changed fold rule or ordering - has to reach the harness or its "
             "default arm trains a detector the app no longer ships. Note "
-            "_mlp_train_and_calibrate is the single-vector path and reproduces the same shape. "
+            "_app_train_and_calibrate is the single-vector path and reproduces the same shape. "
             "The head is the one knob mirrored by name: this function's `hidden_dim` must equal "
             "`resolve_hidden_dim(step_model.PRODUCTION_HEAD, ...)`, which "
             "tests_lib/detectors/test_harness_linear_head.py pins by training this pipeline for "

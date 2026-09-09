@@ -5,7 +5,9 @@ then the linear (logistic) head; the live detector now trains a **linear SVM**.
 Measuring a shipped default like ``safe_thresholds`` on the wrong head measures
 the wrong product, so an unspecified ``head`` resolves to
 :data:`~vtscore.eval.voting_iterations.PRODUCTION_HEAD` and ``head="linear"`` /
-``head="mlp"`` are the explicitly-named legacy arms.
+``head="mlp"`` are the explicitly-named legacy arms.  (``head`` picks what the
+app-pipeline trainer fits; the ``trainer`` knob beside it picks the pipeline -
+see issue #3764.)
 
 These tests pin the three things that make a default run faithful:
 
@@ -47,6 +49,19 @@ def test_resolve_hidden_dim_maps_heads_to_sentinels():
     assert step_model.resolve_hidden_dim("mlp", 40) == _auto_hidden_dim(40)
     with pytest.raises(ValueError, match="unknown head"):
         step_model.resolve_hidden_dim("logreg", 40)
+
+
+def test_resolve_trainer_name_normalises_the_retired_mlp_spelling():
+    """#3764: ``"mlp"`` named the app pipeline, whose default head is the SVM.
+
+    The alias is accepted on input so archived launch scripts keep running;
+    everything downstream sees exactly one spelling.
+    """
+    assert step_model.resolve_trainer_name("mlp") == step_model.APP_TRAINER == "app"
+    assert step_model.resolve_trainer_name("app") == "app"
+    # Standalone estimators pass through untouched - they are not the app arm.
+    assert step_model.resolve_trainer_name("svm_linear") == "svm_linear"
+    assert step_model.resolve_trainer_name("svm_rbf@C=3") == "svm_rbf@C=3"
 
 
 def test_the_default_head_is_the_head_the_app_trains(monkeypatch):

@@ -24,7 +24,7 @@ import argparse
 import sys
 from typing import TYPE_CHECKING, Any
 
-from vtscore.eval.label_curve import TRAINERS, run_label_curve_eval, summarise
+from vtscore.eval.label_curve import SWEEP_TRAINERS, run_label_curve_eval, summarise
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -79,7 +79,7 @@ def main(argv: list[str] | None = None) -> int:
         "--trainers",
         nargs="+",
         default=["mlp", "svm_linear"],
-        choices=sorted(TRAINERS),
+        choices=sorted(SWEEP_TRAINERS),
         help="Which trainers to compare (default: mlp svm_linear).",
     )
     parser.add_argument(

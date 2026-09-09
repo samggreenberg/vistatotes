@@ -13,7 +13,7 @@ import numpy as np
 import pytest
 
 from vtscore.eval.timing_benchmark import run_timing_benchmark
-from vtscore.eval.trainers import _as_scores, _parse_trainer_spec, resolve_trainer
+from vtscore.eval.sweep_trainers import _as_scores, _parse_trainer_spec, resolve_trainer
 from vtscore.eval.voting_columns import TIMING_COLUMNS
 from vtscore.eval.voting_iterations import (
     _downsample_to_prevalence,
@@ -136,16 +136,35 @@ class TestTrainerResolver:
 
 
 class TestTrainerPluggableVoting:
-    def test_mlp_is_the_default_and_deterministic(self):
+    def test_app_pipeline_is_the_default_and_deterministic(self):
         clips = _separable_clips(seed=1)
         rows_default = simulate_voting_iterations(clips, "cat0", seed=3, max_steps=25)
-        rows_explicit = simulate_voting_iterations(clips, "cat0", seed=3, max_steps=25, trainer="mlp")
+        rows_explicit = simulate_voting_iterations(clips, "cat0", seed=3, max_steps=25, trainer="app")
         rerun = simulate_voting_iterations(clips, "cat0", seed=3, max_steps=25)
-        # Omitting `trainer` must equal trainer="mlp", and a rerun must reproduce,
+        # Omitting `trainer` must equal trainer="app", and a rerun must reproduce,
         # on every non-timing column (wall-clock columns vary run to run).  This
-        # guards against silent drift in the production MLP path.
+        # guards against silent drift in the app-pipeline path.
         assert _drop_timing(rows_default) == _drop_timing(rows_explicit)
         assert _drop_timing(rows_default) == _drop_timing(rerun)
+        assert rows_default[-1]["trainer"] == "app"
+
+    def test_legacy_mlp_trainer_name_still_resolves_to_the_app_pipeline(self):
+        """#3764: ``trainer="mlp"`` was the app pipeline, not an MLP.
+
+        The spelling stays accepted so archived launch scripts keep running, but
+        it is normalised on the way in, so result rows carry exactly one name.
+        """
+        clips = _separable_clips(seed=1)
+        rows_legacy = simulate_voting_iterations(clips, "cat0", seed=3, max_steps=25, trainer="mlp")
+        rows_new = simulate_voting_iterations(clips, "cat0", seed=3, max_steps=25, trainer="app")
+        assert _drop_timing(rows_legacy) == _drop_timing(rows_new)
+        assert rows_legacy[-1]["trainer"] == "app"
+
+    def test_head_is_rejected_on_a_standalone_estimator(self):
+        """``head=`` names what the app pipeline fits; an SVM arm has no head."""
+        clips = _separable_clips(seed=1)
+        with pytest.raises(ValueError, match="only applies to trainer='app'"):
+            simulate_voting_iterations(clips, "cat0", seed=0, max_steps=5, trainer="svm_linear", head="linear")
 
     def test_new_columns_present(self):
         clips = _separable_clips(seed=1)
@@ -182,8 +201,8 @@ class TestTrainerPluggableVoting:
 
     def test_run_eval_sweeps_trainers(self):
         clips = {"toy": _separable_clips(seed=1)}
-        df = run_voting_iterations_eval(clips, seeds=[0], max_steps=20, trainers=["mlp", "svm_linear", "svm_rbf"])
-        assert set(df["trainer"].unique()) == {"mlp", "svm_linear", "svm_rbf"}
+        df = run_voting_iterations_eval(clips, seeds=[0], max_steps=20, trainers=["app", "svm_linear", "svm_rbf"])
+        assert set(df["trainer"].unique()) == {"app", "svm_linear", "svm_rbf"}
 
 
 # ---------------------------------------------------------------------------

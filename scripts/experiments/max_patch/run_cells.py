@@ -168,7 +168,7 @@ def main(argv: list[str] | None = None) -> int:
             region_voting=cfg.REGION_VOTING,
             max_steps=cfg.MAX_STEPS,
             seed_scores=seed_scores,
-            trainer="mlp",
+            trainer="app",
             style=style,
         )
         for r in rows:

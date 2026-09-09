@@ -225,7 +225,7 @@ class TestSimulateVotingIterations:
         for row in rows:
             assert set(row.keys()) == set(VOTING_COLUMNS)
             assert row["strategy"] == "autopilot"
-            assert row["trainer"] == "mlp"
+            assert row["trainer"] == "app"
             assert row["prevalence_arm"] == "natural"
 
     def test_vote_counts_reported(self):

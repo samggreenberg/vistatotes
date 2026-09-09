@@ -36,10 +36,11 @@ class StepModel:
 
     ``predict`` maps an ``(N, D)`` numpy embedding matrix to per-row
     ``P(positive)`` scores in ``[0, 1]`` — the trainer-agnostic scoring contract
-    (identical to :data:`vtscore.eval.trainers.PredictFn`).  ``torch_model`` is
-    set only for the MLP path, where region-aware datasets need the raw module
-    to max-pool over patch regions; it is ``None`` for the SVM path (which the
-    experiment only ever runs on single-vector, region-free datasets).
+    (identical to :data:`vtscore.eval.sweep_trainers.PredictFn`).  ``torch_model``
+    is set only on the app-pipeline path (:data:`APP_TRAINER`), where
+    region-aware datasets need the raw torch module to max-pool over patch
+    regions; it is ``None`` for the standalone-SVM path (which the experiment
+    only ever runs on single-vector, region-free datasets).
     ``backend``/``device`` are recorded on every result row so the report can
     say which engine produced each number.
     """
@@ -50,8 +51,10 @@ class StepModel:
     device: str
 
 
-#: Head choices for the harness's per-step ranker, all three reached through
-#: the same ``hidden_dim`` sentinel production threads.  ``"linear_svm"`` is the
+#: Head choices for the app-pipeline trainer (:data:`APP_TRAINER`), all three
+#: reached through the same ``hidden_dim`` sentinel production threads.  This is
+#: *which classifier head the shipped pipeline fits*, a different question from
+#: the ``trainer`` knob beside it, which selects the pipeline itself.  ``"linear_svm"`` is the
 #: head the live detector trains (:data:`~vtscore.training.mlp.LINEAR_SVM_HEAD`,
 #: a single ``Linear(d, 1)`` fitted to the maximum-margin boundary), so a
 #: ``"linear_svm"`` run measures the shipped detector.  ``"linear"`` is the same
@@ -62,6 +65,34 @@ class StepModel:
 #: the calibration folds too, exactly as production threads one sentinel through
 #: ``_train_and_score_xy``.
 HEADS: tuple[str, ...] = ("mlp", "linear", "linear_svm")
+
+
+#: The voting simulation's ``trainer`` value naming the **app's own pipeline**:
+#: :func:`vtscore.eval.step_trainers._app_train_and_calibrate` (or its style-aware
+#: sibling), i.e. :func:`vtscore.training.mlp.train_model` plus production fold
+#: calibration.  Which *head* that pipeline fits is a separate knob (``head=``,
+#: see :data:`HEADS`), defaulting to :data:`PRODUCTION_HEAD`.
+#:
+#: It was spelled ``"mlp"`` until issue #3764, which was doubly misleading: the
+#: arm trains no MLP by default (its head is the linear SVM), and the *other*
+#: eval registry, :data:`vtscore.eval.sweep_trainers.SWEEP_TRAINERS`, uses the
+#: same string for an arm that genuinely is one.  The old spelling is still
+#: accepted as an input alias (:func:`resolve_trainer_name`) so archived launch
+#: scripts keep running; result rows record the new name.
+APP_TRAINER: str = "app"
+
+#: Pre-#3764 spelling of :data:`APP_TRAINER`, accepted on input only.
+LEGACY_APP_TRAINER: str = "mlp"
+
+
+def resolve_trainer_name(trainer: str) -> str:
+    """Normalise a voting-simulation ``trainer`` value.
+
+    Maps the retired ``"mlp"`` spelling onto :data:`APP_TRAINER` and passes
+    every other name (the ``svm_*`` standalone estimators) through untouched, so
+    exactly one spelling reaches the dispatch, the guards, and the result rows.
+    """
+    return APP_TRAINER if trainer == LEGACY_APP_TRAINER else trainer
 
 
 #: The head the **app** trains, and therefore the harness's default arm:

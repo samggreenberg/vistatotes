@@ -71,7 +71,7 @@ def _cell(stage: str, arm: str, emb: str, style: str, cat: str, seed: int, n_hay
             "dataset": "vg_scale_any",
             "category": cat,
             "strategy": "autopilot",
-            "trainer": "mlp",
+            "trainer": "app",
             "head": "linear_svm",
             "style": style,
             "prevalence_arm": "",

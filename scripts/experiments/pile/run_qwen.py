@@ -58,7 +58,7 @@ def main() -> int:
     ap.add_argument("--out", required=True)
     ap.add_argument("--model", default="Qwen/Qwen2.5-VL-7B-Instruct")
     ap.add_argument("--limit", type=int, default=0)
-    ap.add_argument("--max-new-tokens", type=int, default=1024)
+    ap.add_argument("--max-new-tokens", type=int, default=3072)
     args = ap.parse_args()
 
     import torch  # noqa: PLC0415
@@ -91,6 +91,10 @@ def main() -> int:
         # the frame the vision tower saw: grid is in 14px patch units
         grid = inputs["image_grid_thw"][0].tolist()
         rh, rw = grid[1] * 14, grid[2] * 14
+        # a generation that ran out of budget loses its closing bracket, and
+        # then parses to nothing at all -- which reads as "saw nothing"
+        # rather than "was cut off". Record it instead of inferring it.
+        trunc = not reply.rstrip().endswith(("]", "```"))
         dets = []
         for d in parse_dets(reply):
             x0, y0, x1, y1 = d["box_px"]
@@ -99,7 +103,7 @@ def main() -> int:
                 oob += 1
                 continue
             dets.append({"label": d["label"], "box": [round(min(max(v, 0.0), 1.0), 5) for v in nb]})
-        out.write(json.dumps({**r, "resized": [rw, rh], "dets": dets, "raw": reply[:400]}) + "\n")
+        out.write(json.dumps({**r, "resized": [rw, rh], "truncated": trunc, "dets": dets, "raw": reply}) + "\n")
         out.flush()
         done += 1
         if i % 25 == 0:

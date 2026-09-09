@@ -1,0 +1,35 @@
+{
+ "clean_total": 45769,
+ "provable_available": 21121,
+ "silent_available": 24648,
+ "positives_designated": 7149,
+ "positives_coco_anchored": 4085,
+ "positives_coco_fraction": 0.5714,
+ "today": {
+  "n": 3860,
+  "provable": 1842,
+  "provable_fraction": 0.4772
+ },
+ "compositions": {
+  "9900": {
+   "all_provable": {
+    "n": 9900,
+    "provable": 9900,
+    "silent": 0,
+    "feasible": true,
+    "coco_fraction": 1.0,
+    "silence_share": 0.0,
+    "floor_vs_today": 0.0
+   },
+   "matched": {
+    "n": 9900,
+    "provable": 5657,
+    "silent": 4243,
+    "feasible": true,
+    "coco_fraction": 0.5714,
+    "silence_share": 0.4286,
+    "floor_vs_today": 0.82
+   }
+  }
+ }
+}

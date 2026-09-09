@@ -70,7 +70,7 @@ care.
 
 ## Library tier — god modules & misplaced code
 
-- [ ] #3396 — Move `evt_mixture.py` out of the shipped `vtscore/training/` surface (Haiku 4.5)
+- [x] #3396 — Move `evt_mixture.py` out of the shipped `vtscore/training/` surface (Haiku 4.5)
 
 ## Library tier — duplication
 
@@ -93,7 +93,7 @@ care.
 
 ## Layering & host seams
 
-- [ ] #3385 — Give the app-to-library host seams a shared test reset (Sonnet 5)
+- [x] #3385 — Give the app-to-library host seams a shared test reset (Sonnet 5)
 - [ ] #3388 — Drive `PluginBase` auto-derivation from family-base opt-in instead of three hardcoded tables (Opus 4.8)
 
 ## App tier — settings
@@ -104,22 +104,22 @@ care.
 ## App tier — routes, schemas, facades
 
 - [x] #3420 — Split `routes/_shared.py`: nine unrelated modules in one 866-line file (Haiku 4.5)
-- [ ] #3427 — Register one dynamic plugin route and generate its bodies at spec-build time (Opus 4.8)
-- [ ] #3438 — Small app-tier batch: exempt prefixes as a route attribute, plus the orphan-endpoint decision (Sonnet 5)
+- [x] #3427 — Register one dynamic plugin route and generate its bodies at spec-build time (Opus 4.8)
+- [x] #3438 — Small app-tier batch: exempt prefixes as a route attribute, plus the orphan-endpoint decision (Sonnet 5)
 
 ## Eval harness & experiments
 
-- [ ] #3407 — Eight hand-rolled `load_cells` copies, and the live `bench_cells._SIDECARS` regression (Sonnet 5)
-- [ ] #3411 — Experiment runners: `_neutralise_editable_finder` forked four ways (Sonnet 5)
-- [ ] #3414 — The Smart-indicator FP/FN cost loop is a mirror that doesn't need to be one (Opus 4.8)
+- [x] #3407 — Eight hand-rolled `load_cells` copies, and the live `bench_cells._SIDECARS` regression (Sonnet 5)
+- [x] #3411 — Experiment runners: `_neutralise_editable_finder` forked four ways (Sonnet 5)
+- [x] #3414 — The Smart-indicator FP/FN cost loop is a mirror that doesn't need to be one (Opus 4.8)
 
 ## Frontend — duplication & dead code
 
-- [ ] #3499 — `BrowseMinimapComponent`'s floating mode looks entirely unreachable (Sonnet 5). Found while doing #3441, not by the audit sweep: `resized` was only the visible half of it.
+- [x] #3499 — `BrowseMinimapComponent`'s floating mode looks entirely unreachable (Sonnet 5). Found while doing #3441, not by the audit sweep: `resized` was only the visible half of it.
 
 ## Frontend — state & idiom consistency
 
-- [ ] #3447 — Per-media-type settings preferences hand-rolled in 14 components (Opus 4.8)
+- [x] #3447 — Per-media-type settings preferences hand-rolled in 14 components (Opus 4.8)
 
 ## Tests & tooling
 

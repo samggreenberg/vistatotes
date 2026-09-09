@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, NamedTuple
 
 import numpy as np
 
@@ -851,18 +851,46 @@ def maybe_labelset_structural_rerank(
     )
 
 
+class Haystack(NamedTuple):
+    """A calibration population that is not the label-resolution snapshot.
+
+    ``medias`` is the snapshot the fold-anchored cut is realized on, and
+    ``to_source`` maps each of its ids back to the id in *snap* it descends
+    from - the identity for a snapshot that is just *snap* renumbered, the
+    parent media for every converter output or re-clip sub-item.  The mapping
+    is what lets the vote exclusion (#3308) still name the labelled items after
+    routing has thrown their ids away.
+    """
+
+    medias: dict[int, dict[str, Any]]
+    to_source: dict[int, int]
+
+
 def train_from_labelset(
     det_ctx,
     labelset: LabelSet,
     *,
     media_type: str,
     snap: dict[int, dict[str, Any]] | None,
+    haystack_for: "Callable[[str], Haystack | None] | None" = None,
     on_progress: ProgressCallback | None = None,
 ) -> bool:
     """Populate the embedding cache, build (X, y), train, and store on *det_ctx*.
 
     Returns ``True`` when an MLP was trained (need ≥1 good and ≥1 bad cached
     vector); otherwise leaves ``det_ctx.model`` untouched.
+
+    *snap* does two jobs, and a caller that scores something other than what it
+    loaded needs them separated.  It is the snapshot the labelset's elements
+    are resolved against, and it is the haystack the threshold is calibrated
+    on.  For the GUI those are the same set - it scores the dataset it loaded -
+    but the CLI converts, re-clips and re-embeds before scoring, so calibrating
+    on *snap* would realize the cut's quantile on a population inference never
+    sees (issue #3647).  Such a caller passes *haystack_for*, which is invoked
+    **after** the labels are embedded - so it is handed ``det_ctx.embedder``,
+    the space they turned out to land in, which is the very thing a routing
+    decision needs and which does not exist before this call.  Returning
+    ``None`` from it keeps *snap* as the haystack.
     """
     populate_label_embeddings(
         det_ctx,
@@ -883,6 +911,12 @@ def train_from_labelset(
     # labels were embedded in; score the safe-threshold pass in that same space.
     # Pass det_ctx so the fold orderings are cached for a no-retrain Inclusion
     # slide (otherwise the slide can't move the cutoff — see train_and_threshold).
+    haystack = haystack_for(det_ctx.embedder or "") if haystack_for is not None else None
+    voted_ids = labeled_media_ids(labelset, snap)
+    if haystack is not None:
+        # The haystack's ids are its own; name the labelled items in them.
+        voted_ids = {hid for hid, src in haystack.to_source.items() if src in voted_ids}
+
     mlp, threshold = train_and_threshold(
         X_list,
         y_list,
@@ -891,7 +925,8 @@ def train_from_labelset(
         det_ctx=det_ctx,
         groups=groups,
         score_rows=score_rows,
-        voted_ids=labeled_media_ids(labelset, snap),
+        voted_ids=voted_ids,
+        haystack=haystack.medias if haystack is not None else None,
     )
     det_ctx.model = mlp
     det_ctx.threshold = threshold

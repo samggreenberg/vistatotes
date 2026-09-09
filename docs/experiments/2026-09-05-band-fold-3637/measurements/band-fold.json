@@ -1,0 +1,1548 @@
+{
+ "meta": {
+  "inflation": [
+   1.2,
+   1.5,
+   2.0,
+   3.0,
+   5.0
+  ],
+  "band_max_inflation": 1.5
+ },
+ "truth": {
+  "overlap_images": 51411,
+  "skipped_aspect_drift": 87,
+  "seen": {
+   "all": 9996,
+   "unband": 225,
+   "move": 30
+  },
+  "agreement": {
+   "fold": {
+    "all": 7639,
+    "unband": 197,
+    "move": 8
+   },
+   "guarded": {
+    "all": 7457,
+    "unband": 15,
+    "move": 8
+   },
+   "additive": {
+    "all": 7453,
+    "unband": 15,
+    "move": 4
+   }
+  },
+  "truth_says": {
+   "unband": {
+    "scattered": 194,
+    "large": 16,
+    "medium": 9,
+    "oversize": 5,
+    "small": 1
+   },
+   "move": {
+    "large": 7,
+    "scattered": 17,
+    "medium": 2,
+    "oversize": 1,
+    "small": 3
+   }
+  },
+  "unband_by_class": {
+   "clock": {
+    "scattered": 28,
+    "large": 1
+   },
+   "bird": {
+    "scattered": 24,
+    "oversize": 1,
+    "large": 2,
+    "medium": 1
+   },
+   "boat": {
+    "scattered": 55,
+    "large": 6,
+    "medium": 2
+   },
+   "umbrella": {
+    "scattered": 15
+   },
+   "kite": {
+    "large": 2,
+    "scattered": 21
+   },
+   "book": {
+    "scattered": 7,
+    "medium": 3
+   },
+   "dog": {
+    "scattered": 14,
+    "large": 3,
+    "oversize": 1
+   },
+   "backpack": {
+    "scattered": 4,
+    "medium": 1
+   },
+   "knife": {
+    "scattered": 4
+   },
+   "bicycle": {
+    "scattered": 9,
+    "small": 1,
+    "large": 1
+   },
+   "bus": {
+    "scattered": 13,
+    "medium": 2,
+    "oversize": 3,
+    "large": 1
+   }
+  },
+  "anchor_unbands": {
+   "banded_by_vg": 11156,
+   "unbanded_by_coco": 1853,
+   "moved_by_coco": 690,
+   "absent_in_coco": 1160
+  },
+  "inflation": {
+   "1.2": {
+    "contested": 234,
+    "truth_scatters": 210
+   },
+   "1.5": {
+    "contested": 220,
+    "truth_scatters": 193
+   },
+   "2.0": {
+    "contested": 171,
+    "truth_scatters": 149
+   },
+   "3.0": {
+    "contested": 105,
+    "truth_scatters": 90
+   },
+   "5.0": {
+    "contested": 53,
+    "truth_scatters": 42
+   }
+  }
+ },
+ "supply": {
+  "fold": {
+   "folded": {
+    "backpack": 57,
+    "bicycle": 131,
+    "bird": 607,
+    "boat": 602,
+    "book": 181,
+    "bus": 76,
+    "clock": 234,
+    "dog": 151,
+    "kite": 333,
+    "knife": 57,
+    "umbrella": 130
+   },
+   "contested": {
+    "backpack": 5,
+    "bicycle": 19,
+    "bird": 38,
+    "boat": 74,
+    "book": 14,
+    "bus": 5,
+    "clock": 34,
+    "dog": 14,
+    "kite": 34,
+    "knife": 5,
+    "umbrella": 6
+   },
+   "supply": {
+    "clock": {
+     "small": 1338,
+     "medium": 1602,
+     "large": 507
+    },
+    "bird": {
+     "small": 503,
+     "medium": 658,
+     "large": 818
+    },
+    "boat": {
+     "small": 320,
+     "medium": 672,
+     "large": 881
+    },
+    "umbrella": {
+     "small": 281,
+     "medium": 1008,
+     "large": 1010
+    },
+    "kite": {
+     "small": 243,
+     "medium": 604,
+     "large": 357
+    },
+    "book": {
+     "small": 384,
+     "medium": 976,
+     "large": 393
+    },
+    "dog": {
+     "small": 237,
+     "medium": 1089,
+     "large": 1642
+    },
+    "backpack": {
+     "small": 912,
+     "medium": 1682,
+     "large": 243
+    },
+    "knife": {
+     "small": 338,
+     "medium": 1278,
+     "large": 375
+    },
+    "bicycle": {
+     "small": 270,
+     "medium": 890,
+     "large": 628
+    },
+    "bus": {
+     "small": 144,
+     "medium": 816,
+     "large": 2182
+    },
+    "stop sign": {
+     "small": 282,
+     "medium": 426,
+     "large": 298
+    }
+   },
+   "clean": 74614,
+   "under_supplied": {},
+   "churn": {
+    "clock@small": {
+     "kept": 99,
+     "dropped": 1,
+     "dropped_reviewed": 0,
+     "added": 1,
+     "reviewed_designations": 0
+    },
+    "clock@medium": {
+     "kept": 98,
+     "dropped": 2,
+     "dropped_reviewed": 0,
+     "added": 2,
+     "reviewed_designations": 0
+    },
+    "clock@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "bird@small": {
+     "kept": 97,
+     "dropped": 3,
+     "dropped_reviewed": 0,
+     "added": 3,
+     "reviewed_designations": 9
+    },
+    "bird@medium": {
+     "kept": 99,
+     "dropped": 1,
+     "dropped_reviewed": 0,
+     "added": 1,
+     "reviewed_designations": 14
+    },
+    "bird@large": {
+     "kept": 99,
+     "dropped": 1,
+     "dropped_reviewed": 0,
+     "added": 1,
+     "reviewed_designations": 19
+    },
+    "boat@small": {
+     "kept": 92,
+     "dropped": 8,
+     "dropped_reviewed": 0,
+     "added": 8,
+     "reviewed_designations": 1
+    },
+    "boat@medium": {
+     "kept": 96,
+     "dropped": 4,
+     "dropped_reviewed": 0,
+     "added": 4,
+     "reviewed_designations": 1
+    },
+    "boat@large": {
+     "kept": 96,
+     "dropped": 4,
+     "dropped_reviewed": 0,
+     "added": 4,
+     "reviewed_designations": 0
+    },
+    "umbrella@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "umbrella@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 1
+    },
+    "umbrella@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 1
+    },
+    "kite@small": {
+     "kept": 97,
+     "dropped": 3,
+     "dropped_reviewed": 0,
+     "added": 3,
+     "reviewed_designations": 0
+    },
+    "kite@medium": {
+     "kept": 97,
+     "dropped": 3,
+     "dropped_reviewed": 0,
+     "added": 3,
+     "reviewed_designations": 1
+    },
+    "kite@large": {
+     "kept": 98,
+     "dropped": 2,
+     "dropped_reviewed": 0,
+     "added": 2,
+     "reviewed_designations": 1
+    },
+    "book@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "book@medium": {
+     "kept": 97,
+     "dropped": 3,
+     "dropped_reviewed": 0,
+     "added": 3,
+     "reviewed_designations": 0
+    },
+    "book@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 2
+    },
+    "dog@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "dog@medium": {
+     "kept": 98,
+     "dropped": 2,
+     "dropped_reviewed": 0,
+     "added": 2,
+     "reviewed_designations": 1
+    },
+    "dog@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "backpack@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 8
+    },
+    "backpack@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 25
+    },
+    "backpack@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 11
+    },
+    "knife@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "knife@medium": {
+     "kept": 99,
+     "dropped": 1,
+     "dropped_reviewed": 0,
+     "added": 1,
+     "reviewed_designations": 0
+    },
+    "knife@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "bicycle@small": {
+     "kept": 98,
+     "dropped": 2,
+     "dropped_reviewed": 0,
+     "added": 2,
+     "reviewed_designations": 12
+    },
+    "bicycle@medium": {
+     "kept": 99,
+     "dropped": 1,
+     "dropped_reviewed": 0,
+     "added": 1,
+     "reviewed_designations": 12
+    },
+    "bicycle@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 10
+    },
+    "bus@small": {
+     "kept": 99,
+     "dropped": 1,
+     "dropped_reviewed": 0,
+     "added": 1,
+     "reviewed_designations": 1
+    },
+    "bus@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "bus@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "stop sign@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "stop sign@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "stop sign@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    }
+   },
+   "churn_total": {
+    "kept": 3558,
+    "dropped": 42,
+    "dropped_reviewed": 0,
+    "added": 42,
+    "reviewed_designations": 130
+   }
+  },
+  "guarded": {
+   "folded": {
+    "backpack": 51,
+    "bicycle": 106,
+    "bird": 514,
+    "boat": 505,
+    "book": 165,
+    "bus": 69,
+    "clock": 195,
+    "dog": 135,
+    "kite": 283,
+    "knife": 52,
+    "umbrella": 121
+   },
+   "contested": {
+    "backpack": 5,
+    "bicycle": 19,
+    "bird": 38,
+    "boat": 74,
+    "book": 14,
+    "bus": 5,
+    "clock": 34,
+    "dog": 14,
+    "kite": 34,
+    "knife": 5,
+    "umbrella": 6
+   },
+   "supply": {
+    "clock": {
+     "small": 1355,
+     "medium": 1616,
+     "large": 510
+    },
+    "bird": {
+     "small": 521,
+     "medium": 669,
+     "large": 826
+    },
+    "boat": {
+     "small": 334,
+     "medium": 710,
+     "large": 903
+    },
+    "umbrella": {
+     "small": 282,
+     "medium": 1013,
+     "large": 1010
+    },
+    "kite": {
+     "small": 256,
+     "medium": 620,
+     "large": 362
+    },
+    "book": {
+     "small": 389,
+     "medium": 984,
+     "large": 394
+    },
+    "dog": {
+     "small": 240,
+     "medium": 1096,
+     "large": 1646
+    },
+    "backpack": {
+     "small": 914,
+     "medium": 1685,
+     "large": 243
+    },
+    "knife": {
+     "small": 338,
+     "medium": 1283,
+     "large": 375
+    },
+    "bicycle": {
+     "small": 272,
+     "medium": 902,
+     "large": 632
+    },
+    "bus": {
+     "small": 145,
+     "medium": 818,
+     "large": 2184
+    },
+    "stop sign": {
+     "small": 282,
+     "medium": 426,
+     "large": 298
+    }
+   },
+   "clean": 74614,
+   "under_supplied": {},
+   "churn": {
+    "clock@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "clock@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "clock@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "bird@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 9
+    },
+    "bird@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 14
+    },
+    "bird@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 19
+    },
+    "boat@small": {
+     "kept": 99,
+     "dropped": 1,
+     "dropped_reviewed": 0,
+     "added": 1,
+     "reviewed_designations": 1
+    },
+    "boat@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 1
+    },
+    "boat@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "umbrella@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "umbrella@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 1
+    },
+    "umbrella@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 1
+    },
+    "kite@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "kite@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 1
+    },
+    "kite@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 1
+    },
+    "book@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "book@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "book@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 2
+    },
+    "dog@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "dog@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 1
+    },
+    "dog@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "backpack@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 8
+    },
+    "backpack@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 25
+    },
+    "backpack@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 11
+    },
+    "knife@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "knife@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "knife@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "bicycle@small": {
+     "kept": 99,
+     "dropped": 1,
+     "dropped_reviewed": 0,
+     "added": 1,
+     "reviewed_designations": 12
+    },
+    "bicycle@medium": {
+     "kept": 99,
+     "dropped": 1,
+     "dropped_reviewed": 0,
+     "added": 1,
+     "reviewed_designations": 12
+    },
+    "bicycle@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 10
+    },
+    "bus@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 1
+    },
+    "bus@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "bus@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "stop sign@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "stop sign@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "stop sign@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    }
+   },
+   "churn_total": {
+    "kept": 3597,
+    "dropped": 3,
+    "dropped_reviewed": 0,
+    "added": 3,
+    "reviewed_designations": 130
+   }
+  },
+  "additive": {
+   "folded": {
+    "backpack": 46,
+    "bicycle": 79,
+    "bird": 395,
+    "boat": 211,
+    "book": 144,
+    "bus": 32,
+    "clock": 28,
+    "dog": 85,
+    "kite": 77,
+    "knife": 44,
+    "umbrella": 65
+   },
+   "contested": {
+    "backpack": 5,
+    "bicycle": 19,
+    "bird": 38,
+    "boat": 74,
+    "book": 14,
+    "bus": 5,
+    "clock": 34,
+    "dog": 14,
+    "kite": 34,
+    "knife": 5,
+    "umbrella": 6
+   },
+   "supply": {
+    "clock": {
+     "small": 1356,
+     "medium": 1608,
+     "large": 508
+    },
+    "bird": {
+     "small": 522,
+     "medium": 669,
+     "large": 825
+    },
+    "boat": {
+     "small": 338,
+     "medium": 708,
+     "large": 887
+    },
+    "umbrella": {
+     "small": 282,
+     "medium": 1014,
+     "large": 1009
+    },
+    "kite": {
+     "small": 257,
+     "medium": 622,
+     "large": 348
+    },
+    "book": {
+     "small": 389,
+     "medium": 984,
+     "large": 394
+    },
+    "dog": {
+     "small": 240,
+     "medium": 1095,
+     "large": 1642
+    },
+    "backpack": {
+     "small": 914,
+     "medium": 1685,
+     "large": 243
+    },
+    "knife": {
+     "small": 338,
+     "medium": 1284,
+     "large": 374
+    },
+    "bicycle": {
+     "small": 273,
+     "medium": 904,
+     "large": 629
+    },
+    "bus": {
+     "small": 145,
+     "medium": 818,
+     "large": 2180
+    },
+    "stop sign": {
+     "small": 282,
+     "medium": 426,
+     "large": 298
+    }
+   },
+   "clean": 74614,
+   "under_supplied": {},
+   "churn": {
+    "clock@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "clock@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "clock@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "bird@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 9
+    },
+    "bird@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 14
+    },
+    "bird@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 19
+    },
+    "boat@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 1
+    },
+    "boat@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 1
+    },
+    "boat@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "umbrella@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "umbrella@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 1
+    },
+    "umbrella@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 1
+    },
+    "kite@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "kite@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 1
+    },
+    "kite@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 1
+    },
+    "book@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "book@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "book@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 2
+    },
+    "dog@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "dog@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 1
+    },
+    "dog@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "backpack@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 8
+    },
+    "backpack@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 25
+    },
+    "backpack@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 11
+    },
+    "knife@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "knife@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "knife@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "bicycle@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 12
+    },
+    "bicycle@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 12
+    },
+    "bicycle@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 10
+    },
+    "bus@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 1
+    },
+    "bus@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "bus@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "stop sign@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "stop sign@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "stop sign@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    }
+   },
+   "churn_total": {
+    "kept": 3600,
+    "dropped": 0,
+    "dropped_reviewed": 0,
+    "added": 0,
+    "reviewed_designations": 130
+   }
+  },
+  "fold@legacy-order": {
+   "folded": {
+    "backpack": 133,
+    "bicycle": 222,
+    "bird": 1284,
+    "boat": 1220,
+    "book": 333,
+    "bus": 178,
+    "clock": 490,
+    "dog": 301,
+    "kite": 646,
+    "knife": 89,
+    "umbrella": 246
+   },
+   "contested": {
+    "backpack": 0,
+    "bicycle": 0,
+    "bird": 0,
+    "boat": 0,
+    "book": 0,
+    "bus": 0,
+    "clock": 0,
+    "dog": 0,
+    "kite": 0,
+    "knife": 0,
+    "umbrella": 0
+   },
+   "supply": {
+    "clock": {
+     "small": 1338,
+     "medium": 1602,
+     "large": 507
+    },
+    "bird": {
+     "small": 503,
+     "medium": 658,
+     "large": 818
+    },
+    "boat": {
+     "small": 320,
+     "medium": 672,
+     "large": 881
+    },
+    "umbrella": {
+     "small": 281,
+     "medium": 1008,
+     "large": 1010
+    },
+    "kite": {
+     "small": 243,
+     "medium": 604,
+     "large": 357
+    },
+    "book": {
+     "small": 384,
+     "medium": 976,
+     "large": 393
+    },
+    "dog": {
+     "small": 237,
+     "medium": 1089,
+     "large": 1642
+    },
+    "backpack": {
+     "small": 912,
+     "medium": 1682,
+     "large": 243
+    },
+    "knife": {
+     "small": 338,
+     "medium": 1278,
+     "large": 375
+    },
+    "bicycle": {
+     "small": 270,
+     "medium": 890,
+     "large": 628
+    },
+    "bus": {
+     "small": 144,
+     "medium": 816,
+     "large": 2182
+    },
+    "stop sign": {
+     "small": 282,
+     "medium": 426,
+     "large": 298
+    }
+   },
+   "clean": 74614,
+   "under_supplied": {},
+   "churn": {
+    "clock@small": {
+     "kept": 99,
+     "dropped": 1,
+     "dropped_reviewed": 0,
+     "added": 1,
+     "reviewed_designations": 0
+    },
+    "clock@medium": {
+     "kept": 98,
+     "dropped": 2,
+     "dropped_reviewed": 0,
+     "added": 2,
+     "reviewed_designations": 0
+    },
+    "clock@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "bird@small": {
+     "kept": 97,
+     "dropped": 3,
+     "dropped_reviewed": 0,
+     "added": 3,
+     "reviewed_designations": 9
+    },
+    "bird@medium": {
+     "kept": 99,
+     "dropped": 1,
+     "dropped_reviewed": 0,
+     "added": 1,
+     "reviewed_designations": 14
+    },
+    "bird@large": {
+     "kept": 99,
+     "dropped": 1,
+     "dropped_reviewed": 0,
+     "added": 1,
+     "reviewed_designations": 19
+    },
+    "boat@small": {
+     "kept": 92,
+     "dropped": 8,
+     "dropped_reviewed": 0,
+     "added": 8,
+     "reviewed_designations": 1
+    },
+    "boat@medium": {
+     "kept": 96,
+     "dropped": 4,
+     "dropped_reviewed": 0,
+     "added": 4,
+     "reviewed_designations": 1
+    },
+    "boat@large": {
+     "kept": 96,
+     "dropped": 4,
+     "dropped_reviewed": 0,
+     "added": 4,
+     "reviewed_designations": 0
+    },
+    "umbrella@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "umbrella@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 1
+    },
+    "umbrella@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 1
+    },
+    "kite@small": {
+     "kept": 97,
+     "dropped": 3,
+     "dropped_reviewed": 0,
+     "added": 3,
+     "reviewed_designations": 0
+    },
+    "kite@medium": {
+     "kept": 97,
+     "dropped": 3,
+     "dropped_reviewed": 0,
+     "added": 3,
+     "reviewed_designations": 1
+    },
+    "kite@large": {
+     "kept": 98,
+     "dropped": 2,
+     "dropped_reviewed": 0,
+     "added": 2,
+     "reviewed_designations": 1
+    },
+    "book@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "book@medium": {
+     "kept": 97,
+     "dropped": 3,
+     "dropped_reviewed": 0,
+     "added": 3,
+     "reviewed_designations": 0
+    },
+    "book@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 2
+    },
+    "dog@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "dog@medium": {
+     "kept": 98,
+     "dropped": 2,
+     "dropped_reviewed": 0,
+     "added": 2,
+     "reviewed_designations": 1
+    },
+    "dog@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "backpack@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 8
+    },
+    "backpack@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 25
+    },
+    "backpack@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 11
+    },
+    "knife@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "knife@medium": {
+     "kept": 99,
+     "dropped": 1,
+     "dropped_reviewed": 0,
+     "added": 1,
+     "reviewed_designations": 0
+    },
+    "knife@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "bicycle@small": {
+     "kept": 98,
+     "dropped": 2,
+     "dropped_reviewed": 0,
+     "added": 2,
+     "reviewed_designations": 12
+    },
+    "bicycle@medium": {
+     "kept": 99,
+     "dropped": 1,
+     "dropped_reviewed": 0,
+     "added": 1,
+     "reviewed_designations": 12
+    },
+    "bicycle@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 10
+    },
+    "bus@small": {
+     "kept": 99,
+     "dropped": 1,
+     "dropped_reviewed": 0,
+     "added": 1,
+     "reviewed_designations": 1
+    },
+    "bus@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "bus@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "stop sign@small": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "stop sign@medium": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    },
+    "stop sign@large": {
+     "kept": 100,
+     "dropped": 0,
+     "dropped_reviewed": 0,
+     "added": 0,
+     "reviewed_designations": 0
+    }
+   },
+   "churn_total": {
+    "kept": 3558,
+    "dropped": 42,
+    "dropped_reviewed": 0,
+    "added": 42,
+    "reviewed_designations": 130
+   }
+  },
+  "reorder_is_a_no_op": true
+ }
+}

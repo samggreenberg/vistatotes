@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Fold filled-in audit verdicts back into the corpus.
 
+    python audit_to_corrections.py --task merge --apply        # the merge slate
     python audit_to_corrections.py --task membership --apply
     python audit_to_corrections.py --task cluster --apply
     python audit_to_corrections.py --task confusable --apply
@@ -274,6 +275,209 @@ def apply_confusable(
     return changes, problems, separations, merges
 
 
+# --------------------------------------------------------------------------
+# The merge slate
+# --------------------------------------------------------------------------
+#
+# `merges.txt` is a partition, not a stream of verdicts, and that is the whole
+# reason the slate is usable: a reviewer states the few groups that are one mark
+# and says nothing about the thousand pairs that obviously are not.  Everything
+# below turns that statement back into the same/different pairs `apply_confusable`
+# already knows how to record, so the merge slate adds an input format and not a
+# second code path through the ground truth.
+
+REVIEWED_ALL = "REVIEWED-ALL"
+
+
+def parse_merge_groups(text: str, n_classes: int) -> tuple[list[dict[str, Any]], bool, list[str]]:
+    """Parse a filled-in ``merges.txt`` into ``(groups, reviewed_all, problems)``.
+
+    A group is a set of slate indices the reviewer says are one mark.  Groups
+    that share an index are **unioned** rather than refused: "3 8" and "8 12" are
+    two observations of one equivalence class, and treating that as a
+    contradiction would punish a reviewer for writing down the same truth twice.
+    Sameness is transitive; the file is allowed to be redundant about it.
+
+    What is refused is anything that cannot be resolved into indices at all --
+    an out-of-range number, a one-element group, a token that is not a number --
+    because each of those is a typo whose silent interpretation would write a
+    wrong permanent merge.
+    """
+    groups: list[dict[str, Any]] = []
+    problems: list[str] = []
+    reviewed_all = False
+
+    for lineno, raw in enumerate(text.splitlines(), start=1):
+        body, _, note = raw.partition("#")
+        body = body.strip()
+        if not body:
+            continue
+        if body.upper() == REVIEWED_ALL:
+            reviewed_all = True
+            continue
+
+        indices: list[int] = []
+        bad = False
+        for token in body.replace(",", " ").split():
+            try:
+                idx = int(token)
+            except ValueError:
+                problems.append(f"line {lineno}: {token!r} is not a slate index")
+                bad = True
+                continue
+            if not 0 <= idx < n_classes:
+                problems.append(f"line {lineno}: index {idx} is outside the slate (0..{n_classes - 1})")
+                bad = True
+                continue
+            indices.append(idx)
+        if bad:
+            continue
+        if len(set(indices)) < 2:
+            problems.append(f"line {lineno}: {body!r} names fewer than two distinct classes — a group needs a pair")
+            continue
+        groups.append({"indices": sorted(set(indices)), "note": note.strip(), "line": lineno})
+
+    return _union_groups(groups), reviewed_all, problems
+
+
+def _union_groups(groups: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Fold groups that share an index into one, keeping every note."""
+    parent: dict[int, int] = {}
+
+    def find(i: int) -> int:
+        parent.setdefault(i, i)
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    def union(a: int, b: int) -> None:
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[min(ra, rb)] = parent[max(ra, rb)] = min(ra, rb)
+
+    for group in groups:
+        head = group["indices"][0]
+        for idx in group["indices"][1:]:
+            union(head, idx)
+
+    merged: dict[int, dict[str, Any]] = {}
+    for group in groups:
+        root = find(group["indices"][0])
+        slot = merged.setdefault(root, {"indices": set(), "notes": [], "lines": []})
+        slot["indices"].update(group["indices"])
+        slot["lines"].append(group["line"])
+        if group["note"]:
+            slot["notes"].append(group["note"])
+
+    return [
+        {"indices": sorted(v["indices"]), "note": "; ".join(v["notes"]), "lines": sorted(v["lines"])}
+        for _root, v in sorted(merged.items())
+    ]
+
+
+def merge_verdicts(
+    index: dict[str, Any],
+    groups: Sequence[dict[str, Any]],
+    reviewed_all: bool,
+) -> tuple[list[dict[str, Any]], list[str]]:
+    """Compile the partition into ``confusable``-shaped verdict rows.
+
+    Order matters and is not cosmetic: every ``same`` row is emitted before every
+    ``different`` row, because :func:`apply_confusable` merges as it goes and
+    follows the resulting chain when a later row names a class that has since
+    been absorbed.  Emitting a separation first would pin it against a class id
+    that is about to stop existing.
+
+    ``reviewed_all`` is what licenses the separations, and it licenses exactly
+    the appendix pairs -- the ones that got their own side-by-side sheet.  Pairs
+    that appear nowhere but the far end of the distance ranking stay
+    unadjudicated, because nobody looked at them; recording them would put a
+    decision no human made into the file every future re-cluster is bound by,
+    which is precisely the failure the separations exist to prevent.
+    """
+    by_index = {int(row["index"]): row["class_id"] for row in index.get("classes", [])}
+    problems: list[str] = []
+    rows: list[dict[str, Any]] = []
+
+    #: Every index mapped to the class it will *be* once the merges are applied
+    #: -- its group's lowest member, or itself. Two uses, and the first is a
+    #: correctness gate rather than tidiness: a near pair inside a group must
+    #: not also be separated, because `save_adjudications` refuses a pair ruled
+    #: both ways and would abort the whole apply. The second is deduplication:
+    #: once 3 and 8 are one class, the appendix pairs (3, 12) and (8, 12) are
+    #: one statement about one pair of classes, and emitting both prints a
+    #: contradiction-shaped log for a decision that was made once.
+    root: dict[int, int] = {}
+    for group in groups:
+        for idx in group["indices"]:
+            root[idx] = group["indices"][0]
+
+    for group in groups:
+        indices = group["indices"]
+        missing = [i for i in indices if i not in by_index]
+        if missing:
+            problems.append(f"group {indices}: index {missing} is not on the slate")
+            continue
+        # A star from the first member, not the full clique: sameness is
+        # transitive and `apply_confusable` merges the classes outright, so n-1
+        # rows state the whole group and n(n-1)/2 would restate it.
+        head = indices[0]
+        for other in indices[1:]:
+            rows.append(
+                {
+                    "left_class_id": by_index[head],
+                    "right_class_id": by_index[other],
+                    "verdict": "same",
+                    "notes": group.get("note", ""),
+                }
+            )
+
+    if reviewed_all:
+        seen: set[frozenset[int]] = set()
+        for pair in index.get("near_pairs", []):
+            li, ri = int(pair["left_index"]), int(pair["right_index"])
+            if li not in by_index or ri not in by_index:
+                problems.append(f"near pair [{li}]/[{ri}]: not on the slate")
+                continue
+            key = frozenset((root.get(li, li), root.get(ri, ri)))
+            if len(key) == 1:
+                continue  # merged by the reviewer; not a separation
+            if key in seen:
+                continue  # a nearer appendix pair already separated these two classes
+            seen.add(key)
+            rows.append(
+                {
+                    "left_class_id": by_index[li],
+                    "right_class_id": by_index[ri],
+                    "verdict": "different",
+                    "notes": f"slate REVIEWED-ALL; appendix rank {pair.get('rank')} at d={pair.get('distance')}",
+                }
+            )
+
+    return rows, problems
+
+
+def load_merge_answer(audit_dir: Path) -> tuple[list[dict[str, Any]], list[str]]:
+    """Read ``index.json`` + ``merges.txt`` and compile them into verdict rows."""
+    index_path, answer_path = audit_dir / "index.json", audit_dir / "merges.txt"
+    if not index_path.exists():
+        raise SystemExit(f"no slate at {index_path} — run make_audit_slate.py --task merge first")
+    if not answer_path.exists():
+        raise SystemExit(f"no answer file at {answer_path} — the slate should have written a template")
+
+    index = json.loads(index_path.read_text(encoding="utf-8"))
+    groups, reviewed_all, problems = parse_merge_groups(
+        answer_path.read_text(encoding="utf-8"), len(index.get("classes", []))
+    )
+    rows, more = merge_verdicts(index, groups, reviewed_all)
+    n_same = sum(1 for r in rows if r["verdict"] == "same")
+    print(f"  slate: {len(groups)} merge group(s) -> {n_same} same, {len(rows) - n_same} different")
+    if not reviewed_all:
+        print(f"  slate: no {REVIEWED_ALL} line — recording merges only, no separations")
+    return rows, problems + more
+
+
 def apply_letterhead(classes: dict[str, Any], verdicts: list[dict[str, Any]]) -> tuple[list[str], list[str]]:
     changes: list[str] = []
     problems: list[str] = []
@@ -298,6 +502,8 @@ def resplit_classes(
     *,
     backend: str,
     threshold: float,
+    corpus: Path,
+    min_mark_px: int = cfg.MIN_MARK_PX,
     factor: float = 0.5,
 ) -> list[str]:
     """Re-cluster each over-merged class alone, at a tighter threshold.
@@ -305,7 +511,17 @@ def resplit_classes(
     Only that class's own instances are touched, so re-splitting one class can
     never disturb another's already-confirmed membership.  The resulting pieces
     come back as fresh candidate classes for the next ``cluster`` sheet.
+
+    The pieces are **registered in** ``classes``, not merely written onto the
+    marks.  ``assign_class_ids`` relabels the manifest, but the slate, the
+    roster, the embedder and the report all read ``classes.json``; the only
+    other thing that writes it is ``build_corpus.py``, which rebuilds from the
+    sources and would discard this split along with every other audit verdict.
+    Popping the parent without adding its pieces therefore does not defer the
+    decision to the next sheet -- it deletes the class from everything
+    downstream while leaving its marks pointing at ids nothing knows.
     """
+    from build_corpus import admit_classes, write_query_crops
     from cluster_marks import assign_class_ids, describe_marks, distance_matrix, single_linkage
 
     notes: list[str] = []
@@ -324,7 +540,21 @@ def resplit_classes(
         provenance = "clustered_band" if meta.get("located_by") == "band" else "clustered"
         pieces = assign_class_ids(pages, refs, labels, source=source, provenance=provenance)
         classes.pop(class_id, None)
-        notes.append(f"{class_id}: re-clustered at {tighter:.3f} into {len(pieces)} piece(s)")
+
+        # `min_instances=1`: the reviewer said this class holds more than one
+        # mark, so every piece is a finding.  Sizing them out here would drop
+        # the small ones silently; the roster is where a piece too small to
+        # search gets excluded, and it can only exclude what it can see.
+        inventory = {cid: [(r.page_index, r.mark_index) for r in group] for cid, group in pieces.items()}
+        fresh, rejected = admit_classes(pages, inventory, min_instances=1, min_mark_px=min_mark_px, roster=None)
+        for cid, fresh_meta in fresh.items():
+            fresh_meta["audit"]["notes"] = f"re-clustered out of {class_id} at {tighter:.3f}"
+            classes[cid] = fresh_meta
+        write_query_crops(pages, inventory, fresh, corpus / "queries")
+        note = f"{class_id}: re-clustered at {tighter:.3f} into {len(pieces)} piece(s)"
+        if rejected:
+            note += f", {len(rejected)} not admitted ({'; '.join(sorted(rejected.values()))})"
+        notes.append(note)
     return notes
 
 
@@ -342,21 +572,32 @@ def _refs_for_class(pages: list[Page], class_id: str) -> list[Any]:
 def main(argv: Optional[Sequence[str]] = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument(
-        "--task", required=True, choices=("membership", "cluster", "confusable", "distinctive", "letterhead")
+        "--task",
+        required=True,
+        choices=("merge", "membership", "cluster", "confusable", "distinctive", "letterhead"),
     )
     ap.add_argument("--corpus", type=Path, default=cfg.OUT)
     ap.add_argument("--apply", action="store_true", help="write the changes (default is a dry run)")
     ap.add_argument("--cluster-backend", default=cfg.CLUSTER_BACKEND, choices=("phash", "siglip"))
     ap.add_argument("--cluster-threshold", type=float, default=cfg.CLUSTER_THRESHOLD)
+    ap.add_argument("--min-mark-px", type=int, default=cfg.MIN_MARK_PX)
     args = ap.parse_args(argv)
 
     classes_path = args.corpus / "classes.json"
     manifest_path = args.corpus / "corpus.jsonl"
     adjudications_path = args.corpus / "adjudications.json"
     classes = json.loads(classes_path.read_text(encoding="utf-8"))
-    verdicts = load_verdicts(args.corpus / "audit" / args.task / "verdicts.jsonl")
+    audit_dir = args.corpus / "audit" / args.task
+    slate_problems: list[str] = []
+    if args.task == "merge":
+        # The slate is an input *format*, not a second way of recording ground
+        # truth: it compiles to the same same/different rows the pairwise pass
+        # produces and goes through the same applier.
+        verdicts, slate_problems = load_merge_answer(audit_dir)
+    else:
+        verdicts = load_verdicts(audit_dir / "verdicts.jsonl")
 
-    mutates_pages = args.task in ("cluster", "membership", "confusable")
+    mutates_pages = args.task in ("cluster", "membership", "confusable", "merge")
     pages = list(read_manifest(manifest_path)) if mutates_pages else []
     new_separations: list[dict[str, Any]] = []
     new_merges: list[dict[str, Any]] = []
@@ -366,8 +607,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         changes, problems = apply_membership(pages, classes, verdicts)
     elif args.task == "cluster":
         changes, problems, resplit = apply_cluster(pages, classes, verdicts)
-    elif args.task == "confusable":
+    elif args.task in ("confusable", "merge"):
         changes, problems, new_separations, new_merges = apply_confusable(pages, classes, verdicts)
+        problems += slate_problems
+        if args.task == "merge":
+            reviewed = any(str(r.get("notes", "")).startswith("slate REVIEWED-ALL") for r in verdicts)
+            if reviewed and not problems:
+                for meta in classes.values():
+                    meta.setdefault("audit", {})["partition_reviewed"] = True
+                changes.append(f"{len(classes)} class(es) marked partition_reviewed")
     elif args.task == "distinctive":
         changes, problems = apply_distinctive(classes, verdicts)
     else:
@@ -385,7 +633,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     if resplit:
         for note in resplit_classes(
-            pages, classes, resplit, backend=args.cluster_backend, threshold=args.cluster_threshold
+            pages,
+            classes,
+            resplit,
+            backend=args.cluster_backend,
+            threshold=args.cluster_threshold,
+            corpus=args.corpus,
+            min_mark_px=args.min_mark_px,
         ):
             print(f"  {note}")
         print("  re-run make_audit_slate.py --task cluster to review the new pieces")

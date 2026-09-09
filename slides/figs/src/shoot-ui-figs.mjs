@@ -1,14 +1,28 @@
 /**
- * Capture the deck's two UI screenshots against a corpus of real photographs.
+ * Capture the deck's UI screenshots against a corpus of real photographs.
  *
- *   node slides/figs/src/shoot-ui-figs.mjs        # both shots
- *   node slides/figs/src/shoot-ui-figs.mjs three-panel
+ *   node slides/figs/src/shoot-ui-figs.mjs            # every shot
+ *   node slides/figs/src/shoot-ui-figs.mjs train-loop # one group
  *
- * Writes `slides/figs/ui-three-panel.webp` and `slides/figs/ui-region-voting.webp`.
+ * Four groups, and the first three are one continuous session rather than
+ * three unrelated frames — they are the deck's click-by-click introduction to
+ * the tool, and they are shot in the order a user does them:
  *
- * These used to be the light-theme frames of the `three-panel` and
- * `region-voting` shots in `docs/user/screenshots.manifest.ts`, copied across.
- * That was the wrong source. The docs shots are deliberately taken against the
+ *   make-detector  `figs/ui-make-detector[.buildN].webp`  — name the concept
+ *   train-loop     `figs/ui-train-loop[.buildN].webp`     — answer, repeatedly
+ *   find           `figs/ui-find*.webp`                    — score unseen media
+ *   region-voting  `figs/ui-region-voting.webp`           — vote on a region
+ *
+ * The detector in the first group is the detector the second group trains and
+ * the third group runs, created on camera through the same modal a user would
+ * use. Nothing is staged through the API that the slide claims was done by
+ * hand: `train-loop` votes by clicking Good and Bad, and which button it
+ * clicks is decided by the filename of whatever autopilot chose to serve — so
+ * the piles that accumulate in the right-hand panel are a real session's, and
+ * the ranking `find` then shows is a real trained head's.
+ *
+ * These do not reuse the light-theme frames of the same-named shots in
+ * `docs/user/screenshots.manifest.ts`, and that is deliberate. The docs shots are deliberately taken against the
  * synthetic fixture — the user guide talks the reader through `syn-imgs`, and
  * flat coloured shapes make a drawn region box unambiguous — but on a slide the
  * same frame is the audience's *first* sight of the tool, and what it shows
@@ -28,8 +42,11 @@
  * load the image embedder twice. Start one with `python app.py --local` first,
  * or let this script start one.
  *
- * Every step is idempotent — datasets, detector and votes are all created only
- * if absent — so a re-run after a UI change is just the captures.
+ * The expensive steps are idempotent — the two corpora are downloaded, filed
+ * and embedded only if absent — so a re-run after a UI change is the captures
+ * plus one session's worth of clicking. The session itself is not: the intro
+ * detector is deleted and re-created every run, because a run that reused last
+ * run's votes would be shooting a screen nobody ever sat in front of.
  */
 import { launchChromium } from '../../../scripts/screenshots/launch.mjs';
 import { execFileSync, spawn } from 'node:child_process';
@@ -76,36 +93,29 @@ const SCALE = 2;
 // together.
 const SHOT_MARGIN = 0.06;
 
-// Which photo the centre viewer shows. Ranked by the detector, the top of the
-// list is whatever the model likes best, and "whatever the model likes best"
-// is regularly a dim scan of a page or a shelf shot side-on — true to the
-// corpus and a poor first sight of the product. So: prefer a named frame, in
-// order, and fall back to any book. The first choice is a living room with a
-// full bookcase *and* two DVD wall racks, which is the slide before this one
-// standing in the room the tool is searching; the alternates are there because
-// only what the Manual grid has on screen can be clicked, and which frames
-// those are moves with the ranking.
-const HERO = [
-  'book/000000395701.jpg', 'book/000000520077.jpg', 'book/000000386912.jpg',
-  'book/000000536038.jpg', 'book/000000520531.jpg',
-];
+// The intro sequence's detector: created on camera in `make-detector`, trained
+// in `train-loop`, and run over unseen media in `find`. Deleted and rebuilt on
+// every run, because the first group's whole subject is a detector that does
+// not exist yet — an idempotent "create it only if absent" would shoot the
+// modal over a detector already in the list.
+const INTRO_DETECTOR = 'Books';
+const INTRO_TEXT = 'book';
 
-// Which frames get voted on, named rather than counted. The obvious rule —
-// take the N frames with the largest `book` box — does not work: COCO's largest
-// one is a game manual inside a Wii case, and its second is a cat on a bed with
-// a shelf behind it. Both are exactly the near-misses the deck puts up as
-// *hard negatives*, so a corpus that votes Good on them contradicts the slide
-// two before it. Box area is not a proxy for "this photograph is about a book",
-// so the frames are chosen by eye and pinned by COCO id. The Bad side does not
-// need the same care — any laptop is a laptop — so it stays a count per
-// category, taken in sorted order.
-const BOOK_VOTES = {
-  good: [
-    'book/000000183049.jpg', 'book/000000509260.jpg', 'book/000000121586.jpg',
-    'book/000000262938.jpg', 'book/000000542776.jpg', 'book/000000551439.jpg',
-  ],
-  bad: { laptop: 2, tv: 1, keyboard: 1 },
-};
+// Where `train-loop` stops to take a picture, as a running vote count. The
+// first five pages advance one vote at a time, because the claim the slide is
+// making is that a session is one question repeated — a page that jumps from
+// two votes to nine shows a result rather than a loop. The last page is the
+// payoff: the same panel some way in.
+const TRAIN_STAGES = [0, 1, 2, 3, 4];
+
+// The last page is not a vote count but a condition, because a vote count is
+// not something this script gets to decide: autopilot chooses what to serve and
+// the corpus decides whether that is a book, so "vote twelve times" can end
+// with twelve Good votes and a head that has never seen a negative. Vote until
+// both piles are worth showing (and the detector is trainable at all), with a
+// hard stop so a pathological ranking cannot loop forever.
+const TRAIN_FINAL = { good: 8, bad: 3, maxVotes: 24 };
+
 const REGION_VOTES = {
   good: [
     'book/000000262938.jpg', 'book/000000520077.jpg',
@@ -356,31 +366,9 @@ const STILL_CSS =
   + 'vt-toast-container,.toast-stack{display:none!important}';
 
 async function enterLabelView(page, datasetName, detectorName) {
-  await page.goto(`${APP}/#/dashboard`, { waitUntil: 'domcontentloaded' });
-  await page.waitForSelector('.dash-table', { timeout: 60000 });
-  await page.waitForTimeout(1500);
-  // Selection persists server-side, so a rerun (or the other shot's fixture)
-  // can leave the wrong rows ticked. Drive every row to what this shot needs
-  // rather than only ticking the one we want.
-  //
-  // Match the name cell exactly, not the row's text: `books` is a substring of
-  // `books-regions`, and a substring match ticks both, which leaves Train
-  // permanently disabled and looks exactly like a hung page.
-  const selectOnly = async (tag, name) => {
-    const rows = page.locator(tag);
-    for (let i = 0; i < (await rows.count()); i++) {
-      const row = rows.nth(i);
-      const cell = row.locator('.name-cell').first();
-      const label = (await cell.count()) ? (await cell.textContent()) || '' : '';
-      const wanted = label.trim() === name;
-      const box = row.locator('.select-checkbox').first();
-      if (((await box.getAttribute('aria-checked')) === 'true') === wanted) continue;
-      await box.click();
-      await page.waitForTimeout(350);
-    }
-  };
-  await selectOnly('tr[vt-dataset-card]', datasetName);
-  await selectOnly('tr[vt-detector-card]', detectorName);
+  await openDashboard(page);
+  await selectOnly(page, 'tr[vt-dataset-card]', datasetName);
+  await selectOnly(page, 'tr[vt-detector-card]', detectorName);
   await page.getByRole('button', { name: 'Train', exact: true }).click();
   await page.waitForSelector('.panel-center, vt-center-panel', { timeout: 120000 });
   await page.waitForTimeout(3000);
@@ -439,18 +427,255 @@ async function serveItem(page, prefer = [], voted = new Set()) {
   await page.waitForTimeout(1500);
 }
 
-async function shootThreePanel(page, voted) {
-  await enterLabelView(page, 'photos', 'books');
-  // Manual only long enough to choose the frame: the corpus grid lives in that
-  // tab, and it is the only way to put a named item in the centre viewer.
-  await leftTab(page, 'Manual');
-  await serveItem(page, HERO, voted);
+/**
+ * Delete the intro detector if a previous run left one behind.
+ *
+ * The first shot's subject is the dialog you use to make a detector, on a
+ * dashboard that does not have one yet; the second and third shots then need
+ * *this* detector's votes and nobody else's. Both wants are the same want, and
+ * neither survives reuse.
+ */
+async function resetIntroDetector() {
+  for (const row of await detectors()) {
+    if (row.name !== INTRO_DETECTOR) continue;
+    await api(`/api/detectors/registry/${row.id}`, { method: 'DELETE' });
+    log(`removed the previous ${INTRO_DETECTOR} detector`);
+  }
+}
+
+/** Untick every row of *tag*, so the dashboard shows a clean card. */
+async function deselectAll(page, tag) {
+  const checked = `${tag} .select-checkbox[aria-checked="true"]`;
+  for (let guard = 0; guard < 30 && (await page.locator(checked).count()); guard++) {
+    await page.locator(checked).first().click();
+    await page.waitForTimeout(300);
+  }
+}
+
+/**
+ * Drive every row of *tag* to what this shot needs, rather than only ticking
+ * the one we want: selection persists server-side, so a rerun (or the previous
+ * shot's fixture) can leave the wrong rows ticked.
+ *
+ * Match the name cell exactly, not the row's text — `photos` is a substring of
+ * `photos-prod`, and a substring match ticks both, which leaves Train and Find
+ * permanently disabled and looks exactly like a hung page.
+ */
+async function selectOnly(page, tag, name) {
+  const rows = page.locator(tag);
+  for (let i = 0; i < (await rows.count()); i++) {
+    const row = rows.nth(i);
+    const cell = row.locator('.name-cell').first();
+    const label = (await cell.count()) ? (await cell.textContent()) || '' : '';
+    const wanted = label.trim() === name;
+    const box = row.locator('.select-checkbox').first();
+    if (((await box.getAttribute('aria-checked')) === 'true') === wanted) continue;
+    await box.click();
+    await page.waitForTimeout(350);
+  }
+}
+
+async function openDashboard(page) {
+  await page.goto(`${APP}/#/dashboard`, { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('.dash-table', { timeout: 60000 });
+  await page.waitForTimeout(1500);
+}
+
+/**
+ * Step 1 — name the concept.
+ *
+ * Four pages, and they are four clicks: the dashboard with a pile of media and
+ * no detector, the dialog, the dialog with the concept written into it, and the
+ * dashboard with the detector that was not there before. The dataset row is
+ * selected first because the modal takes its media type and its embedder from
+ * whatever is active — a detector created against nothing is a detector the
+ * next two shots could not use.
+ */
+async function shootMakeDetector(page) {
+  await openDashboard(page);
+  await selectOnly(page, 'tr[vt-dataset-card]', 'photos');
+  await deselectAll(page, 'tr[vt-detector-card]');
+  await page.mouse.move(700, 120);
+  await page.waitForTimeout(400);
+  await shoot(page, 'ui-make-detector.build1');
+
+  await page.locator('button[title="Create a new detector"]').click();
+  await page.waitForSelector('.new-detector-form', { timeout: 20000 });
+  await page.waitForTimeout(900);
+  await shoot(page, 'ui-make-detector.build2');
+
+  // The text tab is the default, and it is the one the deck's argument needs:
+  // the whole claim of the slide before this is that the concept is a phrase
+  // somebody can say and not a query they can write.
+  await page.locator('.example-panel input.form-input').first().fill(INTRO_TEXT);
+  await page.locator('#detector-name').fill(INTRO_DETECTOR);
+  await page.waitForTimeout(700);
+  await shoot(page, 'ui-make-detector.build3');
+
+  await page.getByRole('button', { name: /^Creat/ }).last().click();
+  await page.waitForSelector('.new-detector-form', { state: 'detached', timeout: 60000 });
+  await waitFor(`the ${INTRO_DETECTOR} detector`, async () => named(await detectors(), INTRO_DETECTOR));
+  await page.waitForTimeout(2000);
+  await page.mouse.move(700, 120);
+  await page.waitForTimeout(400);
+  await shoot(page, 'ui-make-detector');
+}
+
+/**
+ * Answer whatever autopilot just put on screen, truthfully.
+ *
+ * Truthfully is the point: the button is chosen from the served item's own
+ * file name, and the corpus files a frame under `book/` only when COCO's
+ * largest box in it is a book (see `coco_fixture._roster`). So the piles that
+ * grow through the build are the piles a person would have produced, and the
+ * one thing a staged screenshot cannot show — that the tool asks about items
+ * it cannot call, and is sometimes told no — is visible in them.
+ */
+async function voteServed(page) {
+  const viewer = page.locator('img.image-element').first();
+  const before = await viewer.getAttribute('alt');
+  const good = (before || '').startsWith('book/');
+  await page.locator(good ? '.btn-good' : '.btn-bad').first().click();
+  // The vote retrains the head and re-sorts, and autopilot then serves a
+  // different item. Waiting on the served item *changing* waits for all of it;
+  // waiting on a fixed delay waits for whichever part happens to be slowest.
+  await page
+    .waitForFunction(
+      (prev) => document.querySelector('img.image-element')?.alt !== prev,
+      before,
+      { timeout: 120000 }
+    )
+    .catch(() => {});
+  await page.waitForTimeout(1800);
+  return good;
+}
+
+/**
+ * Step 2 — answer, and answer again.
+ *
+ * Six pages of one screen: the votes cast so far accumulate in the right-hand
+ * panel and nothing else on the slide moves, which is the build rule and also
+ * the honest description of the interaction. Autopilot is collapsed to its rail
+ * for the reason `collapseIntoAutopilot` gives — what is left is the item and
+ * the two buttons.
+ */
+async function shootTrainLoop(page) {
+  await enterLabelView(page, 'photos', INTRO_DETECTOR);
   await collapseIntoAutopilot(page);
-  // No callout. The slide is the audience's first sight of the product, and a
-  // red box with red type across the middle of it is the presenter shouting
-  // over the thing they are asking the room to look at. The buttons are the
-  // biggest control on the screen and the speaker can point at them (#3246).
-  await shoot(page, 'ui-three-panel');
+  await page.waitForSelector('.btn-good', { timeout: 120000 });
+  await page.waitForTimeout(1500);
+
+  let cast = 0;
+  const tally = { good: 0, bad: 0 };
+  for (const stage of TRAIN_STAGES) {
+    while (cast < stage) {
+      tally[(await voteServed(page)) ? 'good' : 'bad']++;
+      cast++;
+    }
+    const page_no = TRAIN_STAGES.indexOf(stage) + 1;
+    await shoot(page, `ui-train-loop.build${page_no}`);
+  }
+  while (
+    cast < TRAIN_FINAL.maxVotes
+    && (tally.good < TRAIN_FINAL.good || tally.bad < TRAIN_FINAL.bad)
+  ) {
+    tally[(await voteServed(page)) ? 'good' : 'bad']++;
+    cast++;
+  }
+  log(`train loop: ${cast} votes — ${tally.good} good / ${tally.bad} bad`);
+  if (!tally.bad) throw new Error('no Bad votes: the detector has nothing to separate');
+  await shoot(page, 'ui-train-loop');
+}
+
+/**
+ * Scroll the left panel's virtual viewport, and let it re-render.
+ *
+ * It is a `cdk-virtual-scroll-viewport`, so what is in the DOM is a window onto
+ * the ranking rather than the ranking — and the panel scrolls itself to the
+ * selected item on arrival, which is how the first version of the Find shot
+ * came out photographing position 4200px with the top of the list nowhere in
+ * frame. Drive it explicitly instead of hoping.
+ */
+async function scrollResults(page, to) {
+  const viewport = page.locator('.panel-left .cdk-virtual-scroll-viewport').first();
+  await viewport.evaluate((el, top) => el.scrollTo({ top, behavior: 'instant' }), to);
+  await page.waitForTimeout(1800);
+}
+
+/**
+ * Step 3 — run it over the media nobody voted on.
+ *
+ * Two slides out of one session. `ui-find[.build1]` is the click-by-click one:
+ * the dashboard with the *production* pile selected beside the detector, then
+ * the top of the ranking it produces. `photos-prod` does not share a single
+ * frame with `photos` (`coco_fixture.DISJOINT_FROM`), which is the only reason
+ * that slide is allowed to say what it says.
+ *
+ * `ui-find-line` is the same screen scrolled down to the line the tool drew
+ * through the ranking, and it is a separate slide rather than a third build
+ * page for a reason the house rules are explicit about: a build page adds ink
+ * and moves nothing, and this one moves the whole left panel. It is also not a
+ * reveal but a second observation — the deck's hand-off into `vote-boundary`,
+ * which spends the next ten minutes on where that line should go.
+ */
+async function shootFind(page) {
+  await openDashboard(page);
+  await selectOnly(page, 'tr[vt-dataset-card]', 'photos-prod');
+  await selectOnly(page, 'tr[vt-detector-card]', INTRO_DETECTOR);
+  await page.mouse.move(700, 120);
+  await page.waitForTimeout(400);
+  await shoot(page, 'ui-find.build1');
+
+  await page.getByRole('button', { name: 'Find', exact: true }).click();
+  await page.waitForSelector('.panel-right', { timeout: 300000 });
+  await page.getByText('Verified Good').first().waitFor({ timeout: 300000 });
+  // Scoring puts an overlay over the centre panel; wait it out rather than
+  // photographing a progress bar.
+  await page.waitForSelector('.find-wait-overlay', { state: 'detached', timeout: 300000 })
+    .catch(() => {});
+  await page.waitForTimeout(3000);
+
+  // The best match in the centre, and the best matches beside it. Selecting the
+  // top item re-scrolls the panel to it, so the scroll goes after the click.
+  await scrollResults(page, 0);
+  await page.locator('.panel-left .thumbnail-wrap').first().click();
+  await page.waitForTimeout(1500);
+  await scrollResults(page, 0);
+  await shoot(page, 'ui-find');
+
+  // Then the line. Its offset is read off the rendered list rather than
+  // computed from a rank, because how many items make a row is the panel's
+  // business (thumbnail size, panel width) and not something this script knows.
+  const line = await page.evaluate(() => {
+    const viewport = document.querySelector('.panel-left .cdk-virtual-scroll-viewport');
+    const marker = viewport?.querySelector('.media-threshold-line');
+    if (!viewport) return null;
+    if (!marker) return 'offscreen';
+    return viewport.scrollTop + marker.getBoundingClientRect().top
+      - viewport.getBoundingClientRect().top;
+  });
+  if (line === null || line === 'offscreen') {
+    // Virtualised: the marker is only in the DOM once it is near the window, so
+    // walk down until it appears rather than guessing a pixel offset.
+    for (let top = 0; top < 40000; top += 500) {
+      await scrollResults(page, top);
+      if (await page.locator('.media-threshold-line').count()) break;
+    }
+  } else {
+    await scrollResults(page, Math.max(0, line - 260));
+  }
+  const marker = page.locator('.media-threshold-line').first();
+  if (!(await marker.count())) throw new Error('no threshold line in the Find ranking');
+  // Centre it: whatever the walk above landed on, the line should sit in the
+  // middle of the panel with matches above it and rejects below.
+  const centred = await page.evaluate(() => {
+    const viewport = document.querySelector('.panel-left .cdk-virtual-scroll-viewport');
+    const rect = viewport.querySelector('.media-threshold-line').getBoundingClientRect();
+    const box = viewport.getBoundingClientRect();
+    return viewport.scrollTop + rect.top - box.top - box.height / 2;
+  });
+  await scrollResults(page, Math.max(0, centred));
+  await shoot(page, 'ui-find-line');
 }
 
 async function shootRegionVoting(page, voted) {
@@ -518,10 +743,19 @@ async function ensureApp() {
   }, 300000);
 }
 
+// The three intro shots are one session and are taken together: the detector
+// `make-detector` creates is the one `train-loop` votes on and `find` runs, so
+// asking for a later group alone would shoot it against whatever the last full
+// run left behind.
+const INTRO = ['make-detector', 'train-loop', 'find'];
+const intro = INTRO.some(wanted);
+
 await ensureApp();
-const photos = await ensureDataset('photos', 'siglip');
-const detector = await ensureDetector('books', photos);
-const photosVoted = await ensureVotes(photos, detector, BOOK_VOTES);
+if (intro) await ensureDataset('photos', 'siglip');
+// The pile the detector has never seen. Embedded up front rather than between
+// the second and third shots, so the Find click in the captured session is the
+// click a user makes and not a five-minute wait dressed up as one.
+if (intro) await ensureDataset('photos-prod', 'siglip');
 let regionsVoted = new Set();
 if (wanted('region-voting')) {
   // A second detector, not the same one: a detector binds an embedder *type*
@@ -544,7 +778,12 @@ try {
       document.head.appendChild(s);
     });
   }, STILL_CSS);
-  if (wanted('three-panel')) await shootThreePanel(page, photosVoted);
+  if (intro) {
+    await resetIntroDetector();
+    await shootMakeDetector(page);
+    await shootTrainLoop(page);
+    await shootFind(page);
+  }
   if (wanted('region-voting')) await shootRegionVoting(page, regionsVoted);
 } finally {
   await browser.close();

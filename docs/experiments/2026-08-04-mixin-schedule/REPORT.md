@@ -620,6 +620,7 @@ over the first 30 votes*, which is where the evidence is.
 - **`rare` deserves another look.** It is the best-calibrated cut on binary
   voting and essentially unbiased, but its endpoints (1→8 rare-class labels)
   were guessed, not tuned. A tuned rare-class ramp may dominate `cap50`.
+  **Tracked in #3551**, with the `corridor` item below.
 - **`corridor` is not dead, it is untuned.** Clamping to the component means is
   a no-op on region voting (p=0.62) because the corridor is far wider than the
   x-cal error; a tighter corridor (a fraction of the mean gap) is the version

@@ -12226,7 +12226,7 @@
     },
     "/api/labels/export": {
       "get": {
-        "description": "Each label entry includes the element's ``origin`` and ``origin_name``\nso consumers know exactly where each labeled element came from. The\nformat is a superset of the legacy export format; old consumers\nthat only read ``md5`` and ``label`` keys continue to work unchanged.\n\nThe payload is composed from the session's votes intersected with the\nactive dataset, then topped up with persisted labelset elements that\ndon't resolve into the active dataset (marked ``origin_only: true``) so\nthe export is always a faithful rendering of the detector's labelset -\nsee :func:`_origin_only_fallback_entries`.",
+        "description": "Each label entry includes the element's ``origin`` and ``origin_name``\nso consumers know exactly where each labeled element came from. The\nformat is a superset of the legacy export format; old consumers\nthat only read ``md5`` and ``label`` keys continue to work unchanged.\n\nWithout ``detector_name`` the payload is composed from the session's\nvotes intersected with the active dataset, then topped up with persisted\nlabelset elements that don't resolve into the active dataset (marked\n``origin_only: true``) so the export is always a faithful rendering of\nthe detector's labelset - see :func:`_origin_only_fallback_entries`.\n\nWith ``detector_name`` it is that detector's persisted labelset instead,\nread from disk and independent of the request's active pair - see\n:func:`_export_persisted_labelset`.",
         "operationId": "export_labels",
         "parameters": [
           {
@@ -12269,6 +12269,16 @@
             }
           },
           {
+            "description": "Name of the detector whose *persisted* labelset to export. When given, the export is read from that detector's JSON file and is independent of the request's active dataset/detector pair and of any live Find session; the vote-scoped filters (``corrections`` / ``unverified`` / ``verified``) are rejected with 400 because they partition that session. Omit it to export the active pair's live labels.",
+            "in": "query",
+            "name": "detector_name",
+            "required": false,
+            "schema": {
+              "default": "",
+              "type": "string"
+            }
+          },
+          {
             "description": "Response encoding. ``json`` (default) returns the buffered ``{labels: [...]}`` object. ``ndjson`` streams one label entry per line (newline-delimited JSON, ``application/x-ndjson``) so large exports are never materialised in memory; the top-level ``available_columns`` list is omitted in this mode since it's a whole-set aggregate a streamed response can't compute.",
             "in": "query",
             "name": "format",
@@ -12293,6 +12303,12 @@
               }
             },
             "description": "OK"
+          },
+          "400": {
+            "description": "A vote-scoped label_filter was combined with detector_name."
+          },
+          "404": {
+            "description": "detector_name names a detector that does not exist."
           },
           "422": {
             "$ref": "#/components/responses/UNPROCESSABLE_CONTENT"

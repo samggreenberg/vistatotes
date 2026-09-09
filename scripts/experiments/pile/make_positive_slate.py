@@ -149,7 +149,7 @@ def main() -> int:
                         "reference": "present",
                         "exhaustive": "yes" if media.get("labels_exhaustive") else "no",
                         "n_boxes": len(boxes),
-                        "detector": f"{cls} positives",
+                        "detector": pc.review_name(cls, "positives"),
                     }
                 )
         if not written:
@@ -159,7 +159,7 @@ def main() -> int:
             w = csv.DictWriter(fh, fieldnames=list(written[0]))
             w.writeheader()
             w.writerows(written)
-        index.append({"class": cls, "dir": str(cdir), "n": len(written), "detector": f"{cls} positives"})
+        index.append({"class": cls, "dir": str(cdir), "n": len(written), "detector": pc.review_name(cls, "positives")})
         log(f"  {cls:<12} {len(written):3d} boxed positives -> {cdir}")
 
     (out_root / "slates.json").write_text(json.dumps(index, indent=1) + "\n")

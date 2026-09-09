@@ -1,0 +1,124 @@
+[
+  {
+    "cell": "backpack@medium",
+    "class": "backpack",
+    "claude": "present",
+    "image_id": 1592325,
+    "note": "grey rucksack worn on back, camouflaged against clothing"
+  },
+  {
+    "cell": "book@large",
+    "class": "book",
+    "claude": "present",
+    "image_id": 2316453,
+    "note": "glass bookcase full of books inside box"
+  },
+  {
+    "cell": "bus@medium",
+    "class": "bus",
+    "claude": "uncertain",
+    "image_id": 2324973,
+    "note": "catering van possibly a converted bus; unresolvable"
+  },
+  {
+    "cell": "stop sign@large",
+    "class": "stop sign",
+    "claude": "absent",
+    "image_id": 2332254,
+    "note": "vintage school-patrol STOP paddle, not octagonal sign; COCO error"
+  },
+  {
+    "cell": "umbrella@large",
+    "class": "umbrella",
+    "claude": "absent",
+    "image_id": 2338527,
+    "note": "box on hedge, no umbrella; COCO error"
+  },
+  {
+    "cell": "bird@medium",
+    "class": "bird",
+    "claude": "uncertain",
+    "image_id": 2343385,
+    "note": "feathered prey in cat's mouth; lean present, not resolvable"
+  },
+  {
+    "cell": "backpack@medium",
+    "class": "backpack",
+    "claude": "absent",
+    "image_id": 2346517,
+    "note": "single-strap messenger bag; handbag under COCO taxonomy"
+  },
+  {
+    "cell": "boat@medium",
+    "class": "boat",
+    "claude": "present",
+    "image_id": 2356161,
+    "note": "line of moored boats in boxed strip"
+  },
+  {
+    "cell": "dog@medium",
+    "class": "dog",
+    "claude": "absent",
+    "image_id": 2356466,
+    "note": "box on fence/flowers, nothing dog-like"
+  },
+  {
+    "cell": "stop sign@medium",
+    "class": "stop sign",
+    "claude": "absent",
+    "image_id": 2359232,
+    "note": "no-entry circle, COCO annotator error"
+  },
+  {
+    "cell": "bicycle@small",
+    "class": "bicycle",
+    "claude": "absent",
+    "image_id": 2374765,
+    "note": "bicycle pictogram on a signboard, not a bicycle",
+    "reason": "definition"
+  },
+  {
+    "cell": "bicycle@small",
+    "class": "bicycle",
+    "claude": "absent",
+    "image_id": 2379908,
+    "note": "bicycle pictogram on a white sign, not a bicycle",
+    "reason": "definition"
+  },
+  {
+    "cell": "bicycle@small",
+    "class": "bicycle",
+    "claude": "absent",
+    "image_id": 2383865,
+    "note": "bicycle pictogram on a red/white warning sign, not a bicycle",
+    "reason": "definition"
+  },
+  {
+    "cell": "book@large",
+    "class": "book",
+    "claude": "present",
+    "image_id": 2393752,
+    "note": "open magazine; COCO has no magazine class, boxes printed matter as book -- definition drift"
+  },
+  {
+    "cell": "bus@medium",
+    "class": "bus",
+    "claude": "absent",
+    "image_id": 2394171,
+    "note": "SF cable car, rail-borne; COCO inconsistency case"
+  },
+  {
+    "cell": "bus@medium",
+    "class": "bus",
+    "claude": "present",
+    "image_id": 2398433,
+    "note": "coach with continuous window band behind rally"
+  },
+  {
+    "cell": "stop sign@medium",
+    "class": "stop sign",
+    "claude": "absent",
+    "image_id": 2399800,
+    "note": "no-motorcycles prohibition circle, COCO error"
+  }
+]

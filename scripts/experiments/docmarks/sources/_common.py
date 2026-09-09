@@ -126,6 +126,32 @@ def stable_rank(key: str, salt: str) -> float:
     return int.from_bytes(h[:8], "big") / float(1 << 64)
 
 
+def spread(items: Sequence[Any], limit: int) -> list[Any]:
+    """Up to *limit* of *items*, evenly spaced across the whole sequence.
+
+    Every pass that samples a class hits the same trap: page ids sort by source
+    and number, so the head of the list is whatever the scanner did first, and a
+    class whose later instances drifted (a re-inked stamp, a second printing, a
+    second mark that only appears late) looks homogeneous for no better reason
+    than alphabetical order.
+
+    Spaced by index rather than by a ``[::step]`` stride, because the stride
+    degenerates exactly where it is needed most: ``step = n // limit`` is 1 for
+    any class between ``limit`` and ``2 * limit`` instances, so a 27-instance
+    class sampled at 24 silently gets its first 24 — the head sample the stride
+    was reached for to avoid (#3610).  Spacing the indices over ``n - 1``
+    instead always reaches the tail.
+    """
+    n = len(items)
+    if limit <= 0 or n == 0:
+        return []
+    if n <= limit:
+        return list(items)
+    if limit == 1:
+        return [items[0]]
+    return [items[round(i * (n - 1) / (limit - 1))] for i in range(limit)]
+
+
 # --------------------------------------------------------------------------
 # Masks -> boxes
 # --------------------------------------------------------------------------

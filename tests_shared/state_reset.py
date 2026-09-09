@@ -196,8 +196,20 @@ def reset_shared_state(medias_snapshot) -> None:
     find_progress.update("idle", "", 0, 0, step=None, total_steps=None, error=None)
     sort_progress.update("idle", "", 0, 0, step=None, total_steps=None, error=None)
     eval_progress.update("idle", "", 0, 0, step=None, total_steps=None, error=None)
+    # Cancels each task and joins its worker before dropping the entry, so a
+    # load still running at the end of the previous test is stopped rather than
+    # orphaned.
     loading_tasks.reset_for_tests()
     detector_loading_tasks.reset_for_tests()
+
+    # ...and hand this test fresh load gates regardless, so a worker that
+    # outlived the join above holds a permit on a gate nothing will look at
+    # again.  Without this the gates' counts are whatever the previous test in
+    # the worker process left behind, which made the assertions in
+    # ``TestLoadingGates`` a lottery over xdist scheduling (issue #3613).
+    from vtscore.datasets.load_pipeline import reset_load_gates_for_tests
+
+    reset_load_gates_for_tests()
 
     # Cancel any debounced labelset-source push left over from the previous test
     # so its captured contexts don't fire after this test's reset has dropped

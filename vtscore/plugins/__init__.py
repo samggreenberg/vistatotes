@@ -73,7 +73,27 @@ __all__ = [
     "PluginRegistry",
     "make_plugin_registry",
     "notify",
+    "parse_checkbox",
 ]
+
+
+def parse_checkbox(value: Any) -> bool:
+    """Coerce a ``"checkbox"`` field's value to ``bool``.
+
+    Checkbox values reach a plugin in three shapes depending on the caller: a
+    native ``bool`` (the CLI, whose ``argparse.BooleanOptionalAction`` already
+    coerced it), the ``"true"``/``"false"`` strings a form submission
+    serialises to, or ``None`` when the field was omitted entirely.  Anything
+    that is not recognisably true reads as ``False``.
+
+    Shared rather than re-derived per call site: the GUI and the CLI must agree
+    on what a ticked box means, and a checkbox whose two readers disagree is
+    the kind of divergence that only shows up as different results from the
+    same input (issue #3556).
+    """
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() == "true"
 
 
 # ---------------------------------------------------------------------------

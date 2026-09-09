@@ -462,6 +462,26 @@ class MediaEmbedder(ABC):
         Override this instead of :meth:`load_models`.
         """
 
+    def models_loaded(self) -> bool:
+        """Whether this embedder's model is already resident in this process.
+
+        The supported way to ask "would :meth:`load_models` do any work?"
+        without doing it. Callers that merely need vectors should not care;
+        this is for code that has to *plan around* the load — pacing a progress
+        bar (the text-sort route budgets its ``load_model`` step out of the bar
+        entirely when the encoder is already resident, see
+        :func:`vtscore.timing.step_weights`) or skipping a speculative warm-up.
+
+        Reads the same ``_model`` attribute convention :meth:`load_models` and
+        :meth:`loaded_backbone` rely on, so it works for any embedder built the
+        usual way. An embedder that holds its backbone elsewhere should
+        **override this** alongside :meth:`loaded_backbone`; the default's
+        answer would otherwise be a permanent ``False``, which is the safe
+        direction (a caller re-plans for a load that turns out to be free)
+        but wrong.
+        """
+        return getattr(self, "_model", None) is not None
+
     def loaded_backbone(self) -> tuple[Any, Any]:
         """Return ``(model, processor)`` for this embedder's underlying backbone.
 

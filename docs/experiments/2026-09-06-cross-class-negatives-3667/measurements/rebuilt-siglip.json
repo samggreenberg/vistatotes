@@ -1,0 +1,382 @@
+{
+ "dataset": "vg_scale",
+ "embedder": "siglip",
+ "n_medias": 7746,
+ "vectors_identical": false,
+ "vectors_sha256": {
+  "before": "1bd835f998908f1d39054cc6558fdceb11ea41c85ad62841edc3c4032be37363",
+  "after": "7ac2bc0e95e20263bfd5f224cc9b76aef953ce8ca3bd0f8db8e216aa962f1c59"
+ },
+ "designation_changed": 3,
+ "evaluable_changed": 2106,
+ "invariant_failures": [],
+ "mean_before": 4000.0,
+ "mean_priced": 5850.75,
+ "mean_after": 5806.5,
+ "mean_gain_pct": 45.1625,
+ "prevalence_before_pct": 2.5,
+ "prevalence_after_pct": 1.7222078704899682,
+ "n_exhaustive": 3925,
+ "cells": [
+  {
+   "cell": "clock@small",
+   "before": 4000,
+   "priced": 5880,
+   "actual": 5838,
+   "gain_pct": 45.95,
+   "shortfall": 42,
+   "positives": 100,
+   "negatives": 5738
+  },
+  {
+   "cell": "clock@medium",
+   "before": 4000,
+   "priced": 5880,
+   "actual": 5838,
+   "gain_pct": 45.95,
+   "shortfall": 42,
+   "positives": 100,
+   "negatives": 5738
+  },
+  {
+   "cell": "clock@large",
+   "before": 4000,
+   "priced": 5880,
+   "actual": 5838,
+   "gain_pct": 45.95,
+   "shortfall": 42,
+   "positives": 100,
+   "negatives": 5738
+  },
+  {
+   "cell": "bird@small",
+   "before": 4000,
+   "priced": 5844,
+   "actual": 5825,
+   "gain_pct": 45.625,
+   "shortfall": 19,
+   "positives": 100,
+   "negatives": 5725
+  },
+  {
+   "cell": "bird@medium",
+   "before": 4000,
+   "priced": 5844,
+   "actual": 5825,
+   "gain_pct": 45.625,
+   "shortfall": 19,
+   "positives": 100,
+   "negatives": 5725
+  },
+  {
+   "cell": "bird@large",
+   "before": 4000,
+   "priced": 5844,
+   "actual": 5825,
+   "gain_pct": 45.625,
+   "shortfall": 19,
+   "positives": 100,
+   "negatives": 5725
+  },
+  {
+   "cell": "boat@small",
+   "before": 4000,
+   "priced": 5889,
+   "actual": 5829,
+   "gain_pct": 45.725,
+   "shortfall": 60,
+   "positives": 100,
+   "negatives": 5729
+  },
+  {
+   "cell": "boat@medium",
+   "before": 4000,
+   "priced": 5889,
+   "actual": 5829,
+   "gain_pct": 45.725,
+   "shortfall": 60,
+   "positives": 100,
+   "negatives": 5729
+  },
+  {
+   "cell": "boat@large",
+   "before": 4000,
+   "priced": 5889,
+   "actual": 5829,
+   "gain_pct": 45.725,
+   "shortfall": 60,
+   "positives": 100,
+   "negatives": 5729
+  },
+  {
+   "cell": "umbrella@small",
+   "before": 4000,
+   "priced": 5876,
+   "actual": 5815,
+   "gain_pct": 45.375,
+   "shortfall": 61,
+   "positives": 100,
+   "negatives": 5715
+  },
+  {
+   "cell": "umbrella@medium",
+   "before": 4000,
+   "priced": 5876,
+   "actual": 5815,
+   "gain_pct": 45.375,
+   "shortfall": 61,
+   "positives": 100,
+   "negatives": 5715
+  },
+  {
+   "cell": "umbrella@large",
+   "before": 4000,
+   "priced": 5876,
+   "actual": 5815,
+   "gain_pct": 45.375,
+   "shortfall": 61,
+   "positives": 100,
+   "negatives": 5715
+  },
+  {
+   "cell": "kite@small",
+   "before": 4000,
+   "priced": 5874,
+   "actual": 5855,
+   "gain_pct": 46.375,
+   "shortfall": 19,
+   "positives": 100,
+   "negatives": 5755
+  },
+  {
+   "cell": "kite@medium",
+   "before": 4000,
+   "priced": 5874,
+   "actual": 5855,
+   "gain_pct": 46.375,
+   "shortfall": 19,
+   "positives": 100,
+   "negatives": 5755
+  },
+  {
+   "cell": "kite@large",
+   "before": 4000,
+   "priced": 5874,
+   "actual": 5855,
+   "gain_pct": 46.375,
+   "shortfall": 19,
+   "positives": 100,
+   "negatives": 5755
+  },
+  {
+   "cell": "book@small",
+   "before": 4000,
+   "priced": 5848,
+   "actual": 5815,
+   "gain_pct": 45.375,
+   "shortfall": 33,
+   "positives": 100,
+   "negatives": 5715
+  },
+  {
+   "cell": "book@medium",
+   "before": 4000,
+   "priced": 5848,
+   "actual": 5815,
+   "gain_pct": 45.375,
+   "shortfall": 33,
+   "positives": 100,
+   "negatives": 5715
+  },
+  {
+   "cell": "book@large",
+   "before": 4000,
+   "priced": 5848,
+   "actual": 5815,
+   "gain_pct": 45.375,
+   "shortfall": 33,
+   "positives": 100,
+   "negatives": 5715
+  },
+  {
+   "cell": "dog@small",
+   "before": 4000,
+   "priced": 5855,
+   "actual": 5819,
+   "gain_pct": 45.475,
+   "shortfall": 36,
+   "positives": 100,
+   "negatives": 5719
+  },
+  {
+   "cell": "dog@medium",
+   "before": 4000,
+   "priced": 5855,
+   "actual": 5819,
+   "gain_pct": 45.475,
+   "shortfall": 36,
+   "positives": 100,
+   "negatives": 5719
+  },
+  {
+   "cell": "dog@large",
+   "before": 4000,
+   "priced": 5855,
+   "actual": 5819,
+   "gain_pct": 45.475,
+   "shortfall": 36,
+   "positives": 100,
+   "negatives": 5719
+  },
+  {
+   "cell": "backpack@small",
+   "before": 4000,
+   "priced": 5810,
+   "actual": 5689,
+   "gain_pct": 42.225,
+   "shortfall": 121,
+   "positives": 100,
+   "negatives": 5589
+  },
+  {
+   "cell": "backpack@medium",
+   "before": 4000,
+   "priced": 5810,
+   "actual": 5689,
+   "gain_pct": 42.225,
+   "shortfall": 121,
+   "positives": 100,
+   "negatives": 5589
+  },
+  {
+   "cell": "backpack@large",
+   "before": 4000,
+   "priced": 5810,
+   "actual": 5689,
+   "gain_pct": 42.225,
+   "shortfall": 121,
+   "positives": 100,
+   "negatives": 5589
+  },
+  {
+   "cell": "knife@small",
+   "before": 4000,
+   "priced": 5842,
+   "actual": 5838,
+   "gain_pct": 45.95,
+   "shortfall": 4,
+   "positives": 100,
+   "negatives": 5738
+  },
+  {
+   "cell": "knife@medium",
+   "before": 4000,
+   "priced": 5842,
+   "actual": 5838,
+   "gain_pct": 45.95,
+   "shortfall": 4,
+   "positives": 100,
+   "negatives": 5738
+  },
+  {
+   "cell": "knife@large",
+   "before": 4000,
+   "priced": 5842,
+   "actual": 5838,
+   "gain_pct": 45.95,
+   "shortfall": 4,
+   "positives": 100,
+   "negatives": 5738
+  },
+  {
+   "cell": "bicycle@small",
+   "before": 4000,
+   "priced": 5833,
+   "actual": 5757,
+   "gain_pct": 43.925,
+   "shortfall": 76,
+   "positives": 100,
+   "negatives": 5657
+  },
+  {
+   "cell": "bicycle@medium",
+   "before": 4000,
+   "priced": 5833,
+   "actual": 5757,
+   "gain_pct": 43.925,
+   "shortfall": 76,
+   "positives": 100,
+   "negatives": 5657
+  },
+  {
+   "cell": "bicycle@large",
+   "before": 4000,
+   "priced": 5833,
+   "actual": 5757,
+   "gain_pct": 43.925,
+   "shortfall": 76,
+   "positives": 100,
+   "negatives": 5657
+  },
+  {
+   "cell": "bus@small",
+   "before": 4000,
+   "priced": 5867,
+   "actual": 5808,
+   "gain_pct": 45.2,
+   "shortfall": 59,
+   "positives": 100,
+   "negatives": 5708
+  },
+  {
+   "cell": "bus@medium",
+   "before": 4000,
+   "priced": 5867,
+   "actual": 5808,
+   "gain_pct": 45.2,
+   "shortfall": 59,
+   "positives": 100,
+   "negatives": 5708
+  },
+  {
+   "cell": "bus@large",
+   "before": 4000,
+   "priced": 5867,
+   "actual": 5808,
+   "gain_pct": 45.2,
+   "shortfall": 59,
+   "positives": 100,
+   "negatives": 5708
+  },
+  {
+   "cell": "stop sign@small",
+   "before": 4000,
+   "priced": 5791,
+   "actual": 5790,
+   "gain_pct": 44.75,
+   "shortfall": 1,
+   "positives": 100,
+   "negatives": 5690
+  },
+  {
+   "cell": "stop sign@medium",
+   "before": 4000,
+   "priced": 5791,
+   "actual": 5790,
+   "gain_pct": 44.75,
+   "shortfall": 1,
+   "positives": 100,
+   "negatives": 5690
+  },
+  {
+   "cell": "stop sign@large",
+   "before": 4000,
+   "priced": 5791,
+   "actual": 5790,
+   "gain_pct": 44.75,
+   "shortfall": 1,
+   "positives": 100,
+   "negatives": 5690
+  }
+ ]
+}

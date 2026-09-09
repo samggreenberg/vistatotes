@@ -129,10 +129,73 @@ def _list_exporter_names() -> list[str]:
     return [exp.name for exp in list_exporters()]
 
 
+def _detector_group_key(
+    target_type: str,
+    embedder_name: str,
+    clipper: str,
+    clipper_params: dict[str, Any],
+) -> tuple[str, str, str, tuple]:
+    """The identity of a scoring snapshot: what it is routed, clipped and embedded to.
+
+    Detectors sharing a key share one prepared snapshot, so a dataset scored by
+    two image/siglip detectors at the same granularity is converted, re-clipped
+    and embedded once.  Calibration and scoring both key on this, from the one
+    definition, so the population the threshold is fitted on cannot drift from
+    the population it is applied to (issue #3647).
+    """
+    return (
+        target_type,
+        embedder_name,
+        clipper,
+        tuple(sorted((str(k), str(v)) for k, v in (clipper_params or {}).items())),
+    )
+
+
+class _RoutedSnapshots:
+    """One :func:`~vtscore.detectors.converter_routing.route_and_embed` pass per
+    detector group, over one chunk of medias.
+
+    Threshold calibration and scoring want the **same** routed snapshot: the
+    fold-anchored cut is realized as a quantile of the population it is about
+    to cut, so fitting it on the loaded medias while inference reads the
+    converted/re-clipped ones lands the quantile on the wrong distribution
+    (issue #3647).  Routing twice would also pay twice - a converter re-decodes
+    the video, a re-clip re-slices and re-embeds every clip - so the first
+    chunk, which is both the chunk detectors are trained on and a chunk that
+    gets scored, memoises its snapshots here and hands the same objects to both
+    passes.
+
+    Scoped to one chunk deliberately: later chunks route themselves and are
+    scored at the threshold the first chunk fixed, which is what keeps every
+    chunk of a streaming run judged by one cut.
+    """
+
+    def __init__(self, medias: dict[int, dict[str, Any]]) -> None:
+        self._medias = medias
+        self._cache: dict[tuple[str, str, str, tuple], tuple[dict[int, dict[str, Any]], dict[int, int]]] = {}
+
+    def get(self, key: tuple[str, str, str, tuple]) -> tuple[dict[int, dict[str, Any]], dict[int, int]]:
+        cached = self._cache.get(key)
+        if cached is None:
+            from vtscore.detectors.converter_routing import route_and_embed  # noqa: PLC0415
+
+            target_type, embedder_name, clipper, clipper_params_items = key
+            cached = route_and_embed(
+                self._medias,
+                target_type,
+                embedder_name,
+                clipper=clipper,
+                clipper_params=dict(clipper_params_items),
+            )
+            self._cache[key] = cached
+        return cached
+
+
 def _load_and_train_detectors(
     detector_names: list[str],
     media_type: str,
     snap: dict[int, dict[str, Any]],
+    routed: "_RoutedSnapshots | None" = None,
 ) -> dict[str, dict[str, Any]]:
     """Resolve, re-embed, and train an MLP for each named detector.
 
@@ -146,6 +209,15 @@ def _load_and_train_detectors(
     embeddings would be from a different granularity and the scores would
     be meaningless.
 
+    When *routed* is given, each detector's threshold is calibrated on the
+    snapshot **scoring will read** - the converted, re-clipped, re-embedded one
+    that :class:`_RoutedSnapshots` prepares - rather than on the loaded medias.
+    The two are the same set on a natively-typed dataset the detector needs no
+    re-clip for, which is why this went unnoticed; they are systematically
+    different everywhere else, and the cut is realized as a quantile of
+    whichever it is handed (issue #3647).  ``None`` keeps the loaded medias as
+    the haystack, for callers with no scoring pass to agree with.
+
     Returns a ``{name: {"mlp": nn.Sequential, "threshold": float}}`` map.
     Raises :class:`ValueError` if a detector cannot be trained - for example
     when none of its labels' origin files are resolvable from the CLI
@@ -158,7 +230,7 @@ def _load_and_train_detectors(
         extract_input_spec_from_medias,
     )
     from vtscore.detectors.store import _detector_path, _read_detector
-    from vtscore.detectors.labelset_training import train_from_labelset
+    from vtscore.detectors.labelset_training import Haystack, train_from_labelset
     from vtscore.state.core import DetectorContext
 
     dataset_spec = extract_input_spec_from_medias(snap)
@@ -223,11 +295,35 @@ def _load_and_train_detectors(
             raise ValueError(f"Detector '{det_name}' has no labels.")
 
         det_ctx = DetectorContext(det_name, media_type=det_media_type or media_type)
+
+        target_type = det_media_type or media_type
+
+        def _haystack_for(
+            embedder_name: str,
+            _target: str = target_type,
+            _clipper: str = reclip_clipper,
+            _params: dict[str, Any] = reclip_params,
+        ) -> "Haystack | None":
+            """The population this detector's threshold is realized on.
+
+            Called once the labels are embedded, so ``embedder_name`` is the
+            space they landed in - which is exactly what the routing key needs
+            and what does not exist before training starts.  An empty routed
+            snapshot (nothing converts, nothing embeds) yields ``None``, which
+            leaves the loaded medias as the haystack rather than fitting the
+            estimator on nothing.
+            """
+            if routed is None or not _target:
+                return None
+            hay_medias, to_source = routed.get(_detector_group_key(_target, embedder_name, _clipper, _params))
+            return Haystack(hay_medias, to_source) if hay_medias else None
+
         trained = train_from_labelset(
             det_ctx,
             labelset,
-            media_type=det_media_type or media_type,
+            media_type=target_type,
             snap=snap,
+            haystack_for=_haystack_for,
         )
         if not trained:
             cached = len(det_ctx.label_embeddings)
@@ -263,6 +359,7 @@ def _load_and_train_detectors(
 def _score_medias_with_detectors(
     medias: dict[int, dict[str, Any]],
     detector_mlps: dict[str, dict[str, Any]],
+    routed: "_RoutedSnapshots | None" = None,
 ) -> dict[str, dict[str, Any]]:
     """Score *medias* against pre-trained detector MLPs, routing across types.
 
@@ -279,6 +376,11 @@ def _score_medias_with_detectors(
     sub-items clears the threshold ("find the needle").  Homogeneous single-type
     datasets with no re-clip take the identity route (one hit per media),
     byte-for-byte the pre-routing behaviour.
+
+    *routed* is the first chunk's memo of those prepared snapshots, shared with
+    the calibration pass that fitted these thresholds on them (issue #3647), so
+    that chunk is routed once rather than once per pass.  ``None`` - every
+    later chunk - prepares its own.
     """
     if not medias or not detector_mlps:
         return {}
@@ -293,17 +395,17 @@ def _score_medias_with_detectors(
     # detectors with the same granularity is prepared once, not per detector.
     groups: dict[tuple[str, str, str, tuple], list[str]] = defaultdict(list)
     for det_name, info in detector_mlps.items():
-        clipper_params = info.get("clipper_params") or {}
-        key = (
+        key = _detector_group_key(
             info.get("media_type") or "",
             info.get("embedder") or "",
             info.get("clipper") or "",
-            tuple(sorted((str(k), str(v)) for k, v in clipper_params.items())),
+            info.get("clipper_params") or {},
         )
         groups[key].append(det_name)
 
     results: dict[str, dict[str, Any]] = {}
-    for (target_type, embedder_name, clipper, clipper_params_items), det_names in groups.items():
+    for key, det_names in groups.items():
+        target_type, embedder_name, clipper, clipper_params_items = key
         if not target_type:
             # Legacy detector with no declared media_type: score every media
             # directly, one hit per media (media with no usable vector are
@@ -313,13 +415,16 @@ def _score_medias_with_detectors(
             # dataset those differ. Typed detectors take the routing path below.
             results.update(_score_direct_all(det_names, detector_mlps, medias, embedder_name))
             continue
-        scoring_medias, scoring_to_source = route_and_embed(
-            medias,
-            target_type,
-            embedder_name,
-            clipper=clipper,
-            clipper_params=dict(clipper_params_items),
-        )
+        if routed is not None:
+            scoring_medias, scoring_to_source = routed.get(key)
+        else:
+            scoring_medias, scoring_to_source = route_and_embed(
+                medias,
+                target_type,
+                embedder_name,
+                clipper=clipper,
+                clipper_params=dict(clipper_params_items),
+            )
         if not scoring_medias:
             continue
         # One row build per group; every head in the group forwards the same
@@ -707,6 +812,9 @@ def _load_pickle_whole(dataset_path: str) -> Iterator[dict[int, dict[str, Any]]]
     if not dataset_file.exists():
         raise FileNotFoundError(f"Dataset file not found: {dataset_path}")
 
+    # Thin is safe here: the pickle loader only drops bytes it can re-read
+    # (a file on disk, an archive member, a URL) and keeps the payload of a
+    # self-contained entry, which nothing outside the pickle could reproduce.
     medias: dict[int, dict[str, Any]] = {}
     load_dataset_from_pickle(dataset_file, medias, thin=True)
     if not medias:
@@ -749,6 +857,102 @@ def _load_pickle_chunked(dataset_path: str, chunk_size: int) -> Iterator[dict[in
     yield from _renumber_chunks(load_dataset_from_pickle_chunked(dataset_file, chunk_size, thin=True))
 
 
+def _reference_files_choice(field_values: dict[str, Any]) -> bool:
+    """Pop the importer's ``reference_files`` choice and return it as ``thin``.
+
+    The GUI resolves thin mode from the importer's own ``reference_files``
+    checkbox (``load_pipeline`` pops it out of the field values and hands it to
+    ``run`` as ``thin=``); the field is deliberately not part of the persisted
+    origin, so it is a per-load storage choice rather than part of the source's
+    identity.  The CLI passes the same field through
+    :meth:`~vtscore.plugins.PluginBase.add_cli_arguments`, which turns it into
+    ``--reference-files`` / ``--no-reference-files``, but it used to leave the
+    value sitting inert in ``field_values`` and force ``thin=True`` regardless.
+
+    Two things went wrong with that.  The flag did nothing, so a CLI user could
+    not turn reference mode off; and thin discards ``media_bytes`` in favour of
+    a path reference, which strands any media whose bytes cannot be re-read
+    from outside the source.  A stranded media cannot be embedded, so it is
+    silently skipped at scoring - and because the calibrated threshold is
+    fitted on the haystack being scored, the surviving population also moved
+    the cut.  Same dataset, same detector, different hits *and* a different
+    threshold in the CLI than in the GUI (issue #3556).
+
+    Popping (rather than reading) matches the GUI: ``run`` takes ``thin`` as a
+    parameter, not as a field, so the key must not be forwarded into an
+    importer's ``field_values``.  Importers that declare no such field get
+    ``False`` - non-reference mode, the GUI's default for them too.
+    """
+    from vtscore.plugins import parse_checkbox  # noqa: PLC0415
+
+    return parse_checkbox(field_values.pop("reference_files", False))
+
+
+def _embed_loaded_medias(medias: dict[int, dict[str, Any]]) -> dict[int, dict[str, Any]]:
+    """Run the framework's embed stage over freshly-imported *medias*.
+
+    Importers never call an embedder - that is the contract on
+    :class:`~vtscore.datasets.importers.base.core.DataSourceImporter`.  They emit
+    media dicts with ``embedding=None`` and the framework's
+    :func:`~vtscore.datasets.stages.embedding.embed_missing` stage embeds
+    everything still at ``None`` once the importer returns.  The GUI's
+    ``load_pipeline`` runs that stage; the CLI ran *none* of the post-import
+    stages and let the vectors appear incidentally at scoring time, inside
+    ``route_and_embed``'s per-detector-group embed pass.
+
+    That ordering is what issue #3556 cost, because the first thing to read the
+    haystack is not scoring but **threshold calibration**: ``train_from_labelset``
+    fits the cut on ``scoring_rows_for_snap(snap)``, which drops every media with
+    no vector.  An import whose items were still unembedded therefore calibrated
+    the detector against a strict subset of the dataset - a lower cut over fewer
+    items - and only afterwards did ``route_and_embed`` fill the vectors in.
+    Same dataset, same detector, a different threshold and different hits in the
+    CLI than in the GUI.
+
+    Media are embedded in groups sharing a ``media_type`` so each group resolves
+    its own embedder: a mixed-type import (a folder of videos and PDFs) must not
+    have every item pushed through the first item's model, which a single
+    whole-dict call would do - ``embed_missing`` resolves one embedder from the
+    first media type it finds.
+
+    Nothing is dropped.  The GUI's ``_drop_none_embeddings_stage`` can drop what
+    stays at ``None`` because its dataset is scored in the space it was loaded
+    in; the CLI's is not.  An item with no native vector - no embedder
+    registered for its type, an unreadable file - may still be scoreable through
+    the one-hop converter route ``route_and_embed`` applies later, so dropping it
+    here would lose hits the CLI finds today.  The count is announced instead, on
+    the same event stream as the scoring-time skips.
+    """
+    from collections import defaultdict  # noqa: PLC0415
+
+    from vtscore.datasets.stages.embedding import embed_missing  # noqa: PLC0415
+    from vtscore.embedding.media_vectors import media_embedding  # noqa: PLC0415
+
+    by_type: dict[str, dict[int, dict[str, Any]]] = defaultdict(dict)
+    for mid, media in medias.items():
+        by_type[media.get("media_type") or ""][mid] = media
+    for group in by_type.values():
+        # Empty name = the framework's own resolution order (the embedder the
+        # media already carry, else the media-type default).  The CLI has no
+        # embedder pick to forward; ``--solo-embedder`` narrows the registry
+        # that resolution reads rather than naming a pick here.
+        embed_missing(group, "", on_progress=cli_progress.progress_callback)
+
+    unembedded = [mid for mid in sorted(medias) if media_embedding(medias[mid]) is None]
+    if unembedded:
+        cli_progress.emit(
+            "medias_unembedded",
+            text=(
+                f"{len(unembedded)} media carry no embedding after the load embed pass "
+                f"and will only score through a converter route: "
+                f"{unembedded[:10]}{'…' if len(unembedded) > 10 else ''}"
+            ),
+            unembedded=len(unembedded),
+            unembedded_ids=unembedded[:100],
+        )
+    return medias
+
+
 def _load_importer_whole(importer_name: str, field_values: dict[str, Any]) -> Iterator[dict[int, dict[str, Any]]]:
     """Yield a single medias dict loaded via a named importer."""
     from vtscore.datasets.importers import get_importer
@@ -760,11 +964,12 @@ def _load_importer_whole(importer_name: str, field_values: dict[str, Any]) -> It
 
     importer.validate_cli_field_values(field_values)
 
+    thin = _reference_files_choice(field_values)
     medias: dict[int, dict[str, Any]] = {}
-    importer.run_cli(field_values, medias, thin=True)
+    importer.run_cli(field_values, medias, thin=thin)
     if not medias:
         raise ValueError(f"No medias loaded by importer '{importer_name}'")
-    yield medias
+    yield _embed_loaded_medias(medias)
 
 
 def _load_importer_chunked(
@@ -779,7 +984,12 @@ def _load_importer_chunked(
         raise ValueError(f"Unknown importer: {importer_name}. Available: {', '.join(available)}")
 
     importer.validate_cli_field_values(field_values)
-    yield from _renumber_chunks(importer.run_chunked_cli(field_values, chunk_size, thin=True))
+    thin = _reference_files_choice(field_values)
+    for chunk in _renumber_chunks(importer.run_chunked_cli(field_values, chunk_size, thin=thin)):
+        # Per chunk, not once at the end: the chunked path exists so a dataset
+        # too big to hold at once is scored a chunk at a time, and each chunk is
+        # calibrated and scored on its own before the next is loaded.
+        yield _embed_loaded_medias(chunk)
 
 
 @dataclass(frozen=True)
@@ -906,23 +1116,29 @@ def _train_detectors_for_first_chunk(
     media_type: str,
     override_detectors: list[str] | None,
     autofind_detectors: list[str],
-) -> dict[str, dict[str, Any]]:
+) -> tuple[dict[str, dict[str, Any]], _RoutedSnapshots]:
     """Train each Auto-Find (or override) detector once against the first chunk.
+
+    Returns the trained detectors alongside the routed snapshots their
+    thresholds were calibrated on, so the caller can score this same chunk
+    against the identical population instead of preparing it a second time
+    (issue #3647).
 
     Raises :class:`ValueError` when no detector applies to *media_type* -
     that's almost always a settings-file misconfiguration the caller wants
     surfaced immediately.
     """
     detector_names = list(override_detectors) if override_detectors is not None else list(autofind_detectors)
+    routed = _RoutedSnapshots(chunk_medias)
     detector_mlps: dict[str, dict[str, Any]] = (
-        _load_and_train_detectors(detector_names, media_type, chunk_medias) if detector_names else {}
+        _load_and_train_detectors(detector_names, media_type, chunk_medias, routed) if detector_names else {}
     )
     if not detector_mlps:
         raise ValueError(
             f"No Auto-Find detectors found for media type: {media_type}. "
             "Add detectors to the settings file's autofind_detectors list."
         )
-    return detector_mlps
+    return detector_mlps, routed
 
 
 def _score_chunk(
@@ -931,6 +1147,7 @@ def _score_chunk(
     total_medias: int,
     detector_mlps: dict[str, dict[str, Any]],
     merged_results: dict[str, dict[str, Any]],
+    routed: "_RoutedSnapshots | None" = None,
 ) -> None:
     """Emit chunk-start progress when relevant, score this chunk, and merge in place."""
     if chunk_num > 1 or total_medias != len(chunk_medias):
@@ -940,7 +1157,7 @@ def _score_chunk(
             chunk_num=chunk_num,
             chunk_size=len(chunk_medias),
         )
-    chunk_results = _score_medias_with_detectors(chunk_medias, detector_mlps)
+    chunk_results = _score_medias_with_detectors(chunk_medias, detector_mlps, routed)
     _merge_detector_results(merged_results, chunk_results)
 
 
@@ -957,6 +1174,9 @@ def _run_live_pipeline(
     merged_results: dict[str, dict[str, Any]] = {}
     media_type: str | None = None
     detector_mlps: dict[str, dict[str, Any]] | None = None
+    # The first chunk's prepared snapshots, held only until that chunk is
+    # scored against them; every later chunk routes itself.
+    routed: _RoutedSnapshots | None = None
     total_medias = 0
     chunk_num = 0
 
@@ -969,12 +1189,13 @@ def _run_live_pipeline(
 
         if media_type is None:
             media_type = _detect_media_type(chunk_medias)
-            detector_mlps = _train_detectors_for_first_chunk(
+            detector_mlps, routed = _train_detectors_for_first_chunk(
                 chunk_medias, media_type, override_detectors, autofind_detectors
             )
 
         if detector_mlps:
-            _score_chunk(chunk_medias, chunk_num, total_medias, detector_mlps, merged_results)
+            _score_chunk(chunk_medias, chunk_num, total_medias, detector_mlps, merged_results, routed)
+        routed = None
 
     if not merged_results:
         raise ValueError(empty_error)
@@ -1005,13 +1226,16 @@ def _stream_hit_records(
     rest: Iterator[dict[int, dict[str, Any]]],
     detector_mlps: dict[str, dict[str, Any]],
     keep_negatives: bool,
+    routed: "_RoutedSnapshots | None" = None,
 ) -> Iterator[tuple[str, dict[str, Any]]]:
     """Score each chunk and yield ``(detector_name, hit)`` pairs in chunk order.
 
     No global accumulation and no global sort: each chunk is scored, its hits
     are yielded, and the chunk is dropped before the next one is pulled, so
     peak memory stays bounded by the chunk size regardless of how many hits
-    the whole run produces.  Above-threshold hits carry ``label="good"``;
+    the whole run produces.  *routed* is the first chunk's already-prepared
+    scoring snapshots, handed over from training (issue #3647) and released as
+    soon as that chunk is scored.  Above-threshold hits carry ``label="good"``;
     below-threshold hits are emitted (with ``label="bad"``) only when
     *keep_negatives* is set.
     """
@@ -1030,7 +1254,11 @@ def _stream_hit_records(
                 chunk_num=chunk_num,
                 chunk_size=len(chunk),
             )
-        chunk_results = _score_medias_with_detectors(chunk, detector_mlps)
+        chunk_results = _score_medias_with_detectors(chunk, detector_mlps, routed)
+        # Only the first chunk has prepared snapshots to reuse, and holding
+        # them past its scoring pass would keep every clip alive for the whole
+        # run - the one thing this pipeline exists to avoid.
+        routed = None
         for det_name, det_result in chunk_results.items():
             for hit in det_result.get("hits", []):
                 yield det_name, {**hit, "label": "good"}
@@ -1082,7 +1310,9 @@ def _run_streaming_pipeline(
 
     apply_custom_metadata_md5(first_chunk)
     media_type = _detect_media_type(first_chunk)
-    detector_mlps = _train_detectors_for_first_chunk(first_chunk, media_type, override_detectors, autofind_detectors)
+    detector_mlps, routed = _train_detectors_for_first_chunk(
+        first_chunk, media_type, override_detectors, autofind_detectors
+    )
 
     header = {
         "media_type": media_type,
@@ -1092,7 +1322,7 @@ def _run_streaming_pipeline(
         "keep_negatives": bool(keep_negatives),
     }
 
-    records = _stream_hit_records(first_chunk, iterator, detector_mlps, keep_negatives)
+    records = _stream_hit_records(first_chunk, iterator, detector_mlps, keep_negatives, routed)
     result = exporter.export_cli_streaming(header, records, exporter_field_values or {})
     message = result.get("message", "Export complete.")
     cli_progress.emit("export_complete", text=message, message=message)

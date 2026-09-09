@@ -216,7 +216,7 @@ MIRRORS: list[Mirror] = [
         ),
         divergence=(
             "The harness takes the error-cost window as an argument instead of reading a "
-            "`_ProgressCache`'s `steps` MLP cache, which is built for one interactive "
+            "`_ProgressCache`'s `steps` model cache, which is built for one interactive "
             "detector advancing a vote at a time. The *rules* are copied; only the input "
             "plumbing differs - and only in where the models come from, not in how they are "
             "scored: the caller (`step_trainers._labelset_error_costs`) re-scores the "
@@ -226,7 +226,39 @@ MIRRORS: list[Mirror] = [
             "The weighted-cost arithmetic underneath both is no longer a copy at all: since "
             "#3414 both score through `vtscore.training.thresholds.weighted_error_cost` and "
             "price inclusion through `inclusion_cost_weights`, so that half cannot drift and "
-            "needs no pin - only the flatness rule above it does."
+            "needs no pin - only the flatness rule above it does. "
+            "Two consequences of #3757 are declared here rather than pinned. (1) The app "
+            "windows its last SMART_WINDOW *models*, because most of its label steps have no "
+            "model - only the ones a learned sort ran against do; the harness trains one per "
+            "step, so its last-SMART_WINDOW-steps slice is the identical set and the "
+            "`voting_iterations` caller says so at the `del recent_steps[:-SMART_WINDOW]`. "
+            "(2) Both sides now score a model in its own serving geometry - the app through "
+            "`scoring_rows_for_snap`, the harness through `score_sim_set_with_model` on the "
+            "arm's style - rather than on whole-image vectors a patch head was never fitted "
+            "on. Those live in the scorers, not in the flatness rule pinned here, so a change "
+            "to either scorer trips the `progress.eval_geometry` mirror below instead."
+        ),
+    ),
+    Mirror(
+        id="progress.eval_geometry",
+        app="py:vtscore.detectors.labeling_progress._score_step",
+        harness="vtscore/eval/step_trainers.py::_labelset_error_costs",
+        kind="ported",
+        note=(
+            "How a cached detector is *scored* when the Smart indicator measures it. Both "
+            "sides must score a head the way that head is served - max-pooled over the rows "
+            "it was fitted against - or the indicator measures a geometry nobody ships, which "
+            "is half of issue #3757. If you change which rows either side scores, or the "
+            "pooling over them, change both."
+        ),
+        divergence=(
+            "The app reaches the rows through `scoring_rows_for_snap`, which is bound to the "
+            "live dataset context and its cached region matrix; the harness has arms rather "
+            "than one shipped geometry, so it routes through the arm's style object "
+            "(`score_sim_set_with_model`) and keeps the whole-image `predict` for the "
+            "whole_image / SVM arms, whose heads are fitted in that space. Both reduce to the "
+            "same rule - score a head where it is served - and both delegate the arithmetic "
+            "on top to `weighted_error_cost`."
         ),
     ),
     Mirror(
@@ -268,7 +300,7 @@ MIRRORS: list[Mirror] = [
             "for step (fold calibration, full-data fit, fold-anchored threshold). A new stage "
             "here - or a changed fold rule or ordering - has to reach the harness or its "
             "default arm trains a detector the app no longer ships. Note "
-            "_mlp_train_and_calibrate is the single-vector path and reproduces the same shape. "
+            "_app_train_and_calibrate is the single-vector path and reproduces the same shape. "
             "The head is the one knob mirrored by name: this function's `hidden_dim` must equal "
             "`resolve_hidden_dim(step_model.PRODUCTION_HEAD, ...)`, which "
             "tests_lib/detectors/test_harness_linear_head.py pins by training this pipeline for "

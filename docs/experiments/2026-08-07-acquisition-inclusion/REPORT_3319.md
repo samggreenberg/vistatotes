@@ -311,7 +311,9 @@ calibration debt.**
 `threshold_at`. A user moving it three stops gets roughly two stops of effect.
 The fix is not a global scale factor — the shortfall differs by environment and
 is not a constant gain — but empirical per-detector calibration, which the
-estimator has the held-out folds to do. Worth filing separately.
+estimator has the held-out folds to do. **Tracked in #3546**, which carries the
+measurement, the out-of-sample check that rules out a global gain correction, and
+the two candidate knob shapes.
 
 ---
 
@@ -379,7 +381,8 @@ Two consequences, pointing opposite ways:
   answered cleanly by arms that are ceiling-limited over the last quarter of
   their trajectory. The honest statement is the falsifier's: the optimum does not
   get *shallower*. Anything stronger needs a deeper haystack — a larger sim
-  fraction or richer categories — not more seeds.
+  fraction or richer categories — not more seeds. **Tracked in #3547**, together
+  with the guardrail finding above.
 
 It is also a plausible mechanism for the spike rise: once positives are nearly
 exhausted the remaining pool is almost all negatives, exactly the regime where a
@@ -493,7 +496,11 @@ n = 74 needed).
 * **The knob under-delivers its own steps, by an environment-dependent amount.**
   That is the most reusable finding, it reaches the user-facing Inclusion
   slider, and it points at a knob shaped like a *target pick precision* — which
-  would be self-calibrating where a constant offset is not.
+  would be self-calibrating where a constant offset is not. **Tracked in #3546.**
 * **Long sessions are untuned territory.** The guardrail is invisible at 100
   clicks and live at 400, and the harness cannot currently answer deep questions
-  cleanly because the aggressive arms exhaust their positives.
+  cleanly because the aggressive arms exhaust their positives. **Tracked in
+  #3547**, which names the pile change that would fix it.
+
+*Both open questions are issues, not paragraphs here — a follow-up written into a
+report is not tracked.*

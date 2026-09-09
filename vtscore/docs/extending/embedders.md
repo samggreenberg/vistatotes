@@ -48,6 +48,7 @@ Optional but commonly overridden:
 | `description_wrappers` | `[]` | Templates with `{text}` for enriched text embedding (e.g. `["the sound of {text}"]`). Keep the default unless you have measured that the ensemble beats the typed query on your checkpoint - it is a loss on most (#3127/#3341) |
 | `_embed_media_bulk_impl(medias)` | per-item loop | Native bulk hook for service embedders or batched GPU forward passes |
 | `_patch_forward_impl(media)` | `None` | For patch-capable image encoders; required when `supports_patch_regions = True` |
+| `models_loaded()` | `self._model is not None` | Whether the weights are already resident. Callers that must *plan around* the load read this - the text-sort progress bar drops its model-load step entirely when it is `True`. Override it only if you hold the backbone somewhere other than `self._model` (override `loaded_backbone()` in the same breath); the default's permanent `False` is safe but wrong |
 
 Don't override the public methods `embed_media`, `embed_text`,
 `embed_media_bulk`, `load_models`, or `patch_forward` - they wrap the

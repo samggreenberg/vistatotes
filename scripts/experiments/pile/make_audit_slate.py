@@ -29,6 +29,12 @@ where the answer is already known. Reviewing those corrects nothing, but it
 into a bounded number. The reviewer cannot tell them apart: files are named by
 image id alone.
 
+**The dataset name is the only thing the reviewer meets besides the images**, so
+for a class whose plain English name is not the whole question it carries the
+rule: the manifest's ``detector`` column is ``pile_config.review_name``, which
+is the class name unless ``SCALE_CLASS_RULES`` gives it one (`cell phone not
+landlines`). An unstated convention is what split `book`.
+
 Each class becomes a folder of JPEGs plus a manifest, ready for VTSearch's
 ``server_folder`` importer. Vote Good/Bad, export with ``server_json_file``, and
 feed the export to ``ingest_slate.py``.
@@ -179,13 +185,19 @@ def main() -> int:
                         "reference": "present" if cell else "absent",
                         "exhaustive": "yes" if medias[i].get("labels_exhaustive") else "no",
                         "n_boxes": len(medias[i].get("regions") or []) if cell else 0,
+                        # The dataset/detector this slate is voted under, and
+                        # for a class with a rule the only place the reviewer
+                        # meets it. Equal to the class name where there is no
+                        # rule, which is what `ingest_slate.py` assumed before
+                        # this column existed.
+                        "detector": pc.review_name(c),
                     }
                 )
         with (cdir / "manifest.csv").open("w", newline="") as fh:
             w = csv.DictWriter(fh, fieldnames=list(rows[0]))
             w.writeheader()
             w.writerows(rows)
-        index.append({"class": c, "dir": str(cdir), "n": len(rows)})
+        index.append({"class": c, "dir": str(cdir), "n": len(rows), "detector": pc.review_name(c)})
         log(f"  {c:<12} {len(rows):3d} images -> {cdir}")
 
     (out_root / "slates.json").write_text(json.dumps(index, indent=1) + "\n")

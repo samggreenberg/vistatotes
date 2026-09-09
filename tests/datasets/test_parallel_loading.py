@@ -628,42 +628,16 @@ class TestConcurrentModelLoading:
 
 
 class TestLoadingGates:
-    """Verify the download/embed gates serialise (or pipeline) concurrent loads."""
+    """Verify the download/embed gates serialise (or pipeline) concurrent loads.
 
-    @pytest.fixture(autouse=True)
-    def _isolate_loading_gates(self):
-        """Drain the dataset-load gates around each test in this class.
-
-        ``conftest.reset_state`` clears the loading-tasks dict between
-        tests but cannot stop worker threads from a prior test that are
-        still holding ``_download_gate`` / ``_embed_gate``. When the
-        suite is under load and a leaked thread is still draining when
-        this test starts, the assertions on ``gate.active`` see stale
-        counts and the test fails with a cryptic ``assert 1 == 0``.
-
-        This fixture cancels any in-flight loading tasks and waits for
-        both gates to settle at zero before yielding, then does the
-        same again on teardown so the next test starts clean.
-        """
-        from vtscore.datasets.load_pipeline import _download_gate, _embed_gate
-
-        def drain(timeout_s: float = 10.0) -> None:
-            loading_tasks.cancel_all()
-            deadline = time.time() + timeout_s
-            while time.time() < deadline:
-                if _download_gate.active == 0 and _embed_gate.active == 0 and not loading_tasks.has_active_tasks():
-                    return
-                time.sleep(0.05)
-
-        drain()
-        assert _download_gate.active == 0, (
-            "Download gate not clean at test start: a prior test leaked a thread that is still holding the gate."
-        )
-        assert _embed_gate.active == 0, (
-            "Embed gate not clean at test start: a prior test leaked a thread that is still holding the gate."
-        )
-        yield
-        drain()
+    These tests read ``_download_gate.active`` / ``_embed_gate.active`` as
+    absolute counts, which is only meaningful because the per-test reset in
+    ``tests_shared.state_reset`` hands every test freshly-constructed gates.
+    This class used to carry its own drain-and-assert fixture instead, and that
+    could only *detect* a gate another test had left dirty, never prevent it —
+    so it turned a leak elsewhere in the worker process into an error here
+    (issue #3613).
+    """
 
     def test_second_load_waits_for_first(self):
         """With the download limit at 1, a second load should show 'Waiting…'

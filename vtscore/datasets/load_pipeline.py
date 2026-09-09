@@ -73,6 +73,28 @@ _download_gate = ConcurrencyGate(lambda: CoreConfig.from_settings().max_concurre
 _embed_gate = ConcurrencyGate(lambda: CoreConfig.from_settings().max_concurrent_dataset_embeddings)
 
 
+def reset_load_gates_for_tests() -> None:
+    """Rebind both load gates to fresh instances.  For test isolation.
+
+    The gates are process globals, so under ``pytest -n auto`` every test in a
+    worker shares them.  A test that leaves a background load thread running
+    leaves that thread holding a permit, and the next test in the process sees
+    a gate that is already partly full — which is how ``TestLoadingGates``
+    became a lottery over xdist worker assignment (issue #3613).
+
+    Rebinding rather than zeroing the counters is what makes this safe in the
+    presence of a thread we could not stop: the leaked thread still holds — and
+    eventually releases — the *old* gate object, so it cannot drive the new
+    gate's count negative.  :class:`_LoadGateController` cooperates by
+    remembering the gate object it acquired instead of re-resolving these
+    globals at release time.
+    """
+    global _download_gate, _embed_gate
+
+    _download_gate = ConcurrencyGate(lambda: CoreConfig.from_settings().max_concurrent_dataset_downloads)
+    _embed_gate = ConcurrencyGate(lambda: CoreConfig.from_settings().max_concurrent_dataset_embeddings)
+
+
 # ---------------------------------------------------------------------------
 # App-side persistence hook
 # ---------------------------------------------------------------------------
@@ -136,13 +158,13 @@ def _recorded_embedder_name(media_dict: dict, requested: str) -> str:
 def _parse_bool(value: Any) -> bool:
     """Coerce a request-supplied flag to ``bool``.
 
-    Accepts native bools, the ``"true"``/``"false"`` strings that
-    checkbox fields serialize to (per :class:`PluginField`), and ``None``
-    (treated as ``False``).
+    Thin alias for :func:`vtscore.plugins.parse_checkbox`, kept so the many
+    call sites in this module read unchanged; the coercion itself is shared
+    with the CLI so the two cannot drift.
     """
-    if isinstance(value, bool):
-        return value
-    return str(value).strip().lower() == "true"
+    from vtscore.plugins import parse_checkbox  # noqa: PLC0415
+
+    return parse_checkbox(value)
 
 
 def _parse_embedder_list(value: Any) -> list[str] | None:
@@ -350,6 +372,12 @@ class _LoadGateController:
         self._tracker = tracker
         self._total_steps = total_steps
         self._held: str | None = None
+        #: The gate object :meth:`acquire` last took a permit from.  Held as an
+        #: object rather than re-resolved from the module global at release
+        #: time so a controller always releases *the gate it acquired*, even if
+        #: the global has since been rebound (which is what
+        #: :func:`reset_load_gates_for_tests` does between tests).
+        self._held_gate: ConcurrencyGate | None = None
 
     @property
     def held(self) -> str | None:
@@ -358,11 +386,13 @@ class _LoadGateController:
     def acquire(self, gate: ConcurrencyGate, name: str, wait_msg: str) -> None:
         if gate.acquire(blocking=False):
             self._held = name
+            self._held_gate = gate
             return
         self._tracker.update("loading", wait_msg, 0, 0, step=1, total_steps=self._total_steps)
         while not gate.acquire(timeout=0.5):
             self._tracker.check_cancelled()
         self._held = name
+        self._held_gate = gate
 
     def acquire_download(self) -> None:
         self.acquire(_download_gate, "download", "Waiting for other datasets to finish downloading…")
@@ -371,16 +401,14 @@ class _LoadGateController:
         if self._held == "embed":
             return
         if self._held == "download":
-            _download_gate.release()
-            self._held = None
+            self.release()
         self.acquire(_embed_gate, "embed", "Waiting for other datasets to finish embedding…")
 
     def release(self) -> None:
-        if self._held == "download":
-            _download_gate.release()
-        elif self._held == "embed":
-            _embed_gate.release()
+        if self._held_gate is not None:
+            self._held_gate.release()
         self._held = None
+        self._held_gate = None
 
 
 def _make_stepped_progress(controller: _LoadGateController, pacer):
@@ -660,6 +688,10 @@ def _run_origin_load_in_background(
         pacer = AdaptiveLoadPacer(tracker, cost_terms, calibrated=terms_calibrated)
         stepped = _make_stepped_progress(controller, pacer)
         profiler.bind_thread()  # so FinalizeProgress.begin stamps land here (no-op when off)
+        # Same reason, for the generic recorder: the stage that decides whether
+        # this import embeds or reads a cached pkl is many frames below here,
+        # and binds the fact to the thread rather than to an argument (#3521).
+        timing_recorder.bind_thread()
 
         try:
             with thread_dataset_context(ctx):
@@ -956,6 +988,70 @@ STAGING_DIR = DATA_DIR / "staging"
 _STAGE_TASK = "dataset_stage"
 _TOTAL_STAGE_STEPS = 3  # acquire, embed, serialize
 
+#: Maps the status strings an importer emits onto ``dataset_stage``'s steps, the
+#: way :data:`_STATUS_TO_STEP` does for a load. Staging folds the load's four
+#: steps into three, so every pre-embed status shares the acquire slice.
+#:
+#: This map is what makes the ``embed`` step measure an embed. An importer that
+#: embeds *inside* ``run()`` — every demo source does, and the demo importer is
+#: what the combine flow stages — used to report stepless, so the tracker kept
+#: step 1 and the whole embedding leg was recorded as ``acquire``. #3521 §5
+#: fitted that step at ``b = 0.0136 s/item, r² 0.9995`` — an embed curve under
+#: the wrong name — beside an ``embed`` at ``b = 7.2e-07``, on a sweep that
+#: cleared the embeddings cache before every rep. Clearing the cache moved
+#: 11–40 s of real embedding into the run and ``embed`` did not move, because
+#: the boundary, not the cache, was what put it there (#3593).
+_STAGE_STATUS_TO_STEP = {
+    "downloading": 1,
+    "extracting": 1,
+    "loading": 1,
+    "converting": 1,
+    "embedding": 2,
+}
+
+
+def _make_staging_progress(controller: _LoadGateController, tracker):
+    """Build the importer-side progress callback for a staging run.
+
+    Mirrors :func:`_make_stepped_progress`: it stamps the step each status
+    belongs to — so the timing recorder labels a duration with the phase that
+    actually ran — and swaps the download gate for the embed gate on the first
+    ``"embedding"``, so a queued import can start fetching while this one holds
+    only the embed slot. Staging used to swap only after ``run()`` returned,
+    which meant a demo staging did its embedding under the *download* gate.
+
+    Two deliberate differences from the load pipeline's version, both because
+    staging has no :class:`AdaptiveLoadPacer` between the importer and the
+    tracker:
+
+    - a status the map does not know leaves ``step`` **unset** rather than
+      passing ``None``, so the tracker keeps the step it was last told instead
+      of nulling the whole-job fraction for that update;
+    - the step never moves backwards. A demo's clipper reports its clip
+      embedding under a plain ``"loading"`` status, which would otherwise walk
+      the bar back to acquire after the embed slice had already started.
+    """
+
+    def stepped(status: str, message: str = "", current: int = 0, total: int = 0, **kwargs) -> None:
+        # An importer signalling *its* completion is not the staging job's:
+        # serialization still has to run, and the terminal update is the one at
+        # the bottom of ``stage_task``. A failure riding along is another
+        # matter and is forwarded. (``load_demo_dataset`` ends with exactly such
+        # an ``"idle"``, which used to park the whole staging task at idle
+        # mid-run.)
+        if status == "idle" and "error" not in kwargs:
+            return
+        if status == "embedding" and controller.held != "embed":
+            controller.swap_to_embed()
+        if "step" not in kwargs:
+            step = _STAGE_STATUS_TO_STEP.get(status)
+            if step is not None and step >= (tracker.get().get("step") or 0):
+                kwargs["step"] = step
+        kwargs.setdefault("total_steps", _TOTAL_STAGE_STEPS)
+        tracker.update(status, message, current, total, **kwargs)
+
+    return stepped
+
 
 def _stage_importer_in_background(importer, field_values: dict, label: str = "") -> str:
     """Run *importer*.run() in a daemon thread, saving the result to a staging pkl.
@@ -994,9 +1090,11 @@ def _stage_importer_in_background(importer, field_values: dict, label: str = "")
     # Staging reports the same step structure every other long-running family
     # does, which is what earns it a whole-job bar and an ETA — and what lets the
     # timing recorder label each measured duration with the phase it belongs to.
-    # The importer's own progress calls come through stepless, and the tracker
-    # keeps the last step it was told, so stamping the boundaries below is
-    # enough.
+    # The boundaries stamped below mark the steps this function drives; the
+    # importer's own progress calls are mapped onto the same three steps by
+    # ``_make_staging_progress``, because an importer that embeds inside
+    # ``run()`` is embedding whatever step number the last stamp left behind
+    # (#3593).
     task = _start_import_task(
         prefix="_staging_",
         family=_STAGE_TASK,
@@ -1011,18 +1109,25 @@ def _stage_importer_in_background(importer, field_values: dict, label: str = "")
     tracker.update("loading", "Preparing dataset…", 0, 0, step=1, total_steps=_TOTAL_STAGE_STEPS)
 
     def stage_task():
-        # Route the importer's own progress calls (and embedding progress)
-        # into this task's tracker instead of the global singleton.
-        set_thread_progress(tracker.update)
         controller = _LoadGateController(tracker, task.total_steps)
+        # Route the importer's own progress calls (and embedding progress)
+        # into this task's tracker instead of the global singleton, mapped onto
+        # this task's steps on the way.
+        set_thread_progress(_make_staging_progress(controller, tracker))
+        # A staging import of a demo reads the same embeddings pkl a full import
+        # writes, so it forks on the same cache and must record which branch it
+        # took.
+        timing_recorder.bind_thread()
         try:
             controller.acquire_download()
             temp_medias: dict = {}
             importer.run(field_values, temp_medias)
             apply_custom_metadata_md5(temp_medias)
-            # Hand the download gate back before the embed so a queued import
-            # can start fetching while this one holds only the embed slot —
-            # the same download→embed handoff the load pipeline makes.
+            # Backstop for the handoff ``_make_staging_progress`` normally makes
+            # on the importer's first ``"embedding"`` status: an importer that
+            # embeds nothing itself (every non-demo source) never fires one, and
+            # would otherwise hold the download gate through the embed below.
+            # No-op when the swap already happened mid-run.
             controller.swap_to_embed()
             tracker.update("embedding", "Embedding…", 0, 0, step=2, total_steps=_TOTAL_STAGE_STEPS)
             embed_missing(temp_medias, field_values.get("embedder", "") or "", on_progress=tracker.update)

@@ -57,27 +57,86 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+def _uniform_primary_embedder(medias: dict[int, dict[str, Any]]) -> str | None:
+    """The primary embedder *every* media in *medias* shares, else ``None``.
+
+    ``None`` means "no single answer": the medias disagree (a mixed-type
+    snapshot binding more than one embedding space), some media has no
+    recorded primary at all, or the mapping is empty.  Short-circuits on the
+    first disagreement, so the mixed case is cheap and only the homogeneous
+    case pays the full scan.
+
+    Callers use this to decide whether an explicitly-named embedder can be
+    treated as the primary for the whole snapshot - see
+    :func:`_collapse_to_primary`.
+    """
+    shared: str | None = None
+    for media in medias.values():
+        name = primary_embedder_name(media)
+        if name is None:
+            return None
+        if shared is None:
+            shared = name
+        elif name != shared:
+            return None
+    return shared
+
+
 def _collapse_to_primary(medias: dict[int, dict[str, Any]], embedder_name: str | None) -> str | None:
-    """Map a routed embedder name to ``None`` when it is the dataset's primary.
+    """Map a routed embedder name to ``None`` when it is *every* media's primary.
 
     The routing layer (``DatasetContext.routed_embedder``) hands callers an
     explicit embedder name even for the common single-embedder dataset, where
-    that name *is* the primary mirror.  The named matrix path builds fresh on
-    every call; the primary path is cached on the context.  Since a name equal
-    to the primary yields byte-for-byte the same vectors as the primary path
-    (the singular ``embedding`` mirrors the recorded embedder's vector), we
-    collapse it to ``None`` here so the cache is reused - keeping the
+    that name *is* the primary.  The named matrix path builds fresh on every
+    call; the primary path is cached on the context.  When every media's
+    primary is that name the two paths read byte-for-byte the same vectors, so
+    we collapse to ``None`` here and the cache is reused - keeping the
     single-embedder hot path unchanged after routing threads names through.
 
     A name that differs from the primary (a genuine second bound embedder)
     passes through unchanged and takes the uncached named path.
+
+    **The quantifier is "every", not "the first" (issue #3650).**  Sampling one
+    media is right on a homogeneous snapshot and a sampling error on a mixed
+    one: media #1's primary would decide the path for all N.  Ask for space
+    ``A`` on a snapshot whose first media is an ``A`` media and whose rest are
+    ``B`` media, and the name collapses, every media contributes *its own*
+    vector, and ``B``-space rows get stacked into an ``A``-space matrix and
+    scored through an ``A``-space head - silently, whenever the two spaces
+    share a width (512-d and 768-d encoders are common).  Reordering the same
+    dict flipped the answer.  Requiring agreement costs one short-circuiting
+    O(N) scan on a path that is about to stack N rows anyway (and the hot
+    ``DatasetContext`` path memoises it - see
+    :func:`_collapse_to_primary_for_ctx`), and it preserves the single-embedder
+    optimisation exactly, which is the only case it was written for.
     """
     if embedder_name is None or not medias:
         return embedder_name
-    first = next(iter(medias.values()))
-    if embedder_name == primary_embedder_name(first):
+    if embedder_name == _uniform_primary_embedder(medias):
         return None
     return embedder_name
+
+
+def _collapse_to_primary_for_ctx(ctx: "DatasetContext", embedder_name: str | None) -> str | None:
+    """:func:`_collapse_to_primary` over *ctx*'s medias, memoised per revision.
+
+    The scan is O(N) in Python, and :func:`get_embedding_matrix` runs it under
+    ``_state_lock`` *before* the cache check - i.e. on the hot path that would
+    otherwise do no per-media work at all.  Memoising the uniform-primary
+    answer on the context keeps that path O(1) after the first call.
+
+    Keyed on ``ctx.media_revision``, exactly like the matrix cache beside it:
+    a structural mutation of ``ctx.medias`` bumps the counter automatically,
+    and an in-place rewrite of a media's ``embedder`` field travels with the
+    vector rewrite that ``invalidate_embedding_matrix`` already signals.  Call
+    with ``_state_lock`` held (the callers do).
+    """
+    if embedder_name is None or not ctx.medias:
+        return embedder_name
+    if ctx._uniform_primary_revision != ctx.media_revision:
+        ctx._uniform_primary = _uniform_primary_embedder(ctx.medias)
+        ctx._uniform_primary_revision = ctx.media_revision
+    return None if embedder_name == ctx._uniform_primary else embedder_name
 
 
 def _require_embedding(cid: int, media: dict[str, Any], embedder_name: str | None = None) -> Any:
@@ -140,6 +199,10 @@ def scoreable_snapshot(
     With *region_rows* set the check is run against the snapshot's **patch-slot**
     embedder instead, matching what :func:`_build_region_arrays` reads for the
     image-level row of every media in a region-row matrix.
+
+    Drops caused by *snap* mixing embedding spaces are logged once per call by
+    :func:`_log_mixed_space_drops`; the drop itself is the policy, but a
+    silently short haystack is what made issue #3650 invisible.
     """
     key = _patch_embedder_for_region_snap(snap) if region_rows else _collapse_to_primary(snap, embedder_name)
     scoreable: dict[int, dict[str, Any]] = {}
@@ -157,7 +220,48 @@ def scoreable_snapshot(
             dropped.append(cid)
             continue
         scoreable[cid] = media
+    if not region_rows:
+        _log_mixed_space_drops(snap, embedder_name, dropped)
     return scoreable, dropped
+
+
+def _log_mixed_space_drops(
+    snap: dict[int, dict[str, Any]],
+    embedder_name: str | None,
+    dropped: list[int],
+) -> None:
+    """Warn once when *dropped* media were left out because *snap* mixes spaces.
+
+    Dropping is the right policy - a mixed-type dataset scored for one space
+    *should* leave out the media that live in another, rather than abort a long
+    run or (worse, pre-#3650) stack their vectors into the wrong matrix.  But a
+    quietly short haystack is exactly what hid that bug: the callers that
+    report skips (``vtscore.cli._emit_skipped_medias``) see a count, not a
+    reason, and library-tier callers see nothing at all.  So the layer that
+    knows *why* says so, once per call rather than once per media.
+
+    Only space-mixing is worth a warning.  A dropped media whose own primary
+    **is** *embedder_name* failed to embed (or carries an unusable vector) -
+    that is the pre-existing per-item failure the drop policy was written for,
+    already surfaced by the callers, and not this function's business.  A
+    dropped media with no primary at all is vector-less for the same reason.
+    """
+    if not dropped or embedder_name is None:
+        return
+    others = {primary_embedder_name(snap[cid]) for cid in dropped}
+    others -= {embedder_name, None}
+    if not others:
+        return
+    logger.warning(
+        "Dropped %d of %d media from the %r embedding matrix: this snapshot mixes embedding "
+        "spaces, and those media are embedded in %s instead. They carry no %r vector, so they "
+        "are excluded from scoring rather than scored against another space's head.",
+        len(dropped),
+        len(snap),
+        embedder_name,
+        ", ".join(sorted(repr(name) for name in others)),
+        embedder_name,
+    )
 
 
 def _vector_label(cid: int, media: dict[str, Any], embedder_name: str | None) -> str:
@@ -365,8 +469,10 @@ def get_embedding_matrix(ctx: "DatasetContext", embedder_name: str | None = None
         # rather than an id-list compare also catches an in-place vector
         # rewrite that leaves the id set unchanged (root-cause Pattern #4).
         revision = ctx.media_revision
-        # A routed name equal to the primary collapses to the cached path.
-        embedder_name = _collapse_to_primary(ctx.medias, embedder_name)
+        # A routed name equal to *every* media's primary collapses to the
+        # cached path (memoised per media_revision: this runs before the cache
+        # check, so the hot path must not pay an O(N) scan per call).
+        embedder_name = _collapse_to_primary_for_ctx(ctx, embedder_name)
         if embedder_name is None:
             cached_matrix = ctx._emb_matrix
             # A revision match guarantees the id set is unchanged, so the live
@@ -828,9 +934,13 @@ def get_embedding_matrix_for_snap(
     if not sorted_ids:
         return [], np.empty((0, 0), dtype=np.float32)
 
-    # A routed name equal to the snapshot's primary collapses to the cached
+    # A routed name equal to *every* media's primary collapses to the cached
     # primary path (matching get_embedding_matrix), so single-embedder
     # snapshots keep reusing the context cache after routing names through.
+    # A snapshot whose medias disagree keeps the name and takes the named
+    # path, which raises on a media lacking that vector rather than stacking
+    # another space's vector into this matrix (issue #3650); callers that
+    # would rather drop than raise pre-filter with scoreable_snapshot.
     embedder_name = _collapse_to_primary(snap, embedder_name)
 
     ctx = get_active_context()

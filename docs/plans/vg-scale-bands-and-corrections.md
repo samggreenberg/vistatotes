@@ -183,3 +183,17 @@ Two measurements constrain what comes next:
   the label-noise effect is on the record rather than assumed. (Sonnet 5)
 
 <!-- item-sep -->
+
+- **Decide what the review guide tells a reviewer to do with a better example.**
+  `audit_band_drift.py` measures how often VG's boxes band an image below the
+  largest instance it actually holds; what to do about the ones a *reviewer*
+  spots is still open, and the guide currently says the opposite of the decision
+  taken in #3616. It was amended to "on a pre-boxed positive, judge the object in
+  the box and redraw only to correct the extent of the *same* object", which
+  makes the drift stop — by asking the reviewer to leave an annotation error in
+  place once they have seen it. That is the wrong trade if the mis-banding is
+  common, and the audit is what says whether it is. The guide is not in this
+  repo, so the amendment has to be reverted by hand once the rate is known.
+  (human)
+
+<!-- item-sep -->

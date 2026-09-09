@@ -1,0 +1,142 @@
+{
+ "dataset": "vg_scale_any",
+ "embedder": "siglip",
+ "n_medias": 7746,
+ "vectors_identical": false,
+ "vectors_sha256": {
+  "before": "1bd835f998908f1d39054cc6558fdceb11ea41c85ad62841edc3c4032be37363",
+  "after": "7ac2bc0e95e20263bfd5f224cc9b76aef953ce8ca3bd0f8db8e216aa962f1c59"
+ },
+ "designation_changed": 3,
+ "evaluable_changed": 2106,
+ "invariant_failures": [],
+ "mean_before": 4200.0,
+ "mean_priced": 6050.75,
+ "mean_after": 6006.5,
+ "mean_gain_pct": 43.01190476190476,
+ "prevalence_before_pct": 7.142857142857143,
+ "prevalence_after_pct": 4.994589195038708,
+ "n_exhaustive": 3925,
+ "cells": [
+  {
+   "cell": "clock",
+   "before": 4200,
+   "priced": 6080,
+   "actual": 6038,
+   "gain_pct": 43.76190476190476,
+   "shortfall": 42,
+   "positives": 300,
+   "negatives": 5738
+  },
+  {
+   "cell": "bird",
+   "before": 4200,
+   "priced": 6044,
+   "actual": 6025,
+   "gain_pct": 43.45238095238095,
+   "shortfall": 19,
+   "positives": 300,
+   "negatives": 5725
+  },
+  {
+   "cell": "boat",
+   "before": 4200,
+   "priced": 6089,
+   "actual": 6029,
+   "gain_pct": 43.54761904761905,
+   "shortfall": 60,
+   "positives": 300,
+   "negatives": 5729
+  },
+  {
+   "cell": "umbrella",
+   "before": 4200,
+   "priced": 6076,
+   "actual": 6015,
+   "gain_pct": 43.214285714285715,
+   "shortfall": 61,
+   "positives": 300,
+   "negatives": 5715
+  },
+  {
+   "cell": "kite",
+   "before": 4200,
+   "priced": 6074,
+   "actual": 6055,
+   "gain_pct": 44.166666666666664,
+   "shortfall": 19,
+   "positives": 300,
+   "negatives": 5755
+  },
+  {
+   "cell": "book",
+   "before": 4200,
+   "priced": 6048,
+   "actual": 6015,
+   "gain_pct": 43.214285714285715,
+   "shortfall": 33,
+   "positives": 300,
+   "negatives": 5715
+  },
+  {
+   "cell": "dog",
+   "before": 4200,
+   "priced": 6055,
+   "actual": 6019,
+   "gain_pct": 43.30952380952381,
+   "shortfall": 36,
+   "positives": 300,
+   "negatives": 5719
+  },
+  {
+   "cell": "backpack",
+   "before": 4200,
+   "priced": 6010,
+   "actual": 5889,
+   "gain_pct": 40.214285714285715,
+   "shortfall": 121,
+   "positives": 300,
+   "negatives": 5589
+  },
+  {
+   "cell": "knife",
+   "before": 4200,
+   "priced": 6042,
+   "actual": 6038,
+   "gain_pct": 43.76190476190476,
+   "shortfall": 4,
+   "positives": 300,
+   "negatives": 5738
+  },
+  {
+   "cell": "bicycle",
+   "before": 4200,
+   "priced": 6033,
+   "actual": 5957,
+   "gain_pct": 41.833333333333336,
+   "shortfall": 76,
+   "positives": 300,
+   "negatives": 5657
+  },
+  {
+   "cell": "bus",
+   "before": 4200,
+   "priced": 6067,
+   "actual": 6008,
+   "gain_pct": 43.04761904761905,
+   "shortfall": 59,
+   "positives": 300,
+   "negatives": 5708
+  },
+  {
+   "cell": "stop sign",
+   "before": 4200,
+   "priced": 5991,
+   "actual": 5990,
+   "gain_pct": 42.61904761904762,
+   "shortfall": 1,
+   "positives": 300,
+   "negatives": 5690
+  }
+ ]
+}

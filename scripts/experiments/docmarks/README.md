@@ -18,8 +18,10 @@ python shortlist.py --corpus <dir> --write-roster     # rank them, draft a roste
 $EDITOR <dir>/roster.json                             # pick your two dozen
 python build_corpus.py --sources spods --roster <dir>/roster.json
 
+python make_audit_slate.py --task merge               # which classes are one mark?
 python make_audit_slate.py --task membership          # verify every instance
-python make_audit_slate.py --task confusable          # adjudicate every pair
+$EDITOR <dir>/audit/merge/merges.txt                  # one line per same-mark group
+python audit_to_corrections.py --task merge --apply
 python audit_to_corrections.py --task membership --apply
 
 source ../pile/pile_env.sh
@@ -221,23 +223,29 @@ Both behaviours are pinned by tests, including the negative one.
 
 In the order you run them. Only the first two are needed for a first eval.
 
-1. **`membership`** — every instance of every roster class, numbered on contact
+1. **`merge`** — the whole class list on a handful of numbered contact sheets,
+   ordered so near-identical classes sit next to each other, plus explicit
+   side-by-side sheets for the closest pairs. The answer is a list of index sets
+   in `merges.txt` — `12 37 41` means those three are one mark — and nothing at
+   all for the classes that are already right. See **The slate** below.
+2. **`membership`** — every instance of every roster class, numbered on contact
    sheets. Verdict is `ok` or the indices that are *not* this mark (`3,17`), so
    a 30-crop class is one line. Afterwards no positive is unexamined, which is
    what lets a miss be blamed on the detector rather than the label. A rejected
    crop keeps its box and stays on its page — it becomes a known negative.
-2. **`confusable`** — every roster pair side by side, ranked by distance. 24
-   classes is 276 pairs, so the full matrix is adjudicated rather than sampled.
-   `same` sends you to `merge_into:` on the cluster task; `different` writes a
-   permanent separation.
-3. **`cluster`** — is a class one mark at all? Mostly useful while choosing a
+3. **`confusable`** — the same question as `merge`, asked one pair per sheet.
+   Correct, and the form to use on a roster small enough that the full matrix is
+   a sitting; past a couple of dozen classes prefer the slate, which compiles to
+   exactly these verdicts. `same` sends you to `merge_into:` on the cluster task;
+   `different` writes a permanent separation.
+4. **`cluster`** — is a class one mark at all? Mostly useful while choosing a
    roster. `split` is productive: it re-clusters that class alone at half the
    threshold and re-sheets the pieces, disturbing nothing else.
-4. **`distinctive`** — mark vs shape. A plain warning triangle or ruled box is a
+5. **`distinctive`** — mark vs shape. A plain warning triangle or ruled box is a
    *shape*: "find this rectangle" is not a well-posed retrieval query. The prior
    study's worst classes (`warning_diamond` at 17 keypoints, `hospital_cross`)
    are exactly this. Generic classes are kept and labelled, never deleted.
-5. **`letterhead`** — for the later UCSF expansion: sample bands per candidate
+6. **`letterhead`** — for the later UCSF expansion: sample bands per candidate
    author and count how many carry a printed mark at all. Decides whether that
    pool is worth clustering.
 
@@ -247,6 +255,177 @@ crop). Band-located classes get none — auto-cropping the strip would hand the
 query a banner of letterhead plus address plus rule line and call it a logo,
 which is worse than no crop because it looks like ground truth. They are listed
 in `build_report.json` under `needs_hand_crop`.
+
+
+## The slate: ask for the partition, not the pairs
+
+The pairwise pass is right about what the corpus needs and wrong about what a
+person can deliver. Adjudicating a matrix means one sheet per pair, and pairs
+are quadratic: the 24-class roster the design was written around is 276 pairs,
+which is a sitting; **v2's 60 admitted classes are 1,770**, which is not. Worse,
+the answer it asks for is 1,770 independent binary verdicts, ~1,750 of them
+`different` between marks nobody could confuse.
+
+That is the wrong shape for the information a reviewer actually holds. What they
+know after looking at the classes is a **partition** — these three are one mark,
+everything else is already right — and almost all of it is the trivial part. So
+the slate elicits the partition directly:
+
+```
+python make_audit_slate.py --task merge
+$EDITOR <corpus>/audit/merge/merges.txt
+python audit_to_corrections.py --task merge --apply
+```
+
+`slate_*.png` is every class as a numbered 3-up strip of its own instances,
+4x6 to a sheet. `merges.txt` is the answer, and the format is the whole of it:
+
+```
+12 37 41
+3 8        # same elephant stamp, blue and red ink
+REVIEWED-ALL
+```
+
+One line per group of classes that are the same mark. A 60-class slate that
+over-split three times is four sheets and three lines. Nothing is written for a
+class that is already right, groups that share a member are unioned rather than
+refused (sameness is transitive; the file is allowed to be redundant about it),
+and any token that is not a resolvable index is refused rather than guessed at
+— each of those is a typo whose silent interpretation would write a permanent
+merge between classes nobody looked at.
+
+**Three instances per cell, not one.** A single exemplar fits every class on one
+page and is tempting for exactly that reason, but then a merge decision rests
+entirely on one crop being representative of its class — which is the assumption
+the membership pass exists because we do not trust.
+
+**Similarity order, plus an appendix.** Classes are laid out by a greedy
+nearest-neighbour seriation of the same descriptor the clustering uses, so an
+over-split shows up as two adjacent cells that look alike — a thing people are
+good at. But a 1-D order cannot preserve a metric that is not 1-D, and the row
+wrap breaks adjacency every four cells regardless, so the ordering is an aid to
+scanning and not a guarantee. The guarantee is `pairs_*.png`: the
+`MERGE_SLATE_NEAR_PAIRS` closest pairs, explicitly side by side, so no pair
+where a wrong call costs anything depends on the layout having been kind.
+
+### The descriptor the audit asks with is not the one it was built with
+
+`phash` clusters 200k pages for nothing and is the reason the corpus exists at
+this size. It is a poor judge of its own output. Measured on v2 (#3600): the one
+literal duplicate on the slate — two classes of the same `DY.Secretary` rubber
+stamp — ranked **83rd of 120** in the near-pair appendix, behind 82 pairs of
+stamps nobody would confuse, while two internally-mixed classes took 37% of the
+appendix between them. A perceptual hash of blue ink on white paper measures ink
+layout, and two different stamps in the same typeface at the same size have
+nearly the same ink layout. The identical failure is on record for UCSF
+letterhead bands, where no threshold produced classes at all.
+
+The audit can afford what the build cannot — it runs over ~1,300 crops, not
+200k pages — so `siglip_audit.py --embed` embeds every class instance once with
+`siglip2_l` and caches the vectors. Only that step needs a card; the slate
+render, the analysis and every re-render afterwards read the cache on `cpu`:
+
+```bash
+bash launch_docmarks.sh siglip                                   # GPU, ~7 min
+python make_audit_slate.py --task merge   --descriptor siglip2_l # re-ordered slate
+python make_audit_slate.py --task cluster --descriptor siglip2_l # split proposals
+```
+
+Three questions get better answers, and each was checked against a human verdict
+before being trusted rather than after:
+
+- **Which classes are nearest** — by class *centroid*, not by one query crop, so
+  an unrepresentative exemplar cannot place a whole class (#3599). On v2 the
+  closest pair went from 0.11 (two unrelated stamps) to 0.030 (two scans of the
+  same B&W wordmark).
+- **Which classes hold more than one mark** — each class's own instances
+  clustered by average linkage, swept over `AUDIT_SPLIT_SWEEP` and reported as a
+  sweep, never as a single verdict. Average linkage rather than single: single
+  linkage's failure mode is one ambiguous crop bridging two marks, which is the
+  defect the pass exists to find. On v2 it proposed `15 / 8 / 1` for the StaVer
+  class and `22 / 2` for `spods/stamp_00489_1` — both exactly the boundaries the
+  reviewer had already drawn by eye, and both found without being told. A class
+  whose two most distant instances sit further apart than the loosest threshold
+  in the sweep (`AUDIT_MIXED_MAX_WITHIN`) is flagged `mixed`.
+- **Whether a class's query crop retrieves its own class** — the question the
+  eval will ask, stated as the *rank* of the class's own centroid rather than a
+  distance whose scale nobody knows. It flags 3 of 59 on v2, including the one
+  `phash` scored second-*best* of 60. Beside the rank, **how many of the class's
+  own instances that crop reaches** before the nearest other class's centroid,
+  which is the part a rank cannot see.
+
+#### A screen for a crop is not a screen for a class
+
+Both query-crop numbers are properties of one *crop*; `mixed` is a property of a
+*class*, and #3610 is the case that separates them.
+`staver/stamp_stampds-00156_0` holds **five** marks across 27 instances — a
+16-strong blue routing box, eight `DFKI Empfang`, and three singletons — and the
+rank scores it 0 at distance 0.078, the healthiest tier of all 59 classes. That
+score is *correct on its own terms*: its query crop is a good instance of the
+16-strong mark, so it retrieves its own class first, and nothing about a rank is
+sensitive to the class being five marks in a trench coat. Its `max_within` is
+0.433, second worst of 59. Gate on both, or the mixed classes the `cluster`
+sheets exist to adjudicate arrive pre-certified healthy.
+
+And the sample the questions are asked of is **spread** over the class, not
+taken off the head of its page-id list. Page ids sort by source and number, so a
+head sample is the scanner's order: the two classes #3610 was filed over are 27
+and 30 instances against `AUDIT_MAX_PER_CLASS` = 24, and between them five marks
+live only in the tail. Note that a plain `[::step]` stride does not fix this —
+`27 // 24` is 1, so the stride hands back the first 24 — which is why
+`sources/_common.spread` spaces indices over the whole range instead.
+
+One caveat for the reviewer working these sheets: a **wide crop catches
+neighbouring page furniture**, and at 150 px that is indistinguishable from a
+second mark. Two crops in the StaVer class show the routing box with a black
+`EINGEGANGEN AM 05. JAN. 2011` stamp above it; others catch `* Artikel mit 7%`
+or `Bankverbindung:`. Check at full size before splitting.
+
+The proposals are hypotheses on a contact sheet. The verdict vocabulary does not
+change, `split` still means a person looked, and a false proposal is expected:
+on v2 two of the four proposed splits were scan quality varying more than the
+mark does, which is obvious on the sheet and invisible in the number.
+
+### `REVIEWED-ALL` is the closed world, and it is deliberately narrow
+
+A partition asserts both directions at once: within a group is `same`, across
+groups is `different`. Taken literally, one reviewed slate would adjudicate all
+1,770 pairs — the complete "different" half of the ground truth, from one
+sitting, which is the half this README elsewhere says usually goes missing.
+
+It is not taken literally, because it would be a lie. A reviewer scanning sixty
+thumbnails has genuinely compared the cells next to each other and every pair on
+the appendix sheets. They have not compared the far end of the distance ranking.
+Recording those as adjudicated would put a decision nobody made into
+`adjudications.json`, which every future re-cluster is then bound by — the exact
+failure the separations exist to prevent, committed by the mechanism meant to
+prevent it.
+
+So `REVIEWED-ALL` separates **the appendix pairs and only those**. Everything
+else stays unadjudicated: still separated by the threshold, still liable to move
+if the threshold moves, and honestly labelled as such. `MERGE_SLATE_NEAR_PAIRS`
+is that honesty budget — raise it to buy more of the matrix, and pay for it in
+sheets to work through. Leave the line off entirely and only the merges are
+recorded; nothing is assumed about what was looked at.
+
+The slate is an input *format*, not a second path through the ground truth:
+`merge_verdicts` compiles it into the same `same`/`different` rows the pairwise
+pass produces, and `apply_confusable` records them. A group becomes a star
+rather than a clique (sameness is transitive and the classes are merged
+outright, so n-1 rows state a group of n), every `same` is emitted before every
+`different` (the applier merges as it goes and follows the chain afterwards, so
+a separation pinned first would name a class about to stop existing), and a pair
+that a merge put inside one group is never also separated — `save_adjudications`
+refuses a pair ruled both ways, so that is a correctness gate rather than
+tidiness.
+
+### What it does not do
+
+It does not check instances. `merge` fixes the *partition* — which proposals are
+one mark; `membership` fixes the *instances* — whether each crop really is that
+mark. Both are needed before the classes stop being proposals, they are one
+sitting rather than two, and `launch_docmarks.sh slate` renders both into one
+bundle for that reason.
 
 ## Output
 
@@ -258,6 +437,8 @@ separations.json    adjudicated "different mark" pairs, keyed on page ids
 queries/            one query crop per box-located roster class
 shortlist.png/json  ranked candidates for choosing a roster
 cluster_report.json what clustering did, and how many separations it honoured
+audit/merge/       the slate: slate_*.png, pairs_*.png, index.json, merges.txt
+audit/membership/  numbered instance sheets + verdicts.jsonl
 build_report.json   counts, survival curve, tier cutoffs, rejections, warnings
 ```
 

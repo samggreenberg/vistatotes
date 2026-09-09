@@ -292,7 +292,7 @@ VTSearch/
 │   │   ├── __main__.py             CLI entry point (python -m vtscore.eval)
 │   │   ├── config.py               EvalConfig / arm definitions
 │   │   ├── runner.py               run_eval() orchestrator
-│   │   ├── trainers.py             Per-arm trainer wrappers
+│   │   ├── sweep_trainers.py       Standalone estimators for the label-curve/timing sweeps
 │   │   ├── patch_styles.py         Patch-scoring arms (max_patch default, whole_image, HAC, …)
 │   │   ├── evt_mixture.py          Gumbel/Normal mixture — the research arm behind the gumbel_* cuts
 │   │   ├── autopilot_flow.py       Ported autopilot loop (the app's TypeScript flow, re-implemented)
@@ -1278,7 +1278,15 @@ vote state on load — without that, the next vote's labelset resync would erase
 every recorded vote's provenance, the bug `region_box` shipped with.
 
 The `GET /api/labels/export` endpoint returns a `LabelSet` serialised
-as JSON.  The format is backward-compatible: old consumers that only
+as JSON.  It answers two different questions, and the caller picks which:
+without `detector_name` it composes the **active pair's live labels** (votes
+∩ the active dataset, topped up from the labelset for elements the dataset
+can't see); with `detector_name` it reads **that detector's persisted
+labelset** off disk, independent of the active pair and of any live Find
+session.  A caller naming a detector in a list — the Dashboard's row action —
+wants the second: the first would follow the top-bar pulldown, and during a
+Find run those votes are the detector's call for every item in the dataset,
+not labels.  The format is backward-compatible: old consumers that only
 read `md5` + `label` continue to work.  With `enrich=true`, each entry
 gains `custom_metadata` (merged from media type display metadata, the
 media's `custom_metadata`, and the flattened `origin.params`) and the

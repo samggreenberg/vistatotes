@@ -437,7 +437,8 @@ constraint** — which is the reason #2868's repair worked at all.
 
 ### Follow-ups this run raises
 
-Both are filed as open items in
+Both are now tracked in **#3557** (a plan bullet is not a tracked follow-up).
+They were previously parked as open items in
 [`docs/plans/population-anchored-calibration.md`](../../plans/population-anchored-calibration.md),
 in the space the closed `#2865` item vacated:
 

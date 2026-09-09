@@ -35,6 +35,7 @@ from collections import defaultdict
 from pathlib import Path
 
 import pile_config as pc
+from pilebuild.corrections import write_json_locked
 
 pc.setup_env()
 
@@ -299,7 +300,7 @@ def main() -> int:
     )
 
     if args.out:
-        Path(args.out).write_text(json.dumps(verdicts, indent=1) + "\n")
+        write_json_locked(Path(args.out), verdicts)
         log(f"wrote {args.out}")
     return 0
 

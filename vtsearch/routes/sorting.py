@@ -110,6 +110,22 @@ def _get_embedder_for_loaded_data(snap=None):
     return embedder_for_medias(snap)
 
 
+def _sort_will_load_model(snap=None) -> bool:
+    """Whether this sort will actually pay its ``load_model`` step.
+
+    ``True`` only on the branch a user waits seconds for: an encoder exists and
+    is not yet resident. Mirrors the two early returns in
+    :func:`_load_embedder_with_progress` exactly — both of them leave step 1
+    *unreported*, so its slice of the bar should be zero rather than merely
+    small. See the call site for why the bar needs the distinction and why
+    reading it here is safe.
+
+    *snap* threads in an already-taken medias snapshot, like its neighbours.
+    """
+    emb = _get_embedder_for_loaded_data(snap)
+    return emb is not None and not emb.models_loaded()
+
+
 def _load_embedder_with_progress(snap=None):
     """Load the embedding model, forwarding its load progress to step 1 of the bar.
 
@@ -129,7 +145,7 @@ def _load_embedder_with_progress(snap=None):
         return
 
     with _embedder_load_lock:
-        if getattr(emb, "_model", None) is not None:
+        if emb.models_loaded():
             return
 
         update_sort_progress("sorting", "Loading embedder…", 0, 0, step=1, total_steps=_SORT_STEPS)
@@ -184,8 +200,24 @@ def sort_clips(body: dict):
 
     from vtscore import timing  # noqa: PLC0415
 
+    # A warm sort never enters step 1: ``_load_embedder_with_progress`` returns
+    # before reporting it when the encoder is already resident, which is 47 of
+    # every 48 sorts in a served process. Budgeting the bar for a load that will
+    # not happen is what put 0.80-0.85 of this task's bar in the wrong step under
+    # every profile #3521 fitted and under the shipped defaults alike (#3596), so
+    # the residency the route can simply *look up* is passed to the pacing.
+    #
+    # Racy in one harmless direction only: models are never unloaded, so a warm
+    # answer stays true, and a cold answer that another request warms first
+    # merely paces this run as it was paced before this call existed.
     sort_progress.set_step_weights(
-        timing.step_weights(_SORT_TASK, media_type=media_type, embedder=embedder_name, n=len(snap))
+        timing.step_weights(
+            _SORT_TASK,
+            media_type=media_type,
+            embedder=embedder_name,
+            n=len(snap),
+            skip_steps=() if _sort_will_load_model(snap) else ("load_model",),
+        )
     )
     # Every exit below — success and abort alike — parks the tracker at "idle"
     # via ``sort_idle()``, which is what closes the recorder.

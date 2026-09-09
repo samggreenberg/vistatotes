@@ -37,14 +37,20 @@ def load(dataset: str, medias: dict[int, dict], embedder_name: str) -> None:
       as negatives would penalise a detector for finding a real bus - exactly
       what #3156 exists to prevent.  A naive "positive if in any band, negative
       otherwise" rule turns all 300 into negatives.
-    * A media positive for one class stays evaluable **only** for that class.
-      VG's labels are not exhaustive (``labels_exhaustive: False``), so an image
-      of a dog is not evidence of the absence of a clock.
+    * A media positive for one class stays evaluable only for that class **off
+      COCO**, where ``labels_exhaustive`` is False and an image of a dog is not
+      evidence of the absence of a clock. On the COCO half it is now a clock
+      negative, because there the absence is annotated (#3667).
     * The 3900-image clean pool - images holding no instance of any of the 12 -
       stays evaluable for all of them.
 
-    Result per class: 300 positives against 3900 shared negatives, i.e. a 4200
-    -image evaluable pool at **7.1 % prevalence, identical for all twelve**.
+    Result per class: 300 positives against the 3900 shared negatives **plus the
+    COCO-exhaustive positives of the other eleven classes**. The pool is
+    therefore no longer 4200 images at a prevalence identical for all twelve;
+    the shared part is shared and the added part is per-class. #3156's paired
+    contrast is unaffected here, because this dataset has already collapsed the
+    bands it was about. See
+    ``docs/experiments/2026-09-06-cross-class-negatives-3667/REPORT.md``.
     """
     src = pc.cell_path("vg_scale", embedder_name)
     if not src.exists():

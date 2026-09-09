@@ -138,7 +138,7 @@ def _fabricate(results: Path, rng: np.random.Generator, counts: list[int] | None
                         "dataset": dataset,
                         "category": cat,
                         "strategy": "autopilot",
-                        "trainer": "mlp",
+                        "trainer": "app",
                         "head": "linear",
                         "style": style,
                         "prevalence_arm": "natural",

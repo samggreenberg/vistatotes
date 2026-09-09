@@ -183,6 +183,25 @@ def _try_load_cached(
     return True
 
 
+def _note_import_branch(branch: str) -> None:
+    """Tell the timing recorder whether this demo load did the work or read a pkl.
+
+    ``embed`` is the step name in both task families that route through here —
+    ``dataset_load``'s and ``dataset_stage``'s — so one call covers both.
+
+    The distinction is invisible from the timings alone and survives the
+    process: #3345's sweep ran ``dataset_stage`` in a *fresh interpreter* after
+    ``dataset_load``, and still measured 0.000-0.002 s of embedding on all four
+    image tiers, because the cache it hit was this pkl on disk. Marking it here,
+    where the branch is chosen, is the only place the fact exists (#3521).
+    """
+    from vtscore.timing import note_branch, note_no_encoder_load  # noqa: PLC0415 - avoid an import cycle
+
+    note_branch("embed", branch)
+    if branch == "cached":
+        note_no_encoder_load()
+
+
 def _resolve_demo_embedder(embedder_name: str, media_type_id: str) -> Any:
     """Resolve the embedder to use for a demo load.
 
@@ -279,7 +298,16 @@ def load_demo_dataset(
         clipper_name,
         clipper_params,
     ):
+        # This import downloaded nothing, embedded nothing, and never
+        # instantiated the encoder — it read a pkl. Tell the timing recorder
+        # so the fitter does not average a pkl read together with the imports
+        # that do the work, and does not let this run claim the encoder
+        # residency key on behalf of the next one, which will pay the real
+        # load. Both are no-ops unless a sweep is recording (#3521).
+        _note_import_branch("cached")
         return
+
+    _note_import_branch("fresh")
 
     # Resolve the embedder
     from vtscore.media import get as media_get

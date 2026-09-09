@@ -631,13 +631,16 @@ now plants a fold fallback so the classifier is exercised.)*
    number of *positive* anchors (24 → −0.093, 8 → −0.019, 7 → −0.068, 3 →
    −0.002). A production gate of the form "use fusion once the fold anchors
    contain ≥ k positives, else the shipped blend" is directly supported; k is
-   not yet estimated and deserves its own sweep of the gate value.
+   not yet estimated and deserves its own sweep of the gate value. **Tracked in
+   #3550**, together with item 4.
 4. **Test κ ∝ 1/n before pinning a constant.** The window trend (κ\* 3 → 0.1
    from 20 to 300 votes) says the fixed-κ parameterisation is wrong in a
    specific, correctable way. A `total_anchor_mass` variant — κ = M/n for
    fixed M, or M/n_good given the positives result — is a one-line change to
    `anchored_gmm_fit`'s caller and would plausibly recover the ~0.009 that the
-   constant-κ compromise gives up at both ends.
+   constant-κ compromise gives up at both ends. **Tracked in #3550** — note
+   #2861 swept a *constant* κ and shipped 0.3, which cannot test this
+   parameterisation.
 5. **`qmean` is confirmed; folds is a maybe.** The addendum closes the
    combine question in production's favour. A properly powered folds A/B (more
    environments, more seeds, paired seeds where possible) is worth it only if

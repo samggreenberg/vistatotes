@@ -422,7 +422,7 @@ side of that line cannot break it; only an arm that crosses it can.
 The discriminator remains the one the main report already names: a **`siglip+siglip2_l`
 pair** — open in SigLIP, learn in `siglip2_l` — which is single-vector *and*
 space-mismatched, the one combination the pile has never run. It is another ~20-minute
-grid, and it is now the single highest-value cell in this design.
+grid, and it is now the single highest-value cell in this design. **Tracked in #3559.**
 
 **So the honest statement of #3290's status is:** its constant is right for every
 configuration measured, and the predicate it is written on (`is_patch_embedder`) is

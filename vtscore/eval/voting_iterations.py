@@ -61,9 +61,11 @@ from vtscore.eval.arms_safe_gmm import _safe_gmm_variant_rows
 from vtscore.eval.arms_schedule import _schedule_variant_rows
 from vtscore.eval.row_metrics import operating_metrics, round6
 from vtscore.eval.step_model import (
+    APP_TRAINER,
     HEADS,
     PRODUCTION_HEAD,
     StepModel,
+    resolve_trainer_name,
     score_sim_set_with_model,
 )
 from vtscore.eval.step_trainers import (
@@ -955,10 +957,14 @@ class _RunKnobs:
     startup_state: StartupState | None
     skyline_arms: list[str]
     head: str
+    trainer: str
 
 
 def _resolve_head(head: Optional[str], trainer: str) -> str:
-    """Validate an explicit MLP head name, or resolve ``None`` to the app's.
+    """Validate an explicit head name, or resolve ``None`` to the app's.
+
+    *trainer* must already be normalised by
+    :func:`~vtscore.eval.step_model.resolve_trainer_name`.
 
     Raises:
         ValueError: If *head* is not a known head, or is given for a trainer
@@ -968,8 +974,12 @@ def _resolve_head(head: Optional[str], trainer: str) -> str:
     if head is not None:
         if head not in HEADS:
             raise ValueError(f"unknown head {head!r}; expected one of {HEADS}")
-        if trainer != "mlp":
-            raise ValueError(f"head={head!r} only applies to the production trainer; got trainer={trainer!r}")
+        if trainer != APP_TRAINER:
+            raise ValueError(
+                f"head={head!r} only applies to trainer={APP_TRAINER!r} (the app's own "
+                f"pipeline, whose head this selects); got trainer={trainer!r}, which fits "
+                f"its own standalone estimator and has no head to choose"
+            )
     # **The default arm must be the app's default.**  Production pins the linear
     # SVM head on every fit (``hidden_dim = LINEAR_SVM_HEAD`` in
     # ``vtscore.detectors.training.train_and_threshold``), so an unspecified head
@@ -979,6 +989,8 @@ def _resolve_head(head: Optional[str], trainer: str) -> str:
     # order, the whole trajectory: defaulting to a retired head would make every
     # unqualified run measure a detector nobody ships.  ``head="linear"`` (the
     # logistic head) and ``head="mlp"`` stay available as named legacy arms.
+    # (This is the *head* knob, not the ``trainer`` knob beside it: the trainer
+    # picks the pipeline, the head picks what that pipeline fits — issue #3764.)
     head = head or PRODUCTION_HEAD
     return head
 
@@ -1076,15 +1088,19 @@ def _resolve_run_knobs(
         if not 0.0 <= acq_rank_percentile <= 1.0:
             raise ValueError(f"acq_rank_percentile must be in [0, 1], got {acq_rank_percentile}")
 
+    trainer = resolve_trainer_name(trainer)
     head = _resolve_head(head, trainer)
 
-    if style is not None and trainer != "mlp":
-        raise ValueError(f"detection styles only support the MLP trainer; got trainer={trainer!r}")
+    if style is not None and trainer != APP_TRAINER:
+        raise ValueError(
+            f"detection styles only apply to trainer={APP_TRAINER!r} (the app's own pipeline); got trainer={trainer!r}"
+        )
     return _RunKnobs(
         fold_schedule=_fold_schedule,
         startup_state=startup_state,
         skyline_arms=skyline_arms,
         head=head,
+        trainer=trainer,
     )
 
 
@@ -1164,7 +1180,7 @@ def simulate_voting_iterations(  # noqa: C901
     max_steps: Optional[int] = None,
     atlas_min_node_size: int = 20,
     seed_scores: Optional[dict[int, float]] = None,
-    trainer: str = "mlp",
+    trainer: str = APP_TRAINER,
     head: Optional[str] = None,
     target_prevalence: Optional[float] = None,
     style: Optional[str] = None,
@@ -1203,35 +1219,40 @@ def simulate_voting_iterations(  # noqa: C901
         seed: Random seed for splitting and vote ordering.
         dataset_name: Label included in result rows.
         inclusion: Inclusion setting in ``[-10, 10]``.
-        trainer: Which ranker to train at each step — ``"mlp"`` (default, the
-            production path, whose head is chosen by *head*) or a standalone
-            SVM name
-            (``"svm_linear"``, ``"svm_rbf"``, or a parameterised spec such as
-            ``"svm_rbf@C=3,gamma=scale"``).  The autopilot vote order adapts to
-            the chosen model, so MLP and SVM trajectories diverge after the
-            first retrain even at the same seed — by design (the question is
-            which model makes *VTSearch* better, and VTSearch's vote order
-            depends on the model).
-        head: Which head the ``"mlp"`` trainer fits at each step (see
-            :data:`HEADS`).  ``None`` (default) resolves to the **app's** head,
-            :data:`PRODUCTION_HEAD` — the linear SVM a live VTSearch detector
-            actually has, so a default run's thresholds and costs are the ones
-            users see.  ``"linear"`` (the logistic head the SVM replaced) and
-            ``"mlp"`` (the harness's auto-sized hidden layer, #2781) are the
-            explicitly-named legacy arms.  The head is threaded into the
-            calibration folds as well, mirroring how production threads one
-            sentinel through ``_train_and_score_xy``.  Rejected on the
+        trainer: Which **pipeline** runs at each step.  ``"app"``
+            (:data:`APP_TRAINER`, the default) is VTSearch's own — the app's
+            ``train_model`` fit plus production fold calibration — and *which
+            model it fits is the separate* ``head`` *argument*.  Anything else
+            is a standalone estimator that fits and thresholds itself:
+            ``"svm_linear"``, ``"svm_rbf"``, or a parameterised spec such as
+            ``"svm_rbf@C=3,gamma=scale"`` (see
+            :mod:`vtscore.eval.sweep_trainers`).  The pre-#3764 spelling
+            ``"mlp"`` is still accepted for ``"app"`` and normalised on the way
+            in; it named no MLP, since the arm's default head is the linear SVM.
+            The autopilot vote order adapts to the chosen model, so the app and
+            SVM trajectories diverge after the first retrain even at the same
+            seed — by design (the question is which model makes *VTSearch*
+            better, and VTSearch's vote order depends on the model).
+        head: Which classifier head the ``"app"`` pipeline fits at each step
+            (see :data:`HEADS`).  ``None`` (default) resolves to the **app's**
+            head, :data:`PRODUCTION_HEAD` — the linear SVM a live VTSearch
+            detector actually has, so a default run's thresholds and costs are
+            the ones users see.  ``"linear"`` (the logistic head the SVM
+            replaced) and ``"mlp"`` (the harness's auto-sized hidden layer,
+            #2781) are the explicitly-named legacy arms.  The head is threaded
+            into the calibration folds as well, mirroring how production threads
+            one sentinel through ``_train_and_score_xy``.  Rejected on the
             standalone SVM trainers, which fit their own estimator rather than
             a head; the *resolved* name is recorded in the ``head`` result
             column (blank on those trainers).
         style: Optional detection-style name (see
             :mod:`vtscore.eval.patch_styles`): ``"whole_image"``,
             ``"max_patch"`` (the production geometry), or one of the
-            ``"max_patch_hac"`` hybrids.  When set (MLP trainer only), the style owns the
+            ``"max_patch_hac"`` hybrids.  When set (``"app"`` trainer only), the style owns the
             vote-to-vector assembly, the test/sim scoring rule, and the
             bag-aware flooding of Bad votes - the Max-Patch experiment arms.
             ``None`` (default) resolves to the **app's** geometry: a patch
-            dataset (any media with a ``patch_grid``) on the MLP trainer gets
+            dataset (any media with a ``patch_grid``) on the ``"app"`` trainer gets
             ``"max_patch"``, everything else keeps the historical single-vector
             path byte-for-byte.  The *resolved* name is what lands in the
             ``style`` result column, so a row always says which geometry
@@ -1451,6 +1472,9 @@ def simulate_voting_iterations(  # noqa: C901
     startup_state = knobs.startup_state
     skyline_arms = knobs.skyline_arms
     head = knobs.head
+    # Normalised once, at the top: the retired ``"mlp"`` spelling never reaches
+    # the dispatch, the guards, or the result rows (issue #3764).
+    trainer = knobs.trainer
 
     prevalence_arm = "natural" if target_prevalence is None else f"rare_{target_prevalence:g}"
     if target_prevalence is not None:
@@ -1515,9 +1539,10 @@ def simulate_voting_iterations(  # noqa: C901
     # column, so a result row always says which geometry produced it.
     #
     # Single-vector datasets are untouched: no patch grid, no style, and the
-    # historical ``_mlp_train_and_calibrate`` path runs byte-for-byte.  Non-MLP
-    # trainers are untouched too - they have no head for a style to drive.
-    if style is None and region_aware and trainer == "mlp":
+    # historical ``_app_train_and_calibrate`` path runs byte-for-byte.  The
+    # standalone-SVM trainers are untouched too - they have no head for a style
+    # to drive.
+    if style is None and region_aware and trainer == APP_TRAINER:
         style = PRODUCTION_PATCH_STYLE
 
     style_obj: Any = None
@@ -1872,9 +1897,19 @@ def simulate_voting_iterations(  # noqa: C901
         # over the still-unlabeled pool, Span the atlas's coverage.
         if flow is not None:
             recent_steps.append((step, threshold))
-            del recent_steps[:-SMART_WINDOW]  # the app regresses over the last 10 steps
+            # The app regresses over its last SMART_WINDOW *models*; here every
+            # step trains one, so the last SMART_WINDOW steps are the same set.
+            del recent_steps[:-SMART_WINDOW]
             flow.record_step(
-                _labelset_error_costs(recent_steps, good_votes, bad_votes, clips_dict, inclusion),
+                _labelset_error_costs(
+                    recent_steps,
+                    good_votes,
+                    bad_votes,
+                    clips_dict,
+                    inclusion,
+                    region_aware=region_aware,
+                    style_obj=style_obj,
+                ),
                 {cid: (1 if s >= threshold else 0) for cid, s in pool_scores.items()},
             )
             flow.update(
@@ -1893,7 +1928,7 @@ def simulate_voting_iterations(  # noqa: C901
             "trainer": trainer,
             # Blank on the standalone SVM trainers: they fit no head, so
             # naming one here would attribute the row to a head never trained.
-            "head": head if trainer == "mlp" else "",
+            "head": head if trainer == APP_TRAINER else "",
             "style": style or "",
             "prevalence_arm": prevalence_arm,
             "realized_prevalence": realized_prevalence,
@@ -2137,7 +2172,7 @@ def simulate_voting_iterations(  # noqa: C901
             "category": target_category,
             "strategy": strategy,
             "trainer": trainer,
-            "head": head if trainer == "mlp" else "",
+            "head": head if trainer == APP_TRAINER else "",
             "style": style or "",
             "prevalence_arm": prevalence_arm,
             "realized_prevalence": realized_prevalence,
@@ -2229,9 +2264,9 @@ def run_voting_iterations_eval(
             ``{dataset: {category: {media_id: similarity}}}``.  When a
             (dataset, category) has an entry, the autopilot seed follows that
             text ranking; otherwise it seeds from random known-good examples.
-        trainers: Which rankers to run at each cell (see
+        trainers: Which pipelines to run at each cell (see
             :func:`simulate_voting_iterations`).  ``None`` (default) runs
-            ``["mlp"]``; pass e.g. ``["mlp", "svm_linear", "svm_rbf"]`` for the
+            ``["app"]``; pass e.g. ``["app", "svm_linear", "svm_rbf"]`` for the
             head-to-head comparison.  Recorded in the ``trainer`` column.
         prevalence_arms: Which prevalence arms to run per (dataset, category).
             ``None`` (default) runs ``[None]`` (natural prevalence only); pass
@@ -2259,7 +2294,7 @@ def run_voting_iterations_eval(
     import pandas as pd  # noqa: PLC0415
 
     strategy_list = strategies if strategies is not None else ["autopilot"]
-    trainer_list = trainers if trainers is not None else ["mlp"]
+    trainer_list = trainers if trainers is not None else [APP_TRAINER]
     arm_list = prevalence_arms if prevalence_arms is not None else [None]
     style_list = styles if styles is not None else [None]
     all_rows: list[dict[str, Any]] = []

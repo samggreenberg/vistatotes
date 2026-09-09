@@ -947,6 +947,9 @@ class TestLoadEmbedderConcurrentCallback:
         mock_mt = MagicMock()
         mock_mt._model = None  # force "needs loading"
         mock_mt._on_progress = original_cb
+        # Residency is read through the public accessor (#3596), so a mock has
+        # to answer it rather than only carry the private attribute.
+        mock_mt.models_loaded.side_effect = lambda: mock_mt._model is not None
 
         def slow_load_models():
             """Simulate a slow load; first call loads, second sees it loaded."""
@@ -955,7 +958,7 @@ class TestLoadEmbedderConcurrentCallback:
 
         mock_mt.load_models = slow_load_models
 
-        with unittest.mock.patch("vtscore.media.get", return_value=mock_mt):
+        with unittest.mock.patch("vtsearch.routes.sorting._get_embedder_for_loaded_data", return_value=mock_mt):
             t1 = threading.Thread(target=_load_embedder_with_progress)
             t2 = threading.Thread(target=_load_embedder_with_progress)
             t1.start()
@@ -979,6 +982,7 @@ class TestLoadEmbedderConcurrentCallback:
         original_cb = MagicMock(name="original_cb")
         mock_emb = MagicMock()
         mock_emb._model = None
+        mock_emb.models_loaded.return_value = False  # cold: the load is attempted
         mock_emb._on_progress = original_cb
         mock_emb.load_models.side_effect = RuntimeError("boom")
 

@@ -31,6 +31,10 @@
           {
             "type": "command",
             "command": "python3 ${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/ensure-test-deps-gate.py"
+          },
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/require-issue-labels.py"
           }
         ]
       },

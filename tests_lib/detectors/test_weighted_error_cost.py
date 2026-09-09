@@ -79,7 +79,7 @@ class TestAppAndHarnessScoreAlike:
     def test_score_step_matches_labelset_error_costs(self, inclusion):
         torch = pytest.importorskip("torch")
 
-        from vtscore.detectors.labeling_progress import _build_eval_set, _score_step
+        from vtscore.detectors.labeling_progress import _build_eval_rows, _score_step
         from vtscore.eval.step_model import StepModel
         from vtscore.eval.step_trainers import _labelset_error_costs
 
@@ -107,12 +107,12 @@ class TestAppAndHarnessScoreAlike:
             [(StepModel(predict, net, "test", "cpu"), threshold)], good, bad, clips, inclusion
         )
 
-        eval_set = _build_eval_set(clips, good, bad)
+        eval_set = _build_eval_rows(clips, good, bad)
         assert eval_set is not None
-        X_eval, eval_labels = eval_set
+        eval_rows, eval_labels = eval_set
         wf, wn = inclusion_cost_weights(inclusion)
         step = {"model": net, "threshold": threshold, "good_ids": list(good), "bad_ids": list(bad)}
-        app = _score_step(step, X_eval, eval_labels, wf, wn, 0)
+        app = _score_step(step, eval_rows, eval_labels, wf, wn, 0)
 
         assert app["error_cost"] == pytest.approx(harness[0], abs=1e-4)
         assert (app["fpr"], app["fnr"]) == (0.5, 0.5)

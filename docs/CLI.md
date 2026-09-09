@@ -62,6 +62,21 @@ python app.py --autodetect --importer http_archive --url /data/sounds.tar.gz --m
 
 Use `python app.py --list-importers` to see all available importers. The full set includes: `server_folder`, `server_files`, `local_folder`, `local_files`, `local_archive_member`, `pickle`, `http_archive`, `combine_datasets`, `demo`, `synthetic`. Each importer adds its own flags; run `python app.py --autodetect --importer <name> --help` to see them. `--help` resolves the named plugin first, so its flags are listed at the end of the usual help output (the same works for `--exporter <name> --help`).
 
+**Reference mode**: importers that offer a "Reference files in place" checkbox
+in the GUI (`server_folder`, `server_files`) expose it here as
+`--reference-files` / `--no-reference-files`. Enabled, the dataset stores a path
+reference to each original file instead of its bytes, which saves memory —
+and, as in the GUI, makes the run depend on those files staying put. It is
+**off by default**, so a CLI import ingests a source exactly the way the same
+importer does in the GUI.
+
+Leave it off unless every item really is re-readable from its original
+location. Reference mode swaps a media's bytes for a path, so an item that has
+no file to point back at (a remote source with no local copy) keeps neither —
+it cannot be embedded, and is then skipped at scoring. That silently shortens
+the hit list *and* moves the detector's threshold, because the threshold is
+calibrated against the population actually being scored.
+
 **Chunked loading**: for large datasets, use `--chunk-size N` to process in batches to limit memory:
 
 ```bash
@@ -164,6 +179,19 @@ the granularity the detector expects. The per-clip scores fold back to the sourc
 media by the same **max** rule as converter fan-out. A dataset already loaded
 with the matching clipper is scored as-is (no redundant re-clip), and a detector
 with no `input_spec.clipper` scores whole media.
+
+**The threshold is calibrated on whatever the run ends up scoring.** Converting
+and re-clipping change the population, not just the item count: the max over a
+media's clips is never below the media's own whole-item score, so a cut fitted
+on the loaded medias and applied to the routed ones sits systematically lower in
+the distribution it decides — more hits than the algorithm chose, in a run whose
+numbers all look reasonable. So the routing pass happens **before** calibration,
+and each detector's cut is realized on the converted, re-clipped, re-embedded
+snapshot its own scoring pass will read (issue #3647). On a natively-typed
+dataset needing no re-clip the two are the same set and nothing changes; on a
+converter-routed or re-clipped one the threshold moves, and moving it is the
+fix. The first chunk is prepared once and handed to both passes, so the
+correction costs no extra conversion or embedding work.
 
 **How to get the files:**
 

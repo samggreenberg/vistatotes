@@ -1,0 +1,132 @@
+{
+ "alias": {
+  "boat": [
+   "boats",
+   "canoe",
+   "kayak",
+   "raft",
+   "sailboats",
+   "ship"
+  ],
+  "dog": [
+   "black dog",
+   "brown dog",
+   "dogs",
+   "puppy"
+  ],
+  "backpack": [
+   "back pack"
+  ],
+  "knife": [
+   "butter knife"
+  ],
+  "book": [
+   "magazine"
+  ],
+  "bus": [
+   "buses",
+   "school bus"
+  ],
+  "kite": [
+   "kites",
+   "parachute",
+   "parasail"
+  ],
+  "clock": [
+   "clock face",
+   "clocks"
+  ],
+  "bird": [
+   "duck",
+   "goose",
+   "ostrich",
+   "owl",
+   "parrot",
+   "pigeon",
+   "seagull",
+   "swan"
+  ],
+  "bicycle": [
+   "bicycles"
+  ],
+  "umbrella": [
+   "blue umbrella",
+   "parasol",
+   "red umbrella"
+  ]
+ },
+ "ambiguous": {
+  "boat": [
+   "barge",
+   "bouy",
+   "sail boat",
+   "sailboat"
+  ],
+  "dog": [
+   "bulldog",
+   "poodle"
+  ],
+  "backpack": [
+   "black backpack",
+   "black bag",
+   "bookbag",
+   "duffle bag"
+  ],
+  "knife": [
+   "butterknife",
+   "knife block",
+   "knives",
+   "silverware"
+  ],
+  "book": [
+   "binder",
+   "book case",
+   "book shelf",
+   "bookcase",
+   "books",
+   "bookshelf",
+   "dvd",
+   "dvds",
+   "games",
+   "library",
+   "magazines",
+   "notebook"
+  ],
+  "bus": [
+   "blue bus"
+  ],
+  "stop sign": [
+   "octagon",
+   "stop"
+  ],
+  "clock": [
+   "alarm clock",
+   "numeral",
+   "roman numerals"
+  ],
+  "bird": [
+   "beak",
+   "birds",
+   "dove",
+   "ducks",
+   "feather",
+   "feathers",
+   "geese",
+   "peacock",
+   "seagulls"
+  ],
+  "bicycle": [
+   "bicyclist",
+   "bike",
+   "bike tire",
+   "bikes",
+   "tricycle"
+  ],
+  "umbrella": [
+   "an umbrella",
+   "black umbrella",
+   "pink umbrella",
+   "umbrellas"
+  ]
+ }
+}

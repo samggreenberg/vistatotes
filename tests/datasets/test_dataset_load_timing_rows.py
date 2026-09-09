@@ -282,3 +282,106 @@ class TestStagingImportRecordsTimingRows:
         _run_staging(tmp_path, monkeypatch)
 
         assert not sink.exists()
+
+
+class _FakeClock:
+    """Deterministic stand-in for the recorder's ``time`` module.
+
+    Patched into :mod:`vtscore.timing.recorder` alone, so the phase boundaries
+    under test are the only thing the fake clock decides.
+    """
+
+    def __init__(self) -> None:
+        self.t = 0.0
+
+    def monotonic(self) -> float:
+        return self.t
+
+    def advance(self, seconds: float) -> None:
+        self.t += seconds
+
+
+class _EmbedsInsideRunImporter:
+    """An importer that embeds inside ``run()`` — what every demo source does.
+
+    ``load_demo_dataset`` embeds inside ``load_demo_source``, which the staging
+    flow calls from ``importer.run()``; it also signs off with a terminal
+    ``"idle"`` that is the importer finishing, not the staging job.
+    """
+
+    fields: list = []
+
+    def __init__(self, clock: _FakeClock, acquire: float, embed: float) -> None:
+        self._clock, self._acquire, self._embed = clock, acquire, embed
+
+    def run(self, field_values, target_medias, **kwargs):
+        from vtscore.concurrency.progress import update_progress
+
+        update_progress("loading", "Reading source…", 0, 1)
+        self._clock.advance(self._acquire)
+        update_progress("embedding", "Embedding…", 0, 1)
+        self._clock.advance(self._embed)
+        _fake_load(target_medias)
+        update_progress("idle", "Loaded demo dataset", 0, 0)
+
+    def resolve_display_name(self, field_values):
+        return "embeds inside run"
+
+
+class TestStagingRecordsTheImportersEmbeddingAsAnEmbed:
+    """#3593: ``dataset_stage``·``embed`` must measure embedding.
+
+    The staging flow bound the importer's progress sink straight to
+    ``tracker.update``, so its calls arrived stepless, the tracker kept step 1
+    through the whole of ``run()``, and a demo import's embedding was recorded
+    as ``acquire``. #3521 §5 cleared the embeddings cache before every rep,
+    moved 11-40 s of real embedding into the run, and watched ``embed`` not
+    move: the boundary put it there, not the cache.
+    """
+
+    def _rows_by_step(self, tmp_path, monkeypatch, *, acquire: float, embed: float) -> dict:
+        from vtscore.timing import recorder as recorder_mod
+
+        sink = tmp_path / "timings.jsonl"
+        monkeypatch.setenv(RECORD_ENV_VAR, str(sink))
+        clock = _FakeClock()
+        monkeypatch.setattr(recorder_mod, "time", clock)
+
+        from vtscore.datasets import load_pipeline
+        from vtscore.datasets.load_pipeline import _stage_importer_in_background
+
+        monkeypatch.setattr(load_pipeline, "STAGING_DIR", tmp_path / "staging")
+        with mock.patch(
+            "vtscore.datasets.load_pipeline.threading.Thread",
+            side_effect=_sync_thread_factory(),
+        ):
+            _stage_importer_in_background(
+                _EmbedsInsideRunImporter(clock, acquire, embed),
+                {"media_type": "audio", "embedder": "clap"},
+            )
+        return {r["step"]: r for r in load_rows([str(sink)])}
+
+    def test_the_embed_step_carries_the_importers_embedding(self, isolated_settings, tmp_path, monkeypatch):
+        rows = self._rows_by_step(tmp_path, monkeypatch, acquire=1.0, embed=9.0)
+
+        assert rows["embed"]["seconds"] >= 9.0, "the embedding inside run() belongs to the embed step"
+        assert rows["acquire"]["seconds"] == 1.0, "acquire must measure acquisition and nothing else"
+
+    def test_acquire_no_longer_carries_the_embed_curve(self, isolated_settings, tmp_path, monkeypatch):
+        """The shape of the defect, stated as the fit saw it: acquire scaling
+        with the work and embed pinned near zero."""
+        small = self._rows_by_step(tmp_path, monkeypatch, acquire=1.0, embed=2.0)
+        large = self._rows_by_step(tmp_path, monkeypatch, acquire=1.0, embed=20.0)
+
+        assert small["acquire"]["seconds"] == large["acquire"]["seconds"], "acquire must not scale with the embed"
+        assert large["embed"]["seconds"] - small["embed"]["seconds"] >= 18.0
+
+    def test_the_run_is_still_complete_and_fittable(self, isolated_settings, tmp_path, monkeypatch):
+        """The importer's terminal ``"idle"`` must not park the staging task
+        before it serializes, or the run stops reaching its last step and the
+        fitter drops every row."""
+        rows = self._rows_by_step(tmp_path, monkeypatch, acquire=1.0, embed=9.0)
+
+        assert set(rows) == {"acquire", "embed", "serialize"}
+        assert all(r["ok"] and r["complete"] for r in rows.values())
+        assert all(normalize_row(r) is not None for r in rows.values())

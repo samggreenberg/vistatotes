@@ -872,6 +872,29 @@ lookup walks from the most specific key to the least:
 }
 ```
 
+A step whose cost **forks** — the coverage atlas of a dataset open is restored
+from the pickle in ~10 ms or rebuilt from scratch at 0.0026 s/item — carries a
+set of coefficients per branch, nested under the step:
+
+```json
+"coverage": {
+  "a": 0.2, "b": 0.0026,
+  "branches": {"restored": {"a": 0.009}, "rebuilt": {"a": 0.2, "b": 0.0026}}
+}
+```
+
+The server names the branch it is taking when it asks for its weights, so one
+profile paces both. This matters more than it sounds: measured on the same two
+datasets, a restore ran 110-700x faster than a rebuild, and a profile carrying
+only one of those numbers put **up to 0.94 of the progress bar in the wrong
+step** on the other branch. Both are correct measurements; neither is a cost
+model on its own. A sweep that only ever exercised one path emits no split (one
+branch measured says nothing about the branch nobody ran) and the coverage
+report names the step, so a half-measured fork is visible rather than silent.
+`--drive --cold-atlas` is what exercises the rebuild branch: it rebuilds each
+named dataset's atlas through the on-demand endpoint, in memory, leaving the
+pickles untouched.
+
 The fit emits rollup cells (`cuda||`) alongside precise ones, so measuring three
 exemplar datasets still improves pacing for every dataset that host will see.
 A rollup is only reached for a combination the sweep never measured, so it is

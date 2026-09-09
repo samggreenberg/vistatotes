@@ -1,0 +1,86 @@
+[
+  {
+    "cell": "backpack@medium",
+    "class": "backpack",
+    "exhaustive": "no",
+    "image_id": 1592325
+  },
+  {
+    "cell": "book@large",
+    "class": "book",
+    "exhaustive": "yes",
+    "image_id": 2316453
+  },
+  {
+    "cell": "bus@medium",
+    "class": "bus",
+    "exhaustive": "yes",
+    "image_id": 2324973
+  },
+  {
+    "cell": "stop sign@large",
+    "class": "stop sign",
+    "exhaustive": "yes",
+    "image_id": 2332254
+  },
+  {
+    "cell": "umbrella@large",
+    "class": "umbrella",
+    "exhaustive": "yes",
+    "image_id": 2338527
+  },
+  {
+    "cell": "bird@medium",
+    "class": "bird",
+    "exhaustive": "no",
+    "image_id": 2343385
+  },
+  {
+    "cell": "backpack@medium",
+    "class": "backpack",
+    "exhaustive": "no",
+    "image_id": 2346517
+  },
+  {
+    "cell": "boat@medium",
+    "class": "boat",
+    "exhaustive": "yes",
+    "image_id": 2356161
+  },
+  {
+    "cell": "dog@medium",
+    "class": "dog",
+    "exhaustive": "no",
+    "image_id": 2356466
+  },
+  {
+    "cell": "stop sign@medium",
+    "class": "stop sign",
+    "exhaustive": "yes",
+    "image_id": 2359232
+  },
+  {
+    "cell": "book@large",
+    "class": "book",
+    "exhaustive": "yes",
+    "image_id": 2393752
+  },
+  {
+    "cell": "bus@medium",
+    "class": "bus",
+    "exhaustive": "yes",
+    "image_id": 2394171
+  },
+  {
+    "cell": "bus@medium",
+    "class": "bus",
+    "exhaustive": "no",
+    "image_id": 2398433
+  },
+  {
+    "cell": "stop sign@medium",
+    "class": "stop sign",
+    "exhaustive": "yes",
+    "image_id": 2399800
+  }
+]

@@ -40,6 +40,12 @@ def vg_boxes_by_name(rec: dict, wanted: set[str]) -> dict[str, list[list[float]]
     VG names an object with a list of synonyms and the first is its primary, so
     only that one is matched -- taking any of them would file one object under
     several categories. Degenerate boxes drop out.
+
+    **In this release of VG there is nothing else to take.** All 2,516,939
+    objects carry a ``names`` list of length exactly one (#3618), so the
+    primary-name restriction costs nothing here and reading the rest of the list
+    is not an available fix for a class built from one spelling. That fix is
+    :data:`pile_config.SCALE_VG_NAMES`.
     """
     from collections import defaultdict  # noqa: PLC0415
 

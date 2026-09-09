@@ -247,27 +247,65 @@ def _origin_only_fallback_entries(
 
     from vtscore.datasets.labelset import element_key
 
+    seen = {element_key(el) for el in labelset.elements}
+    seen.discard(None)
+
+    return _serialise_persisted_elements(
+        persisted.elements,
+        all_medias,
+        label_filter,
+        goods_only,
+        seen=seen,
+        skip_resolved=True,
+    )
+
+
+def _serialise_persisted_elements(
+    elements,
+    all_medias: dict,
+    label_filter: str,
+    goods_only: bool,
+    *,
+    seen: set | None = None,
+    skip_resolved: bool = False,
+) -> list[dict]:
+    """Serialise on-disk labelset elements into export entries.
+
+    Shared by the two paths that read straight from a detector's persisted
+    labelset, which differ only in what they skip:
+
+    * :func:`_origin_only_fallback_entries` tops up a *vote-derived* export,
+      so it passes the vote-derived keys as *seen* and sets *skip_resolved*:
+      an element the active dataset can see is the session's to represent.
+    * :func:`_export_persisted_labelset` renders the labelset on its own, so
+      it skips nothing and every element is emitted.
+
+    ``origin_only`` marks an entry whose media does not resolve into the
+    active dataset, in both paths - a resolved entry from the second path is
+    a normal label, not a provenance-only rendering.
+    """
+    from vtscore.datasets.labelset import element_key
+
     if all_medias:
         origin_lookup, md5_lookup, name_lookup = cached_media_lookups()
     else:
         origin_lookup, md5_lookup, name_lookup = {}, {}, {}
 
-    seen = {element_key(el) for el in labelset.elements}
-    seen.discard(None)
-
     entries: list[dict] = []
-    for el in persisted.elements:
+    for el in elements:
         if el.label not in ("good", "bad"):
             continue
         if not _fallback_passes_filter(el.label, label_filter, goods_only):
             continue
-        key = element_key(el)
-        if key is not None and key in seen:
-            continue
+        if seen:
+            key = element_key(el)
+            if key is not None and key in seen:
+                continue
         entry = el.to_dict()
-        if resolve_media_ids(entry, origin_lookup, md5_lookup, name_lookup):
+        if not resolve_media_ids(entry, origin_lookup, md5_lookup, name_lookup):
+            entry["origin_only"] = True
+        elif skip_resolved:
             continue
-        entry["origin_only"] = True
         entries.append(entry)
     return entries
 
@@ -308,7 +346,9 @@ def _make_enricher(all_medias: dict):
     importer's own ``custom_metadata``.  Entries with no media in the active
     dataset degrade to :func:`_build_unresolved_entry_metadata`.
     """
-    md5_lookup = cached_md5_lookup()
+    # No medias means no resolution to do, and the lookup itself reads the
+    # active dataset context - which the detector-scoped export may not have.
+    md5_lookup = cached_md5_lookup() if all_medias else {}
 
     def enrich(entry: dict) -> set[str]:
         cids = md5_lookup.get(entry.get("md5") or "")
@@ -334,9 +374,73 @@ def _enrich_with_metadata(result: dict, all_medias: dict) -> None:
     result["available_columns"] = _BASE_EXPORT_COLUMNS + extra_keys
 
 
+def _export_persisted_labelset(name: str, query: dict):
+    """Export a *named* detector's on-disk labelset, ignoring the live session.
+
+    The session-composed path below answers "what has the human labelled in
+    the active (dataset, detector) pair right now"; this one answers "what is
+    detector X's labelset", which is a different question and the one the
+    Dashboard's row action asks - it names a detector in a list, and the
+    answer must not depend on which pair the top-bar pulldown happens to be
+    pointing at (issue #3639).  Reading the detector JSON is what makes that
+    true: the labelset on disk is kept in step with every vote by
+    :func:`~vtscore.detectors.label_sync.sync_labels_to_loaded_detector`, so
+    it is current, and it is the exact artefact that re-imports as the
+    detector.
+
+    It is also the only reading that survives a live Find session.  Find
+    replaces the detector's in-memory votes with its own call for *every*
+    item in the dataset, flagged ``find_mode`` so the sync above keeps those
+    presumptions out of the labelset (see ``end_find_session``); composing
+    from votes would export the whole collection as labels.
+
+    The vote-scoped filters partition that live session, so they have no
+    meaning here and are refused rather than silently ignored.
+    """
+    from vtscore.datasets.labelset import LabelSet
+    from vtscore.detectors.store import _detector_path, _read_detector
+    from vtscore.state.core import DatasetNotLoadedError
+    from vtsearch.state import medias
+
+    label_filter = query["label_filter"]
+    if label_filter in _VOTE_SCOPED_FILTERS:
+        abort(
+            400,
+            message=(
+                f"label_filter='{label_filter}' partitions the live vote session and "
+                "cannot be combined with detector_name, which exports a persisted labelset."
+            ),
+        )
+
+    data = _read_detector(_detector_path(name))
+    if data is None:
+        abort(404, message=f"Detector '{name}' not found")
+
+    labelset = LabelSet.from_dict(data.get("labelset") or {})
+    # The active dataset is only ever *enrichment* here, so an absent or
+    # unloaded one degrades to an unenriched export rather than failing it:
+    # the whole point of this path is that the labels do not depend on which
+    # pair the app happens to be pointed at.
+    try:
+        all_medias = dict(medias)
+    except DatasetNotLoadedError:
+        all_medias = {}
+    entries = _serialise_persisted_elements(labelset.elements, all_medias, label_filter, query["goods_only"])
+
+    if query["format"] == "ndjson":
+        return _stream_labels_ndjson(LabelSet(), all_medias, label_filter, query["enrich"], entries, annotate=False)
+
+    result: dict = {"labels": entries}
+    if query["enrich"]:
+        _enrich_with_metadata(result, all_medias)
+    return result
+
+
 @labels_bp.route("/api/labels/export")
 @labels_bp.arguments(LabelsExportQuerySchema, location="query")
 @labels_bp.response(200, LabelsExportResponseSchema)
+@labels_bp.alt_response(400, description="A vote-scoped label_filter was combined with detector_name.")
+@labels_bp.alt_response(404, description="detector_name names a detector that does not exist.")
 def export_labels(query: dict):
     """Export labels as a :class:`~vtscore.datasets.labelset.LabelSet`.
 
@@ -345,13 +449,20 @@ def export_labels(query: dict):
     format is a superset of the legacy export format; old consumers
     that only read ``md5`` and ``label`` keys continue to work unchanged.
 
-    The payload is composed from the session's votes intersected with the
-    active dataset, then topped up with persisted labelset elements that
-    don't resolve into the active dataset (marked ``origin_only: true``) so
-    the export is always a faithful rendering of the detector's labelset -
-    see :func:`_origin_only_fallback_entries`.
+    Without ``detector_name`` the payload is composed from the session's
+    votes intersected with the active dataset, then topped up with persisted
+    labelset elements that don't resolve into the active dataset (marked
+    ``origin_only: true``) so the export is always a faithful rendering of
+    the detector's labelset - see :func:`_origin_only_fallback_entries`.
+
+    With ``detector_name`` it is that detector's persisted labelset instead,
+    read from disk and independent of the request's active pair - see
+    :func:`_export_persisted_labelset`.
     """
     from vtscore.datasets.labelset import LabelSet
+
+    if query["detector_name"]:
+        return _export_persisted_labelset(query["detector_name"], query)
 
     label_filter = query["label_filter"]
     # Atomic (medias, good_votes, bad_votes, vote_region_boxes) snapshot so
@@ -391,7 +502,13 @@ def export_labels(query: dict):
 
 
 def _stream_labels_ndjson(
-    labelset, all_medias: dict, label_filter: str, enrich: bool, fallback_entries: list[dict] | None = None
+    labelset,
+    all_medias: dict,
+    label_filter: str,
+    enrich: bool,
+    fallback_entries: list[dict] | None = None,
+    *,
+    annotate: bool = True,
 ):
     """Stream the labelset as newline-delimited JSON, one label entry per line (S13).
 
@@ -404,6 +521,8 @@ def _stream_labels_ndjson(
     non-corrections under ``label_filter=corrections``, then enrich).
     *fallback_entries* (origin-only labelset elements, already serialised)
     stream after the vote-derived rows through the same annotation pipeline.
+    *annotate* is off for the detector-scoped export, whose rows belong to a
+    detector the request's live Find session says nothing about.
 
     The top-level ``available_columns`` list has no place in NDJSON: it's a
     whole-set aggregate that can't be emitted before the last row is seen, and
@@ -414,14 +533,14 @@ def _stream_labels_ndjson(
 
     from flask import Response, stream_with_context
 
-    annotate = _make_correction_annotator(all_medias)
+    annotator = _make_correction_annotator(all_medias) if annotate else None
     enricher = _make_enricher(all_medias) if enrich else None
     corrections_only = label_filter == "corrections"
 
     def generate():
         for entry in chain(labelset.iter_dicts(), fallback_entries or ()):
-            if annotate is not None:
-                annotate(entry)
+            if annotator is not None:
+                annotator(entry)
             if corrections_only and not entry.get("is_correction"):
                 continue
             if enricher is not None:

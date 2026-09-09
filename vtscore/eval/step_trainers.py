@@ -10,9 +10,16 @@ another without knowing anything about the backend behind it.
 
 :func:`_style_train_and_calibrate` is the **production-faithful** trainer and is
 pinned against ``vtscore.detectors.training.train_and_threshold`` by
-`scripts/check-eval-app-sync.py`; the MLP and SVM trainers beside it are
-experiment arms.  See the "Eval Default Arm IS the App" rule before changing
-what the default resolves to.
+`scripts/check-eval-app-sync.py`; it and :func:`_app_train_and_calibrate` are the
+two halves of the app-pipeline arm (:data:`~vtscore.eval.step_model.APP_TRAINER`
+- style-aware and single-vector respectively), while
+:func:`_svm_train_and_calibrate` runs a standalone estimator instead.  See the
+"Eval Default Arm IS the App" rule before changing what the default resolves to.
+
+A **step trainer** here is a whole *pipeline* — fit plus threshold calibration —
+not the bare estimator that :mod:`vtscore.eval.sweep_trainers` calls a trainer.
+That is why the app arm is spelled ``"app"`` rather than by a model name
+(issue #3764): which model it fits is the separate ``head`` knob.
 """
 
 from __future__ import annotations
@@ -27,13 +34,15 @@ from vtscore.embedding.media_vectors import media_embedding
 from vtscore.eval.labels import region_box_for_category
 from vtscore.eval.calibration_metrics import inclusion_weights
 from vtscore.eval.step_model import (
+    APP_TRAINER,
     PRODUCTION_HEAD,
     StepModel,
     good_training_vec,
     resolve_hidden_dim,
+    resolve_trainer_name,
     score_sim_set_with_model,
 )
-from vtscore.eval.trainers import _cross_calibrated_threshold, _parse_trainer_spec
+from vtscore.eval.sweep_trainers import _cross_calibrated_threshold, _parse_trainer_spec
 from vtscore.training.mlp import train_model
 from vtscore.training.thresholds import (
     calibration_folds,
@@ -110,6 +119,9 @@ def _labelset_error_costs(
     bad_votes: dict[int, None],
     clips_dict: dict[int, dict[str, Any]],
     inclusion: int,
+    *,
+    region_aware: bool = False,
+    style_obj: Any = None,
 ) -> list[float]:
     """Weighted FPR/FNR of **every** recent model on the current labelled set.
 
@@ -123,6 +135,15 @@ def _labelset_error_costs(
     it was trained on instead would confound model change with labelset growth:
     autopilot deliberately votes boundary items, which are mispredicted at first
     and inflate the later costs of a frozen-cost history.
+
+    **In the arm's own scoring geometry** (issue #3757), for the same reason
+    :func:`_score_pool` is: a MaxPatch head is trained on a Good vote's boxed
+    patch and against every row of a Bad vote, and served by a max over those
+    rows, so scoring it on whole-image vectors measures a geometry it was never
+    fitted for - and the app, whose Smart curve this arm has to *be*, now scores
+    its cached heads through
+    :func:`~vtscore.detectors.training.scoring_rows_for_snap`.  Whole-image arms
+    keep the trainer-agnostic ``predict``, which is already their space.
 
     Deliberately *not* the held-out test split: those labels must never reach
     the vote order.  Returns ``[]`` when the labelset has no usable eval set
@@ -139,11 +160,31 @@ def _labelset_error_costs(
         return []
 
     fpr_weight, fnr_weight = inclusion_weights(inclusion)
+
+    if style_obj is not None or region_aware:
+        # The labelled subset only - the app builds its eval rows over exactly
+        # the voted media too.  The style memoises the flattened stack per
+        # media-id set, so the window's models share one build; the memo is
+        # LRU-bounded, so the id set growing by one each step costs a re-flatten
+        # rather than a retained matrix per step.
+        labelled = {cid: clips_dict[cid] for cid in ids if cid in clips_dict}
+        costs = []
+        for step, threshold in model_steps:
+            assert step.torch_model is not None
+            scored_ids, scored = score_sim_set_with_model(
+                step.torch_model, region_aware, labelled, None, sorted(labelled), style_obj
+            )
+            by_id = dict(zip(scored_ids, scored, strict=True))
+            scores = np.array([by_id[cid] for cid in ids if cid in by_id], dtype=np.float64)
+            kept = [lbl for cid, lbl in zip(ids, labels, strict=True) if cid in by_id]
+            costs.append(weighted_error_cost(scores, kept, threshold, fpr_weight, fnr_weight)[0])
+        return costs
+
     # One eval matrix, reused by every model in the window - the app's
-    # ``_build_eval_set`` builds its tensor once for the same reason.
+    # ``_build_eval_rows`` builds its rows once for the same reason.
     embs = np.array([media_embedding(clips_dict[cid]) for cid in ids])
 
-    costs: list[float] = []
+    costs = []
     for step, threshold in model_steps:
         scores = np.asarray(step.predict(embs)).ravel()
         costs.append(weighted_error_cost(scores, labels, threshold, fpr_weight, fnr_weight)[0])
@@ -196,18 +237,25 @@ def _train_and_calibrate(
     legacy auto-sized hidden layer.  It is ignored by the standalone SVM path,
     which fits its own estimator rather than a head.
 
-    Dispatches on *trainer*: ``"mlp"`` runs the production MLP path unchanged
-    (see :func:`_mlp_train_and_calibrate`); any ``svm_*`` name runs the SVM path
-    (see :func:`_svm_train_and_calibrate`).  Returns ``(step, threshold,
+    Dispatches on *trainer*: :data:`~vtscore.eval.step_model.APP_TRAINER`
+    (``"app"``) runs the app's own pipeline (see
+    :func:`_app_train_and_calibrate`); any ``svm_*`` name runs the standalone-SVM
+    path (see :func:`_svm_train_and_calibrate`).  Returns ``(step, threshold,
     n_labels, timings, details)`` where *timings* has ``train_seconds`` and
     ``xcal_seconds`` for the fit and threshold-calibration wall clocks, and
     *details* is empty unless *emit_calibration_metrics* (the #2781 study),
     carrying the fold orderings, node scores, and threshold provenance the
     calibration metrics need.
 
-    With an explicit *style_obj* (MLP only) the vote-to-vector assembly is
-    delegated to the style (see :func:`_style_train_and_calibrate`).
+    With an explicit *style_obj* (app pipeline only) the vote-to-vector assembly
+    is delegated to the style (see :func:`_style_train_and_calibrate`).
     """
+    # Normalise here rather than trusting the caller: this dispatcher is reached
+    # directly (tests, the skyline arms) as well as through
+    # ``simulate_voting_iterations``, and an un-normalised ``"mlp"`` would fall
+    # through to the standalone-SVM branch and quietly measure the wrong thing
+    # (issue #3764).
+    trainer = resolve_trainer_name(trainer)
     if style_obj is not None:
         return _style_train_and_calibrate(
             style_obj,
@@ -224,8 +272,8 @@ def _train_and_calibrate(
             emit_calibration_metrics=emit_calibration_metrics,
             fold_count_variants=fold_count_variants,
         )
-    if trainer == "mlp":
-        return _mlp_train_and_calibrate(
+    if trainer == APP_TRAINER:
+        return _app_train_and_calibrate(
             good_votes,
             bad_votes,
             clips_dict,
@@ -249,7 +297,7 @@ def _train_and_calibrate(
     )
 
 
-def _mlp_train_and_calibrate(
+def _app_train_and_calibrate(
     good_votes: dict[int, None],
     bad_votes: dict[int, None],
     clips_dict: dict[int, dict[str, Any]],
@@ -262,7 +310,9 @@ def _mlp_train_and_calibrate(
     calibration_fraction: float,
     head: str = PRODUCTION_HEAD,
 ) -> tuple[StepModel, float, int, dict[str, float], dict[str, Any]]:
-    """The production arm — numerically identical to the pre-trainer harness at ``head="mlp"``.
+    """The app-pipeline arm on single-vector data — the ``trainer="app"`` default.
+
+    Numerically identical to the pre-trainer harness at ``head="mlp"``.
 
     At ``head="linear_svm"`` (the default, :data:`PRODUCTION_HEAD`) this trains
     the live detector's head: production pins the linear SVM on every fit (see
@@ -656,11 +706,15 @@ def _svm_train_and_calibrate(
     calibrate_count: int,
     calibration_fraction: float,
 ) -> tuple[StepModel, float, int, dict[str, float], dict[str, Any]]:
-    """SVM path — single-vector only (the experiment never region-votes an SVM).
+    """Standalone-SVM path — single-vector only (the experiment never region-votes an SVM).
+
+    *trainer* is one of the ``svm_*`` names
+    :mod:`vtscore.eval.sweep_trainers` parses, so this arm fits a bare sklearn /
+    cuML estimator rather than the app's head.
 
     Threshold uses the trainer-agnostic cross-calibration port
-    (:func:`vtscore.eval.trainers._cross_calibrated_threshold`) — the natural
-    analogue of the MLP's production calibration — with the fold models pinned
+    (:func:`vtscore.eval.sweep_trainers._cross_calibrated_threshold`) — the natural
+    analogue of the app pipeline's production calibration — with the fold models pinned
     to the sklearn CPU backend (they are tiny and only feed the threshold, so
     paying GPU launch overhead per fold would be wasteful).  The *final* fit
     honours the ambient backend (cuML on a GPU unless ``VTSEARCH_DISABLE_CUML``
@@ -670,7 +724,7 @@ def _svm_train_and_calibrate(
     """
     import numpy as np  # noqa: PLC0415
 
-    from vtscore.eval.trainers import _train_svm_factory  # noqa: PLC0415
+    from vtscore.eval.sweep_trainers import _train_svm_factory  # noqa: PLC0415
     from vtscore.training.svm import train_svm  # noqa: PLC0415
 
     X = np.array(

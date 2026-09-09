@@ -332,3 +332,97 @@ def eligible_distractor(class_source: str, page_source: str, page_industry: str 
     if page_source == "ucsf" and page_industry and f"ucsf:{page_industry}" in banned:
         return False
     return True
+
+
+# --------------------------------------------------------------------------
+# The merge slate (human pass)
+# --------------------------------------------------------------------------
+#
+# The `confusable` pass adjudicates one pair per sheet, which is correct and
+# unusable at scale: 60 admitted classes is 1,770 pairs, so the reviewer is
+# handed 1,770 PNGs to open.  The `merge` slate asks the same question in the
+# shape a person can actually answer -- every class on a few contact sheets,
+# similarity-ordered and numbered, answered as a list of index sets -- and
+# compiles that answer back into exactly the same same/different verdicts.
+
+#: Instances shown per class cell on the slate.  One exemplar is denser and
+#: fits every class on a single page, but a merge call then rests entirely on
+#: one crop being representative of its class -- which is the assumption the
+#: membership pass exists because we do not trust.  Three is the smallest
+#: number that shows within-class variation.
+MERGE_SLATE_INSTANCES = int(os.environ.get("VTS_DOCMARKS_MERGE_INSTANCES", "3"))
+
+#: Cells per slate sheet.  4x6 at a 3-up cell is ~1,500x1,400 px: legible at
+#: 100% on a desktop, which is the only place these are ever looked at.
+MERGE_SLATE_COLS = 4
+MERGE_SLATE_ROWS = 6
+
+#: How many of the nearest class pairs get their own explicit side-by-side
+#: sheet, and thereby become eligible to be recorded as adjudicated.
+#:
+#: This number is the honesty budget for the closed-world rule.  A reviewer who
+#: works a whole slate has genuinely compared the pairs that sit next to each
+#: other and the pairs on the appendix; they have *not* compared all 1,770, and
+#: recording the far ones as adjudicated would assert a decision nobody made.
+#: So only these pairs are separated on a `REVIEWED-ALL` slate.  Raise it to
+#: buy more of the matrix at the cost of more sheets to work through.
+MERGE_SLATE_NEAR_PAIRS = int(os.environ.get("VTS_DOCMARKS_MERGE_NEAR_PAIRS", "120"))
+
+#: Pairs per appendix sheet.
+MERGE_PAIRS_PER_SHEET = 12
+
+# --------------------------------------------------------------------------- #
+# The audit's second opinion
+# --------------------------------------------------------------------------- #
+#
+# `phash` is the right descriptor for *clustering* 200k pages and the wrong one
+# for *auditing* the result, and #3600 measured the gap: on corpus v2 the one
+# literal duplicate on the slate ranked 83rd of 120 in the near-pair appendix,
+# behind 82 pairs of stamps nobody would confuse, while two internally-mixed
+# classes took 37% of the appendix between them.  A perceptual hash of a blue
+# rubber stamp on white paper measures ink layout, and two different stamps of
+# the same size in the same typeface have nearly the same ink layout -- the
+# failure already on record for UCSF letterhead bands.
+#
+# The audit can afford what the build cannot: it runs over ~1.5k crops, not
+# 200k pages, so a GPU embedder is minutes.  Vectors are cached, so only the
+# embed step needs a card and every render afterwards stays on `cpu`.
+
+#: The embedder the audit's similarity questions are asked with.  Not the
+#: clustering's descriptor: changing that would change what the corpus *is*,
+#: and the roster's classes were admitted under `phash`.
+AUDIT_EMBEDDER = os.environ.get("VTS_DOCMARKS_AUDIT_EMBEDDER", "siglip2_l")
+
+#: Instances embedded per class.  A centroid stops moving long before a class's
+#: 30th instance, and the cap is recorded beside the vectors so a later reader
+#: knows the centroid is over a sample.
+AUDIT_MAX_PER_CLASS = int(os.environ.get("VTS_DOCMARKS_AUDIT_MAX_PER_CLASS", "24"))
+
+#: Cosine-distance thresholds the within-class split proposal is swept over.
+#: Reported as a sweep and never as a single verdict: the operating point is a
+#: property of this corpus and this embedder, and quietly picking one is how
+#: `CLUSTER_THRESHOLD`'s 0.16 outlived the mark decomposition it was measured
+#: on (#3366).
+AUDIT_SPLIT_SWEEP = (0.10, 0.15, 0.20, 0.25, 0.30, 0.40)
+
+#: The within-class spread at which a class is reported as internally **mixed**.
+#:
+#: The rank of a class's own centroid answers "is this query crop an outlier",
+#: and #3610 is the case where nothing answered "is this class more than one
+#: mark": `staver/stamp_stampds-00156_0` holds five marks and scores rank 0,
+#: distance 0.078 -- correctly, because its query crop is a good instance of the
+#: 16-strong mark it is drawn from.  A rank cannot see the other four.
+#:
+#: Not a fresh magic number: it is the loosest threshold in `AUDIT_SPLIT_SWEEP`,
+#: so "mixed" means *the class's two most distant instances sit further apart
+#: than the loosest cut we would ever call one mark*.  Tying it to the sweep is
+#: what stops it drifting away from the sweep the way `CLUSTER_THRESHOLD`'s 0.16
+#: drifted away from its decomposition (#3366).
+AUDIT_MIXED_MAX_WITHIN = float(os.environ.get("VTS_DOCMARKS_AUDIT_MIXED_MAX_WITHIN", str(max(AUDIT_SPLIT_SWEEP))))
+
+#: Which descriptor the slate orders itself by.  `phash` stays the default so a
+#: slate renders with no cache and no card; `siglip2_l` requires
+#: `siglip_audit.py --embed` to have run, and refuses rather than silently
+#: falling back -- a slate whose ordering is not the one asked for is a slate
+#: whose appendix means something other than it says.
+SLATE_DESCRIPTOR = os.environ.get("VTS_DOCMARKS_SLATE_DESCRIPTOR", "phash")

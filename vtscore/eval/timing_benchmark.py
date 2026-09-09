@@ -146,7 +146,7 @@ def _mlp_predict_closure(model, X: np.ndarray):
 
 
 def _svm_fit(trainer: str, X: np.ndarray, y: np.ndarray, backend: str):
-    from vtscore.eval.trainers import _parse_trainer_spec  # noqa: PLC0415
+    from vtscore.eval.sweep_trainers import _parse_trainer_spec  # noqa: PLC0415
     from vtscore.training.svm import train_svm  # noqa: PLC0415
 
     kernel, kwargs = _parse_trainer_spec(trainer)

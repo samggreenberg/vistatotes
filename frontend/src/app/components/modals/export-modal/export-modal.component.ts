@@ -63,6 +63,17 @@ export interface ColumnDef {
 export class ExportModalComponent implements OnInit {
   readonly detectorName = input('');
   /**
+   * Name of the detector whose *persisted* labelset to export, when the
+   * caller is naming one rather than exporting the pair it is working in.
+   *
+   * The Dashboard's row action is the case: it points at a detector in a
+   * list, so the answer must not depend on which pair the top-bar pulldown
+   * happens to be on — and must not be the whole collection when a Find run
+   * has filled that pair's votes with the detector's per-item calls (issue
+   * #3639). Empty (the Find and Train callers) keeps the live read.
+   */
+  readonly labelsetDetectorName = input('');
+  /**
    * What the caller is exporting, which decides both the default category and
    * how a one-sided selection is framed.
    *
@@ -116,7 +127,11 @@ export class ExportModalComponent implements OnInit {
     stream: () => {
       const labelFilter =
         this.serverFilter === 'both' ? undefined : this.serverFilter;
-      return this.sortingApi.exportLabels(false, { enrich: true, labelFilter });
+      return this.sortingApi.exportLabels(false, {
+        enrich: true,
+        labelFilter,
+        detectorName: this.labelsetDetectorName(),
+      });
     },
   });
 

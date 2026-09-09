@@ -206,11 +206,18 @@ class TestPickleChunked:
         for chunk in chunks:
             assert 1 in chunk
 
-    def test_thin_mode_drops_bytes(self, tmp_path):
+    def test_thin_mode_keeps_bytes_nothing_can_re_read(self, tmp_path):
+        """These entries are inline-only, so thin has no reference to hold.
+
+        Dropping the payload would not defer a read, it would destroy the only
+        copy and leave the media unembeddable (issue #3556); thin only sheds
+        bytes that are also reachable on disk, in an archive member, or via a
+        URL.
+        """
         pkl_path = _make_pickle(tmp_path, 2, inline_bytes=True)
         chunks = list(load_dataset_from_pickle_chunked(pkl_path, chunk_size=10, thin=True))
         for media in chunks[0].values():
-            assert media["media_bytes"] is None
+            assert media["media_bytes"] is not None
 
     def test_full_mode_keeps_bytes(self, tmp_path):
         pkl_path = _make_pickle(tmp_path, 2, inline_bytes=True)

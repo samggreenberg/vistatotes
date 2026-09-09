@@ -401,6 +401,7 @@ def train_and_threshold(
     groups: list | None = None,
     score_rows: dict | None = None,
     voted_ids: "set[int] | None" = None,
+    haystack: dict | None = None,
     haystack_rows: "ScoringRows | None" = None,
 ) -> tuple[Any, float]:
     """Train the detector head and compute a calibrated threshold.
@@ -427,7 +428,8 @@ def train_and_threshold(
         X_list: Embedding vectors (list of numpy arrays).
         y_list: Binary labels (1.0 = good, 0.0 = bad).
         snap: Optional media snapshot - the haystack the population
-            estimator is fitted on.  Without it the threshold is the plain
+            estimator is fitted on, unless *haystack* overrides it.  Without
+            either there is nothing to fit on and the threshold is the plain
             cross-calibration cut.
         embedder_name: The detector's primary embedder, used so the
             haystack scoring pass reads vectors from the same space the
@@ -446,16 +448,35 @@ def train_and_threshold(
         score_rows: Per-bag inference row stacks; see
             :func:`_calibration_score_rows`.  Only consulted when *groups*
             reveals flooding.
-        voted_ids: Media ids in *snap* whose labels the training set carries.
+        haystack: The population the cut is *realized* on, when that is not
+            *snap*.  The two are the same set for every caller that scores the
+            snapshot it calibrated against - the GUI, which scores the loaded
+            dataset it was handed - and differ for the CLI, whose scoring pass
+            converts, re-clips and re-embeds the loaded medias into the
+            detector's own granularity before scoring them
+            (:func:`~vtscore.detectors.converter_routing.route_and_embed`).
+            The fold-anchored estimator carries its per-fold cuts to the final
+            model *in quantile space* and realizes them against this
+            distribution, so handing it the loaded medias while inference reads
+            the routed ones lands the quantile on the wrong ruler: a cut fitted
+            on whole images and applied to the max over their clips sits far
+            lower in the scored population than the algorithm intended (issue
+            #3647).  *snap* keeps its other job either way - it is the snapshot
+            a caller's labels are resolved against, which the routed items,
+            with their throwaway ids and recomputed hashes, cannot serve as.
+            The blend schedule follows *haystack* too, since it is chosen off
+            the scoring geometry.
+        voted_ids: Media ids in the haystack whose labels the training set
+            carries.
             Excluded from every haystack the fold-anchored estimator fits on -
             their scores under the models trained on them are optimistically
             shifted (issue #3308; see :func:`_fused_threshold`).  ``None`` (the
             callers with no way to name their labels' media) keeps the full
             haystack.
-        haystack_rows: *snap*'s already-built
+        haystack_rows: the haystack's already-built
             :func:`scoring_rows_for_snap` matrix, when the caller has one in
             hand.  Purely an optimisation - it must be the rows this call would
-            have built itself, i.e. ``scoring_rows_for_snap(snap,
+            have built itself, i.e. ``scoring_rows_for_snap(haystack or snap,
             embedder_name)``.  A caller that scores the same snapshot for its
             own purposes (cross-dataset Find, which scores every media it just
             loaded) passes its copy so the corpus is stacked once for the whole
@@ -561,17 +582,27 @@ def train_and_threshold(
     # Mirrors `_train_and_score_xy` and
     # `eval.voting_iterations._safe_threshold_for_step`.
     #
-    # The row builder skips media it cannot score, so an empty score list
-    # means the haystack contributed nothing to fit on - either there was no
-    # snap at all, or none of its media carry a usable vector in this space
-    # (the CLI importer path, where the chunk is embedded later, per detector
-    # group, by `route_and_embed`).  Both take the no-haystack branch rather
-    # than fitting the estimator on an empty distribution.
+    # The row builder skips media it cannot score, so an empty score list means
+    # the haystack contributed nothing to fit on - either there was no haystack
+    # at all, or none of its media carry a usable vector in this space.  Both
+    # take the no-haystack branch rather than fitting the estimator on an empty
+    # distribution.
+    #
+    # A *partly* embedded haystack has no such branch, and that is why the CLI
+    # must embed at load: fitting the cut on the subset that happens to carry a
+    # vector is silent, plausible, and wrong - a lower threshold over fewer
+    # items (issue #3556).  `vtscore.cli._embed_loaded_medias` is what keeps the
+    # CLI's snap embedded before this call, mirroring the GUI's load pipeline.
+    #
+    # The population the quantile is realized on is almost always *snap* - the
+    # caller scores what it calibrated against - but the CLI converts and
+    # re-clips before scoring, so it names the routed snapshot instead (#3647).
+    hay = haystack if haystack is not None else snap
     rows: ScoringRows | None = None
     all_ids: list[int] = []
     all_scores: list[float] = []
-    if snap:
-        rows = haystack_rows if haystack_rows is not None else scoring_rows_for_snap(snap, embedder_name)
+    if hay:
+        rows = haystack_rows if haystack_rows is not None else scoring_rows_for_snap(hay, embedder_name)
         all_ids = rows.ids
         all_scores, _best_region = score_rows_with_model(model, rows)
     if rows is not None and all_scores:
@@ -582,7 +613,7 @@ def train_and_threshold(
             all_scores,
             inclusion,
             blend_ctx,
-            _blend_schedule_for_snap(snap),
+            _blend_schedule_for_snap(hay),
             det_ctx=det_ctx,
             final_ids=all_ids,
             voted_ids=voted_ids,

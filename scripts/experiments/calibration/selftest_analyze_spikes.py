@@ -51,7 +51,7 @@ def _cell(arm: str, cat: str, seed: int, *, deep: bool, oracle_spike: bool, cold
             "embedder": "siglip2",
             "category": cat,
             "strategy": "autopilot",
-            "trainer": "mlp",
+            "trainer": "app",
             "head": "linear" if "lin" in arm else "mlp",
             "style": "whole_image",
             "prevalence_arm": "",

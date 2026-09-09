@@ -4,9 +4,10 @@ The happy paths for these routes live in ``tests/sorting/test_sorting.py``
 (``TestEvalTrainAndScoreAsync``), ``tests/api/test_api_contracts.py``, and
 ``tests/core/test_votes.py``.  This module covers the error branches those
 suites skip: precondition rejects (missing votes / history), internal
-computation failures surfacing as 500, schema rejects (422), and the
-job-lifecycle branches of the poll/cancel endpoints (missing job → 404,
-errored job → 500, cancelled job → ``"cancelled"``).
+computation failures surfacing as 500, schema rejects (422), context-
+resolution rejects (409), and the job-lifecycle branches of the poll/cancel
+endpoints (missing job → 404, errored job → 500, cancelled job →
+``"cancelled"``).
 """
 
 from __future__ import annotations
@@ -14,7 +15,27 @@ from __future__ import annotations
 import unittest.mock
 
 from vtscore.concurrency.progress import CancelledError
-from vtsearch.state import bad_votes, good_votes, label_history
+from vtsearch.state import bad_votes, good_votes, label_history, medias
+
+
+def _inject_model_for_seeded_votes():
+    """Register a trained head for the label set :func:`_seed_votes_and_history` leaves.
+
+    Stands in for the learned sort that would have injected one, which is the
+    only thing that puts a model on a step.
+    """
+    import numpy as np
+    import torch
+
+    from vtscore.detectors.labeling_progress import inject_live_model
+    from vtscore.embedding.media_vectors import media_embedding
+    from vtscore.training.mlp import train_model
+
+    ids = [1, 2, 3, 4, 5, 6]
+    X = torch.tensor(np.array([media_embedding(medias[cid]) for cid in ids]), dtype=torch.float32)
+    y = torch.tensor([1.0, 1.0, 1.0, 0.0, 0.0, 0.0]).unsqueeze(1)
+    model = train_model(X, y, X.shape[1])
+    inject_live_model({1: None, 2: None, 3: None}, {4: None, 5: None, 6: None}, model, 0.5)
 
 
 def _seed_votes_and_history():
@@ -92,6 +113,62 @@ class TestIndicatorScoreHistoryFailures:
         assert "score history" in resp.get_json()["message"].lower()
 
 
+class TestContextErrorsAreNot500:
+    """A not-yet-loaded pair must keep its 409, not be masked as a 500.
+
+    Regression for issue #3644.  Every route in this blueprint reads the
+    request-scoped proxies, which raise ``DetectorNotLoadedError`` /
+    ``DatasetNotLoadedError`` when the client names a pair the backend has not
+    finished loading - the app-wide 409 contract that ``vtsearch/hooks.py``
+    hands off to the global error handlers.  These handlers each wrap their
+    body in ``except Exception`` and abort 500, which used to swallow that
+    contract and report a poll landing inside a detector's load window as an
+    opaque "computation failed" 500.  The reviewer in #3644 saw it as a red
+    toast over an empty panel that cleared on its own once the load landed;
+    because the 500 carried no detail, it read as a bug in the empty-labelset
+    branch (the failing detectors were the ones just opened, so also the ones
+    with no labels yet) rather than as a detector still loading.
+    """
+
+    UNLOADED = {"X-Detector-Id": "no-such-detector"}
+
+    def _assert_detector_409(self, resp):
+        assert resp.status_code == 409, resp.get_json()
+        body = resp.get_json()
+        assert body["error_code"] == "detector_not_loaded"
+
+    def test_labeling_status_returns_409(self, client):
+        self._assert_detector_409(client.get("/api/labeling-status", headers=self.UNLOADED))
+
+    def test_labeling_progress_returns_409(self, client):
+        self._assert_detector_409(client.post("/api/labeling-progress", headers=self.UNLOADED))
+
+    def test_indicator_score_history_returns_409(self, client):
+        self._assert_detector_409(client.get("/api/indicator-score-history?metric=smart", headers=self.UNLOADED))
+
+    def test_unloaded_dataset_returns_409(self, client):
+        resp = client.get("/api/labeling-status", headers={"X-Dataset-Id": "no-such-dataset"})
+        assert resp.status_code == 409, resp.get_json()
+        assert resp.get_json()["error_code"] == "dataset_not_loaded"
+
+    def test_loaded_detector_with_no_labels_still_returns_200(self, client):
+        """The other half of #3644: an empty labelset is *not* the fault.
+
+        Once the pair is loaded, zero votes and zero label history take the
+        inline branch and answer 200 with an honest red/red - which is why the
+        issue's proposed "treat no labels as the placeholder case" fix would
+        have masked the load-window 409 while replacing a true status with a
+        transient "Computing indicators..." placeholder.
+        """
+        resp = client.get("/api/labeling-status")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["total_count"] == 0
+        assert data["stale"] is False
+        assert data["smart"]["status"] == "red"
+        assert data["stable"]["status"] == "red"
+
+
 class TestIndicatorScoreHistoryIsReadOnly:
     """GET /api/indicator-score-history must never advance the per-step cache.
 
@@ -100,13 +177,17 @@ class TestIndicatorScoreHistoryIsReadOnly:
     work ``/api/labeling-status`` defers to a background worker (issue #2397).
     """
 
-    def test_cold_cache_returns_incomplete_and_trains_nothing(self, client):
+    def test_cold_cache_returns_incomplete_and_advances_nothing(self, client):
         import vtscore.detectors.labeling_progress as lp
 
         _seed_votes_and_history()
         lp.clear_progress_cache()
 
-        with unittest.mock.patch.object(lp, "train_model", side_effect=AssertionError("retrained")):
+        # ``_advance_cache`` is the only way a step is ever built, and building
+        # one scores the pool.  Making it fatal proves the route took neither
+        # path, which is what "read-only" has to mean now that the module
+        # trains nothing of its own to intercept instead (#3757).
+        with unittest.mock.patch.object(lp, "_advance_cache", side_effect=AssertionError("advanced the cache")):
             resp = client.get("/api/indicator-score-history?metric=smart")
 
         assert resp.status_code == 200
@@ -121,6 +202,10 @@ class TestIndicatorScoreHistoryIsReadOnly:
 
         _seed_votes_and_history()
         lp.clear_progress_cache()
+        # Only the steps a learned sort ran against carry a detector, and only
+        # those become points (#3757), so give the last label set one - as the
+        # sort would - or the warm series is legitimately empty.
+        _inject_model_for_seeded_votes()
         # The background worker's job, done inline here.
         client.post("/api/eval/train-and-score", json={"metric": "smart", "wait": True})
 
@@ -130,6 +215,23 @@ class TestIndicatorScoreHistoryIsReadOnly:
         body = resp.get_json()
         assert body["complete"] is True
         assert len(body["history"]) > 0
+
+    def test_warm_cache_with_no_trained_detector_is_complete_and_empty(self, client):
+        """A caught-up cache that never saw a sort has a real, empty answer.
+
+        Not ``complete=False``: nothing is left to compute, so sending the modal
+        to the async job would only recompute the same emptiness.
+        """
+        import vtscore.detectors.labeling_progress as lp
+
+        _seed_votes_and_history()
+        lp.clear_progress_cache()
+        client.post("/api/eval/train-and-score", json={"metric": "smart", "wait": True})
+
+        body = client.get("/api/indicator-score-history?metric=smart").get_json()
+
+        assert body["complete"] is True
+        assert body["history"] == []
 
 
 class TestEvalTrainAndScoreStartFailures:

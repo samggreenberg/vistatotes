@@ -28,8 +28,17 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 
+#: The Stage-B baseline arm: VTSearch's own pipeline.  Spelled ``"mlp"`` in runs
+#: predating issue #3764 (where it never named an MLP - the arm's default head is
+#: the linear SVM), so `_load_stage_b` normalises the old value onto this one and
+#: both vintages of ``task_*.csv`` summarise identically.  Stage A is a different
+#: sweep whose ``"mlp"`` really is an MLP; it is left alone.
+_APP_TRAINER = "app"
+_LEGACY_APP_TRAINER = "mlp"
+
 # Colour-blind-safe, consistent per trainer across every figure.
 _TRAINER_COLORS = {
+    _APP_TRAINER: "#4C72B0",
     "mlp": "#4C72B0",
     "svm_linear": "#DD8452",
     "svm_rbf": "#55A868",
@@ -77,6 +86,8 @@ def _load_stage_b(results: Path) -> pd.DataFrame:
     if not frames:
         return pd.DataFrame()
     df = pd.concat(frames, ignore_index=True)
+    if "trainer" in df.columns:
+        df["trainer"] = df["trainer"].replace(_LEGACY_APP_TRAINER, _APP_TRAINER)
     for col in _NUMERIC_COLS:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
@@ -250,7 +261,7 @@ def _paired_wilcoxon(traj: pd.DataFrame, svm: str, column: str) -> tuple[float, 
     from scipy.stats import wilcoxon
 
     keys = ["dataset", "category", "prevalence_arm", "seed"]
-    mlp = traj[traj["trainer"] == "mlp"].set_index(keys)[column]
+    mlp = traj[traj["trainer"] == _APP_TRAINER].set_index(keys)[column]
     other = traj[traj["trainer"] == svm].set_index(keys)[column]
     joined = pd.concat([mlp.rename("mlp"), other.rename("svm")], axis=1).dropna()
     if len(joined) < 5 or np.allclose(joined["mlp"], joined["svm"]):
@@ -294,9 +305,9 @@ def _decision(traj: pd.DataFrame, svm_variants: list[str]) -> tuple[str, list[st
         beats = 0
         for ds in datasets:
             sub = traj[traj["dataset"] == ds]
-            mlp50 = sub[sub.trainer == "mlp"]["cost@50"].mean()
+            mlp50 = sub[sub.trainer == _APP_TRAINER]["cost@50"].mean()
             svm50 = sub[sub.trainer == svm]["cost@50"].mean()
-            mlp200 = sub[sub.trainer == "mlp"]["cost@200"].mean()
+            mlp200 = sub[sub.trainer == _APP_TRAINER]["cost@200"].mean()
             svm200 = sub[sub.trainer == svm]["cost@200"].mean()
             if svm50 < mlp50 and svm200 < mlp200:
                 beats += 1
@@ -304,7 +315,7 @@ def _decision(traj: pd.DataFrame, svm_variants: list[str]) -> tuple[str, list[st
         rare = traj[traj["prevalence_arm"] != "natural"]
         fnr_ok = True
         if len(rare):
-            mlp_fnr = rare[rare.trainer == "mlp"]["fnr@50"].mean()
+            mlp_fnr = rare[rare.trainer == _APP_TRAINER]["fnr@50"].mean()
             svm_fnr = rare[rare.trainer == svm]["fnr@50"].mean()
             fnr_ok = not (svm_fnr > mlp_fnr + 1e-9)
         _, _, p_aulc = _paired_wilcoxon(traj, svm, "aulc_cost")
@@ -325,7 +336,7 @@ def _decision(traj: pd.DataFrame, svm_variants: list[str]) -> tuple[str, list[st
 def _takeaways(traj: pd.DataFrame, svm_variants: list[str]) -> list[str]:
     """Data-driven plain-language take-aways synthesising the crossover story."""
     out: list[str] = []
-    mlp = traj[traj.trainer == "mlp"]
+    mlp = traj[traj.trainer == _APP_TRAINER]
     mlp50, mlp200 = mlp["cost@50"].mean(), mlp["cost@200"].mean()
 
     # Does any SVM start ahead (cost@50 lower) but end behind (cost@200 higher)?
@@ -350,7 +361,7 @@ def _takeaways(traj: pd.DataFrame, svm_variants: list[str]) -> list[str]:
     # Rare-arm FNR
     rare = traj[traj.prevalence_arm != "natural"]
     if len(rare):
-        mlp_fnr = rare[rare.trainer == "mlp"]["fnr@50"].mean()
+        mlp_fnr = rare[rare.trainer == _APP_TRAINER]["fnr@50"].mean()
         worse = [s for s in svm_variants if rare[rare.trainer == s]["fnr@50"].mean() > mlp_fnr + 1e-6]
         if worse:
             fnr_str = ", ".join(f"{s} {rare[rare.trainer == s]['fnr@50'].mean():.3f}" for s in worse)
@@ -390,7 +401,7 @@ def build_report(results: Path) -> None:
         return
 
     traj = _trajectory_table(df_b)
-    svm_variants = sorted(t for t in traj["trainer"].unique() if t != "mlp")
+    svm_variants = sorted(t for t in traj["trainer"].unique() if t != _APP_TRAINER)
     verdict, detail = _decision(traj, svm_variants)
 
     # ---- Verdict ----

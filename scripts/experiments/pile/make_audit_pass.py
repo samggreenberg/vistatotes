@@ -101,7 +101,7 @@ def main() -> int:
                     "reference": "absent",  # every one of these is a current negative
                     "exhaustive": "no",
                     "n_boxes": 0,
-                    "detector": f"{cls} audit",
+                    "detector": pc.review_name(cls, "audit"),
                 }
             )
         with (cdir / "manifest.csv").open("w", newline="") as fh:
@@ -109,7 +109,7 @@ def main() -> int:
             w.writeheader()
             w.writerows(written)
         n_flag = sum(1 for r in written if r["stratum"] == "flag")
-        index.append({"class": cls, "dir": str(cdir), "n": len(written), "detector": f"{cls} audit"})
+        index.append({"class": cls, "dir": str(cdir), "n": len(written), "detector": pc.review_name(cls, "audit")})
         log(f"  {cls:<12}{len(written):4d} images  ({n_flag} flags + {len(written) - n_flag} audit)")
 
     (out_root / "slates.json").write_text(json.dumps(index, indent=1) + "\n")

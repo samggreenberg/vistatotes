@@ -57,10 +57,12 @@ from vtscore.timing.profile import (
     step_terms,
     step_weights,
 )
-from vtscore.timing.recorder import record_task, recording_enabled
-from vtscore.timing.tasks import TASKS, TaskSpec, task_spec
+from vtscore.timing.recorder import note_branch, note_no_encoder_load, record_task, recording_enabled
+from vtscore.timing.tasks import CHEAP_BRANCHES, TASKS, DEAR_BRANCHES, TaskSpec, task_spec
 
 __all__ = [
+    "CHEAP_BRANCHES",
+    "DEAR_BRANCHES",
     "TASKS",
     "StepCoeffs",
     "TaskSpec",
@@ -69,6 +71,8 @@ __all__ = [
     "cell_keys",
     "known_tasks",
     "normalize_device",
+    "note_branch",
+    "note_no_encoder_load",
     "profile_covers",
     "record_task",
     "recording_enabled",

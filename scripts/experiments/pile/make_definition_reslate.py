@@ -12,10 +12,14 @@ positive stays positive under a widened definition. Everything else stands.
 
 The rule travels in the dataset name (`book incl magazines`) because a reviewer
 cannot see a manifest while voting, and an unstated convention is what produced
-the split in the first place.
+the split in the first place. The wording lives in
+`pile_config.SCALE_CLASS_RULES` rather than in whoever runs this, so a
+re-review is issued under the corrected rule instead of the one that produced
+the disputed verdicts (#3612).
 
 Usage::
 
+    python make_definition_reslate.py --class book
     python make_definition_reslate.py --class book --name "book incl magazines"
 """
 
@@ -42,7 +46,11 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     base = pc.PILE.parent / "vgscale-3156"
     ap.add_argument("--class", dest="klass", default="book")
-    ap.add_argument("--name", default="", help="dataset name carrying the rule (default: <class> reviewed)")
+    ap.add_argument(
+        "--name",
+        default="",
+        help="dataset name carrying the rule (default: the class's SCALE_CLASS_RULES name + ' reviewed')",
+    )
     ap.add_argument(
         "--verdicts",
         default="/exp/sgreenberg/vgscale-3156-labelsets/verdicts_final_20260824.json,"
@@ -62,7 +70,16 @@ def main() -> int:
     from build_pile import _vg_image_paths  # noqa: PLC0415
 
     cls = args.klass
-    name = args.name or f"{cls} reviewed"
+    # The corrected wording, not whichever one the last slate happened to use:
+    # a re-review issued under the rule that produced the disputed verdicts
+    # would just reproduce them (#3612).
+    # `reviewed` keeps this pass's detector distinct from the first pass's:
+    # `ingest_slate.py` keys a manifest row by (image, class, detector), so two
+    # slates of one class sharing a name would overwrite each other's rows.
+    name = args.name or pc.review_name(cls, "reviewed")
+    rule = pc.SCALE_CLASS_RULES.get(cls)
+    if rule:
+        log(f"rule: {rule.test}")
 
     verdicts = []
     for p in args.verdicts.split(","):

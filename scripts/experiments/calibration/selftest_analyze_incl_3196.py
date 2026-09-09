@@ -139,7 +139,7 @@ def _fabricate(results: Path, head: str, rng: np.random.Generator) -> None:
                                     "dataset": ds,
                                     "category": cat,
                                     "strategy": "autopilot",
-                                    "trainer": "mlp",
+                                    "trainer": "app",
                                     "head": "linear_svm" if head == "svm" else "linear",
                                     "style": style,
                                     "prevalence_arm": "native",

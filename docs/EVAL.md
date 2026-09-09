@@ -496,6 +496,26 @@ Both functions:
 - Return a list of `Path` objects pointing to the generated PNGs.
 - Skip chart types that don't apply (e.g., no learned-sort plots if only text-sort was run).
 
+## `trainer` vs `head`: which knob picks what
+
+The voting simulation takes two knobs that both sound like "which model?". They are not the same question, and until issue #3764 they also shared the string `"mlp"`.
+
+**`trainer` picks the pipeline.** `trainer="app"` (the default) runs VTSearch's own: `train_model` plus production fold calibration, the arm every study's headline numbers are read off. Any `svm_*` value instead fits a standalone sklearn/cuML estimator that thresholds itself, from the registry in `vtscore/eval/sweep_trainers.py`. The arm was spelled `"mlp"` before #3764, which named no MLP — its default head is the linear SVM — so the old spelling is now accepted as an input alias and normalised away; result rows always record `app`.
+
+**`head` picks the model that pipeline fits**, and applies to `trainer="app"` alone:
+
+| `head` | What is fitted |
+|---|---|
+| `linear_svm` | `Linear(d, 1)` fitted by liblinear. **The shipped detector head**; `head=None` resolves here. |
+| `linear` | The same `Linear(d, 1)` fitted by balanced BCE — the logistic head the SVM replaced (#2790/#2809). |
+| `mlp` | An auto-sized hidden layer, BCE — the head shipped before #2790 (#2781). |
+
+Passing `head=` alongside an `svm_*` trainer is an error: those arms fit their own estimator and have no head to choose, which is why their rows carry an empty `head` column.
+
+Two names are worth reading slowly. `svm_linear` is a **trainer**: a standalone SVM scored through its own `predict_proba`. `linear_svm` is a **head**: the app's `Linear(d, 1)` whose weights come from liblinear, scored and thresholded exactly as production does. A run of `trainer="svm_linear"` and a run of `trainer="app", head="linear_svm"` fit a similar boundary by very different routes, and only the second measures the shipped detector.
+
+The label-curve and timing sweeps (`run_label_curve_eval`, `run_timing_benchmark`) use the *other* registry, where a trainer is a bare estimator and `"mlp"` genuinely is one. See [`vtscore/docs/packages/eval.md`](../vtscore/docs/packages/eval.md) for the side-by-side table.
+
 ## The Eval Default Arm IS the App
 
 Every experiment in this framework is a *deviation* from the shipped algorithm — a different Good-vote geometry, a different blend schedule, a different acquisition cut. A deviation is only interpretable against a baseline that is the real thing, so the framework's default arm has to be exactly what the app ships. When the app moves and the harness doesn't, the studies don't fail loudly; they keep producing plausible numbers about a detector nobody uses, and everything measured after the drift is quietly devalued.

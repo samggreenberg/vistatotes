@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from types import ModuleType
 
-from pilebuild.loaders import coco, demo, vg_band, vg_scale, vg_scale_any
+from pilebuild.loaders import coco, demo, vg_band, vg_scale, vg_scale_any, vg_scale_deep
 
 #: ``DATASETS[ds]["kind"]`` -> the module that owns it.
 LOADERS: dict[str, ModuleType] = {
@@ -30,6 +30,7 @@ LOADERS: dict[str, ModuleType] = {
     "vg_band": vg_band,
     "vg_scale": vg_scale,
     "vg_scale_any": vg_scale_any,
+    "vg_scale_deep": vg_scale_deep,
 }
 
 

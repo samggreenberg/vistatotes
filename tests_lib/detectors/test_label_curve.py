@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from vtscore.eval.label_curve import (
-    TRAINERS,
+    SWEEP_TRAINERS,
     _as_scores,
     _auroc,
     _auroc_std_err,
@@ -195,7 +195,7 @@ class TestSampleLabels:
 class TestCrossCalibratedThreshold:
     def test_returns_finite_threshold_with_balanced_labels(self):
         # 10 labels, balanced; every fold should produce a valid threshold.
-        from vtscore.eval.label_curve import TRAINERS as T
+        from vtscore.eval.label_curve import SWEEP_TRAINERS as T
 
         rng = np.random.default_rng(0)
         X = rng.standard_normal((20, 4)).astype(np.float32)
@@ -206,7 +206,7 @@ class TestCrossCalibratedThreshold:
         assert np.isfinite(t)
 
     def test_too_few_labels_returns_default(self):
-        from vtscore.eval.label_curve import TRAINERS as T
+        from vtscore.eval.label_curve import SWEEP_TRAINERS as T
 
         X = np.zeros((3, 4), dtype=np.float32)
         y = np.array([1, 0, 1], dtype=np.int32)
@@ -278,7 +278,7 @@ class TestEnsembleTrainers:
 
     @pytest.mark.parametrize("name", ["mlp_ens3", "mlp_ens5", "mlp_ens7", "mlp_ens10"])
     def test_registered(self, name):
-        assert name in TRAINERS
+        assert name in SWEEP_TRAINERS
 
     def test_predict_returns_scores_and_std(self):
         # A 5-member ensemble's predict() returns (mean_sigmoid, per_item_std)
@@ -288,7 +288,7 @@ class TestEnsembleTrainers:
         X[:10, 0] += 1.5
         X[10:, 0] -= 1.5
         y = np.array([1] * 10 + [0] * 10, dtype=np.int32)
-        predict = TRAINERS["mlp_ens5"](X, y, 0)
+        predict = SWEEP_TRAINERS["mlp_ens5"](X, y, 0)
         out = predict(X)
         assert isinstance(out, tuple)
         scores, std = out
@@ -482,10 +482,10 @@ class TestSummarise:
 
 class TestRegistryIntrospection:
     def test_mlp_and_svm_trainers_registered(self):
-        assert "mlp" in TRAINERS
-        assert "svm_linear" in TRAINERS
-        assert "svm_rbf" in TRAINERS
+        assert "mlp" in SWEEP_TRAINERS
+        assert "svm_linear" in SWEEP_TRAINERS
+        assert "svm_rbf" in SWEEP_TRAINERS
 
     def test_ensemble_trainers_registered(self):
         for n in (3, 5, 7, 10):
-            assert f"mlp_ens{n}" in TRAINERS
+            assert f"mlp_ens{n}" in SWEEP_TRAINERS

@@ -1,0 +1,56 @@
+{
+ "class": "stop sign",
+ "names": [
+  "sign"
+ ],
+ "embedder": "siglip",
+ "pool": 3900,
+ "withheld": 472,
+ "base_rate": 0.12102564102564102,
+ "prefixes": [
+  {
+   "k": 50,
+   "withheld": 41,
+   "share": 0.82,
+   "lift": 6.775423728813559
+  },
+  {
+   "k": 100,
+   "withheld": 71,
+   "share": 0.71,
+   "lift": 5.866525423728813
+  },
+  {
+   "k": 250,
+   "withheld": 141,
+   "share": 0.564,
+   "lift": 4.660169491525424
+  },
+  {
+   "k": 500,
+   "withheld": 215,
+   "share": 0.43,
+   "lift": 3.5529661016949152
+  },
+  {
+   "k": 1000,
+   "withheld": 285,
+   "share": 0.285,
+   "lift": 2.354872881355932
+  },
+  {
+   "k": 2000,
+   "withheld": 363,
+   "share": 0.1815,
+   "lift": 1.4996822033898305
+  },
+  {
+   "k": 3900,
+   "withheld": 472,
+   "share": 0.12102564102564102,
+   "lift": 1.0
+  }
+ ],
+ "median_pct_rank_withheld": 0.16038461538461538,
+ "median_pct_rank_retained": 0.5329487179487179
+}

@@ -19,8 +19,12 @@
     "app": "6b15d45162cc406b8924e37a23286950d5e5dde551cbcd0d9d4c2500cec044f9",
     "harness": "44b89eef2937825af3f2467d5f3618810719dce2593fe4bdd0f91c1994aed2f6"
   },
+  "progress.eval_geometry": {
+    "app": "fbed55ebc65191fe4c2df1489f43ecc1c079d11c1b0fe0729896ec3353f5bb36",
+    "harness": "48ea3b3f453fac243b6fae36284405b9785805ca819dafb7d53b4c15f93b707e"
+  },
   "progress.smart_status": {
-    "app": "28ace75f8b07305a951659721183e9dc7e879778ea427a21242b9690d9549aaf",
+    "app": "2e99faef386bd339968c72fbb65eb11c7075174c55bc8a10e34ddc26b406fa1b",
     "harness": "cc5030867b4d5c02df6d278dbb76d0264ef7ce4a08daa6b37beb1b9ee20f632a"
   },
   "progress.span_status": {
@@ -57,7 +61,7 @@
     "harness": "33e0ad5486369bf6646ccacd13b8ba076a12a55f4a92849c4bac36360b5b79ca"
   },
   "training.train_and_threshold": {
-    "app": "33e8c9e139c82d4b0e145bc79e10b30a1ea43265bf8aa8713e55014e1141f710",
+    "app": "54023ddec7758a6169876cb4efa43ded52e2ec2178a55b56eabb896ab3e3c110",
     "harness": "0802e5b7860de2c827b6dfa1c83c6242b686f1894d834e95a03fb6f6e8b20305"
   }
 }

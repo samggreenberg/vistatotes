@@ -142,12 +142,41 @@ class TestThinLoadFromPickle:
         write_container(pkl_path, pickle.dumps(pkl_data), {"format_version": 1})
         return pkl_path
 
-    def test_thin_pickle_skips_inline_bytes(self, tmp_path):
-        pkl_path = self._make_pickle(tmp_path, inline_bytes=True)
+    def test_thin_pickle_drops_bytes_it_can_re_read(self, tmp_path):
+        """Bytes also on disk are dropped - that is thin's whole point."""
+        audio_dir = tmp_path / "audio"
+        pkl_path = self._make_pickle(tmp_path, inline_bytes=True, audio_dir=audio_dir)
         medias: dict[int, dict[str, Any]] = {}
         load_dataset_from_pickle(pkl_path, medias, thin=True)
         assert len(medias) == 1
         assert medias[1]["media_bytes"] is None
+        assert Path(medias[1]["media_path"]).exists()
+
+    def test_thin_pickle_keeps_bytes_nothing_can_re_read(self, tmp_path):
+        """A self-contained pickle keeps its payload even under thin (issue #3556).
+
+        Thin means "hold a reference instead of the payload".  When the entry
+        has no reference to hold - no file on disk, no archive member, no URL -
+        dropping the bytes does not defer the read, it destroys the only copy,
+        and the media becomes permanently unembeddable.  It is then silently
+        skipped at scoring, which is how the CLI returned different hits *and*
+        a different threshold than the GUI on the same dataset.
+        """
+        pkl_path = self._make_pickle(tmp_path, inline_bytes=True)
+        medias: dict[int, dict[str, Any]] = {}
+        load_dataset_from_pickle(pkl_path, medias, thin=True)
+        assert len(medias) == 1
+        assert medias[1]["media_bytes"] is not None
+
+    def test_thin_pickle_kept_bytes_are_resolvable(self, tmp_path):
+        """The kept payload is reachable through the normal byte accessor."""
+        from vtscore.media import get as get_media_type
+
+        pkl_path = self._make_pickle(tmp_path, inline_bytes=True)
+        medias: dict[int, dict[str, Any]] = {}
+        load_dataset_from_pickle(pkl_path, medias, thin=True)
+        mt = get_media_type(medias[1]["media_type"])
+        assert mt._resolve_media_bytes(medias[1]) is not None
 
     def test_thin_pickle_has_embedding(self, tmp_path):
         pkl_path = self._make_pickle(tmp_path, inline_bytes=True)
@@ -621,7 +650,10 @@ class TestThinImporters:
         medias: dict[int, dict[str, Any]] = {}
         importer.run_cli({"file": str(pkl_path)}, medias, thin=True)
         assert len(medias) == 1
-        assert medias[1]["media_bytes"] is None
+        # Inline-only source: nothing outside the pickle can reproduce these
+        # bytes, so thin keeps them rather than stranding the media without a
+        # payload (issue #3556).
+        assert medias[1]["media_bytes"] is not None
 
 
 class TestLazyLoadingMediaType:

@@ -98,6 +98,20 @@ class LabelsExportQuerySchema(Schema):
             ),
         },
     )
+    detector_name = fields.String(
+        load_default="",
+        metadata={
+            "description": (
+                "Name of the detector whose *persisted* labelset to export. When "
+                "given, the export is read from that detector's JSON file and is "
+                "independent of the request's active dataset/detector pair and of "
+                "any live Find session; the vote-scoped filters "
+                "(``corrections`` / ``unverified`` / ``verified``) are rejected "
+                "with 400 because they partition that session. Omit it to export "
+                "the active pair's live labels."
+            ),
+        },
+    )
     format = fields.String(
         load_default="json",
         validate=validate.OneOf(["json", "ndjson"]),

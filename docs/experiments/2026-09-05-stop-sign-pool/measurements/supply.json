@@ -1,0 +1,108 @@
+{
+ "meta": {
+  "n_pos": 100,
+  "n_neg": 3900,
+  "vg_images": 108073,
+  "anchored": 51448,
+  "reframed": 49,
+  "clean": 77244
+ },
+ "supply": {
+  "clock": {
+   "bands": {
+    "small": 1347,
+    "medium": 1600,
+    "large": 508
+   },
+   "union": 3455
+  },
+  "bird": {
+   "bands": {
+    "small": 480,
+    "medium": 605,
+    "large": 782
+   },
+   "union": 1867
+  },
+  "boat": {
+   "bands": {
+    "small": 306,
+    "medium": 643,
+    "large": 844
+   },
+   "union": 1793
+  },
+  "umbrella": {
+   "bands": {
+    "small": 275,
+    "medium": 1001,
+    "large": 992
+   },
+   "union": 2268
+  },
+  "kite": {
+   "bands": {
+    "small": 249,
+    "medium": 595,
+    "large": 342
+   },
+   "union": 1186
+  },
+  "book": {
+   "bands": {
+    "small": 377,
+    "medium": 921,
+    "large": 379
+   },
+   "union": 1677
+  },
+  "dog": {
+   "bands": {
+    "small": 227,
+    "medium": 1072,
+    "large": 1611
+   },
+   "union": 2910
+  },
+  "backpack": {
+   "bands": {
+    "small": 905,
+    "medium": 1659,
+    "large": 234
+   },
+   "union": 2798
+  },
+  "knife": {
+   "bands": {
+    "small": 336,
+    "medium": 1248,
+    "large": 368
+   },
+   "union": 1952
+  },
+  "bicycle": {
+   "bands": {
+    "small": 267,
+    "medium": 871,
+    "large": 614
+   },
+   "union": 1752
+  },
+  "bus": {
+   "bands": {
+    "small": 138,
+    "medium": 811,
+    "large": 2170
+   },
+   "union": 3119
+  },
+  "stop sign": {
+   "bands": {
+    "small": 282,
+    "medium": 426,
+    "large": 298
+   },
+   "union": 1006
+  }
+ }
+}

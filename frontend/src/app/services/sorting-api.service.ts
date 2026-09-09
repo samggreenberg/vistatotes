@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
+import { SKIP_ERROR_TOAST } from '../interceptors/error.interceptor';
 import { ApiConfiguration } from '../generated/api-client/api-configuration';
 import type { CoverageAtlasNextResponse } from '../generated/api-client/models/coverage-atlas-next-response';
 import type { EvalTrainAndScoreCancelResponse } from '../generated/api-client/models/eval-train-and-score-cancel-response';
@@ -134,14 +135,21 @@ export class SortingApiService {
     );
   }
 
+  /** Fetch labels for export.
+   *
+   *  ``detectorName`` switches the read from the active pair's live labels to
+   *  that detector's *persisted* labelset, which is what a caller naming a
+   *  detector in a list (the Dashboard row action) means — see the route's
+   *  ``detector_name`` param. */
   exportLabels(
     goodsOnly?: boolean,
-    options?: { enrich?: boolean; labelFilter?: ServerLabelFilter },
+    options?: { enrich?: boolean; labelFilter?: ServerLabelFilter; detectorName?: string },
   ): Observable<LabelsExportResponse> {
     return exportLabels(this.http, this.config.rootUrl, {
       goods_only: goodsOnly || undefined,
       enrich: options?.enrich || undefined,
       label_filter: options?.labelFilter || undefined,
+      detector_name: options?.detectorName || undefined,
     }).pipe(map((r) => r.body));
   }
 
@@ -259,8 +267,22 @@ export class SortingApiService {
     return this.http.post('/api/labeling-progress', {});
   }
 
+  /** The left panel polls this every 2 s for the whole labeling session, and
+   *  `adaptivePoll` already absorbs a failed tick (it skips that tick and keeps
+   *  polling), so the caller handles the failure itself. Pass
+   *  {@link SKIP_ERROR_TOAST} so a tick that lands mid-load does not raise a
+   *  global toast: while `ContextSwitchService` is still loading the pair the
+   *  poll's `X-Detector-Id` names a detector the backend has not registered
+   *  yet, which is a 409 `detector_not_loaded` that resolves itself a moment
+   *  later. Issue #3644 is what that toast looked like to a reviewer opening a
+   *  new class. */
   getLabelingStatus(): Observable<LabelingStatusResponse> {
-    return labelingStatusIndicator(this.http, this.config.rootUrl).pipe(map((r) => r.body));
+    return labelingStatusIndicator(
+      this.http,
+      this.config.rootUrl,
+      undefined,
+      new HttpContext().set(SKIP_ERROR_TOAST, true),
+    ).pipe(map((r) => r.body));
   }
 
   getIndicatorScoreHistory(

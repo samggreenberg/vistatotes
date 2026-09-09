@@ -406,6 +406,16 @@ class DatasetContext:
         "_emb_matrix_ids",
         "_emb_matrix",
         "_emb_matrix_revision",
+        # Memoised answer to "do *all* these medias share one primary
+        # embedder, and which?" (``None`` = they disagree, or some media has
+        # no primary), plus the ``media_revision`` it was computed at.
+        # ``vtscore.embedding.matrix._collapse_to_primary_for_ctx`` asks this
+        # before the matrix-cache check to decide whether an explicitly routed
+        # embedder name is the whole dataset's primary and so may reuse the
+        # cached primary matrix (issue #3650).  Memoised because that question
+        # is an O(N) Python scan on a path that otherwise touches no media.
+        "_uniform_primary",
+        "_uniform_primary_revision",
         # One-way latch: set the first time ``invalidate_embedding_matrix``
         # fires for this context (an in-place vector rewrite - re-embed /
         # clip). Once set, ``get_embedding_matrix`` never again considers the
@@ -528,6 +538,8 @@ class DatasetContext:
                 "_emb_matrix_ids",
                 "_emb_matrix",
                 "_emb_matrix_revision",
+                "_uniform_primary",
+                "_uniform_primary_revision",
                 "_region_matrix_ids",
                 "_region_matrix",
                 "_region_matrix_revision",
@@ -610,6 +622,8 @@ class DatasetContext:
         self._emb_matrix_ids: list[int] | None = None
         self._emb_matrix: Any = None  # np.ndarray | None
         self._emb_matrix_revision: int | None = None  # media_revision the matrix was built at
+        self._uniform_primary: str | None = None  # primary embedder shared by every media, else None
+        self._uniform_primary_revision: int | None = None  # media_revision that answer was computed at
         self._emb_sidecar_disabled: bool = False  # latched True by invalidate_embedding_matrix
         self._region_matrix_ids: list[int] | None = None
         self._region_matrix: Any = None  # np.ndarray | None, shape (R, D)
@@ -728,6 +742,8 @@ class DatasetContext:
                 self._emb_matrix_ids = None
                 self._emb_matrix = None
                 self._emb_matrix_revision = None
+                self._uniform_primary = None
+                self._uniform_primary_revision = None
                 self._region_matrix_ids = None
                 self._region_matrix = None
                 self._region_matrix_revision = None

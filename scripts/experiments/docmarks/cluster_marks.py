@@ -172,9 +172,9 @@ def describe_marks(
         return np.array(rows, dtype=bool)
 
     if backend == "siglip":
-        from vtscore.media.image.embedder_siglip import SiglipEmbedder  # noqa: PLC0415
+        from vtscore.media.image.embedder_siglip import ImageSiglipEmbedder  # noqa: PLC0415
 
-        embedder = SiglipEmbedder()
+        embedder = ImageSiglipEmbedder()
         crops = []
         cache_path: Optional[str] = None
         cache_img: Any = None
@@ -183,7 +183,14 @@ def describe_marks(
             if page.path != cache_path:
                 cache_path, cache_img = page.path, Image.open(page.path).convert("RGB")
             crops.append(crop_mark(cache_img, ref.box))
-        vecs = np.asarray(embedder.embed_images(crops), dtype=np.float32)
+        # `embed_pil_image` is the embedder's only in-memory entry point, and it
+        # returns None for a crop the model declines.  A zero row keeps the
+        # matrix aligned with *refs* -- dropping the row would silently shift
+        # every later label onto the wrong mark -- and normalises to a vector at
+        # distance 1.0 from everything, so that mark simply clusters alone.
+        rows = [embedder.embed_pil_image(crop) for crop in crops]
+        dim = embedder.embedding_dim
+        vecs = np.asarray([row if row is not None else np.zeros(dim) for row in rows], dtype=np.float32)
         norms = np.linalg.norm(vecs, axis=1, keepdims=True)
         return vecs / np.clip(norms, 1e-8, None)
 

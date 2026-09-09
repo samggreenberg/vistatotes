@@ -244,6 +244,9 @@ def inclusion_cost_weights(inclusion_value: float) -> tuple[float, float]:
 #: It also explains the history above: the arms were never sweeping "aggression",
 #: they were sweeping *nominal* bits against an environment-dependent debt.
 #:
+#: The step-shortfall above is tracked in **#3546**; the deep-regime question
+#: below, and the pile change that would settle it, in **#3547**.
+#:
 #: **The deep regime does not flip the sign, but it does wake the guardrail.**
 #: At 400 clicks the offset is worth *more*, not less (cost -0.033 vs prod,
 #: +90 positives, and the speed gain above) - but deep-spike incidence, 0.0% for

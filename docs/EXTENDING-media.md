@@ -586,6 +586,7 @@ loaded via `spec_from_file_location` so discovery still works.
 | `_embed_text_impl(text)`              | `(str) -> Optional[np.ndarray]`                    | Embed a text query (default: `None`). Override this, not `embed_text` — the public wrapper handles locking and L2-normalisation. |
 | `embed_text_enriched(text)`           | `(str) -> Optional[np.ndarray]`                    | Average over `description_wrappers`  |
 | `_embed_media_bulk_impl(medias)`      | `(list[dict]) -> list[Optional[np.ndarray]]`       | Embed a list of medias. Default loops over `embed_media` with per-item progress. Override for a native bulk path (e.g. a remote API that accepts many items per request); overrides that batch internally must emit their own progress through `self._on_progress`. |
+| `models_loaded()`                     | `() -> bool`                                       | Whether the model is already resident in this process, without loading it. Default reads the same private model attribute `load_models()` sets; override it alongside `loaded_backbone()` if the backbone lives elsewhere. Read by code that plans around the load rather than performing it — the text-sort bar budgets nothing for its model-load step when this is `True`. |
 
 **Convenience wrappers (don't override these):**
 

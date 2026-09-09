@@ -729,3 +729,204 @@ class TestScoreableSnapshot:
         from vtscore.embedding.matrix import scoreable_snapshot
 
         assert scoreable_snapshot({}) == ({}, [])
+
+
+class TestMixedSpaceSnapshotDoesNotCollapse:
+    """Issue #3650: the primary-collapse quantifier is "every", not "the first".
+
+    ``_collapse_to_primary`` used to decide whether a routed embedder name *is*
+    the primary by looking at one media.  On a mixed-type snapshot that is a
+    sampling error: media #1's primary picked the path for all N, so asking for
+    space ``A`` on a snapshot led by an ``A`` media stacked the *other* media's
+    ``B``-space vectors into an ``A``-space matrix - silently, whenever the two
+    spaces share a width.  Reordering the same dict flipped the answer.
+    """
+
+    def _mixed(self) -> dict[int, dict]:
+        """Two ``test``-space media and two ``vid``-space ones, same width."""
+        return {
+            1: {"id": 1, "embedder": "test", "embeddings": {"test": np.full(4, 1.0, dtype=np.float32)}},
+            2: {"id": 2, "embedder": "test", "embeddings": {"test": np.full(4, 2.0, dtype=np.float32)}},
+            3: {"id": 3, "embedder": "vid", "embeddings": {"vid": np.full(4, 30.0, dtype=np.float32)}},
+            4: {"id": 4, "embedder": "vid", "embeddings": {"vid": np.full(4, 40.0, dtype=np.float32)}},
+        }
+
+    def test_collapse_requires_every_media_to_agree(self):
+        from vtscore.embedding.matrix import _collapse_to_primary
+
+        mixed = self._mixed()
+        # Mixed: the name survives, so the named path (which reads only "test"
+        # vectors) is taken instead of the primary path (which reads whatever
+        # each media happens to carry).
+        assert _collapse_to_primary(mixed, "test") == "test"
+        assert _collapse_to_primary(mixed, "vid") == "vid"
+        # Homogeneous: unchanged - this is the single-embedder hot path.
+        homogeneous = {cid: m for cid, m in mixed.items() if m["embedder"] == "test"}
+        assert _collapse_to_primary(homogeneous, "test") is None
+
+    def test_collapse_is_independent_of_dict_order(self):
+        from vtscore.embedding.matrix import _collapse_to_primary
+
+        mixed = self._mixed()
+        reversed_order = {cid: mixed[cid] for cid in sorted(mixed, reverse=True)}
+        assert _collapse_to_primary(mixed, "test") == _collapse_to_primary(reversed_order, "test")
+
+    def test_scoreable_snapshot_drops_the_foreign_space(self):
+        """The `calibration haystack size: 60 of 60` of #3650, now 30 of 60."""
+        from vtscore.embedding.matrix import scoreable_snapshot
+
+        scoreable, dropped = scoreable_snapshot(self._mixed(), "test")
+        assert sorted(scoreable) == [1, 2]
+        assert dropped == [3, 4]
+
+    def test_scoreable_snapshot_answer_is_order_independent(self):
+        from vtscore.embedding.matrix import scoreable_snapshot
+
+        mixed = self._mixed()
+        reversed_order = {cid: mixed[cid] for cid in sorted(mixed, reverse=True)}
+        assert scoreable_snapshot(mixed, "test") == scoreable_snapshot(reversed_order, "test")
+
+    def test_snap_matrix_never_stacks_the_other_space(self):
+        """Pre-fix this built a 4-row matrix holding two ``vid`` rows."""
+        ctx = DatasetContext("test_mixed_space_snap")
+        set_thread_dataset_context(ctx)
+        mixed = self._mixed()
+
+        with pytest.raises(ValueError, match=r"media 3.*has no embedding for embedder 'test'"):
+            get_embedding_matrix_for_snap(mixed, "test")
+
+        # The pre-filtered snapshot builds cleanly, in the requested space only.
+        from vtscore.embedding.matrix import scoreable_snapshot
+
+        scoreable, _dropped = scoreable_snapshot(mixed, "test")
+        ids, mat = get_embedding_matrix_for_snap(scoreable, "test")
+        assert ids == [1, 2]
+        assert mat[:, 0].tolist() == [1.0, 2.0]
+
+    def test_ctx_matrix_never_stacks_the_other_space(self):
+        ctx = DatasetContext("test_mixed_space_ctx")
+        ctx.medias.update(self._mixed())
+        with pytest.raises(ValueError, match=r"media 3.*has no embedding for embedder 'test'"):
+            get_embedding_matrix(ctx, "test")
+        # ...and the named path left the primary cache alone.
+        assert ctx._emb_matrix is None
+
+    def test_unnamed_request_still_reads_each_medias_primary(self):
+        """Only the *named* request changes: an unnamed one is by definition a
+        request for whatever each media carries, and keeps doing that."""
+        ctx = DatasetContext("test_mixed_space_unnamed")
+        ctx.medias.update(self._mixed())
+        ids, mat = get_embedding_matrix(ctx)
+        assert ids == [1, 2, 3, 4]
+        assert mat[:, 0].tolist() == [1.0, 2.0, 30.0, 40.0]
+
+
+class TestUniformPrimaryMemo:
+    """``_collapse_to_primary_for_ctx`` memoises the O(N) scan per revision.
+
+    The scan runs under ``_state_lock`` *before* the matrix-cache check, so the
+    hot path must not pay it per call - but the memo must not outlive the
+    medias it answered for.
+    """
+
+    def _ctx(self) -> DatasetContext:
+        ctx = DatasetContext("test_uniform_primary_memo")
+        for cid in (1, 2):
+            ctx.medias[cid] = {
+                "id": cid,
+                "embedder": "siglip",
+                "embeddings": {"siglip": np.full(4, float(cid), dtype=np.float32)},
+            }
+        return ctx
+
+    def test_memo_is_computed_once_per_revision(self, monkeypatch):
+        from vtscore.embedding.matrix import _collapse_to_primary_for_ctx
+
+        ctx = self._ctx()
+        calls: list[int] = []
+        real = matrix_mod._uniform_primary_embedder
+        monkeypatch.setattr(
+            matrix_mod,
+            "_uniform_primary_embedder",
+            lambda medias: (calls.append(len(medias)), real(medias))[1],
+        )
+        assert _collapse_to_primary_for_ctx(ctx, "siglip") is None
+        assert _collapse_to_primary_for_ctx(ctx, "siglip") is None
+        assert len(calls) == 1
+
+    def test_a_structural_mutation_reopens_the_question(self):
+        from vtscore.embedding.matrix import _collapse_to_primary_for_ctx
+
+        ctx = self._ctx()
+        assert _collapse_to_primary_for_ctx(ctx, "siglip") is None
+        # Adding a media from another space bumps media_revision via MediasDict.
+        ctx.medias[3] = {"id": 3, "embedder": "vid", "embeddings": {"vid": np.zeros(4, dtype=np.float32)}}
+        assert _collapse_to_primary_for_ctx(ctx, "siglip") == "siglip"
+
+    def test_matrix_cache_is_not_served_across_a_mixing_mutation(self):
+        """The end-to-end shape of the memo going stale: the cached primary
+        matrix must not be handed back for a *named* request once the dataset
+        stops being homogeneous."""
+        ctx = self._ctx()
+        _ids, mat = get_embedding_matrix(ctx, "siglip")
+        assert mat[:, 0].tolist() == [1.0, 2.0]
+        assert ctx._emb_matrix is not None  # collapsed to the cached path
+
+        ctx.medias[3] = {"id": 3, "embedder": "vid", "embeddings": {"vid": np.zeros(4, dtype=np.float32)}}
+        with pytest.raises(ValueError, match=r"media 3.*has no embedding for embedder 'siglip'"):
+            get_embedding_matrix(ctx, "siglip")
+
+    def test_reset_derived_caches_drops_the_memo(self):
+        from vtscore.embedding.matrix import _collapse_to_primary_for_ctx
+
+        ctx = self._ctx()
+        _collapse_to_primary_for_ctx(ctx, "siglip")
+        assert ctx._uniform_primary == "siglip"
+        ctx.reset_derived_caches()
+        assert ctx._uniform_primary is None
+        assert ctx._uniform_primary_revision is None
+
+
+class TestMixedSpaceDropIsLogged:
+    """A short haystack caused by space-mixing says so, once per call."""
+
+    def _snap(self) -> dict[int, dict]:
+        return {
+            1: {"id": 1, "embedder": "test", "embeddings": {"test": np.ones(4, dtype=np.float32)}},
+            2: {"id": 2, "embedder": "vid", "embeddings": {"vid": np.ones(4, dtype=np.float32)}},
+            3: {"id": 3, "embedder": "vid", "embeddings": {"vid": np.ones(4, dtype=np.float32)}},
+        }
+
+    def test_warns_once_naming_the_other_space(self, caplog):
+        from vtscore.embedding.matrix import scoreable_snapshot
+
+        with caplog.at_level("WARNING", logger="vtscore.embedding.matrix"):
+            scoreable_snapshot(self._snap(), "test")
+        warnings = [r for r in caplog.records if r.levelname == "WARNING"]
+        assert len(warnings) == 1
+        message = warnings[0].getMessage()
+        assert "Dropped 2 of 3 media" in message
+        assert "'vid'" in message and "'test'" in message
+
+    def test_a_plain_failed_embed_is_not_reported_as_mixing(self, caplog):
+        """A dropped media whose own primary *is* the requested embedder simply
+        failed to embed - the pre-existing per-item failure the callers already
+        report, not a space mismatch."""
+        from vtscore.embedding.matrix import scoreable_snapshot
+
+        snap = {
+            1: {"id": 1, "embedder": "test", "embeddings": {"test": np.ones(4, dtype=np.float32)}},
+            2: {"id": 2, "embedder": "test", "embeddings": {}},
+        }
+        with caplog.at_level("WARNING", logger="vtscore.embedding.matrix"):
+            _scoreable, dropped = scoreable_snapshot(snap, "test")
+        assert dropped == [2]
+        assert [r for r in caplog.records if r.levelname == "WARNING"] == []
+
+    def test_a_homogeneous_snapshot_is_silent(self, caplog):
+        from vtscore.embedding.matrix import scoreable_snapshot
+
+        snap = {cid: m for cid, m in self._snap().items() if m["embedder"] == "vid"}
+        with caplog.at_level("WARNING", logger="vtscore.embedding.matrix"):
+            scoreable_snapshot(snap, "vid")
+        assert [r for r in caplog.records if r.levelname == "WARNING"] == []

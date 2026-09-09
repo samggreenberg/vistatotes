@@ -156,19 +156,69 @@ python build_corpus.py --sources spods,staver,tobacco800,ucsf --roster $VTS_DOCM
 Rebuilding is cheap — the sources are cached, so only clustering and manifest
 writing re-run.
 
-## Stage 3 — the human passes (interactive)
+## Stage 3 — the human passes (one bundle, then interactive)
+
+Render both sheet sets on the cluster and take the result away as one archive:
 
 ```bash
-python make_audit_slate.py --task membership --corpus $VTS_DOCMARKS_OUT
-python make_audit_slate.py --task confusable --corpus $VTS_DOCMARKS_OUT
-# fill in the verdict fields, then:
-python audit_to_corrections.py --task membership --corpus $VTS_DOCMARKS_OUT --apply
-python audit_to_corrections.py --task confusable --corpus $VTS_DOCMARKS_OUT --apply
+bash launch_docmarks.sh slate           # ~minutes, CPU, no refetch
+# when it finishes, the log names the bundle:
+scp $GRID:$VTS_DOCMARKS_OUT/audit/docmarks-audit-<date>.tar.gz .
 ```
+
+**Then the second opinion, on a GPU**, which re-renders both similarity passes
+against a semantic embedder (see README's *The descriptor the audit asks with is
+not the one it was built with*):
+
+```bash
+bash launch_docmarks.sh siglip          # ~minutes, GPU, embeds ~1.3k crops once
+scp $GRID:$VTS_DOCMARKS_OUT/audit/docmarks-audit-siglip-<date>.tar.gz .
+```
+
+It re-numbers the slate, so a `merges.txt` written against the `phash` sheets no
+longer refers to the same classes — the job keeps the old answer beside the new
+one as `merges.phash.txt` rather than overwriting it. Work the `phash` slate
+only if no GPU is available; the appendix it produces spends most of its 120
+pairs on classes that are not confusable (#3600).
+
+Rendering happens on the GRID because that is where the pages are: the sheets
+crop from full-resolution scans that live under `$VTS_DOCMARKS_OUT`, and pulling
+200k pages to a laptop to make four contact sheets is the wrong direction. The
+bundle is small — a few dozen PNGs — so the *reviewing* happens wherever you
+like.
+
+**Work `audit/merge` first, then `audit/membership`.** They are one sitting, and
+they answer different questions: the merge slate fixes the *partition* (which
+clustering proposals are one mark) and membership fixes the *instances* (whether
+each crop really is that mark). Doing them a week apart means re-deriving the
+same context twice.
+
+- `merge/slate_*.png` — every class as a numbered 3-up strip, similarity-ordered.
+- `merge/pairs_*.png` — the closest class pairs, explicitly side by side.
+- `merge/merges.txt` — the answer: one line per group of same-mark indices, plus
+  `REVIEWED-ALL` once you have worked every sheet. See README's **The slate**.
+- `membership/*.png` — every instance of every class, numbered.
+- `membership/verdicts.jsonl` — `ok`, or the indices that are not this mark.
+
+Then fold both back in, on the cluster, against the corpus they came from:
+
+```bash
+python audit_to_corrections.py --task merge      --corpus $VTS_DOCMARKS_OUT   # dry run
+python audit_to_corrections.py --task merge      --corpus $VTS_DOCMARKS_OUT --apply
+python audit_to_corrections.py --task membership --corpus $VTS_DOCMARKS_OUT --apply
+```
+
+Both default to a dry run; read it before passing `--apply`. Merge first: a
+membership rejection is scoped to one class, and which class that is can change
+under a merge.
 
 Do this **before** stage 4. A membership rejection changes which pages are
 positives, and the embedding cells carry the labels; embedding first means
 rebuilding every cell afterwards.
+
+`--task confusable` is the same adjudication one pair per sheet. It remains the
+right form for a roster small enough to work the full matrix; at v2's 60 classes
+that is 1,770 sheets, which is why the slate exists.
 
 ## Stage 4 — embedding cells (GPU)
 

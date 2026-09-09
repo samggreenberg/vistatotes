@@ -13,13 +13,18 @@ def _manifest_provenance(dataset: str, embedder: str) -> dict:
     """The provenance fields the manifest carries per cell, or nulls if unknown."""
     path = pc.provenance_path(dataset, embedder)
     if not path.exists():
-        return {"gpu_name": None, "built_by": None, "commit": None, "vectors_sha256": None}
+        return {"gpu_name": None, "built_by": None, "repo": None, "commit": None, "vectors_sha256": None}
     rec = json.loads(path.read_text())
     dev = rec.get("device", {})
+    # `code` since #3693; before that the commit lived under `device` and no
+    # sidecar recorded the checkout at all. Read both, so a pile holding cells
+    # from either era reports what each one actually knows.
+    code = rec.get("code", {})
     return {
         "gpu_name": dev.get("gpu_name"),
         "built_by": dev.get("hostname"),
-        "commit": dev.get("commit"),
+        "repo": code.get("repo"),
+        "commit": code.get("commit") or dev.get("commit"),
         "vectors_sha256": rec.get("fingerprint", {}).get("vectors_sha256"),
     }
 

@@ -23,7 +23,7 @@ RARE_PREVALENCE = float(os.environ.get("MLPSVM_RARE_PREVALENCE", "0.01"))
 ARMS: list[float | None] = [None, RARE_PREVALENCE]
 
 # --- Trainers: the definitive run.  Overridable so Stage A's winners feed in. ---
-STAGE_B_TRAINERS = os.environ.get("MLPSVM_TRAINERS", "mlp,svm_linear,svm_rbf").split(",")
+STAGE_B_TRAINERS = os.environ.get("MLPSVM_TRAINERS", "app,svm_linear,svm_rbf").split(",")
 
 # --- Production-faithful fixed choices (pre-registered) ---
 INCLUSION = 0

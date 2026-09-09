@@ -1,0 +1,954 @@
+{
+  "EXP__verdicts_snapshot_20260820.json": {
+    "bytes": 190224,
+    "rel": "verdicts_snapshot_20260820.json",
+    "sha256": "7684e56bd49cf53ebcdbf26deb9b7432cf3f9e2ceba4b3453a419b96f17b21b2",
+    "source": "{EXP}/verdicts_snapshot_*.json",
+    "tier": "human",
+    "why": "an earlier ad-hoc snapshot, kept because nothing else records what it holds"
+  },
+  "LABELSETS__MANIFEST.json": {
+    "bytes": 2204,
+    "rel": "MANIFEST.json",
+    "sha256": "21399cba742fb506dab7cdab5cb103cf07b4906ef47afa36a4d1fce2e9b2786d",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__audit-raw__MANIFEST.json": {
+    "bytes": 875,
+    "rel": "audit-raw/MANIFEST.json",
+    "sha256": "e84a7d2933e23ec1669308d81ffb168ba043cf639edeb2ace7f78a53f8c09391",
+    "source": "{LABELSETS}/audit-raw/*.json",
+    "tier": "human",
+    "why": "the audit pass's raw labelsets"
+  },
+  "LABELSETS__audit-raw__bicycle_audit.json": {
+    "bytes": 15767,
+    "rel": "audit-raw/bicycle_audit.json",
+    "sha256": "39806bfe483a2904a4d630692965e90e701c9507e9dfd4bb7bed2c90acba65cb",
+    "source": "{LABELSETS}/audit-raw/*.json",
+    "tier": "human",
+    "why": "the audit pass's raw labelsets"
+  },
+  "LABELSETS__audit-raw__boat_audit.json": {
+    "bytes": 10877,
+    "rel": "audit-raw/boat_audit.json",
+    "sha256": "38287f48a638f81d7906f1848e1261cca2b4bf1039912335979769837fe517dc",
+    "source": "{LABELSETS}/audit-raw/*.json",
+    "tier": "human",
+    "why": "the audit pass's raw labelsets"
+  },
+  "LABELSETS__audit-raw__book_audit.json": {
+    "bytes": 13132,
+    "rel": "audit-raw/book_audit.json",
+    "sha256": "2db1fe8c360dee0b3c19ef479be8eb95598fe5d76393113fee97735aa7fcc965",
+    "source": "{LABELSETS}/audit-raw/*.json",
+    "tier": "human",
+    "why": "the audit pass's raw labelsets"
+  },
+  "LABELSETS__audit-raw__bus_audit.json": {
+    "bytes": 9817,
+    "rel": "audit-raw/bus_audit.json",
+    "sha256": "9277dbec98b7c3eb87f288c212a443fce01420abab88e49079225f83ee5dc3cf",
+    "source": "{LABELSETS}/audit-raw/*.json",
+    "tier": "human",
+    "why": "the audit pass's raw labelsets"
+  },
+  "LABELSETS__audit-raw__clock_audit.json": {
+    "bytes": 12150,
+    "rel": "audit-raw/clock_audit.json",
+    "sha256": "b9828905ebe9a8b2a2532b00dcf6a37002980ade6a9a90692ec15b9df7c43b8b",
+    "source": "{LABELSETS}/audit-raw/*.json",
+    "tier": "human",
+    "why": "the audit pass's raw labelsets"
+  },
+  "LABELSETS__audit-raw__dog_audit.json": {
+    "bytes": 15144,
+    "rel": "audit-raw/dog_audit.json",
+    "sha256": "ed7942d160c6e4bf55ac33358e21c314976ae07ced2a7f74868172534df90166",
+    "source": "{LABELSETS}/audit-raw/*.json",
+    "tier": "human",
+    "why": "the audit pass's raw labelsets"
+  },
+  "LABELSETS__audit-raw__kite_audit.json": {
+    "bytes": 18748,
+    "rel": "audit-raw/kite_audit.json",
+    "sha256": "c371898f6311c823acef4a3155788d8423218d85240f1bf334fb1d4b8de8ded4",
+    "source": "{LABELSETS}/audit-raw/*.json",
+    "tier": "human",
+    "why": "the audit pass's raw labelsets"
+  },
+  "LABELSETS__audit-raw__knife_audit.json": {
+    "bytes": 21998,
+    "rel": "audit-raw/knife_audit.json",
+    "sha256": "e609bcf4fd1481228b8e6166541cad4798f04cd703f8b22986cc91ea3ce7920f",
+    "source": "{LABELSETS}/audit-raw/*.json",
+    "tier": "human",
+    "why": "the audit pass's raw labelsets"
+  },
+  "LABELSETS__audit-raw__stop_sign_audit.json": {
+    "bytes": 16402,
+    "rel": "audit-raw/stop_sign_audit.json",
+    "sha256": "413eeac184c39b9bcebaa350fb221baf63cd5ccfb8dfb66ac879dadf227f08b9",
+    "source": "{LABELSETS}/audit-raw/*.json",
+    "tier": "human",
+    "why": "the audit pass's raw labelsets"
+  },
+  "LABELSETS__audit-raw__umbrella_audit.json": {
+    "bytes": 17065,
+    "rel": "audit-raw/umbrella_audit.json",
+    "sha256": "df826c59a422af87406d0e3c52f1bdef7fcf9ab1c5604aa3863ed8c6ab5b0f49",
+    "source": "{LABELSETS}/audit-raw/*.json",
+    "tier": "human",
+    "why": "the audit pass's raw labelsets"
+  },
+  "LABELSETS__backpack.json": {
+    "bytes": 102567,
+    "rel": "backpack.json",
+    "sha256": "4208fa0510d47dab1f5d96468ff296f0cd45e05db62aee2face3414a5d25d0e8",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__backpack_positives.json": {
+    "bytes": 12853,
+    "rel": "backpack_positives.json",
+    "sha256": "d76d60dc0ac2dae4617e4c2966469641cb99eecf272b902962d9eaa8a96fb31a",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__bicycle.json": {
+    "bytes": 121757,
+    "rel": "bicycle.json",
+    "sha256": "e500bf084ceaee75348aab5b2fb998f160a8b17aba3a334c6460d9a77aeb53cb",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__bicycle_audit.json": {
+    "bytes": 55,
+    "rel": "bicycle_audit.json",
+    "sha256": "a1d247fe698e30089562ac7cfb3674d1e8436c1e799ff9a6c7ec4ced851bcdf0",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__bicycle_positives.json": {
+    "bytes": 13268,
+    "rel": "bicycle_positives.json",
+    "sha256": "a4ee1600885fa6b852ca0f4d80606dc9753e4d7dc1a45252738cf364d0467e92",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__bird.json": {
+    "bytes": 102795,
+    "rel": "bird.json",
+    "sha256": "07f418ffb5ad58e65572640723c9822b4855bcab4cbd0510ffb4993841fcfabf",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__bird_positives.json": {
+    "bytes": 12904,
+    "rel": "bird_positives.json",
+    "sha256": "afa2ea507f2cbaa337431cd9bc53e1bd4d33e43331869bdceb4944ba4938a17b",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__boat_audit.json": {
+    "bytes": 55,
+    "rel": "boat_audit.json",
+    "sha256": "a1d247fe698e30089562ac7cfb3674d1e8436c1e799ff9a6c7ec4ced851bcdf0",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__boat_positives.json": {
+    "bytes": 10150,
+    "rel": "boat_positives.json",
+    "sha256": "4e443ec2b04d758b61cd038190875412d69b0714e7d1f4b9cb43e0a5f1bae893",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__book_audit.json": {
+    "bytes": 55,
+    "rel": "book_audit.json",
+    "sha256": "a1d247fe698e30089562ac7cfb3674d1e8436c1e799ff9a6c7ec4ced851bcdf0",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__book_positives.json": {
+    "bytes": 10140,
+    "rel": "book_positives.json",
+    "sha256": "c1219358d556bd36b8a3c58257e4f7a0c1f1d3ec8d9903e6830cc483caa4e312",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__bus_audit.json": {
+    "bytes": 55,
+    "rel": "bus_audit.json",
+    "sha256": "a1d247fe698e30089562ac7cfb3674d1e8436c1e799ff9a6c7ec4ced851bcdf0",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__bus_positives.json": {
+    "bytes": 10038,
+    "rel": "bus_positives.json",
+    "sha256": "cc9d40b0192e4c4ac7b2c0edbaf2dd4e3fa003d0c68a8186f19d0ff46326d8e2",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__clock_audit.json": {
+    "bytes": 55,
+    "rel": "clock_audit.json",
+    "sha256": "a1d247fe698e30089562ac7cfb3674d1e8436c1e799ff9a6c7ec4ced851bcdf0",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__clock_positives.json": {
+    "bytes": 9924,
+    "rel": "clock_positives.json",
+    "sha256": "cb5a61403043ffa5d6e4c4b54c598b3c9b4d61bff7f71b5b87aa1d87533cbbf7",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__dashboard_export_20260908.json": {
+    "bytes": 2223659,
+    "rel": "dashboard_export_20260908.json",
+    "sha256": "d3d7500c61acb9f15133abe2ea8272a1f9092126264da6bb131f19be8e528f58",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__dog_audit.json": {
+    "bytes": 55,
+    "rel": "dog_audit.json",
+    "sha256": "a1d247fe698e30089562ac7cfb3674d1e8436c1e799ff9a6c7ec4ced851bcdf0",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__dog_positives.json": {
+    "bytes": 10025,
+    "rel": "dog_positives.json",
+    "sha256": "9dc949fd6b90accf1d0ccc76be9e691284402065ed3d05084c28a6b56e1b7069",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__kite_audit.json": {
+    "bytes": 55,
+    "rel": "kite_audit.json",
+    "sha256": "a1d247fe698e30089562ac7cfb3674d1e8436c1e799ff9a6c7ec4ced851bcdf0",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__kite_positives.json": {
+    "bytes": 10161,
+    "rel": "kite_positives.json",
+    "sha256": "2d2020586bf9db214c6d29f0d26e9176a08d0eda043ae5948b9e01fc40359598",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__knife_audit.json": {
+    "bytes": 55,
+    "rel": "knife_audit.json",
+    "sha256": "a1d247fe698e30089562ac7cfb3674d1e8436c1e799ff9a6c7ec4ced851bcdf0",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__knife_positives.json": {
+    "bytes": 9899,
+    "rel": "knife_positives.json",
+    "sha256": "117942a4a5b164376325d22e3ecd3abafcbf0a173163f88b0791a559a7916f36",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__stop_sign_audit.json": {
+    "bytes": 55,
+    "rel": "stop_sign_audit.json",
+    "sha256": "a1d247fe698e30089562ac7cfb3674d1e8436c1e799ff9a6c7ec4ced851bcdf0",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__stop_sign_positives.json": {
+    "bytes": 9912,
+    "rel": "stop_sign_positives.json",
+    "sha256": "8ffc6290ddf6e339ebe06c5b9ed74fa868c6a975e113572848f794fb0de714d6",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__umbrella_audit.json": {
+    "bytes": 55,
+    "rel": "umbrella_audit.json",
+    "sha256": "a1d247fe698e30089562ac7cfb3674d1e8436c1e799ff9a6c7ec4ced851bcdf0",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__umbrella_positives.json": {
+    "bytes": 10080,
+    "rel": "umbrella_positives.json",
+    "sha256": "8fcd1324f2826d6bf02dd3051003b7f3b203a7b9472fa4dcc37712f5deaa086d",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__verdicts_audit_20260825.json": {
+    "bytes": 103999,
+    "rel": "verdicts_audit_20260825.json",
+    "sha256": "0c7fa8a2edf2271aa7189b6732995e1c0ed61c016d5c2e84eab47b2ba94b612c",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__verdicts_final_20260824.json": {
+    "bytes": 286818,
+    "rel": "verdicts_final_20260824.json",
+    "sha256": "9c1f09a890acabe01a526df30aa1f73655e6935b4818b28c9ca38a798dabefe8",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "LABELSETS__verdicts_redef_20260825.json": {
+    "bytes": 12458,
+    "rel": "verdicts_redef_20260825.json",
+    "sha256": "a565d6ec90ce7a0fa8b7db9c3060185cb7bf9dee96d46eeeb4ee7c44dc15d025",
+    "source": "{LABELSETS}/*.json",
+    "tier": "human",
+    "why": "app labelset exports -- the clicks themselves, which `ingest_slate.py` turns into verdicts -- plus the verdict files parked here by hand, one of which is hardcoded in `verdicts_to_corrections.py`'s default"
+  },
+  "PILE__corrections.json": {
+    "bytes": 191185,
+    "rel": "corrections.json",
+    "sha256": "4f785cadc3d533a211f944f6168f80dbef6ce66eb1f18cf10887cce8a9f84fbb",
+    "source": "{PILE}/corrections.json",
+    "tier": "human",
+    "why": "the verdicts the build actually reads; reproducible only from the recovered two-campaign recipe in `verdicts_to_corrections.py`, and only while `{WORK3588}` survives"
+  },
+  "PILE__vg_scale_deep_roster.json": {
+    "bytes": 488665,
+    "rel": "vg_scale_deep_roster.json",
+    "sha256": "533766e16efbc984669fb410e2ff37a3fe22acf5bdd648a70cd1516c181ffd33",
+    "source": "{PILE}/vg_scale_deep_roster.json",
+    "tier": "derived",
+    "why": "the deep sibling's roster, same argument"
+  },
+  "PILE__vg_scale_roster.json": {
+    "bytes": 276220,
+    "rel": "vg_scale_roster.json",
+    "sha256": "760c074d99b09b55367945728d7d76fbc50af46fac08b363a874d843cd4a1af9",
+    "source": "{PILE}/vg_scale_roster.json",
+    "tier": "derived",
+    "why": "the membership a review was carried out against; a build rewrites it, and losing it means the next rebuild reshuffles reviewed images away"
+  },
+  "WORK3588__corrections_13.json": {
+    "bytes": 112411,
+    "rel": "corrections_13.json",
+    "sha256": "3fa5ec101522dc660920ddbdc2c5c846a992a0eac211f694e9594061ee1ea59c",
+    "source": "{WORK3588}/corrections_13.json",
+    "tier": "human",
+    "why": "that campaign's corrections output, merged into the live `corrections.json` and not reproducible without the campaign's own verdicts"
+  },
+  "WORK3588__slates__Backpack__manifest.csv": {
+    "bytes": 11447,
+    "rel": "slates/Backpack/manifest.csv",
+    "sha256": "742441ac4e11c2c2b88940f79a4cd0b44cdd84f4779e1972f14c02d84d5582bd",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Bench__manifest.csv": {
+    "bytes": 10253,
+    "rel": "slates/Bench/manifest.csv",
+    "sha256": "893d525f6735bfdd80ebde797f8ebc4823bb9abf02d9d35afa27b27c78cf5584",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Book__manifest.csv": {
+    "bytes": 9847,
+    "rel": "slates/Book/manifest.csv",
+    "sha256": "db5337bc14088b91750bf7e498f264f88f25f726dee2b54c3e68fa7781b1fbc8",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Cell_Phone__manifest.csv": {
+    "bytes": 12249,
+    "rel": "slates/Cell_Phone/manifest.csv",
+    "sha256": "5fb372a956df65d5f357064327fac84caf3fa2d51f5c87719045d6271fb79ac7",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Chair__manifest.csv": {
+    "bytes": 10249,
+    "rel": "slates/Chair/manifest.csv",
+    "sha256": "1eb438d756ff7ab769291abd2c2f2e9184c856f6d97bd4c9e382d8d37c1e016f",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Clock__manifest.csv": {
+    "bytes": 10247,
+    "rel": "slates/Clock/manifest.csv",
+    "sha256": "517df95c4c5ae49ba87c0e5ad4fc61e60d998cabd52a57e2b96115227603042e",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Fire_Hydrant__manifest.csv": {
+    "bytes": 13048,
+    "rel": "slates/Fire_Hydrant/manifest.csv",
+    "sha256": "b2c6ada7685b52fd21dc943b989da8cc1be52f1a0c294c511becafa858841be7",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Handheld_Objects__manifest.csv": {
+    "bytes": 14739,
+    "rel": "slates/Handheld_Objects/manifest.csv",
+    "sha256": "319ce7d753fe18d788def2cca4773f8f8de2e26ee420e60906ae4f22dc3d54a2",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Outdoor_Objects__manifest.csv": {
+    "bytes": 14339,
+    "rel": "slates/Outdoor_Objects/manifest.csv",
+    "sha256": "f9b0e42e6e90b0db81f78845883a5ef7d09b6ac1de6daddd3aa28c4af5ba161c",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Stop_Sign__manifest.csv": {
+    "bytes": 11847,
+    "rel": "slates/Stop_Sign/manifest.csv",
+    "sha256": "ee5cde776b9fa68ef3def419ade5ef8351f46280fcc637d36313372313a2fad4",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Street_Objects__manifest.csv": {
+    "bytes": 13939,
+    "rel": "slates/Street_Objects/manifest.csv",
+    "sha256": "60a0b0bc585df754cccf0b213776005b700e26835f49b68264bbee0bfa4923ab",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Table_Objects__manifest.csv": {
+    "bytes": 13453,
+    "rel": "slates/Table_Objects/manifest.csv",
+    "sha256": "45ee5a52606aa589c5af6db1f848573a99476a83a3f152c49843f3770107de12",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Umbrella__manifest.csv": {
+    "bytes": 11447,
+    "rel": "slates/Umbrella/manifest.csv",
+    "sha256": "f5039198c1a15adcfea1b78174b445e9d71b921e70d98a5c2790d5b48c214431",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__Vehicles__manifest.csv": {
+    "bytes": 11539,
+    "rel": "slates/Vehicles/manifest.csv",
+    "sha256": "9bf782c87a1f41e632152dba452383341df3d3edb5e7109c10445621093274e8",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__bench_not_chairs__manifest.csv": {
+    "bytes": 18323,
+    "rel": "slates/bench_not_chairs/manifest.csv",
+    "sha256": "3e1d11db60cf6a9582bed852afe33bad11710aa7ced2b93663496f42944dc759",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__bottle_incl_jars__manifest.csv": {
+    "bytes": 18749,
+    "rel": "slates/bottle_incl_jars/manifest.csv",
+    "sha256": "519a7e917655516ff254b896c42833a42d74d572e428d0df2125f01115004b90",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__bowl_incl_plates_and_dishes__manifest.csv": {
+    "bytes": 27986,
+    "rel": "slates/bowl_incl_plates_and_dishes/manifest.csv",
+    "sha256": "883a298f8e797193e8527d15d113aae474c851a161da972bbb55253ae332b2c0",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__car_incl_SUVs_and_minivans__manifest.csv": {
+    "bytes": 20732,
+    "rel": "slates/car_incl_SUVs_and_minivans/manifest.csv",
+    "sha256": "e25b7686a4f88f4db500912b91162373559150ed1114e99d44e859676dbb74e6",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__cell_phone_not_landlines__manifest.csv": {
+    "bytes": 22448,
+    "rel": "slates/cell_phone_not_landlines/manifest.csv",
+    "sha256": "28cf53ed7dbe8f24c87b6ce9f0a631b7b053032dbcf09fcce49eb210edf1469f",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__chair_incl_stools_not_couches__manifest.csv": {
+    "bytes": 22304,
+    "rel": "slates/chair_incl_stools_not_couches/manifest.csv",
+    "sha256": "6195f1ba859d07523f73bdff3d8531c7e3e4545212f55931406e059aa69c2b6c",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__cup_incl_mugs_and_glasses_not_stemware__manifest.csv": {
+    "bytes": 24357,
+    "rel": "slates/cup_incl_mugs_and_glasses_not_stemware/manifest.csv",
+    "sha256": "5e0323a1b40d13227f50a674ba2ee679c0e17f72ded59aab8aec1a76f4bffa6d",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__fire_hydrant_not_standpipes__manifest.csv": {
+    "bytes": 23950,
+    "rel": "slates/fire_hydrant_not_standpipes/manifest.csv",
+    "sha256": "8a10a9e7dbfb63d3b6a768fca9b013351721bcf3fb6b0474f02e24cb38c1af3a",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__fork_incl_plastic__manifest.csv": {
+    "bytes": 18403,
+    "rel": "slates/fork_incl_plastic/manifest.csv",
+    "sha256": "69acece971a8fd113037932a6ac64fda3b61619ce499269395937fa61381ffcb",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__sink_basin_not_counter__manifest.csv": {
+    "bytes": 19874,
+    "rel": "slates/sink_basin_not_counter/manifest.csv",
+    "sha256": "9aaef3fcced5c55037fdefd7e453c990e80f84165203daed73804a703a28bb3e",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__spoon_incl_plastic_not_spatulas__manifest.csv": {
+    "bytes": 22916,
+    "rel": "slates/spoon_incl_plastic_not_spatulas/manifest.csv",
+    "sha256": "7acb5b9e977d6dd8c9b7853dd93ecb5a6c9142bc47c023fa544be19d5cf15814",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__truck_incl_vans_not_SUVs__manifest.csv": {
+    "bytes": 20791,
+    "rel": "slates/truck_incl_vans_not_SUVs/manifest.csv",
+    "sha256": "5ca01d773ee66f2f8943518f269e385f859c1e28caa6e060164036811fa3f863",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates__vase_incl_pots_and_planters__manifest.csv": {
+    "bytes": 21339,
+    "rel": "slates/vase_incl_pots_and_planters/manifest.csv",
+    "sha256": "4ebc3434991585d501e11fa8d3b67a2b56f1b6da040975c2b05f7cc1954a29c4",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates_cup_v2__cup_incl_mugs_glasses_and_stemware__manifest.csv": {
+    "bytes": 23159,
+    "rel": "slates_cup_v2/cup_incl_mugs_glasses_and_stemware/manifest.csv",
+    "sha256": "f5d2602f4c8d44d747507dbd3cc45accba2c2e72d00fda68c083bdf511380d84",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__slates_cupmerged__cup_incl_mugs_glasses_and_stemware__manifest.csv": {
+    "bytes": 23164,
+    "rel": "slates_cupmerged/cup_incl_mugs_glasses_and_stemware/manifest.csv",
+    "sha256": "e41a38977dce4bd4b0d1bc31602f084d920626def62e0971d6decfc66d8fd8ab",
+    "source": "{WORK3588}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each of the promotion campaign's slate rows was"
+  },
+  "WORK3588__verdicts_20260903.json": {
+    "bytes": 308974,
+    "rel": "verdicts_20260903.json",
+    "sha256": "31fcdacdca5d723c1974a673e373e5ac7047f0ab1cbf93b66010e7afc6cb72ee",
+    "source": "{WORK3588}/verdicts_*.json",
+    "tier": "human",
+    "why": "the #3588 promotion campaign's verdicts -- a second review, in its own directory, and absent from this inventory until #3732 noticed the live corrections file depends on it"
+  },
+  "WORK3588__verdicts_20260904.json": {
+    "bytes": 1001779,
+    "rel": "verdicts_20260904.json",
+    "sha256": "a5113ca18872625838ffdeef2869f1bc3716e660d6104b101a87a3c6224b8008",
+    "source": "{WORK3588}/verdicts_*.json",
+    "tier": "human",
+    "why": "the #3588 promotion campaign's verdicts -- a second review, in its own directory, and absent from this inventory until #3732 noticed the live corrections file depends on it"
+  },
+  "WORK__adjudicate_ml.json": {
+    "bytes": 1524,
+    "rel": "adjudicate_ml.json",
+    "sha256": "41e96c50380e5dffe33851e078c1b8c9402daaaf1ba47058264a848f29770454",
+    "source": "{WORK}/adjudicat*.json",
+    "tier": "human",
+    "why": "second opinions on reviewer/reference disagreements, with the reasoning that decided them"
+  },
+  "WORK__adjudication_20260903.json": {
+    "bytes": 3070,
+    "rel": "adjudication_20260903.json",
+    "sha256": "e99a42855586f4e062a370d5cdbca2415e00a6ec3a3f102413bf472ac24793eb",
+    "source": "{WORK}/adjudicat*.json",
+    "tier": "human",
+    "why": "second opinions on reviewer/reference disagreements, with the reasoning that decided them"
+  },
+  "WORK__adjudication_ml_20260820.json": {
+    "bytes": 2453,
+    "rel": "adjudication_ml_20260820.json",
+    "sha256": "c7d4feaf505631371845e4bf2b3f4de8d2e86731b464c65271d63f2ba826af05",
+    "source": "{WORK}/adjudicat*.json",
+    "tier": "human",
+    "why": "second opinions on reviewer/reference disagreements, with the reasoning that decided them"
+  },
+  "WORK__slates__backpack__manifest.csv": {
+    "bytes": 12353,
+    "rel": "slates/backpack/manifest.csv",
+    "sha256": "607bd4d24d48b63c4a8c619d13d0bdb89a2fc594aa8553dc37367cbb829ff033",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates__bicycle__manifest.csv": {
+    "bytes": 12049,
+    "rel": "slates/bicycle/manifest.csv",
+    "sha256": "dda36dac99e61bde5a3165135658731b19786af93a6dc2d52ef5ed30774764e7",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates__bird__manifest.csv": {
+    "bytes": 11186,
+    "rel": "slates/bird/manifest.csv",
+    "sha256": "ba3df8777ac419c30a041294f7f46eca88d65ec31695e96c7335c48898484e55",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates__boat__manifest.csv": {
+    "bytes": 11189,
+    "rel": "slates/boat/manifest.csv",
+    "sha256": "654956d6d276453d949f08e7f1125b8f191b83b44ae592f92c25d2900709ca4e",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates__book__manifest.csv": {
+    "bytes": 11229,
+    "rel": "slates/book/manifest.csv",
+    "sha256": "b33ed93f860d2422b2ddc75813e6c813bb38e76b406b41e19e7c7a53f227a041",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates__bus__manifest.csv": {
+    "bytes": 10782,
+    "rel": "slates/bus/manifest.csv",
+    "sha256": "dd8ce1d1e7f6633eb7db2405e98383a0449c26df253fca560e6dcb42592cedcf",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates__clock__manifest.csv": {
+    "bytes": 11438,
+    "rel": "slates/clock/manifest.csv",
+    "sha256": "f5c78c984c4f5f9d68244b8777243ea8908dab962ad29cffbedede040bb827bb",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates__dog__manifest.csv": {
+    "bytes": 10888,
+    "rel": "slates/dog/manifest.csv",
+    "sha256": "b1720d76c75cfe221b48f4995b81fef26bcc860cd0174f4c5f63f91e99f8057f",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates__kite__manifest.csv": {
+    "bytes": 11138,
+    "rel": "slates/kite/manifest.csv",
+    "sha256": "299f2db250360b868f12bd9a06a6e9fa6f1afbac6dae81f67f7d147a3ff92f6d",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates__knife__manifest.csv": {
+    "bytes": 11506,
+    "rel": "slates/knife/manifest.csv",
+    "sha256": "42ddaa0a89baa7ec6c89f7fe02d945da2d83da1867fc8edfb5099ef1fb670154",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates__stop_sign__manifest.csv": {
+    "bytes": 12473,
+    "rel": "slates/stop_sign/manifest.csv",
+    "sha256": "3248888cd41f2809a35261e364b2b1851b4e14269e8c6970b535bec470f9abcc",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates__umbrella__manifest.csv": {
+    "bytes": 12298,
+    "rel": "slates/umbrella/manifest.csv",
+    "sha256": "a85bc3d77f1fa3c0b640412047f95cc3a217f6d7cfd11f9d1334fb8e7a648bff",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates_audit__bicycle__manifest.csv": {
+    "bytes": 2906,
+    "rel": "slates_audit/bicycle/manifest.csv",
+    "sha256": "fe09ce88de65cc92fe641cbac86929c9acc3a5c43ab7efc9917e3e3a93f9e364",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates_audit__boat__manifest.csv": {
+    "bytes": 1818,
+    "rel": "slates_audit/boat/manifest.csv",
+    "sha256": "c492cebd430de099f9fd2b4523b614d08900dd569924bf7b8f56802e6b909461",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates_audit__book__manifest.csv": {
+    "bytes": 2168,
+    "rel": "slates_audit/book/manifest.csv",
+    "sha256": "b5e0643ba0751e6c370ab0043dfd8c3d1d5c92c10a6cfaa8594425dec4cfc4a5",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates_audit__bus__manifest.csv": {
+    "bytes": 1572,
+    "rel": "slates_audit/bus/manifest.csv",
+    "sha256": "f227979b6efc1dfab091010723a609faf7203bb731d4c56385e47afc92f4f3e7",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates_audit__clock__manifest.csv": {
+    "bytes": 2091,
+    "rel": "slates_audit/clock/manifest.csv",
+    "sha256": "886df569c4b9b9cb7022b7baaca8a0082dbc93794180816a91a3ffeecb6e9ce2",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates_audit__dog__manifest.csv": {
+    "bytes": 2413,
+    "rel": "slates_audit/dog/manifest.csv",
+    "sha256": "c5b77b92841758c417dd629426b3ab09ac7d06a5a12e98849bb0156b52166cc2",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates_audit__kite__manifest.csv": {
+    "bytes": 3067,
+    "rel": "slates_audit/kite/manifest.csv",
+    "sha256": "0376af8024db479c8dccf3486513c94ef1533f818a554eb4a2aef4d4f6cee26b",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates_audit__knife__manifest.csv": {
+    "bytes": 3740,
+    "rel": "slates_audit/knife/manifest.csv",
+    "sha256": "3832768913ca48937c92658ea3636936356793c261b3b3f671f24e21db9d7128",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates_audit__stop_sign__manifest.csv": {
+    "bytes": 3212,
+    "rel": "slates_audit/stop_sign/manifest.csv",
+    "sha256": "09e9afa20fb191b0e085e2fad582890da9ec4d565d2ba14055cfbe97f604352f",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates_audit__umbrella__manifest.csv": {
+    "bytes": 3236,
+    "rel": "slates_audit/umbrella/manifest.csv",
+    "sha256": "761ba98785f7962fad0557bdd5747e6207f5d6ba69f2333ef339b5fd0cc9087c",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates_pos2__backpack__manifest.csv": {
+    "bytes": 2596,
+    "rel": "slates_pos2/backpack/manifest.csv",
+    "sha256": "31a8d848752967f66438358052e5547813b1c9854ab10335465b2041d5d560cd",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates_pos2__bicycle__manifest.csv": {
+    "bytes": 2500,
+    "rel": "slates_pos2/bicycle/manifest.csv",
+    "sha256": "d251f262271b97a7edf1bffaf533c7f5227c1f09304075482fd52a546f3098d0",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates_pos2__bird__manifest.csv": {
+    "bytes": 2239,
+    "rel": "slates_pos2/bird/manifest.csv",
+    "sha256": "73cd466a8e0d6e070f23d8cb23a2c81218fb655ef2ff461e81055dd4755b25c5",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates_pos2__boat__manifest.csv": {
+    "bytes": 2229,
+    "rel": "slates_pos2/boat/manifest.csv",
+    "sha256": "e7e8d3d660f926021ed3f256161cb8223041a6cf3ecc001b94f12f7067ee2cf5",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates_pos2__book__manifest.csv": {
+    "bytes": 2239,
+    "rel": "slates_pos2/book/manifest.csv",
+    "sha256": "f3bea4ee2f82c8979215e2e2f81733a78f46b83dc4856095d8bc867fd97de7a7",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates_pos2__bus__manifest.csv": {
+    "bytes": 2143,
+    "rel": "slates_pos2/bus/manifest.csv",
+    "sha256": "7be8ef3561f0d009b75d7d9caff060713a332f9c90c9172a4b789eb4aec345ee",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates_pos2__clock__manifest.csv": {
+    "bytes": 2320,
+    "rel": "slates_pos2/clock/manifest.csv",
+    "sha256": "b649c86fe1dee2d4c7ac9a0966ef0bf790fecf71b445ac02624c5781cdc0fa2c",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates_pos2__dog__manifest.csv": {
+    "bytes": 2138,
+    "rel": "slates_pos2/dog/manifest.csv",
+    "sha256": "e827b100b6d71d0c84f60b33ebe579e8d062d80acdc79ef8404492b65394253f",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates_pos2__kite__manifest.csv": {
+    "bytes": 2231,
+    "rel": "slates_pos2/kite/manifest.csv",
+    "sha256": "ff10a48bb1468992e5686743c35378f4f582f2aac559c55f9e59cd2e594728e2",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates_pos2__knife__manifest.csv": {
+    "bytes": 2315,
+    "rel": "slates_pos2/knife/manifest.csv",
+    "sha256": "ffa761affaadc6634582ea7d73d503d77e132abede26de93625121999eb82c93",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates_pos2__stop_sign__manifest.csv": {
+    "bytes": 2687,
+    "rel": "slates_pos2/stop_sign/manifest.csv",
+    "sha256": "d0f199f97fb1779618a7ee6ac91070d06a6902dba651175dba00934bc11c135d",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates_pos2__umbrella__manifest.csv": {
+    "bytes": 2579,
+    "rel": "slates_pos2/umbrella/manifest.csv",
+    "sha256": "f30e9c3b464e266aae784936d7e100d2ccbbc1d35fe9e7c4b0ce267360799156",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__slates_redef__book_incl_magazines__manifest.csv": {
+    "bytes": 3146,
+    "rel": "slates_redef/book_incl_magazines/manifest.csv",
+    "sha256": "1fd72571df03efe1b56cb807684c4358597d1631370521f9bd9f4245c7f9265d",
+    "source": "{WORK}/slates*/*/manifest.csv",
+    "tier": "support",
+    "why": "which (image, class, cell) each slate row was: without it a labelset is a pile of anonymous votes and no verdict can be reconstructed from it"
+  },
+  "WORK__verdicts_20260820b.json": {
+    "bytes": 286818,
+    "rel": "verdicts_20260820b.json",
+    "sha256": "9c1f09a890acabe01a526df30aa1f73655e6935b4818b28c9ca38a798dabefe8",
+    "source": "{WORK}/verdicts_*.json",
+    "tier": "human",
+    "why": "the reviewer's per-(image, class) Good/Bad, with the stratum it was asked under; `verdicts_to_corrections.py` reads one of these by default"
+  },
+  "WORK__verdicts_partial.json": {
+    "bytes": 218424,
+    "rel": "verdicts_partial.json",
+    "sha256": "49a84bb710f417bfe9c05a6163e8d4c004cd74c80d0ab16fd4b6a38e788d2bc2",
+    "source": "{WORK}/verdicts_*.json",
+    "tier": "human",
+    "why": "the reviewer's per-(image, class) Good/Bad, with the stratum it was asked under; `verdicts_to_corrections.py` reads one of these by default"
+  },
+  "WORK__verdicts_redef_book_20260903.json": {
+    "bytes": 12458,
+    "rel": "verdicts_redef_book_20260903.json",
+    "sha256": "a565d6ec90ce7a0fa8b7db9c3060185cb7bf9dee96d46eeeb4ee7c44dc15d025",
+    "source": "{WORK}/verdicts_*.json",
+    "tier": "human",
+    "why": "the reviewer's per-(image, class) Good/Bad, with the stratum it was asked under; `verdicts_to_corrections.py` reads one of these by default"
+  },
+  "WORK__verdicts_snapshot_20260820.json": {
+    "bytes": 190224,
+    "rel": "verdicts_snapshot_20260820.json",
+    "sha256": "7684e56bd49cf53ebcdbf26deb9b7432cf3f9e2ceba4b3453a419b96f17b21b2",
+    "source": "{WORK}/verdicts_*.json",
+    "tier": "human",
+    "why": "the reviewer's per-(image, class) Good/Bad, with the stratum it was asked under; `verdicts_to_corrections.py` reads one of these by default"
+  }
+}

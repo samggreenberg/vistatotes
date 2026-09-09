@@ -52,6 +52,7 @@ to go stale. Keep the grouping in sync when you add or delete a plan — one lin
 - [`set-scorer-experiment.md`](set-scorer-experiment.md)
 - [`coverage-atlas.md`](coverage-atlas.md)
 - [`vg-scale-bands-and-corrections.md`](vg-scale-bands-and-corrections.md)
+- [`vg-scale-exhaustive-annotation.md`](vg-scale-exhaustive-annotation.md)
 - [`stopping-rules-in-eval.md`](stopping-rules-in-eval.md)
 
 ## Platform / CLI

@@ -814,8 +814,35 @@ class LoadingTasksTracker:
             entries = list(self._tasks.values())
         return any(e["tracker"].get()["status"] != "idle" for e in entries)
 
-    def reset_for_tests(self) -> None:
-        """Clear all tasks.  For test isolation."""
+    def reset_for_tests(self, join_timeout: float = 5.0) -> None:
+        """Cancel every task, wait for its worker, then clear the registry.
+
+        Clearing alone is not isolation: the entry it drops is the only handle
+        anything has on the worker thread, so a load still running at the end of
+        a test became an *unreachable* thread that carried on mutating shared
+        state — contexts, progress, the load concurrency gates — underneath the
+        next test (issue #3613).  Cancelling first gives the worker its
+        cooperative exit; the join then makes "the previous test's threads are
+        gone" true rather than hoped-for.
+
+        *join_timeout* is a budget for the whole sweep, not per worker, so a
+        thread parked on something no test will ever set costs a bounded delay
+        once instead of stalling the run.  It is spent only when a worker is
+        actually alive, which is the exceptional case.
+        """
+        with self._lock:
+            entries = list(self._tasks.values())
+
+        for entry in entries:
+            entry["tracker"].cancel()
+
+        deadline = time.monotonic() + join_timeout
+        for entry in entries:
+            worker = entry.get("worker")
+            if worker is None or not worker.is_alive():
+                continue
+            worker.join(timeout=max(0.0, deadline - time.monotonic()))
+
         with self._lock:
             self._tasks.clear()
 

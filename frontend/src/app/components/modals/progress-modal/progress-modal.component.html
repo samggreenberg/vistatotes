@@ -16,7 +16,7 @@
     </div>
   } @else if (emptyHistory()) {
     <div class="analysis-loading">
-      <p>No score history available yet. Label more items to build up history.</p>
+      <p>{{ emptyMessage }}</p>
     </div>
   } @else {
     <div class="chart-container">

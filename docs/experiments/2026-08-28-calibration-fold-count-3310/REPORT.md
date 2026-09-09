@@ -358,6 +358,7 @@ E-step — K=6's step ratio falls from 2.30× to roughly 1.2×, inside the ceili
 with a benefit this run has **already measured** at −0.0057 ± 0.0012 early. That
 is a much better-posed piece of work than re-running this grid, and it does not
 need a new study to justify it: the two numbers it needs are both in this report.
+**Tracked in #3558.**
 
 ## Reproducing
 

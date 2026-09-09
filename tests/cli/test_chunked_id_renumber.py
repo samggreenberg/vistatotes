@@ -28,7 +28,16 @@ def _unique_bytes(media_id: int) -> bytes:
 
 
 def _make_audio_media(media_id: int) -> dict:
-    """Build a minimal audio media dict suitable for a thin pickle."""
+    """Build a minimal audio media dict for a self-contained pickle.
+
+    The bytes are stored inline.  They used to be omitted, which only worked
+    because the CLI forced thin loading on every import - thin needs no bytes,
+    so a payload-less entry sailed through.  Now that the CLI resolves thin
+    from the importer's ``reference_files`` field (off by default, as in the
+    GUI), a full-mode load of a byte-less, path-less entry drops it the same
+    way the GUI has always dropped it, and the fixture would import as an
+    empty dataset (issue #3556).
+    """
     raw = _unique_bytes(media_id)
     md5 = content_md5(raw)
     return {
@@ -40,7 +49,7 @@ def _make_audio_media(media_id: int) -> dict:
         # Two-dim embedding keeps the trained MLP trivially small.
         "embedding": [float(media_id), float(media_id) + 0.5],
         "embedder": "clap",
-        "media_bytes": None,
+        "media_bytes": raw,
         "media_string": None,
         "media_path": None,
         "filename": f"clip_{media_id:03d}.wav",
@@ -130,7 +139,7 @@ def _stub_detector_training(monkeypatch):
 
     import vtscore.cli as cli_mod
 
-    def _fake_load_and_train(detector_names, media_type, first_chunk_medias):
+    def _fake_load_and_train(detector_names, media_type, first_chunk_medias, routed=None):
         # Tiny linear "MLP" that always returns 0.5 logit → 0.62 sigmoid.
         linear = nn.Linear(2, 1)
         with torch.no_grad():

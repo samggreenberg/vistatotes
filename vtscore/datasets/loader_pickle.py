@@ -384,7 +384,26 @@ def _convert_one_pickle_media(
 
     if thin:
         media_path = _resolve_thin_media_path(media_type, media_info, data, dir_keys)
-        return _build_pickle_thin_media(new_id, media_info, media_type, media_path, extra_fields), False
+        if media_path or _has_external_byte_source(media_info):
+            return _build_pickle_thin_media(new_id, media_info, media_type, media_path, extra_fields), False
+        # Nothing outside the pickle can reproduce this entry's bytes: no file
+        # on disk, no archive member, no URL.  Thin's contract is "hold a
+        # reference instead of the payload", and here there is no reference to
+        # hold - dropping ``media_bytes`` would not defer the read, it would
+        # destroy the only copy, leaving the media permanently unembeddable.
+        # Anything that needs pixels later (a converter route, a re-clip, an
+        # embedder the pickle has no vector for) then fails, and the media is
+        # silently skipped at scoring - which also shrinks the haystack the
+        # threshold is fitted on, so the cut moves too (issue #3556).  Keep the
+        # inline payload for these entries; the memory thin would have saved
+        # here was never available without losing data.
+        media_bytes, media_string, _path, _missing = _load_pickle_media_payload(media_type, media_info, data, dir_keys)
+        if media_bytes is None:
+            return _build_pickle_thin_media(new_id, media_info, media_type, media_path, extra_fields), False
+        return (
+            _build_pickle_full_media(new_id, media_info, media_type, media_bytes, media_string, None, extra_fields),
+            False,
+        )
 
     media_bytes, media_string, media_path, missing = _load_pickle_media_payload(
         media_type,

@@ -1,0 +1,157 @@
+{
+ "alias": {
+  "boat": [
+   "boats",
+   "canoe",
+   "kayak",
+   "raft",
+   "sailboats",
+   "ship"
+  ],
+  "dog": [
+   "black dog",
+   "brown dog",
+   "dalmation",
+   "dogs",
+   "lab",
+   "puppy",
+   "white dog"
+  ],
+  "backpack": [
+   "back pack"
+  ],
+  "knife": [
+   "butter knife"
+  ],
+  "book": [
+   "magazine"
+  ],
+  "bus": [
+   "buses",
+   "city bus",
+   "double-decker bus",
+   "passenger bus",
+   "school bus",
+   "tour bus"
+  ],
+  "kite": [
+   "kites",
+   "para sail",
+   "parachute",
+   "parasail"
+  ],
+  "clock": [
+   "clock face",
+   "clockface",
+   "clocks"
+  ],
+  "bird": [
+   "duck",
+   "goose",
+   "ostrich",
+   "owl",
+   "parrot",
+   "pigeon",
+   "seagull",
+   "swan"
+  ],
+  "bicycle": [
+   "bicycles"
+  ],
+  "umbrella": [
+   "beach umbrella",
+   "blue umbrella",
+   "closed umbrella",
+   "green umbrella",
+   "open umbrella",
+   "orange umbrella",
+   "parasol",
+   "patio umbrella",
+   "red umbrella",
+   "white umbrella",
+   "yellow umbrella"
+  ]
+ },
+ "ambiguous": {
+  "boat": [
+   "barge",
+   "bouy",
+   "sail boat",
+   "sailboat"
+  ],
+  "dog": [
+   "bulldog",
+   "poodle"
+  ],
+  "backpack": [
+   "black backpack",
+   "black bag",
+   "bookbag",
+   "duffle bag"
+  ],
+  "knife": [
+   "butterknife",
+   "knife block",
+   "knives",
+   "silverware"
+  ],
+  "book": [
+   "binder",
+   "black book",
+   "book case",
+   "book shelf",
+   "bookcase",
+   "books",
+   "bookshelf",
+   "dvd",
+   "dvds",
+   "games",
+   "library",
+   "magazines",
+   "notebook",
+   "white book"
+  ],
+  "bus": [
+   "blue bus",
+   "busses"
+  ],
+  "stop sign": [
+   "octagon",
+   "stop"
+  ],
+  "clock": [
+   "alarm clock",
+   "clock faces",
+   "numeral",
+   "numerals",
+   "roman numerals"
+  ],
+  "bird": [
+   "beak",
+   "birds",
+   "black bird",
+   "dove",
+   "ducks",
+   "feather",
+   "feathers",
+   "geese",
+   "peacock",
+   "pigeons",
+   "seagulls",
+   "white bird"
+  ],
+  "bicycle": [
+   "bicyclist",
+   "bike",
+   "bike tire",
+   "bikes",
+   "tricycle"
+  ],
+  "umbrella": [
+   "an umbrella",
+   "black umbrella",
+   "pink umbrella",
+   "umbrellas"
+  ]
+ }
+}

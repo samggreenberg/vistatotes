@@ -349,6 +349,7 @@
 @if (modals.export.open) {
   <vt-export-modal
     [detectorName]="modals.export.detectorName"
+    [labelsetDetectorName]="modals.export.detectorName"
     (closed)="modals.closeExport()"
     (exported)="modals.closeExport()"
   />

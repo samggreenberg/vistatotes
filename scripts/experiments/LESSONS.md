@@ -72,6 +72,13 @@ correct union of the two branches with no judgement involved.
 
 | Date | Lesson | Issue |
 |---|---|---|
+| 2026-09-07 | [the launch output never named the checkout](lessons/2026-09-07-the-launch-output-never-named-the-checkout.md) | #3693 |
+| 2026-09-06 | [a backup glob that did not match the sibling](lessons/2026-09-06-a-backup-glob-that-did-not-match-the-sibling.md) | #3667 |
+| 2026-09-06 | [a force-push left the suite silently testing the old commit](lessons/2026-09-06-a-force-push-left-the-suite-testing-the-old-commit.md) | #3666 |
+| 2026-09-06 | [a truncating pipe killed the script before it wrote its output](lessons/2026-09-06-a-truncating-pipe-killed-the-json-write.md) | #3667 |
+| 2026-09-05 | [a commit made while the suite job held the worktree detached was orphaned, and the push said nothing](lessons/2026-09-05-a-commit-made-during-the-suite-job-was-orphaned.md) | #3635 |
+| 2026-09-05 | [a counter placed before the pass that discards its work](lessons/2026-09-05-a-counter-placed-before-the-pass-that-discards-its-work.md) | #3637 |
+| 2026-09-03 | [a deep grid sized from its shipped arm, not its deepest](lessons/2026-09-03-a-deep-grid-sized-from-its-shipped-arm.md) | #3547 |
 | 2026-09-02 | [one pilot cell cleared a hazard the full wave then hit](lessons/2026-09-02-one-pilot-cell-cleared-a-hazard-the-full-wave-hit.md) | #3319 |
 | 2026-09-01 | [a caution in a runbook was read as a measured limit](lessons/2026-09-01-a-caution-in-a-runbook-was-read-as-a-measured-limit.md) | #3343 |
 | 2026-09-01 | ["resume is free" was true of downloads and false of rendering](lessons/2026-09-01-resume-was-free-except-for-ten-hours-of-rendering.md) | #3343 |

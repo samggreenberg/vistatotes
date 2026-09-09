@@ -1,0 +1,311 @@
+{
+ "meta": {
+  "adjudicable_overlap_images": 51444,
+  "reframed_counted_as_off_coco": 54,
+  "vg_images_read": 108077,
+  "scale_n_neg": 3900,
+  "scale_n_pos": 100,
+  "proposal": {},
+  "dropped_from_baseline": [
+   "bicycle:bike"
+  ],
+  "pool_global_shipped": 78660,
+  "pool_global_proposed": 77119
+ },
+ "classes": {
+  "clock": {
+   "global": {
+    "hits": 400,
+    "n": 37232,
+    "rate": 0.010743446497636441,
+    "lo": 0.009745574124574672,
+    "hi": 0.011842271495651615
+   },
+   "per_class": {
+    "hits": 422,
+    "n": 38347,
+    "rate": 0.011004772211646283,
+    "lo": 0.010008472480244961,
+    "hi": 0.01209903715000003
+   },
+   "pool_global": 78660,
+   "pool_per_class": 80976,
+   "expected_false_negatives_per_pool": 42.9186116254205,
+   "pool_per_class_shipped": 80976
+  },
+  "bird": {
+   "global": {
+    "hits": 191,
+    "n": 37232,
+    "rate": 0.005129995702621401,
+    "lo": 0.004453624027674919,
+    "hi": 0.0059084782753921344
+   },
+   "per_class": {
+    "hits": 194,
+    "n": 38231,
+    "rate": 0.005074416049802516,
+    "lo": 0.004410188278375575,
+    "hi": 0.005838097933957001
+   },
+   "pool_global": 78660,
+   "pool_per_class": 80756,
+   "expected_false_negatives_per_pool": 19.790222594229814,
+   "pool_per_class_shipped": 80756,
+   "proposal": {
+    "rate_before": 0.005129995702621401,
+    "rate_after": 0.005098823980920529,
+    "withheld_global": 1541,
+    "withheld_per_class": 0,
+    "contaminated_removed": 1.1605855423668583,
+    "price_global": 1327.778042846663,
+    "price_per_class": 0.0
+   }
+  },
+  "boat": {
+   "global": {
+    "hits": 183,
+    "n": 37232,
+    "rate": 0.004915126772668672,
+    "lo": 0.004254019538439291,
+    "hi": 0.005678389240525972
+   },
+   "per_class": {
+    "hits": 188,
+    "n": 38350,
+    "rate": 0.004902216427640157,
+    "lo": 0.0042510438411191695,
+    "hi": 0.0056525690475568895
+   },
+   "pool_global": 78660,
+   "pool_per_class": 80988,
+   "expected_false_negatives_per_pool": 19.118644067796613,
+   "pool_per_class_shipped": 80988
+  },
+  "umbrella": {
+   "global": {
+    "hits": 271,
+    "n": 37232,
+    "rate": 0.007278685002148689,
+    "lo": 0.006464616518600702,
+    "hi": 0.00819442102548424
+   },
+   "per_class": {
+    "hits": 274,
+    "n": 38336,
+    "rate": 0.007147328881469115,
+    "lo": 0.006352038884436219,
+    "hi": 0.008041385213591355
+   },
+   "pool_global": 78660,
+   "pool_per_class": 80972,
+   "expected_false_negatives_per_pool": 27.87458263772955,
+   "pool_per_class_shipped": 80972
+  },
+  "kite": {
+   "global": {
+    "hits": 107,
+    "n": 37232,
+    "rate": 0.002873871938117748,
+    "lo": 0.0023790154099557694,
+    "hi": 0.0034713048900424977
+   },
+   "per_class": {
+    "hits": 108,
+    "n": 38386,
+    "rate": 0.002813525764601678,
+    "lo": 0.0023310870942625152,
+    "hi": 0.0033954694852259505
+   },
+   "pool_global": 78660,
+   "pool_per_class": 81060,
+   "expected_false_negatives_per_pool": 10.972750481946544,
+   "pool_per_class_shipped": 81060
+  },
+  "book": {
+   "global": {
+    "hits": 611,
+    "n": 37232,
+    "rate": 0.016410614525139665,
+    "lo": 0.015169081248058608,
+    "hi": 0.01775193107035237
+   },
+   "per_class": {
+    "hits": 627,
+    "n": 37891,
+    "rate": 0.016547465097252644,
+    "lo": 0.015311116375719962,
+    "hi": 0.017881834086434758
+   },
+   "pool_global": 78660,
+   "pool_per_class": 79997,
+   "expected_false_negatives_per_pool": 64.53511387928532,
+   "pool_per_class_shipped": 79997
+  },
+  "dog": {
+   "global": {
+    "hits": 157,
+    "n": 37232,
+    "rate": 0.004216802750322304,
+    "lo": 0.003607780569878531,
+    "hi": 0.004928124255755919
+   },
+   "per_class": {
+    "hits": 159,
+    "n": 38378,
+    "rate": 0.004142998592943874,
+    "lo": 0.003548102457689562,
+    "hi": 0.004837154387307682
+   },
+   "pool_global": 78660,
+   "pool_per_class": 81045,
+   "expected_false_negatives_per_pool": 16.157694512481108,
+   "pool_per_class_shipped": 81045,
+   "proposal": {
+    "rate_before": 0.004216802750322304,
+    "rate_after": 0.004166780887633981,
+    "withheld_global": 1541,
+    "withheld_per_class": 0,
+    "contaminated_removed": 1.8624139916116274,
+    "price_global": 827.4207597992249,
+    "price_per_class": 0.0
+   }
+  },
+  "backpack": {
+   "global": {
+    "hits": 1064,
+    "n": 37232,
+    "rate": 0.028577567683712935,
+    "lo": 0.026933147559807,
+    "hi": 0.030319260560867776
+   },
+   "per_class": {
+    "hits": 1099,
+    "n": 38333,
+    "rate": 0.028669814520126263,
+    "lo": 0.02704588765824209,
+    "hi": 0.03038820206082335
+   },
+   "pool_global": 78660,
+   "pool_per_class": 80953,
+   "expected_false_negatives_per_pool": 111.81227662849243,
+   "pool_per_class_shipped": 80953,
+   "proposal": {
+    "rate_before": 0.028577567683712935,
+    "rate_after": 0.027659749444886098,
+    "withheld_global": 1541,
+    "withheld_per_class": 0,
+    "contaminated_removed": 34.17220866800081,
+    "price_global": 45.09512437347976,
+    "price_per_class": 0.0
+   }
+  },
+  "knife": {
+   "global": {
+    "hits": 598,
+    "n": 37232,
+    "rate": 0.01606145251396648,
+    "lo": 0.01483351914849382,
+    "hi": 0.017389241193251748
+   },
+   "per_class": {
+    "hits": 606,
+    "n": 38235,
+    "rate": 0.015849352687328365,
+    "lo": 0.01464523214545881,
+    "hi": 0.017150751967197998
+   },
+   "pool_global": 78660,
+   "pool_per_class": 80763,
+   "expected_false_negatives_per_pool": 61.81247548058062,
+   "pool_per_class_shipped": 80763
+  },
+  "bicycle": {
+   "global": {
+    "hits": 524,
+    "n": 37232,
+    "rate": 0.014073914911903738,
+    "lo": 0.012926518679243841,
+    "hi": 0.015321576564560176
+   },
+   "per_class": {
+    "hits": 540,
+    "n": 38309,
+    "rate": 0.014095904356678587,
+    "lo": 0.012963170305832378,
+    "hi": 0.015326080888733154
+   },
+   "pool_global": 78660,
+   "pool_per_class": 80889,
+   "expected_false_negatives_per_pool": 54.97402699104649,
+   "pool_per_class_shipped": 80889,
+   "proposal": {
+    "rate_before": 0.014073914911903738,
+    "rate_after": 0.006332410427917432,
+    "withheld_global": 1541,
+    "withheld_per_class": 1570,
+    "contaminated_removed": 288.2316949477782,
+    "price_global": 5.346393290575481,
+    "price_per_class": 5.447006791825766
+   }
+  },
+  "bus": {
+   "global": {
+    "hits": 278,
+    "n": 37232,
+    "rate": 0.007466695315857327,
+    "lo": 0.006641630224767949,
+    "hi": 0.008393389152906059
+   },
+   "per_class": {
+    "hits": 286,
+    "n": 38382,
+    "rate": 0.007451409514876765,
+    "lo": 0.0066389609267097395,
+    "hi": 0.008362445216747071
+   },
+   "pool_global": 78660,
+   "pool_per_class": 81050,
+   "expected_false_negatives_per_pool": 29.060497108019383,
+   "pool_per_class_shipped": 81050,
+   "proposal": {
+    "rate_before": 0.007466695315857327,
+    "rate_after": 0.007319279585514954,
+    "withheld_global": 1541,
+    "withheld_per_class": 0,
+    "contaminated_removed": 5.488582472107234,
+    "price_global": 280.76466151894465,
+    "price_per_class": 0.0
+   }
+  },
+  "stop sign": {
+   "global": {
+    "hits": 439,
+    "n": 37232,
+    "rate": 0.011790932531155995,
+    "lo": 0.010743731946851683,
+    "hi": 0.012938869603370828
+   },
+   "per_class": {
+    "hits": 447,
+    "n": 38287,
+    "rate": 0.011674981064068744,
+    "lo": 0.010646921939959359,
+    "hi": 0.0128010244222329
+   },
+   "pool_global": 78660,
+   "pool_per_class": 80844,
+   "expected_false_negatives_per_pool": 45.5324261498681,
+   "pool_per_class_shipped": 80844,
+   "proposal": {
+    "rate_before": 0.011790932531155995,
+    "rate_after": 0.011650538666081855,
+    "withheld_global": 1541,
+    "withheld_per_class": 0,
+    "contaminated_removed": 5.2271443844403755,
+    "price_global": 294.80723826705264,
+    "price_per_class": 0.0
+   }
+  }
+ }
+}

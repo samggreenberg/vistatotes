@@ -10,6 +10,58 @@ instead, since every commit on `dev` is effectively a new app release.)
 
 ### Added
 
+- **`vtscore.utils.import_metadata`** (issue #3715) - `seed_packages_distributions()`
+  installs a stat-free stand-in for `importlib.metadata.packages_distributions`,
+  which `transformers` calls at module import. The stdlib version stats every
+  file recorded by every installed distribution (~85k on a torch + RAPIDS venv);
+  on an NFS install with a cold cache that was 16 minutes of silent startup.
+  `initialize_models()` now seeds it before anything can import transformers.
+  Purely additive: the seed is idempotent and best-effort, and the replacement
+  reports every entry the stdlib does.
+
+- **A timing profile can price a forked step per branch** (issue #3594).
+  `vtscore.timing.step_weights` and `step_terms` take an optional `branch=` -
+  a branch name from `CHEAP_BRANCHES` / `DEAR_BRANCHES`, or a `{step: branch}`
+  mapping - and price any step the profile measured on that branch from its own
+  coefficients. `vtscore.timing.fit.fit_branches` produces them, stored under
+  the step's new `branches` key, and `TimingProfile` gained a parallel
+  `branches` table to hold them.
+
+  Purely additive in both directions. The step's top-level coefficients still
+  describe the dear branch, so a caller that passes no `branch` (every existing
+  call site), a profile written before this existed, and a build that has never
+  heard of `branches` all behave exactly as they did - which is also why the
+  profile schema version did not move. A step whose runs all took one branch
+  gets no split at all.
+
+  The problem it solves is that a profile cell is keyed
+  `(device, media_type, embedder)`, so a step that forks on a cache had one set
+  of coefficients for two code paths measured 110-700x apart: an admin picking a
+  profile was picking which branch to be wrong about, at up to 0.94 of a
+  progress bar.
+
+  The sibling of `skip_steps` below, and the half of the problem it does not
+  cover: a step that does not run costs nothing and needs no measurement, while
+  a step that runs either way and costs two different things needs one
+  measurement per path.
+
+- **`skip_steps` on `vtscore.timing.step_weights()` / `step_terms()`, and
+  `MediaEmbedder.models_loaded()`** (issue #3596). A timing profile prices how
+  long a step takes; it has no way to say a step will not run at all. That gap
+  is what left `text_sort` unpaced by anything: its `load_model` step is
+  seconds on a process's first sort and exactly zero on the next 47, so every
+  profile fitted for it - and the shipped defaults - put 0.80-0.85 of the bar
+  in the wrong step. `skip_steps` names the steps this particular run will
+  skip and prices them at zero, which needs no measurement; the remaining
+  steps share the whole bar. Purely additive - an omitted `skip_steps` paces
+  exactly as before.
+
+  `models_loaded()` is the accompanying public read on `MediaEmbedder`: "would
+  `load_models()` do any work?", answered without doing it. The default reads
+  the same private model attribute `load_models()` and `loaded_backbone()`
+  already rely on, so an embedder built the usual way needs no change; one
+  that holds its backbone elsewhere should override both together.
+
 - **`slot_embedders_for_snap(snap)` and `keying_embedder_for_type(type, snap)`
   on `vtscore.embedding.binding`** (issue #3386). Purely additive companions to
   the two existing snapshot resolvers, added so the near-synonymous private
@@ -128,6 +180,25 @@ instead, since every commit on `dev` is effectively a new app release.)
 
 ### Changed
 
+- **The voting simulation's app arm is now `trainer="app"`, not `trainer="mlp"`**
+  (issue #3764). `vtscore.eval.voting_iterations.simulate_voting_iterations`
+  takes two knobs that both read as "which model?", and they used to collide on
+  the string `"mlp"`. `trainer` picks the **pipeline** — `"app"` is VTSearch's
+  own (`train_model` plus production fold calibration), anything `svm_*` is a
+  standalone estimator that thresholds itself — while `head` picks **what that
+  pipeline fits**, defaulting to the shipped `linear_svm`. So the old
+  `trainer="mlp"` trained no MLP, and meant something different again from
+  `SWEEP_TRAINERS["mlp"]` in the label-curve sweep, which genuinely is one.
+
+  The retired spelling is still accepted on input and normalised to `"app"`, so
+  archived launch scripts keep running unchanged; the `trainer` **result column
+  now records `app`**, which is the one visible break. Frames written before
+  this change keep the old value, so read a mixed corpus through a normalising
+  load (`scripts/experiments/mlp_vs_svm/summarize.py` does exactly that).
+
+  The error raised for `head=` on a standalone estimator now says which knob
+  the caller wanted.
+
 - **`JOB_MANAGERS` is now the single registry of every module-level
   `JobManager`, with visibility carried by the manager** (issue #3404). It
   previously held only the managers surfaced by `/api/jobs/active`, which
@@ -232,6 +303,17 @@ instead, since every commit on `dev` is effectively a new app release.)
 
 ### Deprecated
 
+- **`vtscore.eval.trainers` has moved to `vtscore.eval.sweep_trainers`**
+  (issue #3764). The package had two registries called "trainers": the
+  standalone estimators the label-curve and timing sweeps compare, and the
+  per-step pipelines the voting simulation runs (`vtscore.eval.step_trainers`).
+  The first is now named for its sweep, and its registry constant `TRAINERS` is
+  `SWEEP_TRAINERS`.
+
+  `vtscore.eval.trainers` remains as a thin re-export — including `TRAINERS` as
+  an alias — so existing imports keep working unchanged. New code should import
+  `vtscore.eval.sweep_trainers` directly.
+
 - **`vtscore.state.coverage_atlas` and `vtscore.state.near_dupes` have moved**
   (issue #3391). Both were pure algorithms filed under `state/`: neither
   references `DatasetContext` or `_state_lock`, and the Coverage Atlas sat
@@ -291,6 +373,40 @@ instead, since every commit on `dev` is effectively a new app release.)
   operation owns; reporting progress through the thread's sink usually does it
   for you, since the callbacks the load pipeline binds check cancellation
   before recording each tick.
+
+### Fixed
+
+- **A matrix built for one embedding space can no longer be filled with
+  another space's vectors** (issue #3650). `scoreable_snapshot()`,
+  `get_embedding_matrix()` and `get_embedding_matrix_for_snap()` decide whether
+  an explicitly named embedder *is* the snapshot's primary - and so may reuse
+  the cached primary path, which reads whatever vector each media happens to
+  carry. That test sampled **one** media. On a homogeneous snapshot that is
+  right and is the single-embedder optimisation it was written for; on a
+  mixed-type snapshot it was a sampling error, because media #1's primary
+  picked the path for all N.
+
+  Ask for space `A` on a snapshot whose first media is an `A` media and whose
+  rest are `B` media, and every media contributed its own vector: `B`-space
+  rows stacked into an `A`-space matrix and scored through an `A`-space head.
+  Nothing raised - the only guard was the width check, so this was reachable
+  whenever the two spaces share a dimension, which 512-d and 768-d encoders
+  routinely do. Reordering the same snapshot flipped the answer between "all N
+  rows, some of them wrong" and "only the `A` rows".
+
+  The collapse now requires **every** media to share that primary (a
+  short-circuiting scan, memoised per `media_revision` on `DatasetContext` so
+  the cached hot path stays O(1)). A snapshot whose medias disagree keeps the
+  name and takes the named path, which reads each media's vector *in the
+  requested space* - so `scoreable_snapshot()` drops the media that have none
+  and `get_embedding_matrix*()` raises on them, per their existing contracts.
+  Homogeneous snapshots are byte-for-byte unchanged.
+
+  `scoreable_snapshot()` additionally logs one `WARNING` per call naming the
+  requested embedder, the spaces the dropped media live in, and how many were
+  dropped. Dropping stays the policy - a mixed dataset scored for one space
+  *should* leave out the media that live in another - but a silently short
+  haystack is what hid this.
 
 ### Added
 

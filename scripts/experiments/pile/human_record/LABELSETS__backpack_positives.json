@@ -1,0 +1,527 @@
+{
+  "bad": [
+    {
+      "cid": null,
+      "filename": "2346517.jpg",
+      "id": "4056d3e12118dca3",
+      "label": "bad",
+      "md5": "0dadb0bfcd91d5b4fb9382c02072a9ad",
+      "media_type": "image",
+      "name": "2346517.jpg",
+      "origin_name": "2346517.jpg",
+      "region_box": null,
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2358556.jpg",
+      "id": "7926d30fa833401a",
+      "label": "bad",
+      "md5": "ab8c71637b36113b14bddfa396e544b7",
+      "media_type": "image",
+      "name": "2358556.jpg",
+      "origin_name": "2358556.jpg",
+      "region_box": null,
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "1592325.jpg",
+      "id": "4d45a1517f164d8d",
+      "label": "bad",
+      "md5": "9fc9ce7e7fc2cd9c3e56876426a94cdc",
+      "media_type": "image",
+      "name": "1592325.jpg",
+      "origin_name": "1592325.jpg",
+      "region_box": null,
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2362719.jpg",
+      "id": "f4e3bcd04b537ccb",
+      "label": "bad",
+      "md5": "9d1f1cf095d101a5601d26eecd7150e2",
+      "media_type": "image",
+      "name": "2362719.jpg",
+      "origin_name": "2362719.jpg",
+      "region_box": null,
+      "score": -1.0,
+      "time": -1.0
+    }
+  ],
+  "good": [
+    {
+      "cid": null,
+      "filename": "2373541.jpg",
+      "id": "2a674552d2b3b5d0",
+      "label": "good",
+      "md5": "d8826a309354c26c487ede552567eab5",
+      "media_type": "image",
+      "name": "2373541.jpg",
+      "origin_name": "2373541.jpg",
+      "region_box": [
+        0.46472983050164257,
+        0.3932885906040268,
+        0.9847129008202834,
+        0.8697986577181208
+      ],
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2388880.jpg",
+      "id": "435f747413a612d0",
+      "label": "good",
+      "md5": "8b73cc3d66676e7a7163bdf01f2b1764",
+      "media_type": "image",
+      "name": "2388880.jpg",
+      "origin_name": "2388880.jpg",
+      "region_box": [
+        0.5689597315436241,
+        0.0013422818791946308,
+        0.9303691275167786,
+        0.3812080536912752
+      ],
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2400362.jpg",
+      "id": "dcbaa1276042765a",
+      "label": "good",
+      "md5": "d8fde5e23bd1d34c379d011b764abbbb",
+      "media_type": "image",
+      "name": "2400362.jpg",
+      "origin_name": "2400362.jpg",
+      "region_box": [
+        0.35920134228187917,
+        0.40939597315436244,
+        0.983185234899329,
+        1.0
+      ],
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2337703.jpg",
+      "id": "9853078491062611",
+      "label": "good",
+      "md5": "2fe924d87efd3884b36bc0712c2918dd",
+      "media_type": "image",
+      "name": "2337703.jpg",
+      "origin_name": "2337703.jpg",
+      "region_box": [
+        0.333103355704698,
+        0.738255033557047,
+        0.5337208053691275,
+        1.0
+      ],
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2342547.jpg",
+      "id": "efce0292dae02f77",
+      "label": "good",
+      "md5": "d11050a53682de75dfbf5355e8eafe39",
+      "media_type": "image",
+      "name": "2342547.jpg",
+      "origin_name": "2342547.jpg",
+      "region_box": [
+        0.8880872483221477,
+        0.3932885906040268,
+        0.9384228187919463,
+        0.4791946308724832
+      ],
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2389758.jpg",
+      "id": "7e4fcd7412d6b65f",
+      "label": "good",
+      "md5": "f6f3a4ad74969effd7ce8227022f7155",
+      "media_type": "image",
+      "name": "2389758.jpg",
+      "origin_name": "2389758.jpg",
+      "region_box": [
+        0.6256013422818792,
+        0.8590604026845637,
+        0.70963355704698,
+        1.0
+      ],
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2337816.jpg",
+      "id": "c2b39d29ca0e918a",
+      "label": "good",
+      "md5": "3d5eacf8f34680547bc600ce5c3c6625",
+      "media_type": "image",
+      "name": "2337816.jpg",
+      "origin_name": "2337816.jpg",
+      "region_box": [
+        0.14554496644295298,
+        0.6053691275167785,
+        0.39227785234899326,
+        1.0
+      ],
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2416477.jpg",
+      "id": "359f978abe988d39",
+      "label": "good",
+      "md5": "cf427f12454f99fc7c8ae5f3340c8edc",
+      "media_type": "image",
+      "name": "2416477.jpg",
+      "origin_name": "2416477.jpg",
+      "region_box": [
+        0.4217785234899329,
+        0.508724832214765,
+        0.49418926174496647,
+        0.6885906040268457
+      ],
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2369887.jpg",
+      "id": "e41ea7eca23d1a11",
+      "label": "good",
+      "md5": "b3cab9acac0f510825fce6f042be4916",
+      "media_type": "image",
+      "name": "2369887.jpg",
+      "origin_name": "2369887.jpg",
+      "region_box": [
+        0.3201342281879195,
+        0.5154362416107383,
+        0.7997762863534675,
+        0.7516778523489933
+      ],
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2400332.jpg",
+      "id": "59ba00b45199d9e2",
+      "label": "good",
+      "md5": "e998c6e17c52a6cdad94254f372f223c",
+      "media_type": "image",
+      "name": "2400332.jpg",
+      "origin_name": "2400332.jpg",
+      "region_box": [
+        0.1652684563758389,
+        0.31543624161073824,
+        0.19043624161073824,
+        0.425503355704698
+      ],
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2318811.jpg",
+      "id": "ba90e07c231e5bf6",
+      "label": "good",
+      "md5": "1e30e219a45db3c3f5b4fe6a43cec6fc",
+      "media_type": "image",
+      "name": "2318811.jpg",
+      "origin_name": "2318811.jpg",
+      "region_box": [
+        0.16151677852348997,
+        0.43355704697986575,
+        0.20724563758389264,
+        0.5248322147651007
+      ],
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2388734.jpg",
+      "id": "6595af90115b1d3b",
+      "label": "good",
+      "md5": "b8b2c508963d0952190c01efce702f72",
+      "media_type": "image",
+      "name": "2388734.jpg",
+      "origin_name": "2388734.jpg",
+      "region_box": [
+        0.7162110547279968,
+        0.5691275167785235,
+        0.7557701751514159,
+        0.6228187919463087
+      ],
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2381555.jpg",
+      "id": "895b81402f9dc7dc",
+      "label": "good",
+      "md5": "13b96526f98a1fbb972544f2d328eeb2",
+      "media_type": "image",
+      "name": "2381555.jpg",
+      "origin_name": "2381555.jpg",
+      "region_box": [
+        0.30349476993772295,
+        0.2697986577181208,
+        0.6461192736360523,
+        0.5302013422818792
+      ],
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "1592062.jpg",
+      "id": "31b298da76b98ec4",
+      "label": "good",
+      "md5": "aaf6ee62e5e508a70a3037389d6d2aae",
+      "media_type": "image",
+      "name": "1592062.jpg",
+      "origin_name": "1592062.jpg",
+      "region_box": [
+        0.32348993288590605,
+        0.4,
+        0.4214765100671141,
+        0.5181208053691275
+      ],
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2327806.jpg",
+      "id": "d38b7c04295bed90",
+      "label": "good",
+      "md5": "8ba56f7fca43844fc79f536182de3b70",
+      "media_type": "image",
+      "name": "2327806.jpg",
+      "origin_name": "2327806.jpg",
+      "region_box": [
+        0.0,
+        0.40939597315436244,
+        0.22063758389261742,
+        0.836241610738255
+      ],
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2404289.jpg",
+      "id": "3734dc00d91e3bab",
+      "label": "good",
+      "md5": "630bfe6e2e6156a1bba389e14abaaaa5",
+      "media_type": "image",
+      "name": "2404289.jpg",
+      "origin_name": "2404289.jpg",
+      "region_box": [
+        0.09297703752523516,
+        0.7106530239853365,
+        0.1366855312487556,
+        0.7808601163549832
+      ],
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2375989.jpg",
+      "id": "fb2694ff53f35c65",
+      "label": "good",
+      "md5": "1cd80c9cc2ef26fa108d2af6121d22be",
+      "media_type": "image",
+      "name": "2375989.jpg",
+      "origin_name": "2375989.jpg",
+      "region_box": [
+        0.3040268456375839,
+        0.4657718120805369,
+        0.8230425055928412,
+        0.9422818791946309
+      ],
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2365838.jpg",
+      "id": "837fc7ebf9fa2c60",
+      "label": "good",
+      "md5": "7a53bb369b34b319771dd582a04b8a5a",
+      "media_type": "image",
+      "name": "2365838.jpg",
+      "origin_name": "2365838.jpg",
+      "region_box": [
+        0.5633758389261745,
+        0.4389261744966443,
+        0.6348523489932886,
+        0.5825503355704698
+      ],
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2322102.jpg",
+      "id": "16f5e6e636cbc9f4",
+      "label": "good",
+      "md5": "9854555a07382c56587429a76e2c8d2f",
+      "media_type": "image",
+      "name": "2322102.jpg",
+      "origin_name": "2322102.jpg",
+      "region_box": [
+        0.618793288590604,
+        0.28456375838926173,
+        1.0,
+        0.5812080536912752
+      ],
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2382120.jpg",
+      "id": "f99be16a34378696",
+      "label": "good",
+      "md5": "21221c267f166d8743923a9843dfde4a",
+      "media_type": "image",
+      "name": "2382120.jpg",
+      "origin_name": "2382120.jpg",
+      "region_box": [
+        0.05438255033557051,
+        0.7154362416107383,
+        0.16679865771812083,
+        0.8617449664429531
+      ],
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2346175.jpg",
+      "id": "52a5d95c5f3302d3",
+      "label": "good",
+      "md5": "14852a6d80d3c1e5661107a2a92def0f",
+      "media_type": "image",
+      "name": "2346175.jpg",
+      "origin_name": "2346175.jpg",
+      "region_box": [
+        0.8736523489932886,
+        0.636241610738255,
+        0.9287449664429531,
+        0.7315436241610739
+      ],
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2409434.jpg",
+      "id": "f25bde5d9037cc0c",
+      "label": "good",
+      "md5": "0bdf9103f9e5110a1917569bcdb53da4",
+      "media_type": "image",
+      "name": "2409434.jpg",
+      "origin_name": "2409434.jpg",
+      "region_box": [
+        0.1763422818791946,
+        0.4040268456375839,
+        0.24278523489932885,
+        0.6187919463087248
+      ],
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2315657.jpg",
+      "id": "21125f702cfd493b",
+      "label": "good",
+      "md5": "fe985c13d3391bc81165fc7815ed8ac0",
+      "media_type": "image",
+      "name": "2315657.jpg",
+      "origin_name": "2315657.jpg",
+      "region_box": [
+        0.321993288590604,
+        0.5114093959731544,
+        0.3355234899328859,
+        0.553020134228188
+      ],
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2414575.jpg",
+      "id": "d3a8e74cc84c5ceb",
+      "label": "good",
+      "md5": "d2712c9f82744315a1c58ac03f686d5b",
+      "media_type": "image",
+      "name": "2414575.jpg",
+      "origin_name": "2414575.jpg",
+      "region_box": [
+        0.13701073825503357,
+        0.3436241610738255,
+        0.18499463087248325,
+        0.5006711409395973
+      ],
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2354933.jpg",
+      "id": "88cbf88c18abc7bb",
+      "label": "good",
+      "md5": "0ab1834e2538d796555de6bf1271848f",
+      "media_type": "image",
+      "name": "2354933.jpg",
+      "origin_name": "2354933.jpg",
+      "region_box": [
+        0.0975771812080537,
+        0.17583892617449665,
+        0.20316107382550336,
+        0.3825503355704698
+      ],
+      "score": -1.0,
+      "time": -1.0
+    },
+    {
+      "cid": null,
+      "filename": "2368828.jpg",
+      "id": "ab2214314d9713e6",
+      "label": "good",
+      "md5": "794570458cb96fec26a26d8c1b0ab02b",
+      "media_type": "image",
+      "name": "2368828.jpg",
+      "origin_name": "2368828.jpg",
+      "region_box": [
+        0.45794183445190156,
+        0.09798657718120805,
+        0.7156599552572707,
+        0.4174496644295302
+      ],
+      "score": -1.0,
+      "time": -1.0
+    }
+  ],
+  "media_type": "image"
+}

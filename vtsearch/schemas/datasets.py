@@ -990,6 +990,13 @@ class DatasetRegistryEntrySchema(Schema):
     ``bound_embedders`` / ``embedder_types``.  The writer's key set is closed,
     so this is a strict schema.
 
+    One persisted key is deliberately **not** here: ``coverage_branch``, the
+    memo the load route writes recording which path that dataset's coverage
+    atlas took last time (see ``vtsearch/routes/datasets/registry.py``).  It
+    exists to pace the next load's progress bar before the pickle is read, and
+    nothing outside the server has any use for it, so it stays out of the wire
+    format rather than becoming a field the frontend must ignore.
+
     Optionality mirrors what the frontend treats as optional (same convention
     as :class:`MediaTypeInfoSchema`), not what the current writer always
     emits: entries persisted by older versions can legitimately lack the

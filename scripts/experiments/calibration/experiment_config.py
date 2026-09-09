@@ -63,6 +63,32 @@ _VG_SCALE_TEXTS = {
     "knife": "a knife",
     "stop sign": "a stop sign",
     "umbrella": "an umbrella",
+    # The thirteen #3588 added, taken VERBATIM from `_COCO_TEXTS` below -- which
+    # is where the twelve above came from too: every one of them is byte-identical
+    # to its COCO entry, scene qualifiers included (`a boat on the water`, `a kite
+    # in the sky`). Reusing rather than re-writing is what keeps the opening from
+    # becoming a second, uncontrolled axis: a hand-tuned query for one class and a
+    # plain one for another is an arm-dependent seeding difference, which is the
+    # confound #3278 added the region pair to remove.
+    #
+    # **The query is what a USER TYPES; the class rule is what a REVIEWER
+    # APPLIES.** They deliberately do not match, and two of these show why: `cup`
+    # is `cup` U `wine glass` (SCALE_CLASS_MERGES) and `truck` excludes SUVs
+    # (SCALE_CLASS_RULES), but nobody hunting either types the boundary into the
+    # search box. Encoding the ruling here would measure an opening no user has.
+    "truck": "a truck",
+    "car": "a car on the street",
+    "fork": "a fork",
+    "spoon": "a spoon",
+    "cup": "a cup",
+    "bowl": "a bowl",
+    "bottle": "a bottle",
+    "vase": "a vase",
+    "bench": "a bench",
+    "chair": "a chair",
+    "sink": "a sink",
+    "cell phone": "a cell phone",
+    "fire hydrant": "a fire hydrant",
 }
 
 #: COCO-2017-val's 80 categories as **typed queries**.
@@ -176,6 +202,12 @@ EXPERIMENT_QUERIES: dict[str, dict[str, str]] = {
     # is what it silently did until #3278 paired its region arm and the pair's
     # own guard refused to run, since a pair exists FOR the text sort.
     "vg_scale_any": dict(_VG_SCALE_TEXTS),
+    # `vg_scale_deep` (#3547) is `vg_scale_any`'s construction designated
+    # band-free and 3x deeper, on the SAME twelve class names -- so it takes the
+    # same texts. Sharing `_VG_SCALE_TEXTS` rather than copying it is the point:
+    # a query that drifted between the two would confound the pile axis with a
+    # seeding axis in the one comparison the deep study exists to make.
+    "vg_scale_deep": dict(_VG_SCALE_TEXTS),
     # The box-size bands are built from the FULL Visual Genome vocabulary, so
     # their categories are VG's, not COCO's.  A band is a property of the cell -
     # someone hunting a small bus and someone hunting a large one both type
@@ -260,6 +292,12 @@ DATASET_EMBEDDERS: dict[str, list[str]] = {
     # bare `dinov3_patch` cannot open on a text sort, and `EXPERIMENT_QUERIES`
     # gives this dataset a query for every category precisely so it can.
     "vg_scale_any": os.environ.get("CALIB_VGSCALE_EMBEDDERS", "siglip,siglip+dinov3_patch").split(","),
+    # #3547's deep pile. Its own env var, defaulting to `siglip` ALONE, because
+    # only the binary half was built: the deep question is about the shipped arm
+    # (`siglip x whole_image`) and a `dinov3_patch` cell at 22k medias is ~7 GB.
+    # Defaulting to the pair here would enumerate cells whose pickle does not
+    # exist, which fails late and per-cell rather than at prepare.
+    "vg_scale_deep": os.environ.get("CALIB_VGSCALE_DEEP_EMBEDDERS", "siglip").split(","),
     # The same-class-across-bands set (#3156): one class list at three box
     # scales, so a small-vs-large difference is about size rather than about
     # which words happen to live at which size. Its categories are
@@ -322,6 +360,10 @@ BOXED_BY_DATASET: dict[str, bool] = {
     # `pile_config.DATASETS`.
     "vg_scale": True,
     "vg_scale_any": True,
+    # Boxed like its sibling -- the boxes are `vg_scale`'s, carried through the
+    # same passes. Necessary but not sufficient: no patch cell is built, so in
+    # practice every `vg_scale_deep` arm binary-votes (see the note above).
+    "vg_scale_deep": True,
 }
 
 
@@ -604,7 +646,9 @@ FOLD_COUNT_SCHEDULE = os.environ.get("CALIB_FOLD_COUNT_SCHEDULE", "").strip() or
 #: open on #3321; the harness warns and skips there rather than improvising one).
 SKYLINE_ARMS = [a.strip() for a in os.environ.get("CALIB_SKYLINE_ARMS", "").split(",") if a.strip()]
 
-#: Which head each step trains (``vtscore.eval.voting_iterations.HEADS``).
+#: Which head each step trains (``vtscore.eval.step_model.HEADS``).  This is the
+#: head the app-pipeline trainer fits, not a choice of pipeline: these studies
+#: always run ``trainer="app"`` (issue #3764).
 #: Unset (the default) hands ``head=None`` to the harness, which resolves it to
 #: the head the live detector actually trains — ``linear_svm``.  That is the
 #: only setting a study's headline numbers can be read off, because questions

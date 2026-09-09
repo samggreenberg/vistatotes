@@ -1,0 +1,410 @@
+{
+ "meta": {
+  "iou": 0.5,
+  "proposal": "(shipped tables)",
+  "non_coco_images": 56579,
+  "skipped_aspect_drift": 87
+ },
+ "alias": {
+  "backpack": [
+   "back pack"
+  ],
+  "bicycle": [
+   "bicycles"
+  ],
+  "bird": [
+   "duck",
+   "goose",
+   "ostrich",
+   "owl",
+   "parrot",
+   "pigeon",
+   "seagull",
+   "swan"
+  ],
+  "boat": [
+   "boats",
+   "canoe",
+   "kayak",
+   "raft",
+   "sailboats",
+   "ship"
+  ],
+  "book": [
+   "magazine"
+  ],
+  "bus": [
+   "buses",
+   "school bus"
+  ],
+  "clock": [
+   "clock face",
+   "clocks"
+  ],
+  "dog": [
+   "black dog",
+   "brown dog",
+   "dogs",
+   "puppy"
+  ],
+  "kite": [
+   "kites",
+   "parachute",
+   "parasail"
+  ],
+  "knife": [
+   "butter knife"
+  ],
+  "umbrella": [
+   "blue umbrella",
+   "parasol",
+   "red umbrella"
+  ]
+ },
+ "ambiguous": {
+  "backpack": [
+   "black backpack",
+   "black bag",
+   "bookbag",
+   "duffle bag"
+  ],
+  "bicycle": [
+   "bicyclist",
+   "bike",
+   "bike tire",
+   "bikes",
+   "tricycle"
+  ],
+  "bird": [
+   "beak",
+   "birds",
+   "dove",
+   "ducks",
+   "feather",
+   "feathers",
+   "geese",
+   "peacock",
+   "seagulls"
+  ],
+  "boat": [
+   "barge",
+   "bouy",
+   "sail boat",
+   "sailboat"
+  ],
+  "book": [
+   "binder",
+   "book case",
+   "book shelf",
+   "bookcase",
+   "books",
+   "bookshelf",
+   "dvd",
+   "dvds",
+   "games",
+   "library",
+   "magazines",
+   "notebook"
+  ],
+  "bus": [
+   "blue bus"
+  ],
+  "clock": [
+   "alarm clock",
+   "numeral",
+   "roman numerals"
+  ],
+  "dog": [
+   "bulldog",
+   "poodle"
+  ],
+  "knife": [
+   "butterknife",
+   "knife block",
+   "knives",
+   "silverware"
+  ],
+  "stop sign": [
+   "octagon",
+   "stop"
+  ],
+  "umbrella": [
+   "an umbrella",
+   "black umbrella",
+   "pink umbrella",
+   "umbrellas"
+  ]
+ },
+ "overlap": {
+  "clock": {
+   "coco_boxes": 3168,
+   "own": 1792,
+   "alias": 1882,
+   "ambig": 1899
+  },
+  "bird": {
+   "coco_boxes": 5394,
+   "own": 1730,
+   "alias": 2108,
+   "ambig": 2279
+  },
+  "boat": {
+   "coco_boxes": 5856,
+   "own": 1808,
+   "alias": 2120,
+   "ambig": 2184
+  },
+  "umbrella": {
+   "coco_boxes": 5747,
+   "own": 2022,
+   "alias": 2092,
+   "ambig": 2214
+  },
+  "kite": {
+   "coco_boxes": 4087,
+   "own": 1409,
+   "alias": 1558,
+   "ambig": 1558
+  },
+  "book": {
+   "coco_boxes": 8361,
+   "own": 867,
+   "alias": 942,
+   "ambig": 1357
+  },
+  "dog": {
+   "coco_boxes": 2138,
+   "own": 1600,
+   "alias": 1693,
+   "ambig": 1701
+  },
+  "backpack": {
+   "coco_boxes": 4153,
+   "own": 866,
+   "alias": 919,
+   "ambig": 952
+  },
+  "knife": {
+   "coco_boxes": 2902,
+   "own": 819,
+   "alias": 847,
+   "ambig": 924
+  },
+  "bicycle": {
+   "coco_boxes": 3683,
+   "own": 775,
+   "alias": 837,
+   "ambig": 1509
+  },
+  "bus": {
+   "coco_boxes": 3074,
+   "own": 1950,
+   "alias": 2004,
+   "ambig": 2014
+  },
+  "stop sign": {
+   "coco_boxes": 1016,
+   "own": 190,
+   "alias": 190,
+   "ambig": 206
+  }
+ },
+ "non_coco": {
+  "clock": {
+   "own": 2011,
+   "repaired": 23,
+   "withheld": 52
+  },
+  "bird": {
+   "own": 1253,
+   "repaired": 220,
+   "withheld": 198
+  },
+  "boat": {
+   "own": 1484,
+   "repaired": 159,
+   "withheld": 49
+  },
+  "umbrella": {
+   "own": 1594,
+   "repaired": 46,
+   "withheld": 59
+  },
+  "kite": {
+   "own": 910,
+   "repaired": 50,
+   "withheld": 0
+  },
+  "book": {
+   "own": 927,
+   "repaired": 111,
+   "withheld": 699
+  },
+  "dog": {
+   "own": 1634,
+   "repaired": 74,
+   "withheld": 8
+  },
+  "backpack": {
+   "own": 1098,
+   "repaired": 45,
+   "withheld": 75
+  },
+  "knife": {
+   "own": 924,
+   "repaired": 44,
+   "withheld": 163
+  },
+  "bicycle": {
+   "own": 826,
+   "repaired": 61,
+   "withheld": 1198
+  },
+  "bus": {
+   "own": 1838,
+   "repaired": 27,
+   "withheld": 6
+  },
+  "stop sign": {
+   "own": 263,
+   "repaired": 0,
+   "withheld": 157
+  }
+ },
+ "synonym": {
+  "clock": {
+   "objects": 1569,
+   "carry_class": 0
+  },
+  "bird": {
+   "objects": 5044,
+   "carry_class": 0
+  },
+  "boat": {
+   "objects": 1608,
+   "carry_class": 0
+  },
+  "umbrella": {
+   "objects": 791,
+   "carry_class": 0
+  },
+  "kite": {
+   "objects": 646,
+   "carry_class": 0
+  },
+  "book": {
+   "objects": 3424,
+   "carry_class": 0
+  },
+  "dog": {
+   "objects": 327,
+   "carry_class": 0
+  },
+  "backpack": {
+   "objects": 317,
+   "carry_class": 0
+  },
+  "knife": {
+   "objects": 679,
+   "carry_class": 0
+  },
+  "bicycle": {
+   "objects": 3918,
+   "carry_class": 0
+  },
+  "bus": {
+   "objects": 201,
+   "carry_class": 0
+  },
+  "stop sign": {
+   "objects": 373,
+   "carry_class": 0
+  }
+ },
+ "bands": {
+  "clock": {
+   "banded_now": 1734,
+   "same": 1699,
+   "moved": 1,
+   "lost": 34,
+   "repaired_banded": 18
+  },
+  "bird": {
+   "banded_now": 937,
+   "same": 897,
+   "moved": 2,
+   "lost": 38,
+   "repaired_banded": 153
+  },
+  "boat": {
+   "banded_now": 988,
+   "same": 906,
+   "moved": 8,
+   "lost": 74,
+   "repaired_banded": 140
+  },
+  "umbrella": {
+   "banded_now": 1151,
+   "same": 1143,
+   "moved": 2,
+   "lost": 6,
+   "repaired_banded": 39
+  },
+  "kite": {
+   "banded_now": 611,
+   "same": 574,
+   "moved": 3,
+   "lost": 34,
+   "repaired_banded": 42
+  },
+  "book": {
+   "banded_now": 673,
+   "same": 659,
+   "moved": 0,
+   "lost": 14,
+   "repaired_banded": 90
+  },
+  "dog": {
+   "banded_now": 1435,
+   "same": 1420,
+   "moved": 1,
+   "lost": 14,
+   "repaired_banded": 68
+  },
+  "backpack": {
+   "banded_now": 1000,
+   "same": 995,
+   "moved": 0,
+   "lost": 5,
+   "repaired_banded": 44
+  },
+  "knife": {
+   "banded_now": 837,
+   "same": 831,
+   "moved": 1,
+   "lost": 5,
+   "repaired_banded": 44
+  },
+  "bicycle": {
+   "banded_now": 704,
+   "same": 681,
+   "moved": 4,
+   "lost": 19,
+   "repaired_banded": 54
+  },
+  "bus": {
+   "banded_now": 1537,
+   "same": 1531,
+   "moved": 1,
+   "lost": 5,
+   "repaired_banded": 24
+  },
+  "stop sign": {
+   "banded_now": 250,
+   "same": 250,
+   "moved": 0,
+   "lost": 0,
+   "repaired_banded": 0
+  }
+ }
+}

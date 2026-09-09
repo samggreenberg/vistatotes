@@ -27,7 +27,9 @@ that step's slot.
 before the profile existed, so an instance with no ``VTSEARCH_TIMING_PROFILE``
 paces exactly as it did. They are *pseudo-seconds*: only their ratios are
 meaningful, because nobody measured them. A profile replaces them with real
-seconds, which is what makes the ETA stop drifting.
+seconds, which is what makes the ETA stop drifting. One vector is no longer a
+transcription — ``dataset_stage``'s was re-derived from measured rows once its
+step boundary was corrected (#3593); its comment below says from which.
 """
 
 from __future__ import annotations
@@ -128,8 +130,24 @@ TASKS: dict[str, TaskSpec] = {
     ),
     # Re-opening an already-imported dataset from its pkl. Step 1 (pickle read +
     # convert + the near-instant exact-dedup) is seconds at most; step 2 is the
-    # coverage atlas, instant when the cached atlas restores but a minutes-long
-    # hierarchical-k-means rebuild when it does not.
+    # coverage atlas, ~10 ms when the cached atlas restores and a hierarchical
+    # k-means rebuild when it does not.
+    #
+    # That rebuild is *seconds*, not minutes, at every size anybody has swept.
+    # Driven cold on a V100 with cuML active it fits 0.0026 s/item (r^2 0.95)
+    # over n = 412..2954 -- 0.98 s to 7.7 s. The same fit reaches ~26 s at
+    # n = 10 000 and ~131 s (2.2 min) only near COVERAGE_ATLAS_AUTO_THRESHOLD
+    # (50 000), so "minutes" is true near the threshold and off by two orders
+    # of magnitude below ~3000 items. Both of those figures extrapolate a fit
+    # whose largest point is 2954, across a 17x gap nothing has measured, and
+    # hierarchical k-means need not be linear there
+    # (docs/experiments/2026-09-03-drive-cold-3521/REPORT.md section 2, #3595).
+    #
+    # The 0.85 below is a direction, not a measurement: the rebuild does
+    # dominate step 1 whenever it runs, but the weight was never fitted and is
+    # roughly 100x too generous at the small end. Re-deriving it waits on a
+    # sweep past 2954 (#3595) -- and no single weight can pace both branches
+    # anyway, since the restore is ~700x cheaper at n = 2954 (#3594).
     "dataset_open": _linear(
         "dataset_open",
         ("items", "coverage"),
@@ -152,11 +170,24 @@ TASKS: dict[str, TaskSpec] = {
     # teach that finalize is free. No byte-scaled phases here — the staging path
     # is never told an archive size, so a per-MB rate would have nothing to
     # divide by.
+    #
+    # These are the one set of default terms not transcribed from a pre-profile
+    # hand-tuned vector. The shipped ``(0.30, 0.60, 0.10)`` budgeted 60 % of the
+    # bar to a step that measured 0.000–0.002 s on every run ever recorded,
+    # because the importer's embedding was landing under ``acquire``
+    # (``_STAGE_STATUS_TO_STEP`` in ``vtscore/datasets/load_pipeline.py`` is the
+    # fix). Re-derived from #3521 §5's image rows, reading the old ``acquire``
+    # slope as the embed it actually was: embed ``0.0136 s/item``, serialize
+    # ``~0.0042 s/item`` — 76:24, which is the 0.72:0.23 below. Acquire measured
+    # near zero there (a demo's acquisition is a cached local read, and its fresh
+    # rows leave no residual once the embed line is subtracted); it gets 0.05
+    # rather than 0.02 because the only importer these rows cover is the demo
+    # one, and a server-folder or upload import spends real I/O in that step.
     "dataset_stage": _linear(
         "dataset_stage",
         ("acquire", "embed", "serialize"),
         "media items staged",
-        (0.30, 0.60, 0.10),
+        (0.05, 0.72, 0.23),
         loads_encoder=True,
     ),
     # Loading a saved detector: read its labelset, pull the label examples back
@@ -200,6 +231,27 @@ TASKS: dict[str, TaskSpec] = {
         loads_encoder=True,
     ),
 }
+
+
+#: Branch names meaning "this run took the step's **cheap** path" — a cached
+#: artefact stood in for work a first run has to do. They are recorded by
+#: :func:`vtscore.timing.note_branch` at the site that makes the decision, and
+#: read by the fitter, which will not price a step from cheap runs alone.
+#:
+#: ``cached``    a demo import satisfied itself from the embeddings pkl, so it
+#:               downloaded nothing, embedded nothing, and loaded no encoder.
+#: ``restored``  a dataset open adopted the coverage atlas cached in its pickle
+#:               instead of rebuilding the hierarchical k-means.
+#: ``deferred``  a dataset open past ``COVERAGE_ATLAS_AUTO_THRESHOLD`` skipped
+#:               the atlas entirely, leaving it to the on-demand endpoint.
+CHEAP_BRANCHES = frozenset({"cached", "restored", "deferred"})
+
+#: Branch names meaning "this run did the work" — the branch somebody waits on,
+#: and the only population a step's coefficients may be fitted from.
+#:
+#: ``fresh``     the import really downloaded, embedded, and finalised.
+#: ``rebuilt``   the coverage atlas was built from scratch.
+DEAR_BRANCHES = frozenset({"fresh", "rebuilt"})
 
 
 def task_spec(task: str) -> TaskSpec | None:

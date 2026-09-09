@@ -1,0 +1,6326 @@
+{
+ "meta": {
+  "iou": 0.5,
+  "overlap_images": 51411,
+  "skipped_aspect_drift": 87,
+  "min_sole": 5,
+  "min_precision": 0.3333333333333333,
+  "min_box": 0.5,
+  "min_boxes": 20,
+  "context_box": 0.1
+ },
+ "base_rate": {
+  "clock": 0.04500982280056797,
+  "bird": 0.030363151854661454,
+  "boat": 0.031413510727276266,
+  "umbrella": 0.03713213125595689,
+  "kite": 0.019626150045710063,
+  "book": 0.03726828888759215,
+  "dog": 0.03357258174320671,
+  "backpack": 0.0502032638929412,
+  "knife": 0.031491315088210695,
+  "bicycle": 0.03158857053937873,
+  "bus": 0.038785473925813545,
+  "stop sign": 0.016513975608332846
+ },
+ "class_images": {
+  "clock": 3943,
+  "bird": 2479,
+  "boat": 2761,
+  "umbrella": 3177,
+  "kite": 1770,
+  "book": 1729,
+  "dog": 3235,
+  "backpack": 2097,
+  "knife": 1806,
+  "bicycle": 1561,
+  "bus": 3618,
+  "stop sign": 496
+ },
+ "names": {
+  "boat": {
+   "area": {
+    "vg_images": 1546,
+    "sole": 725,
+    "sole_present": 10,
+    "boxes": 788,
+    "boxes_on_class": 3,
+    "off_coco_sole": 766,
+    "precision_lower": 0.00750901959817103,
+    "verdict": "neither"
+   },
+   "barge": {
+    "vg_images": 28,
+    "sole": 8,
+    "sole_present": 7,
+    "boxes": 18,
+    "boxes_on_class": 10,
+    "off_coco_sole": 5,
+    "precision_lower": 0.5291051942301385,
+    "verdict": "ambiguous"
+   },
+   "blue boat": {
+    "vg_images": 28,
+    "sole": 1,
+    "sole_present": 1,
+    "boxes": 10,
+    "boxes_on_class": 8,
+    "off_coco_sole": 6,
+    "precision_lower": 0.20654329147389294,
+    "verdict": "unmeasured"
+   },
+   "board": {
+    "vg_images": 3583,
+    "sole": 1725,
+    "sole_present": 11,
+    "boxes": 2069,
+    "boxes_on_class": 3,
+    "off_coco_sole": 1762,
+    "precision_lower": 0.003564397781911221,
+    "verdict": "neither"
+   },
+   "boats": {
+    "vg_images": 447,
+    "sole": 48,
+    "sole_present": 39,
+    "boxes": 323,
+    "boxes_on_class": 167,
+    "off_coco_sole": 50,
+    "precision_lower": 0.6805986065115378,
+    "verdict": "alias"
+   },
+   "bouy": {
+    "vg_images": 31,
+    "sole": 5,
+    "sole_present": 4,
+    "boxes": 22,
+    "boxes_on_class": 3,
+    "off_coco_sole": 7,
+    "precision_lower": 0.37552826411853885,
+    "verdict": "ambiguous"
+   },
+   "bow": {
+    "vg_images": 477,
+    "sole": 221,
+    "sole_present": 1,
+    "boxes": 280,
+    "boxes_on_class": 4,
+    "off_coco_sole": 200,
+    "precision_lower": 0.0007991801409706368,
+    "verdict": "neither"
+   },
+   "building": {
+    "vg_images": 19154,
+    "sole": 8179,
+    "sole_present": 84,
+    "boxes": 11871,
+    "boxes_on_class": 6,
+    "off_coco_sole": 10209,
+    "precision_lower": 0.00830355304227774,
+    "verdict": "neither"
+   },
+   "cabin": {
+    "vg_images": 234,
+    "sole": 58,
+    "sole_present": 0,
+    "boxes": 112,
+    "boxes_on_class": 5,
+    "off_coco_sole": 72,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "canoe": {
+    "vg_images": 84,
+    "sole": 22,
+    "sole_present": 18,
+    "boxes": 61,
+    "boxes_on_class": 48,
+    "off_coco_sole": 18,
+    "precision_lower": 0.6148297802336214,
+    "verdict": "alias"
+   },
+   "car": {
+    "vg_images": 9204,
+    "sole": 4005,
+    "sole_present": 15,
+    "boxes": 6779,
+    "boxes_on_class": 4,
+    "off_coco_sole": 5061,
+    "precision_lower": 0.002271055376389158,
+    "verdict": "neither"
+   },
+   "cover": {
+    "vg_images": 1222,
+    "sole": 565,
+    "sole_present": 3,
+    "boxes": 644,
+    "boxes_on_class": 4,
+    "off_coco_sole": 583,
+    "precision_lower": 0.0018073650079390117,
+    "verdict": "neither"
+   },
+   "cruise ship": {
+    "vg_images": 12,
+    "sole": 4,
+    "sole_present": 4,
+    "boxes": 7,
+    "boxes_on_class": 6,
+    "off_coco_sole": 1,
+    "precision_lower": 0.5100999795960008,
+    "verdict": "unmeasured"
+   },
+   "dock": {
+    "vg_images": 552,
+    "sole": 83,
+    "sole_present": 15,
+    "boxes": 293,
+    "boxes_on_class": 13,
+    "off_coco_sole": 65,
+    "precision_lower": 0.1126926689223679,
+    "verdict": "neither"
+   },
+   "equipment": {
+    "vg_images": 281,
+    "sole": 142,
+    "sole_present": 0,
+    "boxes": 156,
+    "boxes_on_class": 2,
+    "off_coco_sole": 125,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "ferry": {
+    "vg_images": 19,
+    "sole": 3,
+    "sole_present": 3,
+    "boxes": 9,
+    "boxes_on_class": 8,
+    "off_coco_sole": 5,
+    "precision_lower": 0.4384939195509822,
+    "verdict": "unmeasured"
+   },
+   "front": {
+    "vg_images": 1951,
+    "sole": 916,
+    "sole_present": 9,
+    "boxes": 997,
+    "boxes_on_class": 8,
+    "off_coco_sole": 953,
+    "precision_lower": 0.0051775652127171,
+    "verdict": "neither"
+   },
+   "ground": {
+    "vg_images": 23275,
+    "sole": 11095,
+    "sole_present": 50,
+    "boxes": 12656,
+    "boxes_on_class": 4,
+    "off_coco_sole": 11718,
+    "precision_lower": 0.0034201770060791866,
+    "verdict": "neither"
+   },
+   "harbor": {
+    "vg_images": 138,
+    "sole": 2,
+    "sole_present": 2,
+    "boxes": 75,
+    "boxes_on_class": 10,
+    "off_coco_sole": 10,
+    "precision_lower": 0.3423719528896193,
+    "verdict": "unmeasured"
+   },
+   "hull": {
+    "vg_images": 31,
+    "sole": 3,
+    "sole_present": 2,
+    "boxes": 16,
+    "boxes_on_class": 5,
+    "off_coco_sole": 0,
+    "precision_lower": 0.20765495512648788,
+    "verdict": "unmeasured"
+   },
+   "jet ski": {
+    "vg_images": 19,
+    "sole": 6,
+    "sole_present": 3,
+    "boxes": 10,
+    "boxes_on_class": 3,
+    "off_coco_sole": 7,
+    "precision_lower": 0.1876128068994087,
+    "verdict": "neither"
+   },
+   "kayak": {
+    "vg_images": 46,
+    "sole": 10,
+    "sole_present": 8,
+    "boxes": 31,
+    "boxes_on_class": 24,
+    "off_coco_sole": 20,
+    "precision_lower": 0.49015684672072346,
+    "verdict": "alias"
+   },
+   "kite": {
+    "vg_images": 1770,
+    "sole": 824,
+    "sole_present": 29,
+    "boxes": 1992,
+    "boxes_on_class": 5,
+    "off_coco_sole": 875,
+    "precision_lower": 0.024614423352463614,
+    "verdict": "neither"
+   },
+   "lake": {
+    "vg_images": 600,
+    "sole": 196,
+    "sole_present": 8,
+    "boxes": 298,
+    "boxes_on_class": 3,
+    "off_coco_sole": 214,
+    "precision_lower": 0.020824715428567828,
+    "verdict": "neither"
+   },
+   "line": {
+    "vg_images": 7503,
+    "sole": 3596,
+    "sole_present": 18,
+    "boxes": 5289,
+    "boxes_on_class": 3,
+    "off_coco_sole": 3808,
+    "precision_lower": 0.003168630571591052,
+    "verdict": "neither"
+   },
+   "man": {
+    "vg_images": 29079,
+    "sole": 13680,
+    "sole_present": 124,
+    "boxes": 21907,
+    "boxes_on_class": 4,
+    "off_coco_sole": 14588,
+    "precision_lower": 0.0076082117370649925,
+    "verdict": "neither"
+   },
+   "marina": {
+    "vg_images": 64,
+    "sole": 2,
+    "sole_present": 2,
+    "boxes": 37,
+    "boxes_on_class": 4,
+    "off_coco_sole": 2,
+    "precision_lower": 0.3423719528896193,
+    "verdict": "unmeasured"
+   },
+   "mast": {
+    "vg_images": 278,
+    "sole": 19,
+    "sole_present": 7,
+    "boxes": 173,
+    "boxes_on_class": 6,
+    "off_coco_sole": 22,
+    "precision_lower": 0.1914927237627384,
+    "verdict": "neither"
+   },
+   "motorboat": {
+    "vg_images": 14,
+    "sole": 1,
+    "sole_present": 1,
+    "boxes": 8,
+    "boxes_on_class": 6,
+    "off_coco_sole": 1,
+    "precision_lower": 0.20654329147389294,
+    "verdict": "unmeasured"
+   },
+   "oar": {
+    "vg_images": 143,
+    "sole": 21,
+    "sole_present": 8,
+    "boxes": 100,
+    "boxes_on_class": 3,
+    "off_coco_sole": 16,
+    "precision_lower": 0.20750767797982508,
+    "verdict": "neither"
+   },
+   "ocean": {
+    "vg_images": 2580,
+    "sole": 1117,
+    "sole_present": 66,
+    "boxes": 1315,
+    "boxes_on_class": 6,
+    "off_coco_sole": 1134,
+    "precision_lower": 0.04671159014948296,
+    "verdict": "neither"
+   },
+   "part": {
+    "vg_images": 2640,
+    "sole": 1296,
+    "sole_present": 10,
+    "boxes": 2941,
+    "boxes_on_class": 2,
+    "off_coco_sole": 1271,
+    "precision_lower": 0.004196517462964907,
+    "verdict": "neither"
+   },
+   "people": {
+    "vg_images": 9512,
+    "sole": 4340,
+    "sole_present": 77,
+    "boxes": 6593,
+    "boxes_on_class": 7,
+    "off_coco_sole": 4631,
+    "precision_lower": 0.014219496866710396,
+    "verdict": "neither"
+   },
+   "photo": {
+    "vg_images": 2473,
+    "sole": 1209,
+    "sole_present": 13,
+    "boxes": 1343,
+    "boxes_on_class": 5,
+    "off_coco_sole": 1205,
+    "precision_lower": 0.006294545625636941,
+    "verdict": "neither"
+   },
+   "picture": {
+    "vg_images": 4251,
+    "sole": 2005,
+    "sole_present": 10,
+    "boxes": 2596,
+    "boxes_on_class": 4,
+    "off_coco_sole": 2185,
+    "precision_lower": 0.0027113674163217055,
+    "verdict": "neither"
+   },
+   "pole": {
+    "vg_images": 14372,
+    "sole": 6529,
+    "sole_present": 56,
+    "boxes": 9558,
+    "boxes_on_class": 3,
+    "off_coco_sole": 7307,
+    "precision_lower": 0.006611329242673807,
+    "verdict": "neither"
+   },
+   "raft": {
+    "vg_images": 70,
+    "sole": 16,
+    "sole_present": 11,
+    "boxes": 44,
+    "boxes_on_class": 23,
+    "off_coco_sole": 17,
+    "precision_lower": 0.4440393186673406,
+    "verdict": "alias"
+   },
+   "railing": {
+    "vg_images": 2292,
+    "sole": 996,
+    "sole_present": 18,
+    "boxes": 1220,
+    "boxes_on_class": 5,
+    "off_coco_sole": 1112,
+    "precision_lower": 0.01146161111478344,
+    "verdict": "neither"
+   },
+   "rope": {
+    "vg_images": 1383,
+    "sole": 556,
+    "sole_present": 22,
+    "boxes": 838,
+    "boxes_on_class": 3,
+    "off_coco_sole": 507,
+    "precision_lower": 0.026273184417034072,
+    "verdict": "neither"
+   },
+   "row boat": {
+    "vg_images": 11,
+    "sole": 0,
+    "sole_present": 0,
+    "boxes": 4,
+    "boxes_on_class": 4,
+    "off_coco_sole": 2,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "rowboat": {
+    "vg_images": 18,
+    "sole": 3,
+    "sole_present": 3,
+    "boxes": 14,
+    "boxes_on_class": 11,
+    "off_coco_sole": 1,
+    "precision_lower": 0.4384939195509822,
+    "verdict": "unmeasured"
+   },
+   "sail": {
+    "vg_images": 323,
+    "sole": 60,
+    "sole_present": 20,
+    "boxes": 186,
+    "boxes_on_class": 39,
+    "off_coco_sole": 72,
+    "precision_lower": 0.2272909421592783,
+    "verdict": "neither"
+   },
+   "sail boat": {
+    "vg_images": 34,
+    "sole": 9,
+    "sole_present": 7,
+    "boxes": 19,
+    "boxes_on_class": 7,
+    "off_coco_sole": 7,
+    "precision_lower": 0.4525833436728054,
+    "verdict": "ambiguous"
+   },
+   "sailboat": {
+    "vg_images": 181,
+    "sole": 45,
+    "sole_present": 35,
+    "boxes": 124,
+    "boxes_on_class": 58,
+    "off_coco_sole": 35,
+    "precision_lower": 0.637304262026367,
+    "verdict": "ambiguous"
+   },
+   "sailboats": {
+    "vg_images": 24,
+    "sole": 6,
+    "sole_present": 6,
+    "boxes": 20,
+    "boxes_on_class": 12,
+    "off_coco_sole": 3,
+    "precision_lower": 0.6096569663469354,
+    "verdict": "alias"
+   },
+   "sails": {
+    "vg_images": 60,
+    "sole": 12,
+    "sole_present": 4,
+    "boxes": 30,
+    "boxes_on_class": 3,
+    "off_coco_sole": 7,
+    "precision_lower": 0.13811783989736134,
+    "verdict": "neither"
+   },
+   "ship": {
+    "vg_images": 235,
+    "sole": 65,
+    "sole_present": 47,
+    "boxes": 139,
+    "boxes_on_class": 85,
+    "off_coco_sole": 59,
+    "precision_lower": 0.6041913125777423,
+    "verdict": "alias"
+   },
+   "shore": {
+    "vg_images": 1102,
+    "sole": 372,
+    "sole_present": 34,
+    "boxes": 541,
+    "boxes_on_class": 3,
+    "off_coco_sole": 393,
+    "precision_lower": 0.06614191581649502,
+    "verdict": "neither"
+   },
+   "side": {
+    "vg_images": 2015,
+    "sole": 948,
+    "sole_present": 7,
+    "boxes": 1108,
+    "boxes_on_class": 9,
+    "off_coco_sole": 980,
+    "precision_lower": 0.003581271486265416,
+    "verdict": "neither"
+   },
+   "sky": {
+    "vg_images": 22844,
+    "sole": 10356,
+    "sole_present": 188,
+    "boxes": 11824,
+    "boxes_on_class": 11,
+    "off_coco_sole": 11005,
+    "precision_lower": 0.015755308368630434,
+    "verdict": "neither"
+   },
+   "small boat": {
+    "vg_images": 13,
+    "sole": 3,
+    "sole_present": 2,
+    "boxes": 4,
+    "boxes_on_class": 3,
+    "off_coco_sole": 3,
+    "precision_lower": 0.20765495512648788,
+    "verdict": "unmeasured"
+   },
+   "stripe": {
+    "vg_images": 4041,
+    "sole": 1910,
+    "sole_present": 12,
+    "boxes": 3056,
+    "boxes_on_class": 5,
+    "off_coco_sole": 1999,
+    "precision_lower": 0.0035976040489990166,
+    "verdict": "neither"
+   },
+   "structure": {
+    "vg_images": 910,
+    "sole": 420,
+    "sole_present": 12,
+    "boxes": 497,
+    "boxes_on_class": 5,
+    "off_coco_sole": 424,
+    "precision_lower": 0.016418040518923677,
+    "verdict": "neither"
+   },
+   "surfboard": {
+    "vg_images": 2156,
+    "sole": 1027,
+    "sole_present": 27,
+    "boxes": 1387,
+    "boxes_on_class": 3,
+    "off_coco_sole": 1065,
+    "precision_lower": 0.01813003419003516,
+    "verdict": "neither"
+   },
+   "tarp": {
+    "vg_images": 480,
+    "sole": 189,
+    "sole_present": 2,
+    "boxes": 244,
+    "boxes_on_class": 5,
+    "off_coco_sole": 217,
+    "precision_lower": 0.002906721245533462,
+    "verdict": "neither"
+   },
+   "truck": {
+    "vg_images": 2863,
+    "sole": 1326,
+    "sole_present": 13,
+    "boxes": 1642,
+    "boxes_on_class": 4,
+    "off_coco_sole": 1475,
+    "precision_lower": 0.005738304586353337,
+    "verdict": "neither"
+   },
+   "tube": {
+    "vg_images": 230,
+    "sole": 105,
+    "sole_present": 2,
+    "boxes": 124,
+    "boxes_on_class": 5,
+    "off_coco_sole": 113,
+    "precision_lower": 0.005239072265250377,
+    "verdict": "neither"
+   },
+   "vessel": {
+    "vg_images": 47,
+    "sole": 13,
+    "sole_present": 3,
+    "boxes": 30,
+    "boxes_on_class": 4,
+    "off_coco_sole": 29,
+    "precision_lower": 0.08179379092465712,
+    "verdict": "neither"
+   },
+   "wall": {
+    "vg_images": 24106,
+    "sole": 11062,
+    "sole_present": 29,
+    "boxes": 13902,
+    "boxes_on_class": 4,
+    "off_coco_sole": 12736,
+    "precision_lower": 0.0018259926988367435,
+    "verdict": "neither"
+   },
+   "water": {
+    "vg_images": 10151,
+    "sole": 3909,
+    "sole_present": 242,
+    "boxes": 5889,
+    "boxes_on_class": 46,
+    "off_coco_sole": 4165,
+    "precision_lower": 0.054775240668730144,
+    "verdict": "neither"
+   },
+   "white boat": {
+    "vg_images": 28,
+    "sole": 2,
+    "sole_present": 2,
+    "boxes": 20,
+    "boxes_on_class": 17,
+    "off_coco_sole": 2,
+    "precision_lower": 0.3423719528896193,
+    "verdict": "unmeasured"
+   },
+   "wood": {
+    "vg_images": 1958,
+    "sole": 958,
+    "sole_present": 7,
+    "boxes": 1154,
+    "boxes_on_class": 4,
+    "off_coco_sole": 942,
+    "precision_lower": 0.003543842529229543,
+    "verdict": "neither"
+   },
+   "yacht": {
+    "vg_images": 36,
+    "sole": 4,
+    "sole_present": 4,
+    "boxes": 18,
+    "boxes_on_class": 17,
+    "off_coco_sole": 6,
+    "precision_lower": 0.5100999795960008,
+    "verdict": "unmeasured"
+   }
+  },
+  "dog": {
+   "a": {
+    "vg_images": 668,
+    "sole": 277,
+    "sole_present": 2,
+    "boxes": 748,
+    "boxes_on_class": 4,
+    "off_coco_sole": 375,
+    "precision_lower": 0.0019822405980961496,
+    "verdict": "neither"
+   },
+   "animal": {
+    "vg_images": 1606,
+    "sole": 734,
+    "sole_present": 32,
+    "boxes": 1350,
+    "boxes_on_class": 48,
+    "off_coco_sole": 806,
+    "precision_lower": 0.031048575060929846,
+    "verdict": "neither"
+   },
+   "animals": {
+    "vg_images": 573,
+    "sole": 253,
+    "sole_present": 8,
+    "boxes": 322,
+    "boxes_on_class": 6,
+    "off_coco_sole": 291,
+    "precision_lower": 0.016107829176762962,
+    "verdict": "neither"
+   },
+   "background": {
+    "vg_images": 6529,
+    "sole": 3153,
+    "sole_present": 13,
+    "boxes": 3309,
+    "boxes_on_class": 3,
+    "off_coco_sole": 3192,
+    "precision_lower": 0.002411144984276996,
+    "verdict": "neither"
+   },
+   "bed": {
+    "vg_images": 2680,
+    "sole": 1203,
+    "sole_present": 11,
+    "boxes": 1404,
+    "boxes_on_class": 18,
+    "off_coco_sole": 1266,
+    "precision_lower": 0.0051132932578172325,
+    "verdict": "neither"
+   },
+   "bench": {
+    "vg_images": 4100,
+    "sole": 1924,
+    "sole_present": 8,
+    "boxes": 2500,
+    "boxes_on_class": 5,
+    "off_coco_sole": 1976,
+    "precision_lower": 0.00210839449810194,
+    "verdict": "neither"
+   },
+   "black dog": {
+    "vg_images": 57,
+    "sole": 20,
+    "sole_present": 19,
+    "boxes": 34,
+    "boxes_on_class": 31,
+    "off_coco_sole": 16,
+    "precision_lower": 0.7638641064874331,
+    "verdict": "alias"
+   },
+   "blanket": {
+    "vg_images": 1927,
+    "sole": 856,
+    "sole_present": 13,
+    "boxes": 1060,
+    "boxes_on_class": 9,
+    "off_coco_sole": 900,
+    "precision_lower": 0.008896404258650216,
+    "verdict": "neither"
+   },
+   "body": {
+    "vg_images": 1435,
+    "sole": 650,
+    "sole_present": 2,
+    "boxes": 750,
+    "boxes_on_class": 20,
+    "off_coco_sole": 699,
+    "precision_lower": 0.000844191555955064,
+    "verdict": "neither"
+   },
+   "brown": {
+    "vg_images": 675,
+    "sole": 314,
+    "sole_present": 2,
+    "boxes": 369,
+    "boxes_on_class": 4,
+    "off_coco_sole": 330,
+    "precision_lower": 0.0017484313311795139,
+    "verdict": "neither"
+   },
+   "brown dog": {
+    "vg_images": 47,
+    "sole": 15,
+    "sole_present": 13,
+    "boxes": 24,
+    "boxes_on_class": 20,
+    "off_coco_sole": 16,
+    "precision_lower": 0.6211750079348376,
+    "verdict": "alias"
+   },
+   "bulldog": {
+    "vg_images": 12,
+    "sole": 5,
+    "sole_present": 4,
+    "boxes": 10,
+    "boxes_on_class": 7,
+    "off_coco_sole": 5,
+    "precision_lower": 0.37552826411853885,
+    "verdict": "ambiguous"
+   },
+   "car": {
+    "vg_images": 9204,
+    "sole": 3933,
+    "sole_present": 23,
+    "boxes": 6779,
+    "boxes_on_class": 11,
+    "off_coco_sole": 4965,
+    "precision_lower": 0.0039000023367868368,
+    "verdict": "neither"
+   },
+   "carpet": {
+    "vg_images": 1626,
+    "sole": 680,
+    "sole_present": 8,
+    "boxes": 779,
+    "boxes_on_class": 10,
+    "off_coco_sole": 810,
+    "precision_lower": 0.00597308581813185,
+    "verdict": "neither"
+   },
+   "cat": {
+    "vg_images": 2599,
+    "sole": 1242,
+    "sole_present": 14,
+    "boxes": 1488,
+    "boxes_on_class": 14,
+    "off_coco_sole": 1251,
+    "precision_lower": 0.006726272183327618,
+    "verdict": "neither"
+   },
+   "chair": {
+    "vg_images": 6844,
+    "sole": 2992,
+    "sole_present": 22,
+    "boxes": 4629,
+    "boxes_on_class": 9,
+    "off_coco_sole": 3597,
+    "precision_lower": 0.004860807182660805,
+    "verdict": "neither"
+   },
+   "chili dog": {
+    "vg_images": 17,
+    "sole": 9,
+    "sole_present": 0,
+    "boxes": 9,
+    "boxes_on_class": 0,
+    "off_coco_sole": 8,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "coat": {
+    "vg_images": 3453,
+    "sole": 1628,
+    "sole_present": 8,
+    "boxes": 2036,
+    "boxes_on_class": 3,
+    "off_coco_sole": 1720,
+    "precision_lower": 0.002492052345757045,
+    "verdict": "neither"
+   },
+   "comforter": {
+    "vg_images": 431,
+    "sole": 201,
+    "sole_present": 2,
+    "boxes": 231,
+    "boxes_on_class": 5,
+    "off_coco_sole": 195,
+    "precision_lower": 0.0027329145816828567,
+    "verdict": "neither"
+   },
+   "couch": {
+    "vg_images": 1748,
+    "sole": 756,
+    "sole_present": 11,
+    "boxes": 936,
+    "boxes_on_class": 15,
+    "off_coco_sole": 829,
+    "precision_lower": 0.008143644513732038,
+    "verdict": "neither"
+   },
+   "dalmation": {
+    "vg_images": 13,
+    "sole": 3,
+    "sole_present": 1,
+    "boxes": 6,
+    "boxes_on_class": 3,
+    "off_coco_sole": 3,
+    "precision_lower": 0.061490315276160515,
+    "verdict": "unmeasured"
+   },
+   "dog's head": {
+    "vg_images": 19,
+    "sole": 0,
+    "sole_present": 0,
+    "boxes": 10,
+    "boxes_on_class": 3,
+    "off_coco_sole": 2,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "dogs": {
+    "vg_images": 110,
+    "sole": 12,
+    "sole_present": 8,
+    "boxes": 59,
+    "boxes_on_class": 39,
+    "off_coco_sole": 24,
+    "precision_lower": 0.3906175873976139,
+    "verdict": "alias"
+   },
+   "face": {
+    "vg_images": 8066,
+    "sole": 3804,
+    "sole_present": 17,
+    "boxes": 4510,
+    "boxes_on_class": 9,
+    "off_coco_sole": 3835,
+    "precision_lower": 0.00279212327675603,
+    "verdict": "neither"
+   },
+   "fence": {
+    "vg_images": 10063,
+    "sole": 4695,
+    "sole_present": 11,
+    "boxes": 5425,
+    "boxes_on_class": 7,
+    "off_coco_sole": 5040,
+    "precision_lower": 0.0013087651142614746,
+    "verdict": "neither"
+   },
+   "field": {
+    "vg_images": 6529,
+    "sole": 3063,
+    "sole_present": 17,
+    "boxes": 3366,
+    "boxes_on_class": 5,
+    "off_coco_sole": 3255,
+    "precision_lower": 0.0034681358675810454,
+    "verdict": "neither"
+   },
+   "floor": {
+    "vg_images": 10037,
+    "sole": 4539,
+    "sole_present": 38,
+    "boxes": 5088,
+    "boxes_on_class": 24,
+    "off_coco_sole": 5067,
+    "precision_lower": 0.006105621317277632,
+    "verdict": "neither"
+   },
+   "fur": {
+    "vg_images": 1804,
+    "sole": 735,
+    "sole_present": 13,
+    "boxes": 1064,
+    "boxes_on_class": 24,
+    "off_coco_sole": 756,
+    "precision_lower": 0.010364994811940894,
+    "verdict": "neither"
+   },
+   "grass": {
+    "vg_images": 16818,
+    "sole": 7859,
+    "sole_present": 39,
+    "boxes": 10070,
+    "boxes_on_class": 13,
+    "off_coco_sole": 8248,
+    "precision_lower": 0.003632382620094221,
+    "verdict": "neither"
+   },
+   "ground": {
+    "vg_images": 23275,
+    "sole": 10912,
+    "sole_present": 57,
+    "boxes": 12656,
+    "boxes_on_class": 33,
+    "off_coco_sole": 11576,
+    "precision_lower": 0.004034261339260376,
+    "verdict": "neither"
+   },
+   "hair": {
+    "vg_images": 15556,
+    "sole": 7312,
+    "sole_present": 18,
+    "boxes": 9005,
+    "boxes_on_class": 10,
+    "off_coco_sole": 7743,
+    "precision_lower": 0.0015577489235112814,
+    "verdict": "neither"
+   },
+   "head": {
+    "vg_images": 18792,
+    "sole": 8941,
+    "sole_present": 50,
+    "boxes": 11799,
+    "boxes_on_class": 72,
+    "off_coco_sole": 8902,
+    "precision_lower": 0.0042446222323138,
+    "verdict": "neither"
+   },
+   "hot dog": {
+    "vg_images": 405,
+    "sole": 181,
+    "sole_present": 0,
+    "boxes": 330,
+    "boxes_on_class": 0,
+    "off_coco_sole": 204,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "hot dogs": {
+    "vg_images": 50,
+    "sole": 24,
+    "sole_present": 0,
+    "boxes": 38,
+    "boxes_on_class": 0,
+    "off_coco_sole": 23,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "house": {
+    "vg_images": 3019,
+    "sole": 1289,
+    "sole_present": 2,
+    "boxes": 1716,
+    "boxes_on_class": 3,
+    "off_coco_sole": 1611,
+    "precision_lower": 0.0004255963105514616,
+    "verdict": "neither"
+   },
+   "jacket": {
+    "vg_images": 7678,
+    "sole": 3619,
+    "sole_present": 11,
+    "boxes": 4747,
+    "boxes_on_class": 6,
+    "off_coco_sole": 3830,
+    "precision_lower": 0.0016980742381786892,
+    "verdict": "neither"
+   },
+   "lab": {
+    "vg_images": 17,
+    "sole": 2,
+    "sole_present": 1,
+    "boxes": 6,
+    "boxes_on_class": 3,
+    "off_coco_sole": 5,
+    "precision_lower": 0.09452865480086611,
+    "verdict": "unmeasured"
+   },
+   "lawn": {
+    "vg_images": 498,
+    "sole": 212,
+    "sole_present": 3,
+    "boxes": 234,
+    "boxes_on_class": 3,
+    "off_coco_sole": 259,
+    "precision_lower": 0.0048239737706447265,
+    "verdict": "neither"
+   },
+   "life jacket": {
+    "vg_images": 75,
+    "sole": 31,
+    "sole_present": 0,
+    "boxes": 43,
+    "boxes_on_class": 3,
+    "off_coco_sole": 27,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "man": {
+    "vg_images": 29079,
+    "sole": 13635,
+    "sole_present": 46,
+    "boxes": 21907,
+    "boxes_on_class": 8,
+    "off_coco_sole": 14588,
+    "precision_lower": 0.0025303901549858744,
+    "verdict": "neither"
+   },
+   "mirror": {
+    "vg_images": 4388,
+    "sole": 2041,
+    "sole_present": 10,
+    "boxes": 2478,
+    "boxes_on_class": 3,
+    "off_coco_sole": 2188,
+    "precision_lower": 0.0026635054076185223,
+    "verdict": "neither"
+   },
+   "person": {
+    "vg_images": 15899,
+    "sole": 7389,
+    "sole_present": 32,
+    "boxes": 14650,
+    "boxes_on_class": 8,
+    "off_coco_sole": 8045,
+    "precision_lower": 0.0030694416499116384,
+    "verdict": "neither"
+   },
+   "picture": {
+    "vg_images": 4251,
+    "sole": 1965,
+    "sole_present": 9,
+    "boxes": 2596,
+    "boxes_on_class": 5,
+    "off_coco_sole": 2143,
+    "precision_lower": 0.002411485719752764,
+    "verdict": "neither"
+   },
+   "pillow": {
+    "vg_images": 2618,
+    "sole": 1140,
+    "sole_present": 14,
+    "boxes": 2106,
+    "boxes_on_class": 3,
+    "off_coco_sole": 1277,
+    "precision_lower": 0.007329220334841847,
+    "verdict": "neither"
+   },
+   "poodle": {
+    "vg_images": 10,
+    "sole": 5,
+    "sole_present": 4,
+    "boxes": 7,
+    "boxes_on_class": 5,
+    "off_coco_sole": 3,
+    "precision_lower": 0.37552826411853885,
+    "verdict": "ambiguous"
+   },
+   "puppy": {
+    "vg_images": 51,
+    "sole": 20,
+    "sole_present": 16,
+    "boxes": 33,
+    "boxes_on_class": 27,
+    "off_coco_sole": 19,
+    "precision_lower": 0.5839782779742402,
+    "verdict": "alias"
+   },
+   "reflection": {
+    "vg_images": 3803,
+    "sole": 1786,
+    "sole_present": 12,
+    "boxes": 2181,
+    "boxes_on_class": 7,
+    "off_coco_sole": 1896,
+    "precision_lower": 0.0038476441172965834,
+    "verdict": "neither"
+   },
+   "road": {
+    "vg_images": 7928,
+    "sole": 3524,
+    "sole_present": 15,
+    "boxes": 3881,
+    "boxes_on_class": 3,
+    "off_coco_sole": 4189,
+    "precision_lower": 0.0025812343261265593,
+    "verdict": "neither"
+   },
+   "room": {
+    "vg_images": 2133,
+    "sole": 953,
+    "sole_present": 7,
+    "boxes": 998,
+    "boxes_on_class": 3,
+    "off_coco_sole": 1102,
+    "precision_lower": 0.0035624586984684095,
+    "verdict": "neither"
+   },
+   "seat": {
+    "vg_images": 3081,
+    "sole": 1414,
+    "sole_present": 7,
+    "boxes": 1836,
+    "boxes_on_class": 4,
+    "off_coco_sole": 1542,
+    "precision_lower": 0.002400035607624615,
+    "verdict": "neither"
+   },
+   "sheet": {
+    "vg_images": 651,
+    "sole": 280,
+    "sole_present": 2,
+    "boxes": 337,
+    "boxes_on_class": 5,
+    "off_coco_sole": 320,
+    "precision_lower": 0.0019609785266548126,
+    "verdict": "neither"
+   },
+   "shirt": {
+    "vg_images": 23228,
+    "sole": 10955,
+    "sole_present": 32,
+    "boxes": 16135,
+    "boxes_on_class": 3,
+    "off_coco_sole": 11668,
+    "precision_lower": 0.0020699434082313223,
+    "verdict": "neither"
+   },
+   "sidewalk": {
+    "vg_images": 7004,
+    "sole": 3013,
+    "sole_present": 11,
+    "boxes": 3419,
+    "boxes_on_class": 5,
+    "off_coco_sole": 3766,
+    "precision_lower": 0.0020398029819998203,
+    "verdict": "neither"
+   },
+   "statue": {
+    "vg_images": 919,
+    "sole": 397,
+    "sole_present": 3,
+    "boxes": 524,
+    "boxes_on_class": 4,
+    "off_coco_sole": 498,
+    "precision_lower": 0.0025731660484106782,
+    "verdict": "neither"
+   },
+   "stuffed dog": {
+    "vg_images": 10,
+    "sole": 4,
+    "sole_present": 1,
+    "boxes": 8,
+    "boxes_on_class": 0,
+    "off_coco_sole": 5,
+    "precision_lower": 0.045586062644636216,
+    "verdict": "unmeasured"
+   },
+   "this": {
+    "vg_images": 465,
+    "sole": 225,
+    "sole_present": 3,
+    "boxes": 498,
+    "boxes_on_class": 3,
+    "off_coco_sole": 234,
+    "precision_lower": 0.0045446282494091975,
+    "verdict": "neither"
+   },
+   "two dogs": {
+    "vg_images": 14,
+    "sole": 0,
+    "sole_present": 0,
+    "boxes": 6,
+    "boxes_on_class": 2,
+    "off_coco_sole": 1,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "vest": {
+    "vg_images": 1368,
+    "sole": 650,
+    "sole_present": 3,
+    "boxes": 768,
+    "boxes_on_class": 3,
+    "off_coco_sole": 654,
+    "precision_lower": 0.0015708341053754507,
+    "verdict": "neither"
+   },
+   "wall": {
+    "vg_images": 24106,
+    "sole": 10874,
+    "sole_present": 53,
+    "boxes": 13902,
+    "boxes_on_class": 4,
+    "off_coco_sole": 12581,
+    "precision_lower": 0.0037284590127729775,
+    "verdict": "neither"
+   },
+   "white dog": {
+    "vg_images": 16,
+    "sole": 1,
+    "sole_present": 1,
+    "boxes": 4,
+    "boxes_on_class": 4,
+    "off_coco_sole": 5,
+    "precision_lower": 0.20654329147389294,
+    "verdict": "unmeasured"
+   },
+   "window": {
+    "vg_images": 19385,
+    "sole": 8495,
+    "sole_present": 34,
+    "boxes": 20317,
+    "boxes_on_class": 10,
+    "off_coco_sole": 10409,
+    "precision_lower": 0.0028656166125181548,
+    "verdict": "neither"
+   }
+  },
+  "backpack": {
+   "back": {
+    "vg_images": 3295,
+    "sole": 1573,
+    "sole_present": 61,
+    "boxes": 1776,
+    "boxes_on_class": 29,
+    "off_coco_sole": 1560,
+    "precision_lower": 0.030307451195629078,
+    "verdict": "neither"
+   },
+   "back pack": {
+    "vg_images": 127,
+    "sole": 60,
+    "sole_present": 52,
+    "boxes": 76,
+    "boxes_on_class": 58,
+    "off_coco_sole": 45,
+    "precision_lower": 0.758346054099279,
+    "verdict": "alias"
+   },
+   "backpacks": {
+    "vg_images": 18,
+    "sole": 5,
+    "sole_present": 3,
+    "boxes": 10,
+    "boxes_on_class": 6,
+    "off_coco_sole": 3,
+    "precision_lower": 0.23071993220883702,
+    "verdict": "neither"
+   },
+   "bag": {
+    "vg_images": 5635,
+    "sole": 2500,
+    "sole_present": 519,
+    "boxes": 3334,
+    "boxes_on_class": 350,
+    "off_coco_sole": 2799,
+    "precision_lower": 0.19215541338808012,
+    "verdict": "neither"
+   },
+   "baggage": {
+    "vg_images": 27,
+    "sole": 14,
+    "sole_present": 6,
+    "boxes": 19,
+    "boxes_on_class": 4,
+    "off_coco_sole": 11,
+    "precision_lower": 0.21380509930400526,
+    "verdict": "neither"
+   },
+   "bags": {
+    "vg_images": 435,
+    "sole": 194,
+    "sole_present": 50,
+    "boxes": 242,
+    "boxes_on_class": 15,
+    "off_coco_sole": 203,
+    "precision_lower": 0.2013066079912558,
+    "verdict": "neither"
+   },
+   "black backpack": {
+    "vg_images": 29,
+    "sole": 7,
+    "sole_present": 5,
+    "boxes": 14,
+    "boxes_on_class": 11,
+    "off_coco_sole": 13,
+    "precision_lower": 0.35892909014821267,
+    "verdict": "ambiguous"
+   },
+   "black bag": {
+    "vg_images": 100,
+    "sole": 42,
+    "sole_present": 20,
+    "boxes": 50,
+    "boxes_on_class": 8,
+    "off_coco_sole": 48,
+    "precision_lower": 0.33359364475964953,
+    "verdict": "ambiguous"
+   },
+   "blouse": {
+    "vg_images": 363,
+    "sole": 169,
+    "sole_present": 10,
+    "boxes": 184,
+    "boxes_on_class": 3,
+    "off_coco_sole": 182,
+    "precision_lower": 0.03245464956703631,
+    "verdict": "neither"
+   },
+   "book bag": {
+    "vg_images": 13,
+    "sole": 6,
+    "sole_present": 3,
+    "boxes": 7,
+    "boxes_on_class": 3,
+    "off_coco_sole": 6,
+    "precision_lower": 0.1876128068994087,
+    "verdict": "neither"
+   },
+   "bookbag": {
+    "vg_images": 23,
+    "sole": 13,
+    "sole_present": 11,
+    "boxes": 16,
+    "boxes_on_class": 14,
+    "off_coco_sole": 6,
+    "precision_lower": 0.5776482949136899,
+    "verdict": "ambiguous"
+   },
+   "case": {
+    "vg_images": 684,
+    "sole": 310,
+    "sole_present": 19,
+    "boxes": 371,
+    "boxes_on_class": 3,
+    "off_coco_sole": 351,
+    "precision_lower": 0.039584850735690826,
+    "verdict": "neither"
+   },
+   "chair": {
+    "vg_images": 6844,
+    "sole": 3067,
+    "sole_present": 127,
+    "boxes": 4629,
+    "boxes_on_class": 5,
+    "off_coco_sole": 3639,
+    "precision_lower": 0.034912168597681426,
+    "verdict": "neither"
+   },
+   "clothes": {
+    "vg_images": 1053,
+    "sole": 473,
+    "sole_present": 52,
+    "boxes": 589,
+    "boxes_on_class": 3,
+    "off_coco_sole": 533,
+    "precision_lower": 0.08482675576732106,
+    "verdict": "neither"
+   },
+   "coat": {
+    "vg_images": 3453,
+    "sole": 1548,
+    "sole_present": 171,
+    "boxes": 2036,
+    "boxes_on_class": 11,
+    "off_coco_sole": 1627,
+    "precision_lower": 0.0958031573894849,
+    "verdict": "neither"
+   },
+   "duffel bag": {
+    "vg_images": 25,
+    "sole": 13,
+    "sole_present": 7,
+    "boxes": 18,
+    "boxes_on_class": 4,
+    "off_coco_sole": 4,
+    "precision_lower": 0.29143432431832045,
+    "verdict": "neither"
+   },
+   "duffle bag": {
+    "vg_images": 26,
+    "sole": 13,
+    "sole_present": 8,
+    "boxes": 17,
+    "boxes_on_class": 4,
+    "off_coco_sole": 9,
+    "precision_lower": 0.3552248097226855,
+    "verdict": "ambiguous"
+   },
+   "floor": {
+    "vg_images": 10037,
+    "sole": 4640,
+    "sole_present": 159,
+    "boxes": 5088,
+    "boxes_on_class": 3,
+    "off_coco_sole": 5158,
+    "precision_lower": 0.02940613810686625,
+    "verdict": "neither"
+   },
+   "handbag": {
+    "vg_images": 207,
+    "sole": 88,
+    "sole_present": 14,
+    "boxes": 104,
+    "boxes_on_class": 5,
+    "off_coco_sole": 103,
+    "precision_lower": 0.09719813761632919,
+    "verdict": "neither"
+   },
+   "hoodie": {
+    "vg_images": 683,
+    "sole": 315,
+    "sole_present": 29,
+    "boxes": 363,
+    "boxes_on_class": 4,
+    "off_coco_sole": 309,
+    "precision_lower": 0.06486508724619079,
+    "verdict": "neither"
+   },
+   "item": {
+    "vg_images": 492,
+    "sole": 221,
+    "sole_present": 8,
+    "boxes": 340,
+    "boxes_on_class": 3,
+    "off_coco_sole": 262,
+    "precision_lower": 0.0184544943883985,
+    "verdict": "neither"
+   },
+   "jacket": {
+    "vg_images": 7678,
+    "sole": 3468,
+    "sole_present": 341,
+    "boxes": 4747,
+    "boxes_on_class": 32,
+    "off_coco_sole": 3656,
+    "precision_lower": 0.08885742293887791,
+    "verdict": "neither"
+   },
+   "luggage": {
+    "vg_images": 719,
+    "sole": 315,
+    "sole_present": 78,
+    "boxes": 609,
+    "boxes_on_class": 27,
+    "off_coco_sole": 300,
+    "precision_lower": 0.2031841021278243,
+    "verdict": "neither"
+   },
+   "man": {
+    "vg_images": 29079,
+    "sole": 13440,
+    "sole_present": 946,
+    "boxes": 21907,
+    "boxes_on_class": 6,
+    "off_coco_sole": 14320,
+    "precision_lower": 0.06618386793315555,
+    "verdict": "neither"
+   },
+   "man's back": {
+    "vg_images": 15,
+    "sole": 6,
+    "sole_present": 2,
+    "boxes": 8,
+    "boxes_on_class": 3,
+    "off_coco_sole": 4,
+    "precision_lower": 0.09676933255921684,
+    "verdict": "neither"
+   },
+   "pack": {
+    "vg_images": 133,
+    "sole": 52,
+    "sole_present": 20,
+    "boxes": 68,
+    "boxes_on_class": 18,
+    "off_coco_sole": 67,
+    "precision_lower": 0.26470271334885215,
+    "verdict": "neither"
+   },
+   "person": {
+    "vg_images": 15899,
+    "sole": 7278,
+    "sole_present": 570,
+    "boxes": 14650,
+    "boxes_on_class": 9,
+    "off_coco_sole": 7866,
+    "precision_lower": 0.07236564695061769,
+    "verdict": "neither"
+   },
+   "purse": {
+    "vg_images": 1071,
+    "sole": 474,
+    "sole_present": 54,
+    "boxes": 542,
+    "boxes_on_class": 7,
+    "off_coco_sole": 526,
+    "precision_lower": 0.08837161952457315,
+    "verdict": "neither"
+   },
+   "red bag": {
+    "vg_images": 20,
+    "sole": 9,
+    "sole_present": 3,
+    "boxes": 10,
+    "boxes_on_class": 3,
+    "off_coco_sole": 9,
+    "precision_lower": 0.12058159868274292,
+    "verdict": "neither"
+   },
+   "shirt": {
+    "vg_images": 23228,
+    "sole": 10823,
+    "sole_present": 619,
+    "boxes": 16135,
+    "boxes_on_class": 80,
+    "off_coco_sole": 11548,
+    "precision_lower": 0.052973217958128455,
+    "verdict": "neither"
+   },
+   "shoulder bag": {
+    "vg_images": 60,
+    "sole": 25,
+    "sole_present": 7,
+    "boxes": 29,
+    "boxes_on_class": 3,
+    "off_coco_sole": 27,
+    "precision_lower": 0.14283673837381572,
+    "verdict": "neither"
+   },
+   "strap": {
+    "vg_images": 1723,
+    "sole": 782,
+    "sole_present": 79,
+    "boxes": 997,
+    "boxes_on_class": 8,
+    "off_coco_sole": 797,
+    "precision_lower": 0.08181293390455169,
+    "verdict": "neither"
+   },
+   "straps": {
+    "vg_images": 381,
+    "sole": 178,
+    "sole_present": 20,
+    "boxes": 227,
+    "boxes_on_class": 5,
+    "off_coco_sole": 149,
+    "precision_lower": 0.07392192832223898,
+    "verdict": "neither"
+   },
+   "suitcase": {
+    "vg_images": 818,
+    "sole": 349,
+    "sole_present": 63,
+    "boxes": 594,
+    "boxes_on_class": 9,
+    "off_coco_sole": 357,
+    "precision_lower": 0.14371141630499693,
+    "verdict": "neither"
+   },
+   "sweater": {
+    "vg_images": 1849,
+    "sole": 863,
+    "sole_present": 52,
+    "boxes": 973,
+    "boxes_on_class": 4,
+    "off_coco_sole": 895,
+    "precision_lower": 0.046243148068546666,
+    "verdict": "neither"
+   },
+   "vest": {
+    "vg_images": 1368,
+    "sole": 652,
+    "sole_present": 46,
+    "boxes": 768,
+    "boxes_on_class": 5,
+    "off_coco_sole": 653,
+    "precision_lower": 0.05330830661555481,
+    "verdict": "neither"
+   },
+   "woman": {
+    "vg_images": 12169,
+    "sole": 5453,
+    "sole_present": 422,
+    "boxes": 7654,
+    "boxes_on_class": 4,
+    "off_coco_sole": 6116,
+    "precision_lower": 0.07059008222959058,
+    "verdict": "neither"
+   }
+  },
+  "knife": {
+   "blade": {
+    "vg_images": 416,
+    "sole": 121,
+    "sole_present": 16,
+    "boxes": 293,
+    "boxes_on_class": 33,
+    "off_coco_sole": 116,
+    "precision_lower": 0.08305846637525202,
+    "verdict": "neither"
+   },
+   "board": {
+    "vg_images": 3583,
+    "sole": 1692,
+    "sole_present": 31,
+    "boxes": 2069,
+    "boxes_on_class": 4,
+    "off_coco_sole": 1746,
+    "precision_lower": 0.012937013501014442,
+    "verdict": "neither"
+   },
+   "butter knife": {
+    "vg_images": 87,
+    "sole": 23,
+    "sole_present": 23,
+    "boxes": 32,
+    "boxes_on_class": 32,
+    "off_coco_sole": 44,
+    "precision_lower": 0.8568788745827373,
+    "verdict": "alias"
+   },
+   "butterknife": {
+    "vg_images": 15,
+    "sole": 6,
+    "sole_present": 6,
+    "boxes": 8,
+    "boxes_on_class": 8,
+    "off_coco_sole": 3,
+    "precision_lower": 0.6096569663469354,
+    "verdict": "ambiguous"
+   },
+   "cake server": {
+    "vg_images": 18,
+    "sole": 4,
+    "sole_present": 3,
+    "boxes": 8,
+    "boxes_on_class": 4,
+    "off_coco_sole": 8,
+    "precision_lower": 0.30063605244263664,
+    "verdict": "unmeasured"
+   },
+   "cutlery": {
+    "vg_images": 20,
+    "sole": 8,
+    "sole_present": 2,
+    "boxes": 17,
+    "boxes_on_class": 5,
+    "off_coco_sole": 5,
+    "precision_lower": 0.07147768885802765,
+    "verdict": "neither"
+   },
+   "cutter": {
+    "vg_images": 40,
+    "sole": 14,
+    "sole_present": 5,
+    "boxes": 19,
+    "boxes_on_class": 3,
+    "off_coco_sole": 21,
+    "precision_lower": 0.16344490737202735,
+    "verdict": "neither"
+   },
+   "edge": {
+    "vg_images": 3573,
+    "sole": 1699,
+    "sole_present": 24,
+    "boxes": 2303,
+    "boxes_on_class": 6,
+    "off_coco_sole": 1741,
+    "precision_lower": 0.009510745581753232,
+    "verdict": "neither"
+   },
+   "fork": {
+    "vg_images": 1964,
+    "sole": 584,
+    "sole_present": 149,
+    "boxes": 1068,
+    "boxes_on_class": 64,
+    "off_coco_sole": 666,
+    "precision_lower": 0.22145966606140913,
+    "verdict": "neither"
+   },
+   "handle": {
+    "vg_images": 7395,
+    "sole": 3270,
+    "sole_present": 139,
+    "boxes": 4702,
+    "boxes_on_class": 70,
+    "off_coco_sole": 3564,
+    "precision_lower": 0.036112856405348386,
+    "verdict": "neither"
+   },
+   "handles": {
+    "vg_images": 751,
+    "sole": 348,
+    "sole_present": 29,
+    "boxes": 416,
+    "boxes_on_class": 7,
+    "off_coco_sole": 375,
+    "precision_lower": 0.058646571944906356,
+    "verdict": "neither"
+   },
+   "knife blade": {
+    "vg_images": 20,
+    "sole": 4,
+    "sole_present": 4,
+    "boxes": 12,
+    "boxes_on_class": 6,
+    "off_coco_sole": 3,
+    "precision_lower": 0.5100999795960008,
+    "verdict": "unmeasured"
+   },
+   "knife block": {
+    "vg_images": 57,
+    "sole": 19,
+    "sole_present": 15,
+    "boxes": 28,
+    "boxes_on_class": 2,
+    "off_coco_sole": 22,
+    "precision_lower": 0.5666528575973391,
+    "verdict": "context"
+   },
+   "knives": {
+    "vg_images": 149,
+    "sole": 60,
+    "sole_present": 55,
+    "boxes": 91,
+    "boxes_on_class": 38,
+    "off_coco_sole": 57,
+    "precision_lower": 0.8193083153188752,
+    "verdict": "ambiguous"
+   },
+   "napkin": {
+    "vg_images": 1703,
+    "sole": 596,
+    "sole_present": 111,
+    "boxes": 927,
+    "boxes_on_class": 33,
+    "off_coco_sole": 660,
+    "precision_lower": 0.15703157498376766,
+    "verdict": "neither"
+   },
+   "paper": {
+    "vg_images": 3147,
+    "sole": 1438,
+    "sole_present": 39,
+    "boxes": 1861,
+    "boxes_on_class": 3,
+    "off_coco_sole": 1604,
+    "precision_lower": 0.019902245373079164,
+    "verdict": "neither"
+   },
+   "plate": {
+    "vg_images": 6930,
+    "sole": 2792,
+    "sole_present": 351,
+    "boxes": 4677,
+    "boxes_on_class": 12,
+    "off_coco_sole": 3098,
+    "precision_lower": 0.1139307077441529,
+    "verdict": "neither"
+   },
+   "server": {
+    "vg_images": 32,
+    "sole": 17,
+    "sole_present": 4,
+    "boxes": 22,
+    "boxes_on_class": 3,
+    "off_coco_sole": 9,
+    "precision_lower": 0.09554889071675943,
+    "verdict": "neither"
+   },
+   "silver knife": {
+    "vg_images": 12,
+    "sole": 4,
+    "sole_present": 3,
+    "boxes": 7,
+    "boxes_on_class": 5,
+    "off_coco_sole": 2,
+    "precision_lower": 0.30063605244263664,
+    "verdict": "unmeasured"
+   },
+   "silverware": {
+    "vg_images": 272,
+    "sole": 94,
+    "sole_present": 53,
+    "boxes": 153,
+    "boxes_on_class": 38,
+    "off_coco_sole": 95,
+    "precision_lower": 0.46302723174527716,
+    "verdict": "ambiguous"
+   },
+   "spatula": {
+    "vg_images": 197,
+    "sole": 85,
+    "sole_present": 26,
+    "boxes": 111,
+    "boxes_on_class": 14,
+    "off_coco_sole": 82,
+    "precision_lower": 0.21809243965848635,
+    "verdict": "neither"
+   },
+   "spoon": {
+    "vg_images": 1295,
+    "sole": 491,
+    "sole_present": 73,
+    "boxes": 733,
+    "boxes_on_class": 10,
+    "off_coco_sole": 536,
+    "precision_lower": 0.11993852558718743,
+    "verdict": "neither"
+   },
+   "sword": {
+    "vg_images": 51,
+    "sole": 29,
+    "sole_present": 2,
+    "boxes": 33,
+    "boxes_on_class": 3,
+    "off_coco_sole": 20,
+    "precision_lower": 0.019120864097994437,
+    "verdict": "neither"
+   },
+   "table": {
+    "vg_images": 13027,
+    "sole": 5555,
+    "sole_present": 448,
+    "boxes": 7155,
+    "boxes_on_class": 6,
+    "off_coco_sole": 6219,
+    "precision_lower": 0.07377383961712175,
+    "verdict": "neither"
+   },
+   "tip": {
+    "vg_images": 1193,
+    "sole": 563,
+    "sole_present": 7,
+    "boxes": 680,
+    "boxes_on_class": 3,
+    "off_coco_sole": 583,
+    "precision_lower": 0.006035432492342811,
+    "verdict": "neither"
+   },
+   "tongs": {
+    "vg_images": 123,
+    "sole": 56,
+    "sole_present": 15,
+    "boxes": 68,
+    "boxes_on_class": 3,
+    "off_coco_sole": 53,
+    "precision_lower": 0.16957158661894964,
+    "verdict": "neither"
+   },
+   "utensil": {
+    "vg_images": 395,
+    "sole": 164,
+    "sole_present": 44,
+    "boxes": 256,
+    "boxes_on_class": 29,
+    "off_coco_sole": 160,
+    "precision_lower": 0.20635502139999862,
+    "verdict": "neither"
+   },
+   "utensils": {
+    "vg_images": 318,
+    "sole": 123,
+    "sole_present": 44,
+    "boxes": 172,
+    "boxes_on_class": 17,
+    "off_coco_sole": 130,
+    "precision_lower": 0.278503383040199,
+    "verdict": "neither"
+   }
+  },
+  "book": {
+   "bed": {
+    "vg_images": 2680,
+    "sole": 1190,
+    "sole_present": 130,
+    "boxes": 1404,
+    "boxes_on_class": 3,
+    "off_coco_sole": 1234,
+    "precision_lower": 0.09276107488635682,
+    "verdict": "neither"
+   },
+   "binder": {
+    "vg_images": 99,
+    "sole": 33,
+    "sole_present": 25,
+    "boxes": 61,
+    "boxes_on_class": 26,
+    "off_coco_sole": 35,
+    "precision_lower": 0.5897505131450972,
+    "verdict": "ambiguous"
+   },
+   "binding": {
+    "vg_images": 45,
+    "sole": 18,
+    "sole_present": 1,
+    "boxes": 32,
+    "boxes_on_class": 3,
+    "off_coco_sole": 19,
+    "precision_lower": 0.009874935830924522,
+    "verdict": "neither"
+   },
+   "black book": {
+    "vg_images": 10,
+    "sole": 2,
+    "sole_present": 2,
+    "boxes": 5,
+    "boxes_on_class": 2,
+    "off_coco_sole": 4,
+    "precision_lower": 0.3423719528896193,
+    "verdict": "unmeasured"
+   },
+   "book case": {
+    "vg_images": 29,
+    "sole": 7,
+    "sole_present": 5,
+    "boxes": 15,
+    "boxes_on_class": 3,
+    "off_coco_sole": 7,
+    "precision_lower": 0.35892909014821267,
+    "verdict": "ambiguous"
+   },
+   "book cover": {
+    "vg_images": 20,
+    "sole": 2,
+    "sole_present": 0,
+    "boxes": 9,
+    "boxes_on_class": 7,
+    "off_coco_sole": 3,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "book shelf": {
+    "vg_images": 85,
+    "sole": 24,
+    "sole_present": 19,
+    "boxes": 44,
+    "boxes_on_class": 11,
+    "off_coco_sole": 25,
+    "precision_lower": 0.5952915551476453,
+    "verdict": "ambiguous"
+   },
+   "bookcase": {
+    "vg_images": 226,
+    "sole": 71,
+    "sole_present": 54,
+    "boxes": 108,
+    "boxes_on_class": 17,
+    "off_coco_sole": 74,
+    "precision_lower": 0.6495855917759034,
+    "verdict": "ambiguous"
+   },
+   "booklet": {
+    "vg_images": 36,
+    "sole": 12,
+    "sole_present": 4,
+    "boxes": 16,
+    "boxes_on_class": 5,
+    "off_coco_sole": 19,
+    "precision_lower": 0.13811783989736134,
+    "verdict": "neither"
+   },
+   "books": {
+    "vg_images": 1073,
+    "sole": 340,
+    "sole_present": 304,
+    "boxes": 738,
+    "boxes_on_class": 254,
+    "off_coco_sole": 404,
+    "precision_lower": 0.8568949455182594,
+    "verdict": "ambiguous"
+   },
+   "bookshelf": {
+    "vg_images": 304,
+    "sole": 82,
+    "sole_present": 66,
+    "boxes": 147,
+    "boxes_on_class": 23,
+    "off_coco_sole": 99,
+    "precision_lower": 0.7062960982698093,
+    "verdict": "ambiguous"
+   },
+   "box": {
+    "vg_images": 3800,
+    "sole": 1708,
+    "sole_present": 114,
+    "boxes": 2287,
+    "boxes_on_class": 18,
+    "off_coco_sole": 1918,
+    "precision_lower": 0.05585395775963744,
+    "verdict": "neither"
+   },
+   "brochure": {
+    "vg_images": 33,
+    "sole": 12,
+    "sole_present": 5,
+    "boxes": 18,
+    "boxes_on_class": 3,
+    "off_coco_sole": 17,
+    "precision_lower": 0.19325746190524656,
+    "verdict": "neither"
+   },
+   "calendar": {
+    "vg_images": 136,
+    "sole": 57,
+    "sole_present": 15,
+    "boxes": 63,
+    "boxes_on_class": 2,
+    "off_coco_sole": 69,
+    "precision_lower": 0.16645642421847712,
+    "verdict": "neither"
+   },
+   "card": {
+    "vg_images": 257,
+    "sole": 105,
+    "sole_present": 13,
+    "boxes": 141,
+    "boxes_on_class": 5,
+    "off_coco_sole": 131,
+    "precision_lower": 0.07380094170864485,
+    "verdict": "neither"
+   },
+   "cards": {
+    "vg_images": 60,
+    "sole": 28,
+    "sole_present": 5,
+    "boxes": 38,
+    "boxes_on_class": 3,
+    "off_coco_sole": 23,
+    "precision_lower": 0.07878385829430107,
+    "verdict": "neither"
+   },
+   "cd": {
+    "vg_images": 109,
+    "sole": 41,
+    "sole_present": 9,
+    "boxes": 69,
+    "boxes_on_class": 4,
+    "off_coco_sole": 49,
+    "precision_lower": 0.12003040155386345,
+    "verdict": "neither"
+   },
+   "cds": {
+    "vg_images": 75,
+    "sole": 29,
+    "sole_present": 14,
+    "boxes": 38,
+    "boxes_on_class": 3,
+    "off_coco_sole": 34,
+    "precision_lower": 0.3138581933079522,
+    "verdict": "neither"
+   },
+   "chair": {
+    "vg_images": 6844,
+    "sole": 2953,
+    "sole_present": 350,
+    "boxes": 4629,
+    "boxes_on_class": 3,
+    "off_coco_sole": 3471,
+    "precision_lower": 0.10735798376773095,
+    "verdict": "neither"
+   },
+   "cover": {
+    "vg_images": 1222,
+    "sole": 547,
+    "sole_present": 22,
+    "boxes": 644,
+    "boxes_on_class": 40,
+    "off_coco_sole": 559,
+    "precision_lower": 0.026707874883807072,
+    "verdict": "neither"
+   },
+   "desk": {
+    "vg_images": 2097,
+    "sole": 820,
+    "sole_present": 231,
+    "boxes": 1048,
+    "boxes_on_class": 7,
+    "off_coco_sole": 985,
+    "precision_lower": 0.2519909941930798,
+    "verdict": "neither"
+   },
+   "documents": {
+    "vg_images": 18,
+    "sole": 9,
+    "sole_present": 5,
+    "boxes": 9,
+    "boxes_on_class": 3,
+    "off_coco_sole": 6,
+    "precision_lower": 0.26664734574402965,
+    "verdict": "neither"
+   },
+   "dvd": {
+    "vg_images": 58,
+    "sole": 27,
+    "sole_present": 16,
+    "boxes": 39,
+    "boxes_on_class": 3,
+    "off_coco_sole": 24,
+    "precision_lower": 0.4072638305536409,
+    "verdict": "context"
+   },
+   "dvds": {
+    "vg_images": 58,
+    "sole": 25,
+    "sole_present": 21,
+    "boxes": 40,
+    "boxes_on_class": 5,
+    "off_coco_sole": 23,
+    "precision_lower": 0.6534598601976184,
+    "verdict": "ambiguous"
+   },
+   "edge": {
+    "vg_images": 3573,
+    "sole": 1714,
+    "sole_present": 38,
+    "boxes": 2303,
+    "boxes_on_class": 5,
+    "off_coco_sole": 1773,
+    "precision_lower": 0.016194633728340145,
+    "verdict": "neither"
+   },
+   "floor": {
+    "vg_images": 10037,
+    "sole": 4540,
+    "sole_present": 387,
+    "boxes": 5088,
+    "boxes_on_class": 3,
+    "off_coco_sole": 5024,
+    "precision_lower": 0.07746595872569112,
+    "verdict": "neither"
+   },
+   "folder": {
+    "vg_images": 97,
+    "sole": 30,
+    "sole_present": 14,
+    "boxes": 45,
+    "boxes_on_class": 8,
+    "off_coco_sole": 46,
+    "precision_lower": 0.3023212722412823,
+    "verdict": "neither"
+   },
+   "folders": {
+    "vg_images": 29,
+    "sole": 11,
+    "sole_present": 5,
+    "boxes": 17,
+    "boxes_on_class": 3,
+    "off_coco_sole": 13,
+    "precision_lower": 0.21270957543988048,
+    "verdict": "neither"
+   },
+   "frame": {
+    "vg_images": 2898,
+    "sole": 1294,
+    "sole_present": 126,
+    "boxes": 1604,
+    "boxes_on_class": 4,
+    "off_coco_sole": 1440,
+    "precision_lower": 0.08239091430107873,
+    "verdict": "neither"
+   },
+   "games": {
+    "vg_images": 48,
+    "sole": 21,
+    "sole_present": 12,
+    "boxes": 25,
+    "boxes_on_class": 3,
+    "off_coco_sole": 22,
+    "precision_lower": 0.3654621629703245,
+    "verdict": "ambiguous"
+   },
+   "item": {
+    "vg_images": 492,
+    "sole": 215,
+    "sole_present": 13,
+    "boxes": 340,
+    "boxes_on_class": 3,
+    "off_coco_sole": 253,
+    "precision_lower": 0.035672776662234965,
+    "verdict": "neither"
+   },
+   "laptop": {
+    "vg_images": 1817,
+    "sole": 762,
+    "sole_present": 182,
+    "boxes": 1017,
+    "boxes_on_class": 3,
+    "off_coco_sole": 851,
+    "precision_lower": 0.2099285259039559,
+    "verdict": "neither"
+   },
+   "letters": {
+    "vg_images": 3490,
+    "sole": 1600,
+    "sole_present": 25,
+    "boxes": 2052,
+    "boxes_on_class": 5,
+    "off_coco_sole": 1837,
+    "precision_lower": 0.010605631660914976,
+    "verdict": "neither"
+   },
+   "library": {
+    "vg_images": 23,
+    "sole": 6,
+    "sole_present": 5,
+    "boxes": 9,
+    "boxes_on_class": 3,
+    "off_coco_sole": 8,
+    "precision_lower": 0.4364905634363539,
+    "verdict": "ambiguous"
+   },
+   "magazine": {
+    "vg_images": 269,
+    "sole": 111,
+    "sole_present": 65,
+    "boxes": 152,
+    "boxes_on_class": 78,
+    "off_coco_sole": 111,
+    "precision_lower": 0.49257834953891355,
+    "verdict": "alias"
+   },
+   "magazines": {
+    "vg_images": 149,
+    "sole": 54,
+    "sole_present": 41,
+    "boxes": 64,
+    "boxes_on_class": 26,
+    "off_coco_sole": 76,
+    "precision_lower": 0.6305222087076175,
+    "verdict": "ambiguous"
+   },
+   "man": {
+    "vg_images": 29079,
+    "sole": 13899,
+    "sole_present": 276,
+    "boxes": 21907,
+    "boxes_on_class": 4,
+    "off_coco_sole": 14802,
+    "precision_lower": 0.017667365388989893,
+    "verdict": "neither"
+   },
+   "menu": {
+    "vg_images": 311,
+    "sole": 145,
+    "sole_present": 6,
+    "boxes": 172,
+    "boxes_on_class": 5,
+    "off_coco_sole": 157,
+    "precision_lower": 0.01910002030012347,
+    "verdict": "neither"
+   },
+   "movies": {
+    "vg_images": 29,
+    "sole": 10,
+    "sole_present": 5,
+    "boxes": 12,
+    "boxes_on_class": 3,
+    "off_coco_sole": 16,
+    "precision_lower": 0.2365895936154873,
+    "verdict": "neither"
+   },
+   "newspaper": {
+    "vg_images": 301,
+    "sole": 141,
+    "sole_present": 24,
+    "boxes": 164,
+    "boxes_on_class": 16,
+    "off_coco_sole": 143,
+    "precision_lower": 0.1171325106118973,
+    "verdict": "neither"
+   },
+   "notebook": {
+    "vg_images": 198,
+    "sole": 72,
+    "sole_present": 44,
+    "boxes": 96,
+    "boxes_on_class": 42,
+    "off_coco_sole": 86,
+    "precision_lower": 0.49562143207526055,
+    "verdict": "ambiguous"
+   },
+   "notepad": {
+    "vg_images": 67,
+    "sole": 26,
+    "sole_present": 13,
+    "boxes": 30,
+    "boxes_on_class": 10,
+    "off_coco_sole": 29,
+    "precision_lower": 0.3206030631500208,
+    "verdict": "neither"
+   },
+   "page": {
+    "vg_images": 64,
+    "sole": 17,
+    "sole_present": 5,
+    "boxes": 41,
+    "boxes_on_class": 11,
+    "off_coco_sole": 11,
+    "precision_lower": 0.13279793865556405,
+    "verdict": "neither"
+   },
+   "pages": {
+    "vg_images": 37,
+    "sole": 3,
+    "sole_present": 1,
+    "boxes": 21,
+    "boxes_on_class": 3,
+    "off_coco_sole": 8,
+    "precision_lower": 0.061490315276160515,
+    "verdict": "unmeasured"
+   },
+   "pamphlet": {
+    "vg_images": 41,
+    "sole": 15,
+    "sole_present": 4,
+    "boxes": 16,
+    "boxes_on_class": 4,
+    "off_coco_sole": 23,
+    "precision_lower": 0.10897276103182811,
+    "verdict": "neither"
+   },
+   "pamphlets": {
+    "vg_images": 15,
+    "sole": 8,
+    "sole_present": 2,
+    "boxes": 11,
+    "boxes_on_class": 3,
+    "off_coco_sole": 6,
+    "precision_lower": 0.07147768885802765,
+    "verdict": "neither"
+   },
+   "paper": {
+    "vg_images": 3147,
+    "sole": 1399,
+    "sole_present": 128,
+    "boxes": 1861,
+    "boxes_on_class": 46,
+    "off_coco_sole": 1545,
+    "precision_lower": 0.07748386899197056,
+    "verdict": "neither"
+   },
+   "papers": {
+    "vg_images": 589,
+    "sole": 221,
+    "sole_present": 70,
+    "boxes": 279,
+    "boxes_on_class": 21,
+    "off_coco_sole": 284,
+    "precision_lower": 0.25898431799451377,
+    "verdict": "neither"
+   },
+   "picture": {
+    "vg_images": 4251,
+    "sole": 1927,
+    "sole_present": 170,
+    "boxes": 2596,
+    "boxes_on_class": 4,
+    "off_coco_sole": 2089,
+    "precision_lower": 0.07636219954927231,
+    "verdict": "neither"
+   },
+   "pile": {
+    "vg_images": 610,
+    "sole": 296,
+    "sole_present": 7,
+    "boxes": 335,
+    "boxes_on_class": 3,
+    "off_coco_sole": 296,
+    "precision_lower": 0.011501479436913192,
+    "verdict": "neither"
+   },
+   "room": {
+    "vg_images": 2133,
+    "sole": 938,
+    "sole_present": 156,
+    "boxes": 998,
+    "boxes_on_class": 5,
+    "off_coco_sole": 1048,
+    "precision_lower": 0.14385244680438788,
+    "verdict": "neither"
+   },
+   "sheet": {
+    "vg_images": 651,
+    "sole": 283,
+    "sole_present": 27,
+    "boxes": 337,
+    "boxes_on_class": 3,
+    "off_coco_sole": 320,
+    "precision_lower": 0.06639810791831764,
+    "verdict": "neither"
+   },
+   "shelf": {
+    "vg_images": 3145,
+    "sole": 1312,
+    "sole_present": 263,
+    "boxes": 2057,
+    "boxes_on_class": 21,
+    "off_coco_sole": 1481,
+    "precision_lower": 0.17968269111233542,
+    "verdict": "neither"
+   },
+   "shelves": {
+    "vg_images": 429,
+    "sole": 191,
+    "sole_present": 37,
+    "boxes": 233,
+    "boxes_on_class": 5,
+    "off_coco_sole": 200,
+    "precision_lower": 0.14393487941975228,
+    "verdict": "neither"
+   },
+   "side": {
+    "vg_images": 2015,
+    "sole": 975,
+    "sole_present": 9,
+    "boxes": 1108,
+    "boxes_on_class": 3,
+    "off_coco_sole": 1018,
+    "precision_lower": 0.004863780899108845,
+    "verdict": "neither"
+   },
+   "sign": {
+    "vg_images": 15042,
+    "sole": 6911,
+    "sole_present": 54,
+    "boxes": 11463,
+    "boxes_on_class": 7,
+    "off_coco_sole": 8027,
+    "precision_lower": 0.005993798656245745,
+    "verdict": "neither"
+   },
+   "spine": {
+    "vg_images": 69,
+    "sole": 14,
+    "sole_present": 0,
+    "boxes": 39,
+    "boxes_on_class": 10,
+    "off_coco_sole": 24,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "stack": {
+    "vg_images": 352,
+    "sole": 146,
+    "sole_present": 11,
+    "boxes": 202,
+    "boxes_on_class": 11,
+    "off_coco_sole": 158,
+    "precision_lower": 0.0425878798068776,
+    "verdict": "neither"
+   },
+   "surface": {
+    "vg_images": 1375,
+    "sole": 620,
+    "sole_present": 9,
+    "boxes": 674,
+    "boxes_on_class": 3,
+    "off_coco_sole": 725,
+    "precision_lower": 0.007655343586442173,
+    "verdict": "neither"
+   },
+   "table": {
+    "vg_images": 13027,
+    "sole": 5887,
+    "sole_present": 503,
+    "boxes": 7155,
+    "boxes_on_class": 10,
+    "off_coco_sole": 6493,
+    "precision_lower": 0.07856918090740132,
+    "verdict": "neither"
+   },
+   "this": {
+    "vg_images": 465,
+    "sole": 221,
+    "sole_present": 7,
+    "boxes": 498,
+    "boxes_on_class": 4,
+    "off_coco_sole": 234,
+    "precision_lower": 0.015425869270221717,
+    "verdict": "neither"
+   },
+   "title": {
+    "vg_images": 56,
+    "sole": 11,
+    "sole_present": 0,
+    "boxes": 35,
+    "boxes_on_class": 5,
+    "off_coco_sole": 9,
+    "precision_lower": 2.057132194452876e-17,
+    "verdict": "neither"
+   },
+   "wall": {
+    "vg_images": 24106,
+    "sole": 10812,
+    "sole_present": 644,
+    "boxes": 13902,
+    "boxes_on_class": 9,
+    "off_coco_sole": 12474,
+    "precision_lower": 0.055256671563684745,
+    "verdict": "neither"
+   },
+   "wallet": {
+    "vg_images": 110,
+    "sole": 52,
+    "sole_present": 15,
+    "boxes": 64,
+    "boxes_on_class": 3,
+    "off_coco_sole": 38,
+    "precision_lower": 0.18329802341828694,
+    "verdict": "neither"
+   },
+   "white book": {
+    "vg_images": 12,
+    "sole": 4,
+    "sole_present": 3,
+    "boxes": 5,
+    "boxes_on_class": 4,
+    "off_coco_sole": 1,
+    "precision_lower": 0.30063605244263664,
+    "verdict": "unmeasured"
+   }
+  },
+  "bus": {
+   "a": {
+    "vg_images": 668,
+    "sole": 271,
+    "sole_present": 3,
+    "boxes": 748,
+    "boxes_on_class": 4,
+    "off_coco_sole": 371,
+    "precision_lower": 0.0037717758558399755,
+    "verdict": "neither"
+   },
+   "advertisement": {
+    "vg_images": 899,
+    "sole": 317,
+    "sole_present": 8,
+    "boxes": 513,
+    "boxes_on_class": 5,
+    "off_coco_sole": 340,
+    "precision_lower": 0.012841925858624054,
+    "verdict": "neither"
+   },
+   "back": {
+    "vg_images": 3295,
+    "sole": 1570,
+    "sole_present": 20,
+    "boxes": 1776,
+    "boxes_on_class": 26,
+    "off_coco_sole": 1567,
+    "precision_lower": 0.008261395171090367,
+    "verdict": "neither"
+   },
+   "background": {
+    "vg_images": 6529,
+    "sole": 3123,
+    "sole_present": 26,
+    "boxes": 3309,
+    "boxes_on_class": 9,
+    "off_coco_sole": 3154,
+    "precision_lower": 0.005687767878592516,
+    "verdict": "neither"
+   },
+   "blue bus": {
+    "vg_images": 22,
+    "sole": 5,
+    "sole_present": 4,
+    "boxes": 11,
+    "boxes_on_class": 10,
+    "off_coco_sole": 6,
+    "precision_lower": 0.37552826411853885,
+    "verdict": "ambiguous"
+   },
+   "boat": {
+    "vg_images": 2761,
+    "sole": 1257,
+    "sole_present": 14,
+    "boxes": 2614,
+    "boxes_on_class": 3,
+    "off_coco_sole": 1469,
+    "precision_lower": 0.006645870534817743,
+    "verdict": "neither"
+   },
+   "building": {
+    "vg_images": 19154,
+    "sole": 7641,
+    "sole_present": 171,
+    "boxes": 11871,
+    "boxes_on_class": 15,
+    "off_coco_sole": 9689,
+    "precision_lower": 0.019294866923253055,
+    "verdict": "neither"
+   },
+   "bus front": {
+    "vg_images": 25,
+    "sole": 0,
+    "sole_present": 0,
+    "boxes": 10,
+    "boxes_on_class": 7,
+    "off_coco_sole": 1,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "bus stop": {
+    "vg_images": 225,
+    "sole": 31,
+    "sole_present": 3,
+    "boxes": 118,
+    "boxes_on_class": 5,
+    "off_coco_sole": 37,
+    "precision_lower": 0.033464036094643976,
+    "verdict": "neither"
+   },
+   "buses": {
+    "vg_images": 103,
+    "sole": 8,
+    "sole_present": 8,
+    "boxes": 76,
+    "boxes_on_class": 55,
+    "off_coco_sole": 12,
+    "precision_lower": 0.6755843804891231,
+    "verdict": "alias"
+   },
+   "busses": {
+    "vg_images": 24,
+    "sole": 2,
+    "sole_present": 0,
+    "boxes": 12,
+    "boxes_on_class": 7,
+    "off_coco_sole": 3,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "car": {
+    "vg_images": 9204,
+    "sole": 3487,
+    "sole_present": 109,
+    "boxes": 6779,
+    "boxes_on_class": 15,
+    "off_coco_sole": 4477,
+    "precision_lower": 0.025979058772674538,
+    "verdict": "neither"
+   },
+   "cars": {
+    "vg_images": 1824,
+    "sole": 744,
+    "sole_present": 20,
+    "boxes": 1033,
+    "boxes_on_class": 3,
+    "off_coco_sole": 870,
+    "precision_lower": 0.017467944284651257,
+    "verdict": "neither"
+   },
+   "city": {
+    "vg_images": 932,
+    "sole": 356,
+    "sole_present": 13,
+    "boxes": 433,
+    "boxes_on_class": 6,
+    "off_coco_sole": 451,
+    "precision_lower": 0.021462555724189727,
+    "verdict": "neither"
+   },
+   "city bus": {
+    "vg_images": 14,
+    "sole": 3,
+    "sole_present": 3,
+    "boxes": 6,
+    "boxes_on_class": 5,
+    "off_coco_sole": 2,
+    "precision_lower": 0.4384939195509822,
+    "verdict": "unmeasured"
+   },
+   "double decker": {
+    "vg_images": 22,
+    "sole": 6,
+    "sole_present": 3,
+    "boxes": 21,
+    "boxes_on_class": 18,
+    "off_coco_sole": 0,
+    "precision_lower": 0.1876128068994087,
+    "verdict": "neither"
+   },
+   "double-decker bus": {
+    "vg_images": 10,
+    "sole": 1,
+    "sole_present": 1,
+    "boxes": 9,
+    "boxes_on_class": 9,
+    "off_coco_sole": 0,
+    "precision_lower": 0.20654329147389294,
+    "verdict": "unmeasured"
+   },
+   "food truck": {
+    "vg_images": 49,
+    "sole": 23,
+    "sole_present": 5,
+    "boxes": 35,
+    "boxes_on_class": 5,
+    "off_coco_sole": 24,
+    "precision_lower": 0.09663835601719065,
+    "verdict": "neither"
+   },
+   "front": {
+    "vg_images": 1951,
+    "sole": 826,
+    "sole_present": 15,
+    "boxes": 997,
+    "boxes_on_class": 45,
+    "off_coco_sole": 857,
+    "precision_lower": 0.011035377841114047,
+    "verdict": "neither"
+   },
+   "lot": {
+    "vg_images": 454,
+    "sole": 200,
+    "sole_present": 7,
+    "boxes": 256,
+    "boxes_on_class": 3,
+    "off_coco_sole": 183,
+    "precision_lower": 0.017055324637357108,
+    "verdict": "neither"
+   },
+   "parking lot": {
+    "vg_images": 788,
+    "sole": 299,
+    "sole_present": 13,
+    "boxes": 371,
+    "boxes_on_class": 3,
+    "off_coco_sole": 361,
+    "precision_lower": 0.025582059272516666,
+    "verdict": "neither"
+   },
+   "passenger bus": {
+    "vg_images": 10,
+    "sole": 0,
+    "sole_present": 0,
+    "boxes": 3,
+    "boxes_on_class": 3,
+    "off_coco_sole": 0,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "photo": {
+    "vg_images": 2473,
+    "sole": 1193,
+    "sole_present": 10,
+    "boxes": 1343,
+    "boxes_on_class": 5,
+    "off_coco_sole": 1198,
+    "precision_lower": 0.004559322841364579,
+    "verdict": "neither"
+   },
+   "picture": {
+    "vg_images": 4251,
+    "sole": 1985,
+    "sole_present": 3,
+    "boxes": 2596,
+    "boxes_on_class": 7,
+    "off_coco_sole": 2168,
+    "precision_lower": 0.0005141111517038689,
+    "verdict": "neither"
+   },
+   "red bus": {
+    "vg_images": 16,
+    "sole": 5,
+    "sole_present": 2,
+    "boxes": 9,
+    "boxes_on_class": 5,
+    "off_coco_sole": 3,
+    "precision_lower": 0.11761823115925325,
+    "verdict": "neither"
+   },
+   "reflection": {
+    "vg_images": 3803,
+    "sole": 1784,
+    "sole_present": 7,
+    "boxes": 2181,
+    "boxes_on_class": 3,
+    "off_coco_sole": 1904,
+    "precision_lower": 0.0019019408950387195,
+    "verdict": "neither"
+   },
+   "road": {
+    "vg_images": 7928,
+    "sole": 2932,
+    "sole_present": 83,
+    "boxes": 3881,
+    "boxes_on_class": 9,
+    "off_coco_sole": 3570,
+    "precision_lower": 0.02289442815041039,
+    "verdict": "neither"
+   },
+   "rv": {
+    "vg_images": 33,
+    "sole": 17,
+    "sole_present": 5,
+    "boxes": 17,
+    "boxes_on_class": 4,
+    "off_coco_sole": 13,
+    "precision_lower": 0.13279793865556405,
+    "verdict": "neither"
+   },
+   "scene": {
+    "vg_images": 1058,
+    "sole": 478,
+    "sole_present": 4,
+    "boxes": 503,
+    "boxes_on_class": 6,
+    "off_coco_sole": 534,
+    "precision_lower": 0.0032588514669821766,
+    "verdict": "neither"
+   },
+   "school bus": {
+    "vg_images": 36,
+    "sole": 5,
+    "sole_present": 5,
+    "boxes": 26,
+    "boxes_on_class": 18,
+    "off_coco_sole": 15,
+    "precision_lower": 0.565508505247919,
+    "verdict": "alias"
+   },
+   "side": {
+    "vg_images": 2015,
+    "sole": 897,
+    "sole_present": 5,
+    "boxes": 1108,
+    "boxes_on_class": 31,
+    "off_coco_sole": 938,
+    "precision_lower": 0.002383182920489903,
+    "verdict": "neither"
+   },
+   "sky": {
+    "vg_images": 22844,
+    "sole": 10428,
+    "sole_present": 112,
+    "boxes": 11824,
+    "boxes_on_class": 3,
+    "off_coco_sole": 11208,
+    "precision_lower": 0.008934240251076885,
+    "verdict": "neither"
+   },
+   "street": {
+    "vg_images": 6456,
+    "sole": 2343,
+    "sole_present": 88,
+    "boxes": 3141,
+    "boxes_on_class": 10,
+    "off_coco_sole": 2935,
+    "precision_lower": 0.030586204749098102,
+    "verdict": "neither"
+   },
+   "top level": {
+    "vg_images": 13,
+    "sole": 2,
+    "sole_present": 0,
+    "boxes": 8,
+    "boxes_on_class": 3,
+    "off_coco_sole": 0,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "tour bus": {
+    "vg_images": 14,
+    "sole": 3,
+    "sole_present": 3,
+    "boxes": 9,
+    "boxes_on_class": 8,
+    "off_coco_sole": 5,
+    "precision_lower": 0.4384939195509822,
+    "verdict": "unmeasured"
+   },
+   "traffic": {
+    "vg_images": 338,
+    "sole": 117,
+    "sole_present": 10,
+    "boxes": 181,
+    "boxes_on_class": 10,
+    "off_coco_sole": 110,
+    "precision_lower": 0.04708697489506693,
+    "verdict": "neither"
+   },
+   "train": {
+    "vg_images": 3789,
+    "sole": 1871,
+    "sole_present": 20,
+    "boxes": 2340,
+    "boxes_on_class": 17,
+    "off_coco_sole": 1829,
+    "precision_lower": 0.006930347776864675,
+    "verdict": "neither"
+   },
+   "tram": {
+    "vg_images": 22,
+    "sole": 7,
+    "sole_present": 1,
+    "boxes": 11,
+    "boxes_on_class": 4,
+    "off_coco_sole": 10,
+    "precision_lower": 0.02567895594897479,
+    "verdict": "neither"
+   },
+   "trolley": {
+    "vg_images": 74,
+    "sole": 32,
+    "sole_present": 10,
+    "boxes": 40,
+    "boxes_on_class": 12,
+    "off_coco_sole": 33,
+    "precision_lower": 0.17952352116618736,
+    "verdict": "neither"
+   },
+   "truck": {
+    "vg_images": 2863,
+    "sole": 1239,
+    "sole_present": 51,
+    "boxes": 1642,
+    "boxes_on_class": 29,
+    "off_coco_sole": 1389,
+    "precision_lower": 0.03144468882586656,
+    "verdict": "neither"
+   },
+   "two": {
+    "vg_images": 326,
+    "sole": 137,
+    "sole_present": 0,
+    "boxes": 163,
+    "boxes_on_class": 3,
+    "off_coco_sole": 175,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "upper level": {
+    "vg_images": 36,
+    "sole": 8,
+    "sole_present": 0,
+    "boxes": 20,
+    "boxes_on_class": 4,
+    "off_coco_sole": 8,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "van": {
+    "vg_images": 1405,
+    "sole": 461,
+    "sole_present": 44,
+    "boxes": 633,
+    "boxes_on_class": 37,
+    "off_coco_sole": 715,
+    "precision_lower": 0.07186821162670802,
+    "verdict": "neither"
+   },
+   "vehicle": {
+    "vg_images": 1545,
+    "sole": 589,
+    "sole_present": 29,
+    "boxes": 878,
+    "boxes_on_class": 31,
+    "off_coco_sole": 768,
+    "precision_lower": 0.03449705393655154,
+    "verdict": "neither"
+   },
+   "vehicles": {
+    "vg_images": 420,
+    "sole": 121,
+    "sole_present": 2,
+    "boxes": 177,
+    "boxes_on_class": 7,
+    "off_coco_sole": 232,
+    "precision_lower": 0.004544498317862634,
+    "verdict": "neither"
+   },
+   "wall": {
+    "vg_images": 24106,
+    "sole": 11002,
+    "sole_present": 41,
+    "boxes": 13902,
+    "boxes_on_class": 3,
+    "off_coco_sole": 12646,
+    "precision_lower": 0.0027483290671686924,
+    "verdict": "neither"
+   },
+   "white bus": {
+    "vg_images": 11,
+    "sole": 3,
+    "sole_present": 1,
+    "boxes": 6,
+    "boxes_on_class": 2,
+    "off_coco_sole": 2,
+    "precision_lower": 0.061490315276160515,
+    "verdict": "unmeasured"
+   },
+   "window": {
+    "vg_images": 19385,
+    "sole": 7827,
+    "sole_present": 134,
+    "boxes": 20317,
+    "boxes_on_class": 3,
+    "off_coco_sole": 9712,
+    "precision_lower": 0.014474223656400826,
+    "verdict": "neither"
+   },
+   "windows": {
+    "vg_images": 5707,
+    "sole": 2288,
+    "sole_present": 49,
+    "boxes": 3855,
+    "boxes_on_class": 3,
+    "off_coco_sole": 2597,
+    "precision_lower": 0.016237275733694743,
+    "verdict": "neither"
+   },
+   "windshield": {
+    "vg_images": 2827,
+    "sole": 944,
+    "sole_present": 27,
+    "boxes": 1500,
+    "boxes_on_class": 3,
+    "off_coco_sole": 1055,
+    "precision_lower": 0.01973000210787634,
+    "verdict": "neither"
+   }
+  },
+  "stop sign": {
+   "advertisement sign": {
+    "vg_images": 20,
+    "sole": 10,
+    "sole_present": 0,
+    "boxes": 11,
+    "boxes_on_class": 0,
+    "off_coco_sole": 10,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "advertising sign": {
+    "vg_images": 16,
+    "sole": 7,
+    "sole_present": 0,
+    "boxes": 8,
+    "boxes_on_class": 0,
+    "off_coco_sole": 9,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "arrow sign": {
+    "vg_images": 19,
+    "sole": 4,
+    "sole_present": 0,
+    "boxes": 6,
+    "boxes_on_class": 0,
+    "off_coco_sole": 14,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "back": {
+    "vg_images": 3295,
+    "sole": 1644,
+    "sole_present": 24,
+    "boxes": 1776,
+    "boxes_on_class": 11,
+    "off_coco_sole": 1626,
+    "precision_lower": 0.009829545232307195,
+    "verdict": "neither"
+   },
+   "background": {
+    "vg_images": 6529,
+    "sole": 3225,
+    "sole_present": 55,
+    "boxes": 3309,
+    "boxes_on_class": 4,
+    "off_coco_sole": 3262,
+    "precision_lower": 0.01312609736297481,
+    "verdict": "neither"
+   },
+   "black sign": {
+    "vg_images": 69,
+    "sole": 27,
+    "sole_present": 0,
+    "boxes": 28,
+    "boxes_on_class": 0,
+    "off_coco_sole": 40,
+    "precision_lower": 1.2149183920775522e-17,
+    "verdict": "neither"
+   },
+   "blue sign": {
+    "vg_images": 172,
+    "sole": 70,
+    "sole_present": 3,
+    "boxes": 76,
+    "boxes_on_class": 0,
+    "off_coco_sole": 100,
+    "precision_lower": 0.014681274851143573,
+    "verdict": "neither"
+   },
+   "board": {
+    "vg_images": 3583,
+    "sole": 1755,
+    "sole_present": 21,
+    "boxes": 2069,
+    "boxes_on_class": 12,
+    "off_coco_sole": 1812,
+    "precision_lower": 0.007839570817467644,
+    "verdict": "neither"
+   },
+   "border": {
+    "vg_images": 701,
+    "sole": 330,
+    "sole_present": 27,
+    "boxes": 369,
+    "boxes_on_class": 22,
+    "off_coco_sole": 347,
+    "precision_lower": 0.05683723493969911,
+    "verdict": "neither"
+   },
+   "brown sign": {
+    "vg_images": 11,
+    "sole": 2,
+    "sole_present": 0,
+    "boxes": 2,
+    "boxes_on_class": 0,
+    "off_coco_sole": 9,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "bus sign": {
+    "vg_images": 22,
+    "sole": 11,
+    "sole_present": 0,
+    "boxes": 12,
+    "boxes_on_class": 0,
+    "off_coco_sole": 10,
+    "precision_lower": 2.057132194452876e-17,
+    "verdict": "neither"
+   },
+   "business sign": {
+    "vg_images": 28,
+    "sole": 17,
+    "sole_present": 1,
+    "boxes": 18,
+    "boxes_on_class": 0,
+    "off_coco_sole": 10,
+    "precision_lower": 0.010460130645164236,
+    "verdict": "neither"
+   },
+   "cardboard sign": {
+    "vg_images": 10,
+    "sole": 5,
+    "sole_present": 0,
+    "boxes": 5,
+    "boxes_on_class": 0,
+    "off_coco_sole": 5,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "caution sign": {
+    "vg_images": 33,
+    "sole": 16,
+    "sole_present": 1,
+    "boxes": 20,
+    "boxes_on_class": 1,
+    "off_coco_sole": 16,
+    "precision_lower": 0.011119057308331216,
+    "verdict": "neither"
+   },
+   "circle": {
+    "vg_images": 1284,
+    "sole": 612,
+    "sole_present": 12,
+    "boxes": 784,
+    "boxes_on_class": 7,
+    "off_coco_sole": 665,
+    "precision_lower": 0.011251327923864365,
+    "verdict": "neither"
+   },
+   "construction sign": {
+    "vg_images": 10,
+    "sole": 3,
+    "sole_present": 0,
+    "boxes": 3,
+    "boxes_on_class": 0,
+    "off_coco_sole": 7,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "crossing sign": {
+    "vg_images": 26,
+    "sole": 11,
+    "sole_present": 3,
+    "boxes": 13,
+    "boxes_on_class": 0,
+    "off_coco_sole": 14,
+    "precision_lower": 0.09745880573921469,
+    "verdict": "neither"
+   },
+   "crosswalk sign": {
+    "vg_images": 31,
+    "sole": 13,
+    "sole_present": 1,
+    "boxes": 14,
+    "boxes_on_class": 0,
+    "off_coco_sole": 17,
+    "precision_lower": 0.013710066379696325,
+    "verdict": "neither"
+   },
+   "destination sign": {
+    "vg_images": 22,
+    "sole": 7,
+    "sole_present": 0,
+    "boxes": 9,
+    "boxes_on_class": 0,
+    "off_coco_sole": 15,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "digital sign": {
+    "vg_images": 13,
+    "sole": 7,
+    "sole_present": 0,
+    "boxes": 7,
+    "boxes_on_class": 0,
+    "off_coco_sole": 6,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "direction sign": {
+    "vg_images": 11,
+    "sole": 4,
+    "sole_present": 0,
+    "boxes": 8,
+    "boxes_on_class": 0,
+    "off_coco_sole": 6,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "directional sign": {
+    "vg_images": 20,
+    "sole": 7,
+    "sole_present": 1,
+    "boxes": 8,
+    "boxes_on_class": 0,
+    "off_coco_sole": 13,
+    "precision_lower": 0.02567895594897479,
+    "verdict": "neither"
+   },
+   "dollar sign": {
+    "vg_images": 14,
+    "sole": 4,
+    "sole_present": 0,
+    "boxes": 5,
+    "boxes_on_class": 0,
+    "off_coco_sole": 10,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "electric sign": {
+    "vg_images": 10,
+    "sole": 4,
+    "sole_present": 0,
+    "boxes": 4,
+    "boxes_on_class": 0,
+    "off_coco_sole": 6,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "electronic sign": {
+    "vg_images": 18,
+    "sole": 11,
+    "sole_present": 0,
+    "boxes": 12,
+    "boxes_on_class": 0,
+    "off_coco_sole": 7,
+    "precision_lower": 2.057132194452876e-17,
+    "verdict": "neither"
+   },
+   "exit sign": {
+    "vg_images": 71,
+    "sole": 27,
+    "sole_present": 0,
+    "boxes": 27,
+    "boxes_on_class": 0,
+    "off_coco_sole": 44,
+    "precision_lower": 1.2149183920775522e-17,
+    "verdict": "neither"
+   },
+   "graffiti": {
+    "vg_images": 892,
+    "sole": 404,
+    "sole_present": 43,
+    "boxes": 580,
+    "boxes_on_class": 7,
+    "off_coco_sole": 453,
+    "precision_lower": 0.07998336621704821,
+    "verdict": "neither"
+   },
+   "green sign": {
+    "vg_images": 88,
+    "sole": 41,
+    "sole_present": 5,
+    "boxes": 46,
+    "boxes_on_class": 0,
+    "off_coco_sole": 46,
+    "precision_lower": 0.05323257997340823,
+    "verdict": "neither"
+   },
+   "handicap sign": {
+    "vg_images": 27,
+    "sole": 15,
+    "sole_present": 0,
+    "boxes": 15,
+    "boxes_on_class": 0,
+    "off_coco_sole": 12,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "handicapped sign": {
+    "vg_images": 13,
+    "sole": 3,
+    "sole_present": 0,
+    "boxes": 5,
+    "boxes_on_class": 0,
+    "off_coco_sole": 9,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "hotel sign": {
+    "vg_images": 11,
+    "sole": 7,
+    "sole_present": 0,
+    "boxes": 8,
+    "boxes_on_class": 0,
+    "off_coco_sole": 3,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "information sign": {
+    "vg_images": 16,
+    "sole": 8,
+    "sole_present": 0,
+    "boxes": 13,
+    "boxes_on_class": 0,
+    "off_coco_sole": 7,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "lettering": {
+    "vg_images": 1993,
+    "sole": 953,
+    "sole_present": 43,
+    "boxes": 1205,
+    "boxes_on_class": 3,
+    "off_coco_sole": 994,
+    "precision_lower": 0.03366857411680656,
+    "verdict": "neither"
+   },
+   "metal sign": {
+    "vg_images": 10,
+    "sole": 8,
+    "sole_present": 2,
+    "boxes": 8,
+    "boxes_on_class": 0,
+    "off_coco_sole": 2,
+    "precision_lower": 0.07147768885802765,
+    "verdict": "neither"
+   },
+   "neon sign": {
+    "vg_images": 32,
+    "sole": 12,
+    "sole_present": 1,
+    "boxes": 16,
+    "boxes_on_class": 0,
+    "off_coco_sole": 19,
+    "precision_lower": 0.014864709450773488,
+    "verdict": "neither"
+   },
+   "no parking sign": {
+    "vg_images": 10,
+    "sole": 1,
+    "sole_present": 0,
+    "boxes": 3,
+    "boxes_on_class": 0,
+    "off_coco_sole": 5,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "number sign": {
+    "vg_images": 13,
+    "sole": 4,
+    "sole_present": 0,
+    "boxes": 4,
+    "boxes_on_class": 0,
+    "off_coco_sole": 9,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "octagon": {
+    "vg_images": 27,
+    "sole": 10,
+    "sole_present": 8,
+    "boxes": 15,
+    "boxes_on_class": 11,
+    "off_coco_sole": 13,
+    "precision_lower": 0.49015684672072346,
+    "verdict": "ambiguous"
+   },
+   "one way sign": {
+    "vg_images": 15,
+    "sole": 4,
+    "sole_present": 0,
+    "boxes": 6,
+    "boxes_on_class": 0,
+    "off_coco_sole": 8,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "open sign": {
+    "vg_images": 22,
+    "sole": 5,
+    "sole_present": 0,
+    "boxes": 7,
+    "boxes_on_class": 0,
+    "off_coco_sole": 16,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "orange sign": {
+    "vg_images": 14,
+    "sole": 9,
+    "sole_present": 0,
+    "boxes": 9,
+    "boxes_on_class": 0,
+    "off_coco_sole": 4,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "outline": {
+    "vg_images": 82,
+    "sole": 43,
+    "sole_present": 6,
+    "boxes": 51,
+    "boxes_on_class": 5,
+    "off_coco_sole": 38,
+    "precision_lower": 0.06555634267713947,
+    "verdict": "neither"
+   },
+   "parking sign": {
+    "vg_images": 52,
+    "sole": 25,
+    "sole_present": 2,
+    "boxes": 26,
+    "boxes_on_class": 0,
+    "off_coco_sole": 25,
+    "precision_lower": 0.02221993369109194,
+    "verdict": "neither"
+   },
+   "peace sign": {
+    "vg_images": 37,
+    "sole": 18,
+    "sole_present": 0,
+    "boxes": 23,
+    "boxes_on_class": 0,
+    "off_coco_sole": 18,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "pedestrian sign": {
+    "vg_images": 15,
+    "sole": 9,
+    "sole_present": 1,
+    "boxes": 10,
+    "boxes_on_class": 0,
+    "off_coco_sole": 5,
+    "precision_lower": 0.019890371327130518,
+    "verdict": "neither"
+   },
+   "post": {
+    "vg_images": 4377,
+    "sole": 2080,
+    "sole_present": 106,
+    "boxes": 2922,
+    "boxes_on_class": 5,
+    "off_coco_sole": 2196,
+    "precision_lower": 0.042310634233209035,
+    "verdict": "neither"
+   },
+   "price sign": {
+    "vg_images": 16,
+    "sole": 8,
+    "sole_present": 0,
+    "boxes": 11,
+    "boxes_on_class": 0,
+    "off_coco_sole": 8,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "red sign": {
+    "vg_images": 150,
+    "sole": 71,
+    "sole_present": 16,
+    "boxes": 90,
+    "boxes_on_class": 20,
+    "off_coco_sole": 74,
+    "precision_lower": 0.1437454836103039,
+    "verdict": "neither"
+   },
+   "reflection": {
+    "vg_images": 3803,
+    "sole": 1835,
+    "sole_present": 19,
+    "boxes": 2181,
+    "boxes_on_class": 3,
+    "off_coco_sole": 1959,
+    "precision_lower": 0.006638611817359654,
+    "verdict": "neither"
+   },
+   "restaurant sign": {
+    "vg_images": 12,
+    "sole": 5,
+    "sole_present": 0,
+    "boxes": 5,
+    "boxes_on_class": 0,
+    "off_coco_sole": 7,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "road sign": {
+    "vg_images": 126,
+    "sole": 51,
+    "sole_present": 6,
+    "boxes": 63,
+    "boxes_on_class": 3,
+    "off_coco_sole": 66,
+    "precision_lower": 0.05504998764172767,
+    "verdict": "neither"
+   },
+   "round sign": {
+    "vg_images": 14,
+    "sole": 10,
+    "sole_present": 0,
+    "boxes": 12,
+    "boxes_on_class": 0,
+    "off_coco_sole": 4,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "shape": {
+    "vg_images": 127,
+    "sole": 62,
+    "sole_present": 4,
+    "boxes": 80,
+    "boxes_on_class": 4,
+    "off_coco_sole": 63,
+    "precision_lower": 0.025372494807644,
+    "verdict": "neither"
+   },
+   "sign": {
+    "vg_images": 15042,
+    "sole": 6814,
+    "sole_present": 536,
+    "boxes": 11463,
+    "boxes_on_class": 486,
+    "off_coco_sole": 7913,
+    "precision_lower": 0.07250424541065383,
+    "verdict": "neither"
+   },
+   "sign board": {
+    "vg_images": 31,
+    "sole": 13,
+    "sole_present": 3,
+    "boxes": 15,
+    "boxes_on_class": 4,
+    "off_coco_sole": 16,
+    "precision_lower": 0.08179379092465712,
+    "verdict": "neither"
+   },
+   "signs": {
+    "vg_images": 926,
+    "sole": 431,
+    "sole_present": 39,
+    "boxes": 530,
+    "boxes_on_class": 20,
+    "off_coco_sole": 463,
+    "precision_lower": 0.06689918401027009,
+    "verdict": "neither"
+   },
+   "sky": {
+    "vg_images": 22844,
+    "sole": 10924,
+    "sole_present": 261,
+    "boxes": 11824,
+    "boxes_on_class": 7,
+    "off_coco_sole": 11690,
+    "precision_lower": 0.021191529631679397,
+    "verdict": "neither"
+   },
+   "stop": {
+    "vg_images": 332,
+    "sole": 124,
+    "sole_present": 87,
+    "boxes": 161,
+    "boxes_on_class": 10,
+    "off_coco_sole": 148,
+    "precision_lower": 0.6160078245925817,
+    "verdict": "context"
+   },
+   "store sign": {
+    "vg_images": 45,
+    "sole": 19,
+    "sole_present": 1,
+    "boxes": 23,
+    "boxes_on_class": 0,
+    "off_coco_sole": 24,
+    "precision_lower": 0.00935175249052995,
+    "verdict": "neither"
+   },
+   "street sign": {
+    "vg_images": 778,
+    "sole": 301,
+    "sole_present": 24,
+    "boxes": 435,
+    "boxes_on_class": 1,
+    "off_coco_sole": 411,
+    "precision_lower": 0.05416392024426832,
+    "verdict": "neither"
+   },
+   "street signs": {
+    "vg_images": 76,
+    "sole": 27,
+    "sole_present": 5,
+    "boxes": 34,
+    "boxes_on_class": 0,
+    "off_coco_sole": 41,
+    "precision_lower": 0.08180586574285321,
+    "verdict": "neither"
+   },
+   "stripe": {
+    "vg_images": 4041,
+    "sole": 1961,
+    "sole_present": 20,
+    "boxes": 3056,
+    "boxes_on_class": 3,
+    "off_coco_sole": 2059,
+    "precision_lower": 0.006611827380535484,
+    "verdict": "neither"
+   },
+   "traffic sign": {
+    "vg_images": 195,
+    "sole": 78,
+    "sole_present": 5,
+    "boxes": 103,
+    "boxes_on_class": 3,
+    "off_coco_sole": 106,
+    "precision_lower": 0.027688907083923672,
+    "verdict": "neither"
+   },
+   "traffic signs": {
+    "vg_images": 18,
+    "sole": 5,
+    "sole_present": 0,
+    "boxes": 6,
+    "boxes_on_class": 0,
+    "off_coco_sole": 10,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "triangle": {
+    "vg_images": 232,
+    "sole": 113,
+    "sole_present": 4,
+    "boxes": 152,
+    "boxes_on_class": 3,
+    "off_coco_sole": 117,
+    "precision_lower": 0.013849954465336095,
+    "verdict": "neither"
+   },
+   "two signs": {
+    "vg_images": 11,
+    "sole": 4,
+    "sole_present": 0,
+    "boxes": 4,
+    "boxes_on_class": 0,
+    "off_coco_sole": 7,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "walk sign": {
+    "vg_images": 15,
+    "sole": 6,
+    "sole_present": 0,
+    "boxes": 6,
+    "boxes_on_class": 0,
+    "off_coco_sole": 9,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "warning sign": {
+    "vg_images": 23,
+    "sole": 13,
+    "sole_present": 0,
+    "boxes": 14,
+    "boxes_on_class": 0,
+    "off_coco_sole": 9,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "white sign": {
+    "vg_images": 129,
+    "sole": 47,
+    "sole_present": 2,
+    "boxes": 50,
+    "boxes_on_class": 0,
+    "off_coco_sole": 78,
+    "precision_lower": 0.011748029370569716,
+    "verdict": "neither"
+   },
+   "yellow sign": {
+    "vg_images": 72,
+    "sole": 31,
+    "sole_present": 2,
+    "boxes": 41,
+    "boxes_on_class": 0,
+    "off_coco_sole": 39,
+    "precision_lower": 0.017874407775063144,
+    "verdict": "neither"
+   },
+   "yield sign": {
+    "vg_images": 19,
+    "sole": 10,
+    "sole_present": 0,
+    "boxes": 10,
+    "boxes_on_class": 0,
+    "off_coco_sole": 9,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   }
+  },
+  "kite": {
+   "a": {
+    "vg_images": 668,
+    "sole": 284,
+    "sole_present": 3,
+    "boxes": 748,
+    "boxes_on_class": 7,
+    "off_coco_sole": 377,
+    "precision_lower": 0.0035988169069591765,
+    "verdict": "neither"
+   },
+   "air": {
+    "vg_images": 2137,
+    "sole": 910,
+    "sole_present": 16,
+    "boxes": 1099,
+    "boxes_on_class": 10,
+    "off_coco_sole": 922,
+    "precision_lower": 0.010851064259397589,
+    "verdict": "neither"
+   },
+   "airplane": {
+    "vg_images": 1630,
+    "sole": 781,
+    "sole_present": 3,
+    "boxes": 1011,
+    "boxes_on_class": 5,
+    "off_coco_sole": 836,
+    "precision_lower": 0.0013071824493094126,
+    "verdict": "neither"
+   },
+   "balloon": {
+    "vg_images": 215,
+    "sole": 93,
+    "sole_present": 1,
+    "boxes": 178,
+    "boxes_on_class": 15,
+    "off_coco_sole": 93,
+    "precision_lower": 0.0019005930979556008,
+    "verdict": "neither"
+   },
+   "balloons": {
+    "vg_images": 93,
+    "sole": 44,
+    "sole_present": 1,
+    "boxes": 64,
+    "boxes_on_class": 3,
+    "off_coco_sole": 44,
+    "precision_lower": 0.00402314838563701,
+    "verdict": "neither"
+   },
+   "banner": {
+    "vg_images": 1386,
+    "sole": 639,
+    "sole_present": 2,
+    "boxes": 779,
+    "boxes_on_class": 4,
+    "off_coco_sole": 716,
+    "precision_lower": 0.0008587309203169271,
+    "verdict": "neither"
+   },
+   "beach": {
+    "vg_images": 2793,
+    "sole": 1112,
+    "sole_present": 36,
+    "boxes": 1483,
+    "boxes_on_class": 3,
+    "off_coco_sole": 1163,
+    "precision_lower": 0.023474964738665248,
+    "verdict": "neither"
+   },
+   "bear": {
+    "vg_images": 1843,
+    "sole": 906,
+    "sole_present": 1,
+    "boxes": 1363,
+    "boxes_on_class": 3,
+    "off_coco_sole": 926,
+    "precision_lower": 0.00019486102983185243,
+    "verdict": "neither"
+   },
+   "bird": {
+    "vg_images": 2479,
+    "sole": 1197,
+    "sole_present": 8,
+    "boxes": 2427,
+    "boxes_on_class": 10,
+    "off_coco_sole": 1227,
+    "precision_lower": 0.0033903563057281,
+    "verdict": "neither"
+   },
+   "black kite": {
+    "vg_images": 14,
+    "sole": 1,
+    "sole_present": 1,
+    "boxes": 5,
+    "boxes_on_class": 5,
+    "off_coco_sole": 1,
+    "precision_lower": 0.20654329147389294,
+    "verdict": "unmeasured"
+   },
+   "blue kite": {
+    "vg_images": 18,
+    "sole": 0,
+    "sole_present": 0,
+    "boxes": 10,
+    "boxes_on_class": 5,
+    "off_coco_sole": 2,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "butterfly": {
+    "vg_images": 95,
+    "sole": 32,
+    "sole_present": 1,
+    "boxes": 51,
+    "boxes_on_class": 4,
+    "off_coco_sole": 57,
+    "precision_lower": 0.005537717362550956,
+    "verdict": "neither"
+   },
+   "cloud": {
+    "vg_images": 4022,
+    "sole": 1814,
+    "sole_present": 28,
+    "boxes": 3363,
+    "boxes_on_class": 3,
+    "off_coco_sole": 1905,
+    "precision_lower": 0.010700650047532062,
+    "verdict": "neither"
+   },
+   "clouds": {
+    "vg_images": 6944,
+    "sole": 3035,
+    "sole_present": 35,
+    "boxes": 4597,
+    "boxes_on_class": 10,
+    "off_coco_sole": 3413,
+    "precision_lower": 0.008303630409981553,
+    "verdict": "neither"
+   },
+   "colorful kite": {
+    "vg_images": 14,
+    "sole": 1,
+    "sole_present": 0,
+    "boxes": 9,
+    "boxes_on_class": 7,
+    "off_coco_sole": 5,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "decoration": {
+    "vg_images": 551,
+    "sole": 250,
+    "sole_present": 1,
+    "boxes": 344,
+    "boxes_on_class": 3,
+    "off_coco_sole": 298,
+    "precision_lower": 0.0007064293567593378,
+    "verdict": "neither"
+   },
+   "design": {
+    "vg_images": 2630,
+    "sole": 1273,
+    "sole_present": 2,
+    "boxes": 1620,
+    "boxes_on_class": 6,
+    "off_coco_sole": 1316,
+    "precision_lower": 0.00043094683160195345,
+    "verdict": "neither"
+   },
+   "field": {
+    "vg_images": 6529,
+    "sole": 3021,
+    "sole_present": 12,
+    "boxes": 3366,
+    "boxes_on_class": 8,
+    "off_coco_sole": 3224,
+    "precision_lower": 0.002273731854292775,
+    "verdict": "neither"
+   },
+   "fish": {
+    "vg_images": 258,
+    "sole": 111,
+    "sole_present": 0,
+    "boxes": 156,
+    "boxes_on_class": 7,
+    "off_coco_sole": 137,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "flag": {
+    "vg_images": 2710,
+    "sole": 1235,
+    "sole_present": 12,
+    "boxes": 1853,
+    "boxes_on_class": 27,
+    "off_coco_sole": 1344,
+    "precision_lower": 0.005566896707761594,
+    "verdict": "neither"
+   },
+   "flags": {
+    "vg_images": 438,
+    "sole": 178,
+    "sole_present": 5,
+    "boxes": 230,
+    "boxes_on_class": 3,
+    "off_coco_sole": 220,
+    "precision_lower": 0.012056556667503495,
+    "verdict": "neither"
+   },
+   "float": {
+    "vg_images": 45,
+    "sole": 19,
+    "sole_present": 0,
+    "boxes": 26,
+    "boxes_on_class": 4,
+    "off_coco_sole": 20,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "flying": {
+    "vg_images": 31,
+    "sole": 12,
+    "sole_present": 1,
+    "boxes": 18,
+    "boxes_on_class": 6,
+    "off_coco_sole": 14,
+    "precision_lower": 0.014864709450773488,
+    "verdict": "neither"
+   },
+   "ground": {
+    "vg_images": 23275,
+    "sole": 11083,
+    "sole_present": 25,
+    "boxes": 12656,
+    "boxes_on_class": 4,
+    "off_coco_sole": 11694,
+    "precision_lower": 0.0015284053495879405,
+    "verdict": "neither"
+   },
+   "kite tail": {
+    "vg_images": 25,
+    "sole": 1,
+    "sole_present": 1,
+    "boxes": 20,
+    "boxes_on_class": 9,
+    "off_coco_sole": 0,
+    "precision_lower": 0.20654329147389294,
+    "verdict": "unmeasured"
+   },
+   "kites": {
+    "vg_images": 264,
+    "sole": 18,
+    "sole_present": 17,
+    "boxes": 205,
+    "boxes_on_class": 105,
+    "off_coco_sole": 13,
+    "precision_lower": 0.7424220019799247,
+    "verdict": "alias"
+   },
+   "long tail": {
+    "vg_images": 23,
+    "sole": 10,
+    "sole_present": 0,
+    "boxes": 17,
+    "boxes_on_class": 3,
+    "off_coco_sole": 6,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "man": {
+    "vg_images": 29079,
+    "sole": 13656,
+    "sole_present": 55,
+    "boxes": 21907,
+    "boxes_on_class": 5,
+    "off_coco_sole": 14581,
+    "precision_lower": 0.003095770745498982,
+    "verdict": "neither"
+   },
+   "object": {
+    "vg_images": 1607,
+    "sole": 722,
+    "sole_present": 3,
+    "boxes": 888,
+    "boxes_on_class": 13,
+    "off_coco_sole": 824,
+    "precision_lower": 0.0014140765648062719,
+    "verdict": "neither"
+   },
+   "octopus": {
+    "vg_images": 21,
+    "sole": 3,
+    "sole_present": 0,
+    "boxes": 12,
+    "boxes_on_class": 7,
+    "off_coco_sole": 6,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "para sail": {
+    "vg_images": 11,
+    "sole": 3,
+    "sole_present": 2,
+    "boxes": 6,
+    "boxes_on_class": 5,
+    "off_coco_sole": 0,
+    "precision_lower": 0.20765495512648788,
+    "verdict": "unmeasured"
+   },
+   "parachute": {
+    "vg_images": 65,
+    "sole": 13,
+    "sole_present": 9,
+    "boxes": 40,
+    "boxes_on_class": 26,
+    "off_coco_sole": 16,
+    "precision_lower": 0.4236888781333764,
+    "verdict": "alias"
+   },
+   "parasail": {
+    "vg_images": 98,
+    "sole": 21,
+    "sole_present": 18,
+    "boxes": 68,
+    "boxes_on_class": 57,
+    "off_coco_sole": 21,
+    "precision_lower": 0.6536350585077049,
+    "verdict": "alias"
+   },
+   "people": {
+    "vg_images": 9512,
+    "sole": 4308,
+    "sole_present": 29,
+    "boxes": 6593,
+    "boxes_on_class": 3,
+    "off_coco_sole": 4694,
+    "precision_lower": 0.004691159043788065,
+    "verdict": "neither"
+   },
+   "plane": {
+    "vg_images": 1717,
+    "sole": 854,
+    "sole_present": 4,
+    "boxes": 1188,
+    "boxes_on_class": 6,
+    "off_coco_sole": 846,
+    "precision_lower": 0.001822887085731683,
+    "verdict": "neither"
+   },
+   "rainbow": {
+    "vg_images": 68,
+    "sole": 28,
+    "sole_present": 0,
+    "boxes": 34,
+    "boxes_on_class": 4,
+    "off_coco_sole": 31,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "red kite": {
+    "vg_images": 11,
+    "sole": 2,
+    "sole_present": 1,
+    "boxes": 3,
+    "boxes_on_class": 2,
+    "off_coco_sole": 1,
+    "precision_lower": 0.09452865480086611,
+    "verdict": "unmeasured"
+   },
+   "ribbon": {
+    "vg_images": 631,
+    "sole": 296,
+    "sole_present": 4,
+    "boxes": 369,
+    "boxes_on_class": 5,
+    "off_coco_sole": 296,
+    "precision_lower": 0.005267269415773624,
+    "verdict": "neither"
+   },
+   "sail": {
+    "vg_images": 323,
+    "sole": 124,
+    "sole_present": 10,
+    "boxes": 186,
+    "boxes_on_class": 21,
+    "off_coco_sole": 138,
+    "precision_lower": 0.04439250529691354,
+    "verdict": "neither"
+   },
+   "sails": {
+    "vg_images": 60,
+    "sole": 22,
+    "sole_present": 0,
+    "boxes": 30,
+    "boxes_on_class": 4,
+    "off_coco_sole": 28,
+    "precision_lower": 1.1814722454179233e-17,
+    "verdict": "neither"
+   },
+   "sand": {
+    "vg_images": 2831,
+    "sole": 1180,
+    "sole_present": 28,
+    "boxes": 1619,
+    "boxes_on_class": 3,
+    "off_coco_sole": 1242,
+    "precision_lower": 0.01646738910260528,
+    "verdict": "neither"
+   },
+   "sky": {
+    "vg_images": 22844,
+    "sole": 10347,
+    "sole_present": 89,
+    "boxes": 11824,
+    "boxes_on_class": 46,
+    "off_coco_sole": 11118,
+    "precision_lower": 0.0069955631054568574,
+    "verdict": "neither"
+   },
+   "streamer": {
+    "vg_images": 46,
+    "sole": 14,
+    "sole_present": 2,
+    "boxes": 39,
+    "boxes_on_class": 8,
+    "off_coco_sole": 8,
+    "precision_lower": 0.04009307373792117,
+    "verdict": "neither"
+   },
+   "streamers": {
+    "vg_images": 58,
+    "sole": 11,
+    "sole_present": 1,
+    "boxes": 31,
+    "boxes_on_class": 4,
+    "off_coco_sole": 10,
+    "precision_lower": 0.016231752262825964,
+    "verdict": "neither"
+   },
+   "string": {
+    "vg_images": 1015,
+    "sole": 329,
+    "sole_present": 18,
+    "boxes": 574,
+    "boxes_on_class": 8,
+    "off_coco_sole": 346,
+    "precision_lower": 0.034884049466962344,
+    "verdict": "neither"
+   },
+   "strings": {
+    "vg_images": 336,
+    "sole": 123,
+    "sole_present": 3,
+    "boxes": 175,
+    "boxes_on_class": 3,
+    "off_coco_sole": 118,
+    "precision_lower": 0.008328913484793548,
+    "verdict": "neither"
+   },
+   "stripe": {
+    "vg_images": 4041,
+    "sole": 1949,
+    "sole_present": 4,
+    "boxes": 3056,
+    "boxes_on_class": 6,
+    "off_coco_sole": 2032,
+    "precision_lower": 0.0007983804009597489,
+    "verdict": "neither"
+   },
+   "tail": {
+    "vg_images": 7939,
+    "sole": 3730,
+    "sole_present": 14,
+    "boxes": 4484,
+    "boxes_on_class": 55,
+    "off_coco_sole": 3840,
+    "precision_lower": 0.0022371342554368336,
+    "verdict": "neither"
+   },
+   "tails": {
+    "vg_images": 99,
+    "sole": 25,
+    "sole_present": 2,
+    "boxes": 47,
+    "boxes_on_class": 6,
+    "off_coco_sole": 33,
+    "precision_lower": 0.02221993369109194,
+    "verdict": "neither"
+   },
+   "the": {
+    "vg_images": 576,
+    "sole": 262,
+    "sole_present": 3,
+    "boxes": 578,
+    "boxes_on_class": 5,
+    "off_coco_sole": 306,
+    "precision_lower": 0.0039015906784648376,
+    "verdict": "neither"
+   },
+   "umbrella": {
+    "vg_images": 3177,
+    "sole": 1555,
+    "sole_present": 10,
+    "boxes": 2894,
+    "boxes_on_class": 7,
+    "off_coco_sole": 1558,
+    "precision_lower": 0.0034968218168724553,
+    "verdict": "neither"
+   }
+  },
+  "clock": {
+   "alarm clock": {
+    "vg_images": 87,
+    "sole": 36,
+    "sole_present": 20,
+    "boxes": 40,
+    "boxes_on_class": 17,
+    "off_coco_sole": 42,
+    "precision_lower": 0.39580787316003413,
+    "verdict": "ambiguous"
+   },
+   "background": {
+    "vg_images": 6529,
+    "sole": 3163,
+    "sole_present": 13,
+    "boxes": 3309,
+    "boxes_on_class": 5,
+    "off_coco_sole": 3203,
+    "precision_lower": 0.002403517200778867,
+    "verdict": "neither"
+   },
+   "black clock": {
+    "vg_images": 15,
+    "sole": 3,
+    "sole_present": 3,
+    "boxes": 6,
+    "boxes_on_class": 5,
+    "off_coco_sole": 6,
+    "precision_lower": 0.4384939195509822,
+    "verdict": "unmeasured"
+   },
+   "black face": {
+    "vg_images": 34,
+    "sole": 11,
+    "sole_present": 0,
+    "boxes": 20,
+    "boxes_on_class": 3,
+    "off_coco_sole": 17,
+    "precision_lower": 2.057132194452876e-17,
+    "verdict": "neither"
+   },
+   "black numbers": {
+    "vg_images": 51,
+    "sole": 14,
+    "sole_present": 2,
+    "boxes": 29,
+    "boxes_on_class": 4,
+    "off_coco_sole": 22,
+    "precision_lower": 0.04009307373792117,
+    "verdict": "neither"
+   },
+   "border": {
+    "vg_images": 701,
+    "sole": 308,
+    "sole_present": 1,
+    "boxes": 369,
+    "boxes_on_class": 10,
+    "off_coco_sole": 328,
+    "precision_lower": 0.0005733470177502346,
+    "verdict": "neither"
+   },
+   "box": {
+    "vg_images": 3800,
+    "sole": 1725,
+    "sole_present": 18,
+    "boxes": 2287,
+    "boxes_on_class": 4,
+    "off_coco_sole": 1941,
+    "precision_lower": 0.006610578795789587,
+    "verdict": "neither"
+   },
+   "button": {
+    "vg_images": 2069,
+    "sole": 993,
+    "sole_present": 12,
+    "boxes": 2246,
+    "boxes_on_class": 4,
+    "off_coco_sole": 1022,
+    "precision_lower": 0.0069261534466560255,
+    "verdict": "neither"
+   },
+   "circle": {
+    "vg_images": 1284,
+    "sole": 559,
+    "sole_present": 5,
+    "boxes": 784,
+    "boxes_on_class": 11,
+    "off_coco_sole": 604,
+    "precision_lower": 0.0038263973172645393,
+    "verdict": "neither"
+   },
+   "circles": {
+    "vg_images": 162,
+    "sole": 71,
+    "sole_present": 1,
+    "boxes": 89,
+    "boxes_on_class": 3,
+    "off_coco_sole": 77,
+    "precision_lower": 0.002490539134778199,
+    "verdict": "neither"
+   },
+   "clock face": {
+    "vg_images": 320,
+    "sole": 19,
+    "sole_present": 17,
+    "boxes": 184,
+    "boxes_on_class": 163,
+    "off_coco_sole": 15,
+    "precision_lower": 0.6860544950515831,
+    "verdict": "alias"
+   },
+   "clock faces": {
+    "vg_images": 14,
+    "sole": 0,
+    "sole_present": 0,
+    "boxes": 9,
+    "boxes_on_class": 7,
+    "off_coco_sole": 1,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "clock frame": {
+    "vg_images": 10,
+    "sole": 0,
+    "sole_present": 0,
+    "boxes": 6,
+    "boxes_on_class": 3,
+    "off_coco_sole": 1,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "clockface": {
+    "vg_images": 24,
+    "sole": 0,
+    "sole_present": 0,
+    "boxes": 10,
+    "boxes_on_class": 9,
+    "off_coco_sole": 5,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "clocks": {
+    "vg_images": 113,
+    "sole": 8,
+    "sole_present": 8,
+    "boxes": 72,
+    "boxes_on_class": 41,
+    "off_coco_sole": 8,
+    "precision_lower": 0.6755843804891231,
+    "verdict": "alias"
+   },
+   "compass": {
+    "vg_images": 31,
+    "sole": 6,
+    "sole_present": 2,
+    "boxes": 18,
+    "boxes_on_class": 4,
+    "off_coco_sole": 3,
+    "precision_lower": 0.09676933255921684,
+    "verdict": "neither"
+   },
+   "decoration": {
+    "vg_images": 551,
+    "sole": 214,
+    "sole_present": 6,
+    "boxes": 344,
+    "boxes_on_class": 3,
+    "off_coco_sole": 241,
+    "precision_lower": 0.012911613910046804,
+    "verdict": "neither"
+   },
+   "dial": {
+    "vg_images": 163,
+    "sole": 58,
+    "sole_present": 2,
+    "boxes": 103,
+    "boxes_on_class": 3,
+    "off_coco_sole": 71,
+    "precision_lower": 0.009507728866485682,
+    "verdict": "neither"
+   },
+   "dials": {
+    "vg_images": 82,
+    "sole": 28,
+    "sole_present": 1,
+    "boxes": 46,
+    "boxes_on_class": 3,
+    "off_coco_sole": 25,
+    "precision_lower": 0.006332356497541882,
+    "verdict": "neither"
+   },
+   "digital clock": {
+    "vg_images": 12,
+    "sole": 5,
+    "sole_present": 0,
+    "boxes": 5,
+    "boxes_on_class": 0,
+    "off_coco_sole": 5,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "display": {
+    "vg_images": 735,
+    "sole": 338,
+    "sole_present": 7,
+    "boxes": 381,
+    "boxes_on_class": 6,
+    "off_coco_sole": 351,
+    "precision_lower": 0.010067254521775683,
+    "verdict": "neither"
+   },
+   "edge": {
+    "vg_images": 3573,
+    "sole": 1670,
+    "sole_present": 13,
+    "boxes": 2303,
+    "boxes_on_class": 4,
+    "off_coco_sole": 1714,
+    "precision_lower": 0.004554864604318091,
+    "verdict": "neither"
+   },
+   "face": {
+    "vg_images": 8066,
+    "sole": 3733,
+    "sole_present": 43,
+    "boxes": 4510,
+    "boxes_on_class": 224,
+    "off_coco_sole": 3735,
+    "precision_lower": 0.00856308725827553,
+    "verdict": "neither"
+   },
+   "faces": {
+    "vg_images": 75,
+    "sole": 29,
+    "sole_present": 0,
+    "boxes": 45,
+    "boxes_on_class": 6,
+    "off_coco_sole": 31,
+    "precision_lower": 0.0,
+    "verdict": "neither"
+   },
+   "frame": {
+    "vg_images": 2898,
+    "sole": 1212,
+    "sole_present": 29,
+    "boxes": 1604,
+    "boxes_on_class": 26,
+    "off_coco_sole": 1379,
+    "precision_lower": 0.016710637982154934,
+    "verdict": "neither"
+   },
+   "glass": {
+    "vg_images": 4564,
+    "sole": 2090,
+    "sole_present": 33,
+    "boxes": 3224,
+    "boxes_on_class": 9,
+    "off_coco_sole": 2291,
+    "precision_lower": 0.011264822555305934,
+    "verdict": "neither"
+   },
+   "grandfather clock": {
+    "vg_images": 14,
+    "sole": 3,
+    "sole_present": 3,
+    "boxes": 6,
+    "boxes_on_class": 0,
+    "off_coco_sole": 7,
+    "precision_lower": 0.4384939195509822,
+    "verdict": "unmeasured"
+   },
+   "hands": {
+    "vg_images": 2730,
+    "sole": 941,
+    "sole_present": 22,
+    "boxes": 1497,
+    "boxes_on_class": 8,
+    "off_coco_sole": 998,
+    "precision_lower": 0.015489216200608273,
+    "verdict": "neither"
+   },
+   "light": {
+    "vg_images": 12533,
+    "sole": 5558,
+    "sole_present": 80,
+    "boxes": 9628,
+    "boxes_on_class": 3,
+    "off_coco_sole": 6226,
+    "precision_lower": 0.01158087227117795,
+    "verdict": "neither"
+   },
+   "number": {
+    "vg_images": 3878,
+    "sole": 1650,
+    "sole_present": 14,
+    "boxes": 3055,
+    "boxes_on_class": 4,
+    "off_coco_sole": 1743,
+    "precision_lower": 0.005060905871281358,
+    "verdict": "neither"
+   },
+   "numbers": {
+    "vg_images": 1673,
+    "sole": 628,
+    "sole_present": 12,
+    "boxes": 1005,
+    "boxes_on_class": 29,
+    "off_coco_sole": 666,
+    "precision_lower": 0.010963806571726228,
+    "verdict": "neither"
+   },
+   "numeral": {
+    "vg_images": 208,
+    "sole": 10,
+    "sole_present": 7,
+    "boxes": 302,
+    "boxes_on_class": 4,
+    "off_coco_sole": 6,
+    "precision_lower": 0.3967732199795652,
+    "verdict": "context"
+   },
+   "numerals": {
+    "vg_images": 210,
+    "sole": 0,
+    "sole_present": 0,
+    "boxes": 125,
+    "boxes_on_class": 18,
+    "off_coco_sole": 7,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "picture": {
+    "vg_images": 4251,
+    "sole": 1909,
+    "sole_present": 53,
+    "boxes": 2596,
+    "boxes_on_class": 4,
+    "off_coco_sole": 2066,
+    "precision_lower": 0.021288090738691996,
+    "verdict": "neither"
+   },
+   "plate": {
+    "vg_images": 6930,
+    "sole": 3247,
+    "sole_present": 35,
+    "boxes": 4677,
+    "boxes_on_class": 8,
+    "off_coco_sole": 3579,
+    "precision_lower": 0.007760786390382428,
+    "verdict": "neither"
+   },
+   "reflection": {
+    "vg_images": 3803,
+    "sole": 1767,
+    "sole_present": 14,
+    "boxes": 2181,
+    "boxes_on_class": 3,
+    "off_coco_sole": 1890,
+    "precision_lower": 0.0047254006871268964,
+    "verdict": "neither"
+   },
+   "rim": {
+    "vg_images": 762,
+    "sole": 345,
+    "sole_present": 1,
+    "boxes": 425,
+    "boxes_on_class": 7,
+    "off_coco_sole": 389,
+    "precision_lower": 0.0005118355816843662,
+    "verdict": "neither"
+   },
+   "roman numerals": {
+    "vg_images": 248,
+    "sole": 6,
+    "sole_present": 6,
+    "boxes": 190,
+    "boxes_on_class": 26,
+    "off_coco_sole": 9,
+    "precision_lower": 0.6096569663469354,
+    "verdict": "ambiguous"
+   },
+   "round": {
+    "vg_images": 61,
+    "sole": 22,
+    "sole_present": 1,
+    "boxes": 26,
+    "boxes_on_class": 3,
+    "off_coco_sole": 30,
+    "precision_lower": 0.008069219301147859,
+    "verdict": "neither"
+   },
+   "sign": {
+    "vg_images": 15042,
+    "sole": 6555,
+    "sole_present": 59,
+    "boxes": 11463,
+    "boxes_on_class": 8,
+    "off_coco_sole": 7632,
+    "precision_lower": 0.0069846288587083714,
+    "verdict": "neither"
+   },
+   "square": {
+    "vg_images": 561,
+    "sole": 237,
+    "sole_present": 4,
+    "boxes": 483,
+    "boxes_on_class": 5,
+    "off_coco_sole": 288,
+    "precision_lower": 0.006582351915676527,
+    "verdict": "neither"
+   },
+   "time": {
+    "vg_images": 239,
+    "sole": 52,
+    "sole_present": 9,
+    "boxes": 139,
+    "boxes_on_class": 38,
+    "off_coco_sole": 51,
+    "precision_lower": 0.09382368756467781,
+    "verdict": "neither"
+   },
+   "timer": {
+    "vg_images": 57,
+    "sole": 22,
+    "sole_present": 1,
+    "boxes": 29,
+    "boxes_on_class": 3,
+    "off_coco_sole": 23,
+    "precision_lower": 0.008069219301147859,
+    "verdict": "neither"
+   },
+   "trim": {
+    "vg_images": 1463,
+    "sole": 618,
+    "sole_present": 7,
+    "boxes": 802,
+    "boxes_on_class": 9,
+    "off_coco_sole": 722,
+    "precision_lower": 0.0054972675091861265,
+    "verdict": "neither"
+   },
+   "two clocks": {
+    "vg_images": 14,
+    "sole": 0,
+    "sole_present": 0,
+    "boxes": 4,
+    "boxes_on_class": 1,
+    "off_coco_sole": 0,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "wall": {
+    "vg_images": 24106,
+    "sole": 10393,
+    "sole_present": 192,
+    "boxes": 13902,
+    "boxes_on_class": 10,
+    "off_coco_sole": 12056,
+    "precision_lower": 0.0160573574759847,
+    "verdict": "neither"
+   },
+   "watch": {
+    "vg_images": 2036,
+    "sole": 970,
+    "sole_present": 102,
+    "boxes": 1044,
+    "boxes_on_class": 36,
+    "off_coco_sole": 1008,
+    "precision_lower": 0.08738298239535036,
+    "verdict": "neither"
+   },
+   "white": {
+    "vg_images": 1921,
+    "sole": 911,
+    "sole_present": 9,
+    "boxes": 1119,
+    "boxes_on_class": 3,
+    "off_coco_sole": 935,
+    "precision_lower": 0.0052060282896091705,
+    "verdict": "neither"
+   },
+   "white clock": {
+    "vg_images": 14,
+    "sole": 3,
+    "sole_present": 1,
+    "boxes": 9,
+    "boxes_on_class": 5,
+    "off_coco_sole": 3,
+    "precision_lower": 0.061490315276160515,
+    "verdict": "unmeasured"
+   },
+   "white face": {
+    "vg_images": 48,
+    "sole": 18,
+    "sole_present": 4,
+    "boxes": 33,
+    "boxes_on_class": 12,
+    "off_coco_sole": 8,
+    "precision_lower": 0.09000781913382,
+    "verdict": "neither"
+   },
+   "window": {
+    "vg_images": 19385,
+    "sole": 7901,
+    "sole_present": 145,
+    "boxes": 20317,
+    "boxes_on_class": 3,
+    "off_coco_sole": 9774,
+    "precision_lower": 0.015618034645715746,
+    "verdict": "neither"
+   }
+  },
+  "bird": {
+   "animal": {
+    "vg_images": 1606,
+    "sole": 744,
+    "sole_present": 27,
+    "boxes": 1350,
+    "boxes_on_class": 32,
+    "off_coco_sole": 811,
+    "precision_lower": 0.025058793297124935,
+    "verdict": "neither"
+   },
+   "animals": {
+    "vg_images": 573,
+    "sole": 258,
+    "sole_present": 16,
+    "boxes": 322,
+    "boxes_on_class": 7,
+    "off_coco_sole": 294,
+    "precision_lower": 0.03852942642393954,
+    "verdict": "neither"
+   },
+   "babies": {
+    "vg_images": 21,
+    "sole": 6,
+    "sole_present": 1,
+    "boxes": 13,
+    "boxes_on_class": 6,
+    "off_coco_sole": 13,
+    "precision_lower": 0.030052585871730285,
+    "verdict": "neither"
+   },
+   "background": {
+    "vg_images": 6529,
+    "sole": 3141,
+    "sole_present": 43,
+    "boxes": 3309,
+    "boxes_on_class": 9,
+    "off_coco_sole": 3176,
+    "precision_lower": 0.010179458616718292,
+    "verdict": "neither"
+   },
+   "beach": {
+    "vg_images": 2793,
+    "sole": 1255,
+    "sole_present": 33,
+    "boxes": 1483,
+    "boxes_on_class": 3,
+    "off_coco_sole": 1325,
+    "precision_lower": 0.018783665076694836,
+    "verdict": "neither"
+   },
+   "beak": {
+    "vg_images": 1206,
+    "sole": 118,
+    "sole_present": 101,
+    "boxes": 753,
+    "boxes_on_class": 4,
+    "off_coco_sole": 110,
+    "precision_lower": 0.7813544230478824,
+    "verdict": "context"
+   },
+   "birds": {
+    "vg_images": 419,
+    "sole": 90,
+    "sole_present": 67,
+    "boxes": 292,
+    "boxes_on_class": 140,
+    "off_coco_sole": 83,
+    "precision_lower": 0.6456215723499179,
+    "verdict": "ambiguous"
+   },
+   "black bird": {
+    "vg_images": 21,
+    "sole": 4,
+    "sole_present": 4,
+    "boxes": 9,
+    "boxes_on_class": 5,
+    "off_coco_sole": 8,
+    "precision_lower": 0.5100999795960008,
+    "verdict": "unmeasured"
+   },
+   "body": {
+    "vg_images": 1435,
+    "sole": 609,
+    "sole_present": 20,
+    "boxes": 750,
+    "boxes_on_class": 28,
+    "off_coco_sole": 667,
+    "precision_lower": 0.021358109449329712,
+    "verdict": "neither"
+   },
+   "branch": {
+    "vg_images": 2144,
+    "sole": 891,
+    "sole_present": 18,
+    "boxes": 1842,
+    "boxes_on_class": 3,
+    "off_coco_sole": 976,
+    "precision_lower": 0.012816237919257144,
+    "verdict": "neither"
+   },
+   "building": {
+    "vg_images": 19154,
+    "sole": 8363,
+    "sole_present": 97,
+    "boxes": 11871,
+    "boxes_on_class": 5,
+    "off_coco_sole": 10436,
+    "precision_lower": 0.009517741013654999,
+    "verdict": "neither"
+   },
+   "cage": {
+    "vg_images": 272,
+    "sole": 121,
+    "sole_present": 8,
+    "boxes": 160,
+    "boxes_on_class": 4,
+    "off_coco_sole": 120,
+    "precision_lower": 0.0338793140032563,
+    "verdict": "neither"
+   },
+   "chicken": {
+    "vg_images": 428,
+    "sole": 192,
+    "sole_present": 19,
+    "boxes": 284,
+    "boxes_on_class": 49,
+    "off_coco_sole": 228,
+    "precision_lower": 0.06426990745709285,
+    "verdict": "neither"
+   },
+   "chickens": {
+    "vg_images": 10,
+    "sole": 2,
+    "sole_present": 1,
+    "boxes": 6,
+    "boxes_on_class": 3,
+    "off_coco_sole": 7,
+    "precision_lower": 0.09452865480086611,
+    "verdict": "unmeasured"
+   },
+   "cloud": {
+    "vg_images": 4022,
+    "sole": 1898,
+    "sole_present": 30,
+    "boxes": 3363,
+    "boxes_on_class": 3,
+    "off_coco_sole": 1987,
+    "precision_lower": 0.011093874661287235,
+    "verdict": "neither"
+   },
+   "clouds": {
+    "vg_images": 6944,
+    "sole": 3177,
+    "sole_present": 53,
+    "boxes": 4597,
+    "boxes_on_class": 3,
+    "off_coco_sole": 3514,
+    "precision_lower": 0.01277697273129197,
+    "verdict": "neither"
+   },
+   "crane": {
+    "vg_images": 308,
+    "sole": 123,
+    "sole_present": 3,
+    "boxes": 148,
+    "boxes_on_class": 4,
+    "off_coco_sole": 170,
+    "precision_lower": 0.008328913484793548,
+    "verdict": "neither"
+   },
+   "dove": {
+    "vg_images": 14,
+    "sole": 5,
+    "sole_present": 5,
+    "boxes": 10,
+    "boxes_on_class": 9,
+    "off_coco_sole": 5,
+    "precision_lower": 0.565508505247919,
+    "verdict": "ambiguous"
+   },
+   "duck": {
+    "vg_images": 249,
+    "sole": 78,
+    "sole_present": 55,
+    "boxes": 283,
+    "boxes_on_class": 190,
+    "off_coco_sole": 106,
+    "precision_lower": 0.5962399656958183,
+    "verdict": "alias"
+   },
+   "ducks": {
+    "vg_images": 73,
+    "sole": 22,
+    "sole_present": 16,
+    "boxes": 56,
+    "boxes_on_class": 22,
+    "off_coco_sole": 25,
+    "precision_lower": 0.5184787630099803,
+    "verdict": "ambiguous"
+   },
+   "eagle": {
+    "vg_images": 49,
+    "sole": 22,
+    "sole_present": 8,
+    "boxes": 27,
+    "boxes_on_class": 10,
+    "off_coco_sole": 23,
+    "precision_lower": 0.19732972772607896,
+    "verdict": "neither"
+   },
+   "feather": {
+    "vg_images": 299,
+    "sole": 61,
+    "sole_present": 31,
+    "boxes": 299,
+    "boxes_on_class": 8,
+    "off_coco_sole": 43,
+    "precision_lower": 0.386024064532302,
+    "verdict": "context"
+   },
+   "feathers": {
+    "vg_images": 659,
+    "sole": 73,
+    "sole_present": 54,
+    "boxes": 477,
+    "boxes_on_class": 47,
+    "off_coco_sole": 73,
+    "precision_lower": 0.6289029493194099,
+    "verdict": "context"
+   },
+   "fence": {
+    "vg_images": 10063,
+    "sole": 4745,
+    "sole_present": 60,
+    "boxes": 5425,
+    "boxes_on_class": 3,
+    "off_coco_sole": 5071,
+    "precision_lower": 0.009836758354662837,
+    "verdict": "neither"
+   },
+   "flamingo": {
+    "vg_images": 24,
+    "sole": 3,
+    "sole_present": 2,
+    "boxes": 24,
+    "boxes_on_class": 19,
+    "off_coco_sole": 9,
+    "precision_lower": 0.20765495512648788,
+    "verdict": "unmeasured"
+   },
+   "foreground": {
+    "vg_images": 339,
+    "sole": 166,
+    "sole_present": 2,
+    "boxes": 174,
+    "boxes_on_class": 3,
+    "off_coco_sole": 161,
+    "precision_lower": 0.003310221981407087,
+    "verdict": "neither"
+   },
+   "geese": {
+    "vg_images": 26,
+    "sole": 9,
+    "sole_present": 9,
+    "boxes": 23,
+    "boxes_on_class": 11,
+    "off_coco_sole": 5,
+    "precision_lower": 0.7008472464490406,
+    "verdict": "ambiguous"
+   },
+   "goose": {
+    "vg_images": 48,
+    "sole": 16,
+    "sole_present": 14,
+    "boxes": 49,
+    "boxes_on_class": 40,
+    "off_coco_sole": 9,
+    "precision_lower": 0.6397666856325172,
+    "verdict": "alias"
+   },
+   "grass": {
+    "vg_images": 16818,
+    "sole": 7948,
+    "sole_present": 144,
+    "boxes": 10070,
+    "boxes_on_class": 6,
+    "off_coco_sole": 8343,
+    "precision_lower": 0.015409741034735542,
+    "verdict": "neither"
+   },
+   "ground": {
+    "vg_images": 23275,
+    "sole": 11010,
+    "sole_present": 127,
+    "boxes": 12656,
+    "boxes_on_class": 9,
+    "off_coco_sole": 11636,
+    "precision_lower": 0.009703847637170845,
+    "verdict": "neither"
+   },
+   "head": {
+    "vg_images": 18792,
+    "sole": 8940,
+    "sole_present": 146,
+    "boxes": 11799,
+    "boxes_on_class": 8,
+    "off_coco_sole": 8932,
+    "precision_lower": 0.013903846649025227,
+    "verdict": "neither"
+   },
+   "hen": {
+    "vg_images": 35,
+    "sole": 16,
+    "sole_present": 2,
+    "boxes": 23,
+    "boxes_on_class": 7,
+    "off_coco_sole": 16,
+    "precision_lower": 0.034976749337057134,
+    "verdict": "neither"
+   },
+   "kite": {
+    "vg_images": 1770,
+    "sole": 835,
+    "sole_present": 8,
+    "boxes": 1992,
+    "boxes_on_class": 3,
+    "off_coco_sole": 884,
+    "precision_lower": 0.004862535838901598,
+    "verdict": "neither"
+   },
+   "ostrich": {
+    "vg_images": 41,
+    "sole": 17,
+    "sole_present": 15,
+    "boxes": 22,
+    "boxes_on_class": 20,
+    "off_coco_sole": 20,
+    "precision_lower": 0.6566315750229009,
+    "verdict": "alias"
+   },
+   "owl": {
+    "vg_images": 44,
+    "sole": 20,
+    "sole_present": 11,
+    "boxes": 27,
+    "boxes_on_class": 15,
+    "off_coco_sole": 18,
+    "precision_lower": 0.34208200830759966,
+    "verdict": "alias"
+   },
+   "parrot": {
+    "vg_images": 36,
+    "sole": 12,
+    "sole_present": 8,
+    "boxes": 25,
+    "boxes_on_class": 21,
+    "off_coco_sole": 12,
+    "precision_lower": 0.3906175873976139,
+    "verdict": "alias"
+   },
+   "peacock": {
+    "vg_images": 14,
+    "sole": 6,
+    "sole_present": 5,
+    "boxes": 11,
+    "boxes_on_class": 8,
+    "off_coco_sole": 4,
+    "precision_lower": 0.4364905634363539,
+    "verdict": "ambiguous"
+   },
+   "pelican": {
+    "vg_images": 15,
+    "sole": 3,
+    "sole_present": 3,
+    "boxes": 5,
+    "boxes_on_class": 3,
+    "off_coco_sole": 5,
+    "precision_lower": 0.4384939195509822,
+    "verdict": "unmeasured"
+   },
+   "penguin": {
+    "vg_images": 39,
+    "sole": 20,
+    "sole_present": 5,
+    "boxes": 28,
+    "boxes_on_class": 9,
+    "off_coco_sole": 16,
+    "precision_lower": 0.11186005278940306,
+    "verdict": "neither"
+   },
+   "pigeon": {
+    "vg_images": 77,
+    "sole": 15,
+    "sole_present": 14,
+    "boxes": 118,
+    "boxes_on_class": 78,
+    "off_coco_sole": 21,
+    "precision_lower": 0.70182922447576,
+    "verdict": "alias"
+   },
+   "pigeons": {
+    "vg_images": 31,
+    "sole": 4,
+    "sole_present": 4,
+    "boxes": 36,
+    "boxes_on_class": 17,
+    "off_coco_sole": 5,
+    "precision_lower": 0.5100999795960008,
+    "verdict": "unmeasured"
+   },
+   "reflection": {
+    "vg_images": 3803,
+    "sole": 1768,
+    "sole_present": 36,
+    "boxes": 2181,
+    "boxes_on_class": 4,
+    "off_coco_sole": 1889,
+    "precision_lower": 0.014743824519122973,
+    "verdict": "neither"
+   },
+   "rooster": {
+    "vg_images": 33,
+    "sole": 12,
+    "sole_present": 2,
+    "boxes": 14,
+    "boxes_on_class": 4,
+    "off_coco_sole": 17,
+    "precision_lower": 0.046964147614822246,
+    "verdict": "neither"
+   },
+   "sand": {
+    "vg_images": 2831,
+    "sole": 1270,
+    "sole_present": 37,
+    "boxes": 1619,
+    "boxes_on_class": 4,
+    "off_coco_sole": 1355,
+    "precision_lower": 0.021209496965965087,
+    "verdict": "neither"
+   },
+   "seagull": {
+    "vg_images": 95,
+    "sole": 24,
+    "sole_present": 17,
+    "boxes": 98,
+    "boxes_on_class": 68,
+    "off_coco_sole": 23,
+    "precision_lower": 0.5083193634129031,
+    "verdict": "alias"
+   },
+   "seagulls": {
+    "vg_images": 33,
+    "sole": 9,
+    "sole_present": 6,
+    "boxes": 21,
+    "boxes_on_class": 9,
+    "off_coco_sole": 4,
+    "precision_lower": 0.35419734749908977,
+    "verdict": "ambiguous"
+   },
+   "shadow": {
+    "vg_images": 10025,
+    "sole": 4733,
+    "sole_present": 39,
+    "boxes": 5946,
+    "boxes_on_class": 10,
+    "off_coco_sole": 5043,
+    "precision_lower": 0.006033710259566006,
+    "verdict": "neither"
+   },
+   "sky": {
+    "vg_images": 22844,
+    "sole": 10643,
+    "sole_present": 147,
+    "boxes": 11824,
+    "boxes_on_class": 18,
+    "off_coco_sole": 11405,
+    "precision_lower": 0.011763460797412775,
+    "verdict": "neither"
+   },
+   "statue": {
+    "vg_images": 919,
+    "sole": 394,
+    "sole_present": 12,
+    "boxes": 524,
+    "boxes_on_class": 5,
+    "off_coco_sole": 496,
+    "precision_lower": 0.01750669974818865,
+    "verdict": "neither"
+   },
+   "surface": {
+    "vg_images": 1375,
+    "sole": 617,
+    "sole_present": 9,
+    "boxes": 674,
+    "boxes_on_class": 3,
+    "off_coco_sole": 721,
+    "precision_lower": 0.007692655181682038,
+    "verdict": "neither"
+   },
+   "swan": {
+    "vg_images": 47,
+    "sole": 17,
+    "sole_present": 14,
+    "boxes": 55,
+    "boxes_on_class": 40,
+    "off_coco_sole": 19,
+    "precision_lower": 0.5897007098262422,
+    "verdict": "alias"
+   },
+   "this": {
+    "vg_images": 465,
+    "sole": 222,
+    "sole_present": 4,
+    "boxes": 498,
+    "boxes_on_class": 3,
+    "off_coco_sole": 228,
+    "precision_lower": 0.007028490666876029,
+    "verdict": "neither"
+   },
+   "three birds": {
+    "vg_images": 10,
+    "sole": 1,
+    "sole_present": 1,
+    "boxes": 7,
+    "boxes_on_class": 0,
+    "off_coco_sole": 1,
+    "precision_lower": 0.20654329147389294,
+    "verdict": "unmeasured"
+   },
+   "tree": {
+    "vg_images": 18691,
+    "sole": 8537,
+    "sole_present": 122,
+    "boxes": 15561,
+    "boxes_on_class": 5,
+    "off_coco_sole": 9606,
+    "precision_lower": 0.011982599247382134,
+    "verdict": "neither"
+   },
+   "trees": {
+    "vg_images": 12244,
+    "sole": 5741,
+    "sole_present": 74,
+    "boxes": 7286,
+    "boxes_on_class": 5,
+    "off_coco_sole": 6233,
+    "precision_lower": 0.010280439281532416,
+    "verdict": "neither"
+   },
+   "turkey": {
+    "vg_images": 53,
+    "sole": 26,
+    "sole_present": 3,
+    "boxes": 37,
+    "boxes_on_class": 12,
+    "off_coco_sole": 25,
+    "precision_lower": 0.04003171821149494,
+    "verdict": "neither"
+   },
+   "two birds": {
+    "vg_images": 10,
+    "sole": 1,
+    "sole_present": 0,
+    "boxes": 5,
+    "boxes_on_class": 2,
+    "off_coco_sole": 2,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "wall": {
+    "vg_images": 24106,
+    "sole": 11041,
+    "sole_present": 52,
+    "boxes": 13902,
+    "boxes_on_class": 3,
+    "off_coco_sole": 12727,
+    "precision_lower": 0.0035935449152360824,
+    "verdict": "neither"
+   },
+   "water": {
+    "vg_images": 10151,
+    "sole": 4533,
+    "sole_present": 140,
+    "boxes": 5889,
+    "boxes_on_class": 9,
+    "off_coco_sole": 4928,
+    "precision_lower": 0.02623191401655059,
+    "verdict": "neither"
+   },
+   "white bird": {
+    "vg_images": 12,
+    "sole": 2,
+    "sole_present": 2,
+    "boxes": 6,
+    "boxes_on_class": 6,
+    "off_coco_sole": 2,
+    "precision_lower": 0.3423719528896193,
+    "verdict": "unmeasured"
+   },
+   "wing": {
+    "vg_images": 2651,
+    "sole": 1024,
+    "sole_present": 50,
+    "boxes": 1961,
+    "boxes_on_class": 19,
+    "off_coco_sole": 1032,
+    "precision_lower": 0.03723171639803937,
+    "verdict": "neither"
+   },
+   "wings": {
+    "vg_images": 513,
+    "sole": 166,
+    "sole_present": 14,
+    "boxes": 298,
+    "boxes_on_class": 21,
+    "off_coco_sole": 182,
+    "precision_lower": 0.050900877380029026,
+    "verdict": "neither"
+   }
+  },
+  "bicycle": {
+   "bars": {
+    "vg_images": 546,
+    "sole": 240,
+    "sole_present": 11,
+    "boxes": 290,
+    "boxes_on_class": 4,
+    "off_coco_sole": 282,
+    "precision_lower": 0.02578221532980838,
+    "verdict": "neither"
+   },
+   "bench": {
+    "vg_images": 4100,
+    "sole": 1952,
+    "sole_present": 66,
+    "boxes": 2500,
+    "boxes_on_class": 4,
+    "off_coco_sole": 2007,
+    "precision_lower": 0.026664618205558575,
+    "verdict": "neither"
+   },
+   "bicycle tire": {
+    "vg_images": 13,
+    "sole": 4,
+    "sole_present": 4,
+    "boxes": 10,
+    "boxes_on_class": 5,
+    "off_coco_sole": 1,
+    "precision_lower": 0.5100999795960008,
+    "verdict": "unmeasured"
+   },
+   "bicycles": {
+    "vg_images": 170,
+    "sole": 48,
+    "sole_present": 46,
+    "boxes": 91,
+    "boxes_on_class": 60,
+    "off_coco_sole": 61,
+    "precision_lower": 0.8602408885222853,
+    "verdict": "alias"
+   },
+   "bicyclist": {
+    "vg_images": 47,
+    "sole": 13,
+    "sole_present": 11,
+    "boxes": 31,
+    "boxes_on_class": 7,
+    "off_coco_sole": 7,
+    "precision_lower": 0.5776482949136899,
+    "verdict": "ambiguous"
+   },
+   "bike": {
+    "vg_images": 2482,
+    "sole": 1088,
+    "sole_present": 508,
+    "boxes": 1581,
+    "boxes_on_class": 634,
+    "off_coco_sole": 1144,
+    "precision_lower": 0.43743466801995623,
+    "verdict": "ambiguous"
+   },
+   "bike rack": {
+    "vg_images": 107,
+    "sole": 38,
+    "sole_present": 13,
+    "boxes": 54,
+    "boxes_on_class": 5,
+    "off_coco_sole": 45,
+    "precision_lower": 0.21212220026458956,
+    "verdict": "neither"
+   },
+   "bike tire": {
+    "vg_images": 32,
+    "sole": 10,
+    "sole_present": 7,
+    "boxes": 16,
+    "boxes_on_class": 5,
+    "off_coco_sole": 6,
+    "precision_lower": 0.3967732199795652,
+    "verdict": "ambiguous"
+   },
+   "biker": {
+    "vg_images": 119,
+    "sole": 49,
+    "sole_present": 8,
+    "boxes": 82,
+    "boxes_on_class": 3,
+    "off_coco_sole": 45,
+    "precision_lower": 0.08512596988208977,
+    "verdict": "neither"
+   },
+   "bikes": {
+    "vg_images": 278,
+    "sole": 103,
+    "sole_present": 57,
+    "boxes": 137,
+    "boxes_on_class": 54,
+    "off_coco_sole": 119,
+    "precision_lower": 0.45719037245005417,
+    "verdict": "ambiguous"
+   },
+   "boy": {
+    "vg_images": 5152,
+    "sole": 2513,
+    "sole_present": 66,
+    "boxes": 3512,
+    "boxes_on_class": 4,
+    "off_coco_sole": 2531,
+    "precision_lower": 0.02069705318107265,
+    "verdict": "neither"
+   },
+   "car": {
+    "vg_images": 9204,
+    "sole": 3897,
+    "sole_present": 227,
+    "boxes": 6779,
+    "boxes_on_class": 4,
+    "off_coco_sole": 4907,
+    "precision_lower": 0.05132202681394097,
+    "verdict": "neither"
+   },
+   "cart": {
+    "vg_images": 798,
+    "sole": 392,
+    "sole_present": 26,
+    "boxes": 480,
+    "boxes_on_class": 6,
+    "off_coco_sole": 379,
+    "precision_lower": 0.04566137103693085,
+    "verdict": "neither"
+   },
+   "cycle": {
+    "vg_images": 61,
+    "sole": 26,
+    "sole_present": 2,
+    "boxes": 39,
+    "boxes_on_class": 4,
+    "off_coco_sole": 27,
+    "precision_lower": 0.021354639183375553,
+    "verdict": "neither"
+   },
+   "fence": {
+    "vg_images": 10063,
+    "sole": 4769,
+    "sole_present": 84,
+    "boxes": 5425,
+    "boxes_on_class": 4,
+    "off_coco_sole": 5114,
+    "precision_lower": 0.014249938847312663,
+    "verdict": "neither"
+   },
+   "frame": {
+    "vg_images": 2898,
+    "sole": 1339,
+    "sole_present": 22,
+    "boxes": 1604,
+    "boxes_on_class": 8,
+    "off_coco_sole": 1496,
+    "precision_lower": 0.010874913068518998,
+    "verdict": "neither"
+   },
+   "front": {
+    "vg_images": 1951,
+    "sole": 937,
+    "sole_present": 18,
+    "boxes": 997,
+    "boxes_on_class": 3,
+    "off_coco_sole": 964,
+    "precision_lower": 0.012185310398201624,
+    "verdict": "neither"
+   },
+   "front wheel": {
+    "vg_images": 489,
+    "sole": 216,
+    "sole_present": 12,
+    "boxes": 258,
+    "boxes_on_class": 3,
+    "off_coco_sole": 227,
+    "precision_lower": 0.03206201909178884,
+    "verdict": "neither"
+   },
+   "grass": {
+    "vg_images": 16818,
+    "sole": 8121,
+    "sole_present": 105,
+    "boxes": 10070,
+    "boxes_on_class": 2,
+    "off_coco_sole": 8474,
+    "precision_lower": 0.01069249142861046,
+    "verdict": "neither"
+   },
+   "ground": {
+    "vg_images": 23275,
+    "sole": 11095,
+    "sole_present": 207,
+    "boxes": 12656,
+    "boxes_on_class": 15,
+    "off_coco_sole": 11714,
+    "precision_lower": 0.01630076876344674,
+    "verdict": "neither"
+   },
+   "left": {
+    "vg_images": 635,
+    "sole": 312,
+    "sole_present": 5,
+    "boxes": 327,
+    "boxes_on_class": 2,
+    "off_coco_sole": 317,
+    "precision_lower": 0.0068640189915155185,
+    "verdict": "neither"
+   },
+   "man": {
+    "vg_images": 29079,
+    "sole": 13654,
+    "sole_present": 419,
+    "boxes": 21907,
+    "boxes_on_class": 14,
+    "off_coco_sole": 14603,
+    "precision_lower": 0.02792346823682805,
+    "verdict": "neither"
+   },
+   "motorcycle": {
+    "vg_images": 1896,
+    "sole": 873,
+    "sole_present": 46,
+    "boxes": 1443,
+    "boxes_on_class": 7,
+    "off_coco_sole": 917,
+    "precision_lower": 0.03973419746886128,
+    "verdict": "neither"
+   },
+   "pants": {
+    "vg_images": 10634,
+    "sole": 5026,
+    "sole_present": 124,
+    "boxes": 6130,
+    "boxes_on_class": 9,
+    "off_coco_sole": 5371,
+    "precision_lower": 0.020732396096283738,
+    "verdict": "neither"
+   },
+   "person": {
+    "vg_images": 15899,
+    "sole": 7381,
+    "sole_present": 271,
+    "boxes": 14650,
+    "boxes_on_class": 9,
+    "off_coco_sole": 8027,
+    "precision_lower": 0.03266079521628304,
+    "verdict": "neither"
+   },
+   "rack": {
+    "vg_images": 1337,
+    "sole": 606,
+    "sole_present": 34,
+    "boxes": 711,
+    "boxes_on_class": 4,
+    "off_coco_sole": 672,
+    "precision_lower": 0.0404243524276796,
+    "verdict": "neither"
+   },
+   "railing": {
+    "vg_images": 2292,
+    "sole": 1050,
+    "sole_present": 30,
+    "boxes": 1220,
+    "boxes_on_class": 2,
+    "off_coco_sole": 1165,
+    "precision_lower": 0.020085541030002936,
+    "verdict": "neither"
+   },
+   "sidewalk": {
+    "vg_images": 7004,
+    "sole": 2870,
+    "sole_present": 222,
+    "boxes": 3419,
+    "boxes_on_class": 7,
+    "off_coco_sole": 3651,
+    "precision_lower": 0.06813318037756651,
+    "verdict": "neither"
+   },
+   "snow": {
+    "vg_images": 4822,
+    "sole": 2345,
+    "sole_present": 12,
+    "boxes": 3825,
+    "boxes_on_class": 4,
+    "off_coco_sole": 2452,
+    "precision_lower": 0.002929711019899876,
+    "verdict": "neither"
+   },
+   "street": {
+    "vg_images": 6456,
+    "sole": 2711,
+    "sole_present": 214,
+    "boxes": 3141,
+    "boxes_on_class": 14,
+    "off_coco_sole": 3318,
+    "precision_lower": 0.06937290113448522,
+    "verdict": "neither"
+   },
+   "tire": {
+    "vg_images": 4205,
+    "sole": 1791,
+    "sole_present": 163,
+    "boxes": 2904,
+    "boxes_on_class": 42,
+    "off_coco_sole": 2073,
+    "precision_lower": 0.07855058834930029,
+    "verdict": "neither"
+   },
+   "tires": {
+    "vg_images": 469,
+    "sole": 211,
+    "sole_present": 10,
+    "boxes": 252,
+    "boxes_on_class": 3,
+    "off_coco_sole": 231,
+    "precision_lower": 0.02594361836189739,
+    "verdict": "neither"
+   },
+   "tricycle": {
+    "vg_images": 22,
+    "sole": 7,
+    "sole_present": 5,
+    "boxes": 11,
+    "boxes_on_class": 6,
+    "off_coco_sole": 9,
+    "precision_lower": 0.35892909014821267,
+    "verdict": "ambiguous"
+   },
+   "wall": {
+    "vg_images": 24106,
+    "sole": 11046,
+    "sole_present": 136,
+    "boxes": 13902,
+    "boxes_on_class": 10,
+    "off_coco_sole": 12731,
+    "precision_lower": 0.010418570383038384,
+    "verdict": "neither"
+   },
+   "wheel": {
+    "vg_images": 6073,
+    "sole": 2748,
+    "sole_present": 179,
+    "boxes": 4952,
+    "boxes_on_class": 51,
+    "off_coco_sole": 2908,
+    "precision_lower": 0.05650527816630182,
+    "verdict": "neither"
+   },
+   "wheels": {
+    "vg_images": 2458,
+    "sole": 1199,
+    "sole_present": 38,
+    "boxes": 1514,
+    "boxes_on_class": 5,
+    "off_coco_sole": 1209,
+    "precision_lower": 0.02317627803499939,
+    "verdict": "neither"
+   },
+   "woman": {
+    "vg_images": 12169,
+    "sole": 5577,
+    "sole_present": 190,
+    "boxes": 7654,
+    "boxes_on_class": 5,
+    "off_coco_sole": 6267,
+    "precision_lower": 0.0296189875383245,
+    "verdict": "neither"
+   }
+  },
+  "umbrella": {
+   "a": {
+    "vg_images": 668,
+    "sole": 278,
+    "sole_present": 4,
+    "boxes": 748,
+    "boxes_on_class": 3,
+    "off_coco_sole": 371,
+    "precision_lower": 0.0056091621539697085,
+    "verdict": "neither"
+   },
+   "an umbrella": {
+    "vg_images": 15,
+    "sole": 8,
+    "sole_present": 8,
+    "boxes": 8,
+    "boxes_on_class": 8,
+    "off_coco_sole": 5,
+    "precision_lower": 0.6755843804891231,
+    "verdict": "ambiguous"
+   },
+   "awning": {
+    "vg_images": 1155,
+    "sole": 446,
+    "sole_present": 19,
+    "boxes": 585,
+    "boxes_on_class": 11,
+    "off_coco_sole": 594,
+    "precision_lower": 0.027439614590663738,
+    "verdict": "neither"
+   },
+   "background": {
+    "vg_images": 6529,
+    "sole": 3128,
+    "sole_present": 33,
+    "boxes": 3309,
+    "boxes_on_class": 4,
+    "off_coco_sole": 3167,
+    "precision_lower": 0.007521928646436471,
+    "verdict": "neither"
+   },
+   "beach": {
+    "vg_images": 2793,
+    "sole": 1176,
+    "sole_present": 46,
+    "boxes": 1483,
+    "boxes_on_class": 11,
+    "off_coco_sole": 1258,
+    "precision_lower": 0.029452435931046843,
+    "verdict": "neither"
+   },
+   "beach umbrella": {
+    "vg_images": 28,
+    "sole": 2,
+    "sole_present": 2,
+    "boxes": 24,
+    "boxes_on_class": 14,
+    "off_coco_sole": 10,
+    "precision_lower": 0.3423719528896193,
+    "verdict": "unmeasured"
+   },
+   "black umbrella": {
+    "vg_images": 29,
+    "sole": 5,
+    "sole_present": 5,
+    "boxes": 17,
+    "boxes_on_class": 15,
+    "off_coco_sole": 10,
+    "precision_lower": 0.565508505247919,
+    "verdict": "ambiguous"
+   },
+   "blue umbrella": {
+    "vg_images": 58,
+    "sole": 7,
+    "sole_present": 7,
+    "boxes": 30,
+    "boxes_on_class": 28,
+    "off_coco_sole": 14,
+    "precision_lower": 0.6456611570247934,
+    "verdict": "alias"
+   },
+   "building": {
+    "vg_images": 19154,
+    "sole": 8021,
+    "sole_present": 124,
+    "boxes": 11871,
+    "boxes_on_class": 12,
+    "off_coco_sole": 10042,
+    "precision_lower": 0.012982126771652022,
+    "verdict": "neither"
+   },
+   "cane": {
+    "vg_images": 99,
+    "sole": 42,
+    "sole_present": 1,
+    "boxes": 62,
+    "boxes_on_class": 5,
+    "off_coco_sole": 42,
+    "precision_lower": 0.004215295499100293,
+    "verdict": "neither"
+   },
+   "canopy": {
+    "vg_images": 556,
+    "sole": 225,
+    "sole_present": 15,
+    "boxes": 286,
+    "boxes_on_class": 33,
+    "off_coco_sole": 257,
+    "precision_lower": 0.040813293763071225,
+    "verdict": "neither"
+   },
+   "closed umbrella": {
+    "vg_images": 12,
+    "sole": 3,
+    "sole_present": 2,
+    "boxes": 9,
+    "boxes_on_class": 8,
+    "off_coco_sole": 3,
+    "precision_lower": 0.20765495512648788,
+    "verdict": "unmeasured"
+   },
+   "design": {
+    "vg_images": 2630,
+    "sole": 1253,
+    "sole_present": 7,
+    "boxes": 1620,
+    "boxes_on_class": 4,
+    "off_coco_sole": 1310,
+    "precision_lower": 0.0027087108897472464,
+    "verdict": "neither"
+   },
+   "designs": {
+    "vg_images": 237,
+    "sole": 107,
+    "sole_present": 1,
+    "boxes": 143,
+    "boxes_on_class": 3,
+    "off_coco_sole": 122,
+    "precision_lower": 0.0016516291511190042,
+    "verdict": "neither"
+   },
+   "fence": {
+    "vg_images": 10063,
+    "sole": 4690,
+    "sole_present": 16,
+    "boxes": 5425,
+    "boxes_on_class": 3,
+    "off_coco_sole": 5044,
+    "precision_lower": 0.0021010360116798126,
+    "verdict": "neither"
+   },
+   "flag": {
+    "vg_images": 2710,
+    "sole": 1194,
+    "sole_present": 23,
+    "boxes": 1853,
+    "boxes_on_class": 3,
+    "off_coco_sole": 1346,
+    "precision_lower": 0.012869681924385297,
+    "verdict": "neither"
+   },
+   "floor": {
+    "vg_images": 10037,
+    "sole": 4654,
+    "sole_present": 21,
+    "boxes": 5088,
+    "boxes_on_class": 3,
+    "off_coco_sole": 5198,
+    "precision_lower": 0.0029532348743173576,
+    "verdict": "neither"
+   },
+   "girl": {
+    "vg_images": 4577,
+    "sole": 2122,
+    "sole_present": 23,
+    "boxes": 2866,
+    "boxes_on_class": 4,
+    "off_coco_sole": 2142,
+    "precision_lower": 0.007233260386121782,
+    "verdict": "neither"
+   },
+   "green umbrella": {
+    "vg_images": 22,
+    "sole": 3,
+    "sole_present": 3,
+    "boxes": 8,
+    "boxes_on_class": 7,
+    "off_coco_sole": 7,
+    "precision_lower": 0.4384939195509822,
+    "verdict": "unmeasured"
+   },
+   "ground": {
+    "vg_images": 23275,
+    "sole": 10905,
+    "sole_present": 79,
+    "boxes": 12656,
+    "boxes_on_class": 6,
+    "off_coco_sole": 11555,
+    "precision_lower": 0.0058170430021549655,
+    "verdict": "neither"
+   },
+   "group": {
+    "vg_images": 983,
+    "sole": 437,
+    "sole_present": 12,
+    "boxes": 497,
+    "boxes_on_class": 4,
+    "off_coco_sole": 489,
+    "precision_lower": 0.015776573207724947,
+    "verdict": "neither"
+   },
+   "handle": {
+    "vg_images": 7395,
+    "sole": 3376,
+    "sole_present": 18,
+    "boxes": 4702,
+    "boxes_on_class": 5,
+    "off_coco_sole": 3674,
+    "precision_lower": 0.0033752744039998424,
+    "verdict": "neither"
+   },
+   "hat": {
+    "vg_images": 7837,
+    "sole": 3641,
+    "sole_present": 67,
+    "boxes": 4690,
+    "boxes_on_class": 5,
+    "off_coco_sole": 3752,
+    "precision_lower": 0.014516451832580175,
+    "verdict": "neither"
+   },
+   "light": {
+    "vg_images": 12533,
+    "sole": 5755,
+    "sole_present": 37,
+    "boxes": 9628,
+    "boxes_on_class": 3,
+    "off_coco_sole": 6416,
+    "precision_lower": 0.004668081568946741,
+    "verdict": "neither"
+   },
+   "object": {
+    "vg_images": 1607,
+    "sole": 725,
+    "sole_present": 4,
+    "boxes": 888,
+    "boxes_on_class": 4,
+    "off_coco_sole": 835,
+    "precision_lower": 0.0021475423961724695,
+    "verdict": "neither"
+   },
+   "open umbrella": {
+    "vg_images": 11,
+    "sole": 2,
+    "sole_present": 2,
+    "boxes": 8,
+    "boxes_on_class": 8,
+    "off_coco_sole": 2,
+    "precision_lower": 0.3423719528896193,
+    "verdict": "unmeasured"
+   },
+   "orange umbrella": {
+    "vg_images": 13,
+    "sole": 3,
+    "sole_present": 3,
+    "boxes": 7,
+    "boxes_on_class": 6,
+    "off_coco_sole": 3,
+    "precision_lower": 0.4384939195509822,
+    "verdict": "unmeasured"
+   },
+   "parasol": {
+    "vg_images": 59,
+    "sole": 16,
+    "sole_present": 15,
+    "boxes": 56,
+    "boxes_on_class": 38,
+    "off_coco_sole": 16,
+    "precision_lower": 0.7167073163197013,
+    "verdict": "alias"
+   },
+   "patio umbrella": {
+    "vg_images": 13,
+    "sole": 2,
+    "sole_present": 1,
+    "boxes": 12,
+    "boxes_on_class": 7,
+    "off_coco_sole": 3,
+    "precision_lower": 0.09452865480086611,
+    "verdict": "unmeasured"
+   },
+   "people": {
+    "vg_images": 9512,
+    "sole": 4166,
+    "sole_present": 111,
+    "boxes": 6593,
+    "boxes_on_class": 5,
+    "off_coco_sole": 4504,
+    "precision_lower": 0.022172911380936283,
+    "verdict": "neither"
+   },
+   "person": {
+    "vg_images": 15899,
+    "sole": 7057,
+    "sole_present": 131,
+    "boxes": 14650,
+    "boxes_on_class": 3,
+    "off_coco_sole": 7711,
+    "precision_lower": 0.015665825656848157,
+    "verdict": "neither"
+   },
+   "photo": {
+    "vg_images": 2473,
+    "sole": 1183,
+    "sole_present": 15,
+    "boxes": 1343,
+    "boxes_on_class": 5,
+    "off_coco_sole": 1189,
+    "precision_lower": 0.007698839713645625,
+    "verdict": "neither"
+   },
+   "pink umbrella": {
+    "vg_images": 24,
+    "sole": 6,
+    "sole_present": 6,
+    "boxes": 15,
+    "boxes_on_class": 13,
+    "off_coco_sole": 4,
+    "precision_lower": 0.6096569663469354,
+    "verdict": "ambiguous"
+   },
+   "rainbow": {
+    "vg_images": 68,
+    "sole": 28,
+    "sole_present": 1,
+    "boxes": 34,
+    "boxes_on_class": 3,
+    "off_coco_sole": 32,
+    "precision_lower": 0.006332356497541882,
+    "verdict": "neither"
+   },
+   "red umbrella": {
+    "vg_images": 54,
+    "sole": 9,
+    "sole_present": 9,
+    "boxes": 30,
+    "boxes_on_class": 16,
+    "off_coco_sole": 17,
+    "precision_lower": 0.7008472464490406,
+    "verdict": "alias"
+   },
+   "roof": {
+    "vg_images": 5424,
+    "sole": 2415,
+    "sole_present": 27,
+    "boxes": 2919,
+    "boxes_on_class": 6,
+    "off_coco_sole": 2782,
+    "precision_lower": 0.007694959747673813,
+    "verdict": "neither"
+   },
+   "scene": {
+    "vg_images": 1058,
+    "sole": 467,
+    "sole_present": 4,
+    "boxes": 503,
+    "boxes_on_class": 3,
+    "off_coco_sole": 546,
+    "precision_lower": 0.0033357254763382166,
+    "verdict": "neither"
+   },
+   "sky": {
+    "vg_images": 22844,
+    "sole": 10620,
+    "sole_present": 88,
+    "boxes": 11824,
+    "boxes_on_class": 11,
+    "off_coco_sole": 11421,
+    "precision_lower": 0.006731108637803393,
+    "verdict": "neither"
+   },
+   "stand": {
+    "vg_images": 1900,
+    "sole": 863,
+    "sole_present": 13,
+    "boxes": 1002,
+    "boxes_on_class": 3,
+    "off_coco_sole": 948,
+    "precision_lower": 0.008824075188908957,
+    "verdict": "neither"
+   },
+   "stripes": {
+    "vg_images": 2932,
+    "sole": 1440,
+    "sole_present": 10,
+    "boxes": 1834,
+    "boxes_on_class": 3,
+    "off_coco_sole": 1417,
+    "precision_lower": 0.003776395025036617,
+    "verdict": "neither"
+   },
+   "tent": {
+    "vg_images": 692,
+    "sole": 265,
+    "sole_present": 26,
+    "boxes": 409,
+    "boxes_on_class": 25,
+    "off_coco_sole": 319,
+    "precision_lower": 0.06783636994171506,
+    "verdict": "neither"
+   },
+   "tents": {
+    "vg_images": 73,
+    "sole": 33,
+    "sole_present": 8,
+    "boxes": 39,
+    "boxes_on_class": 5,
+    "off_coco_sole": 30,
+    "precision_lower": 0.12831561346647294,
+    "verdict": "neither"
+   },
+   "tie": {
+    "vg_images": 1945,
+    "sole": 927,
+    "sole_present": 5,
+    "boxes": 1211,
+    "boxes_on_class": 5,
+    "off_coco_sole": 950,
+    "precision_lower": 0.0023059857037848247,
+    "verdict": "neither"
+   },
+   "top": {
+    "vg_images": 4596,
+    "sole": 2140,
+    "sole_present": 22,
+    "boxes": 2442,
+    "boxes_on_class": 7,
+    "off_coco_sole": 2270,
+    "precision_lower": 0.006798746785871292,
+    "verdict": "neither"
+   },
+   "umbrellas": {
+    "vg_images": 354,
+    "sole": 51,
+    "sole_present": 31,
+    "boxes": 230,
+    "boxes_on_class": 104,
+    "off_coco_sole": 44,
+    "precision_lower": 0.4708491122516505,
+    "verdict": "ambiguous"
+   },
+   "wall": {
+    "vg_images": 24106,
+    "sole": 10926,
+    "sole_present": 39,
+    "boxes": 13902,
+    "boxes_on_class": 5,
+    "off_coco_sole": 12629,
+    "precision_lower": 0.002612335148757836,
+    "verdict": "neither"
+   },
+   "water": {
+    "vg_images": 10151,
+    "sole": 4617,
+    "sole_present": 62,
+    "boxes": 5889,
+    "boxes_on_class": 4,
+    "off_coco_sole": 5020,
+    "precision_lower": 0.01048983018071949,
+    "verdict": "neither"
+   },
+   "white umbrella": {
+    "vg_images": 13,
+    "sole": 1,
+    "sole_present": 0,
+    "boxes": 9,
+    "boxes_on_class": 8,
+    "off_coco_sole": 4,
+    "precision_lower": 0.0,
+    "verdict": "unmeasured"
+   },
+   "woman": {
+    "vg_images": 12169,
+    "sole": 5223,
+    "sole_present": 108,
+    "boxes": 7654,
+    "boxes_on_class": 7,
+    "off_coco_sole": 5839,
+    "precision_lower": 0.01715610893978898,
+    "verdict": "neither"
+   },
+   "yellow umbrella": {
+    "vg_images": 12,
+    "sole": 1,
+    "sole_present": 1,
+    "boxes": 6,
+    "boxes_on_class": 4,
+    "off_coco_sole": 3,
+    "precision_lower": 0.20654329147389294,
+    "verdict": "unmeasured"
+   }
+  }
+ }
+}

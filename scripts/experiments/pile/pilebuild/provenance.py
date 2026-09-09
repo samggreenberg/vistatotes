@@ -1,4 +1,4 @@
-"""Which machine produced a cell, and a hash that outlives the cell itself (#3160)."""
+"""Which machine and which *code* produced a cell, and a hash that outlives it (#3160, #3693)."""
 
 from __future__ import annotations
 
@@ -12,8 +12,8 @@ import pile_config as pc
 from pilebuild.env import cells_io, log
 
 
-def _device_record() -> dict:
-    """Everything about the machine that a later reader needs to compare cells.
+def _device_record(embed_batch_size: int | None = None) -> dict:
+    """Everything about the build that a later reader needs to compare cells.
 
     ``gres/gpu:v100`` is a *type*, and #3143 measured that a type is not a
     device: two nodes both answering to it produced ``siglip2_l`` vectors 1.5e-04
@@ -42,6 +42,16 @@ def _device_record() -> dict:
         # written; a reader can see a request that did not land.
         "cpu_capability": _cpu_capability(),
         "aten_cpu_capability_requested": os.environ.get("ATEN_CPU_CAPABILITY"),
+        # Not a property of the machine, and here anyway for the same reason the
+        # line above is: it is a build parameter that moves the vectors. A
+        # per-image embedding is supposed to be independent of what it was
+        # batched with, and #3683 measured that it is not -- rebuilding
+        # `siglip2_l` at batch 31 instead of 32, same images and same node,
+        # changed 27 of 7,746 vectors by up to 1.6e-04, because the batched
+        # GEMM's reduction order is not. That is 400x the same-node floor and
+        # larger than the fp16 difference #3143 rejected, and until this key
+        # existed nothing in the sidecar said what a cell had been batched at.
+        "embed_batch_size": embed_batch_size,
         "slurm_job": os.environ.get("SLURM_JOB_ID"),
         "slurm_gres": os.environ.get("SLURM_JOB_GRES") or os.environ.get("SBATCH_GRES"),
         "precision_requested": EMBED_PRECISION,
@@ -57,7 +67,6 @@ def _device_record() -> dict:
         # written for. Recording the version and the class that actually loaded
         # costs nothing and makes that axis visible too.
         "transformers": _transformers_version(),
-        "commit": _git_commit(),
     }
     if not torch.cuda.is_available():
         rec["gpu_name"] = None
@@ -84,6 +93,29 @@ def _device_record() -> dict:
         }
     )
     return rec
+
+
+def effective_embed_batch_size(embedder: str) -> int | None:
+    """The batch size *embedder* will forward at, given the environment right now.
+
+    Read the embedder rather than the env var, because the env var is only the
+    default: a subclass with a tighter VRAM budget passes its own smaller one to
+    ``resolve_embed_batch_size``, and it is the number the GEMM sees that moves
+    the vectors. Registry lookup only -- no weights load, so this is free to
+    call before the pass it describes.
+
+    **Call it while the build's ``VTSEARCH_EMBED_BATCH_SIZE`` is still set.**
+    ``build_pile`` applies the per-embedder size for the duration of the embed
+    pass and pops it afterwards, so asking at provenance-write time would answer
+    with the shipped default -- recording a size the pass never ran at, which is
+    the failure the ``aten_cpu_capability_requested`` comment above warns about.
+    """
+    try:
+        from vtscore.media import get_embedder  # noqa: PLC0415
+
+        return int(get_embedder(embedder).embed_batch_size)
+    except Exception:  # noqa: BLE001 -- provenance must never fail a build
+        return None
 
 
 def _cpu_capability() -> str | None:
@@ -133,14 +165,13 @@ def _processor_record(embedder: str) -> dict:
         return {"processor_class": None, "image_processor_class": None, "error": repr(exc)[:120]}
 
 
-def _git_commit() -> str | None:
-    """The commit of the checkout that is about to embed, or None outside git."""
+def _git(repo: Path, *args: str) -> str | None:
+    """One `git -C repo ...`, or None when git or the repo is not usable."""
     import subprocess  # noqa: PLC0415, S404 -- fixed argv, no shell
 
-    repo = Path(os.environ.get("VTS_REPO") or Path(__file__).resolve().parents[4])
     try:
         out = subprocess.run(  # noqa: S603
-            ["git", "-C", str(repo), "rev-parse", "HEAD"],  # noqa: S607
+            ["git", "-C", str(repo), *args],  # noqa: S607
             capture_output=True,
             text=True,
             timeout=15,
@@ -148,7 +179,43 @@ def _git_commit() -> str | None:
         )
     except (OSError, subprocess.SubprocessError):
         return None
+    if out.returncode != 0:
+        return None
     return out.stdout.strip() or None
+
+
+def _code_record() -> dict:
+    """The checkout that is about to embed: which tree, at which commit.
+
+    The commit alone was here before #3693, and it was not enough. The launcher
+    built the pile from a **fixed path** rather than its own location, so
+    `bash launch_pile.sh vg_scale` from any other worktree submitted jobs that
+    imported `/exp/$USER/projects/vts-pile` -- 1,420 commits behind `dev`,
+    predating `vg_scale` entirely. A commit hash records *what* ran and cannot
+    say *which tree it came from*, so a cell built by a stale checkout and a cell
+    built by a current one were indistinguishable in the sidecar until someone
+    resolved the hash by hand. The path is the field that makes the mix-up
+    legible; `provenance_report` calls out a pile built from more than one.
+
+    ``commit_at_launch`` is the launcher's own reading of HEAD, carried in by
+    `launch_pile.sh`. A pile job queues for hours: a worktree that changes branch
+    between submit and start builds from code the launch banner never showed
+    anyone, and the two fields disagreeing is the only trace of it.
+    """
+    repo = Path(os.environ.get("VTS_REPO") or Path(__file__).resolve().parents[4])
+    commit = _git(repo, "rev-parse", "HEAD")
+    launched = os.environ.get("VTS_LAUNCH_COMMIT") or None
+    return {
+        "repo": str(repo),
+        "commit": commit,
+        "branch": _git(repo, "rev-parse", "--abbrev-ref", "HEAD"),
+        # Uncommitted tracked changes mean the commit above does not describe
+        # what ran. Recorded rather than refused: a build is not the moment to
+        # discover it, and a null (git unavailable) is not the same as clean.
+        "dirty": (None if commit is None else bool(_git(repo, "status", "--porcelain", "--untracked-files=no"))),
+        "commit_at_launch": launched,
+        "matches_launch": (None if not launched or not commit else launched == commit),
+    }
 
 
 def cell_fingerprint(dataset: str, embedder: str, medias: dict | None = None) -> dict:
@@ -182,14 +249,26 @@ def cell_fingerprint(dataset: str, embedder: str, medias: dict | None = None) ->
     }
 
 
-def write_provenance(dataset: str, embedder: str, summary: dict, medias: dict | None = None) -> Path:
-    """Write the per-cell provenance sidecar."""
+def write_provenance(
+    dataset: str,
+    embedder: str,
+    summary: dict,
+    medias: dict | None = None,
+    embed_batch_size: int | None = None,
+) -> Path:
+    """Write the per-cell provenance sidecar.
+
+    *embed_batch_size* is what the embed pass actually ran at; see
+    :func:`effective_embed_batch_size` for why the caller has to measure it
+    rather than this function reading the environment.
+    """
     record = {
         "dataset": dataset,
         "embedder": embedder,
         "cell": pc.cell_path(dataset, embedder).name,
         "built_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
-        "device": _device_record(),
+        "device": _device_record(embed_batch_size),
+        "code": _code_record(),
         "preprocessing": _processor_record(embedder),
         "cell_summary": {k: v for k, v in summary.items() if k != "status"},
         "fingerprint": cell_fingerprint(dataset, embedder, medias),
@@ -197,5 +276,16 @@ def write_provenance(dataset: str, embedder: str, summary: dict, medias: dict | 
     path = pc.provenance_path(dataset, embedder)
     path.write_text(json.dumps(record, indent=2) + "\n")
     dev = record["device"]
+    code = record["code"]
     log(f"  provenance: {dev.get('gpu_name')} on {dev.get('hostname')} -> {path.name}")
+    # Which code, said out loud in the build log too: the sidecar is only read
+    # by someone who already suspects something (#3693).
+    log(f"  built from: {code.get('repo')} @ {(code.get('commit') or 'unknown')[:9]} ({code.get('branch')})")
+    if code.get("dirty"):
+        log("  WARNING: that checkout had uncommitted tracked changes -- this cell is not reproducible")
+    if code.get("matches_launch") is False:
+        log(
+            f"  WARNING: launched from {(code.get('commit_at_launch') or '')[:9]}, built at "
+            f"{(code.get('commit') or '')[:9]} -- the checkout MOVED while this job was queued"
+        )
     return path

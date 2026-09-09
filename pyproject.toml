@@ -434,5 +434,12 @@ skip = "*.lock,*.svg,*.json,*.pkl,*.npz,*.min.js,*.min.css,*node_modules*,data,s
 # and stylistic spellings the project uses consistently (re-use,
 # pre-select, unparseable, invokable). usera = the "userA" persona in
 # design docs; teh = Yee Whye Teh in references. mane/tread are object
-# parts in the VG scale-study exclusion vocabulary (pile_config).
-ignore-words-list = "clap,siglip,xclip,wrest,caller,recaller,medias,numer,denom,goup,repid,invokable,unparseable,copys,re-use,re-used,re-uses,re-using,re-declaring,pre-select,pre-selects,pre-selected,fpr,ths,ot,te,lod,usera,teh,provence,mane,tread,shepard"
+# parts in the VG scale-study exclusion vocabulary (pile_config). bouy and
+# busses are VG annotators' own spellings, quoted verbatim: `bouy` is an entry
+# in SCALE_VG_AMBIGUOUS and `busses` is the plural the stemmer in
+# vg_name_families.py is documented as reaching (#3618); `dalmation` is how VG
+# spells the breed and is a member of the `dog`/breed group in SCALE_VG_GROUPS
+# (#3636); `vas` is VG's truncated spelling of `vase` and joined
+# SCALE_VG_AMBIGUOUS at the #3588 promotion. Correcting any of them would break
+# a lookup against the data.
+ignore-words-list = "bouy,busses,dalmation,vas,clap,siglip,xclip,wrest,caller,recaller,medias,numer,denom,goup,repid,invokable,unparseable,copys,re-use,re-used,re-uses,re-using,re-declaring,pre-select,pre-selects,pre-selected,fpr,ths,ot,te,lod,usera,teh,provence,mane,tread,shepard,trough,umbrealla,umberella,unbrella,umbella,umbrela,bicyle,hyrdant"

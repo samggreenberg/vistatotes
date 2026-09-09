@@ -230,6 +230,39 @@ describe('ExportModalComponent', () => {
     });
   });
 
+  // The Dashboard row action names a detector in a list, so its read must be
+  // that detector's persisted labelset rather than whatever pair the top-bar
+  // pulldown is on — and must survive a live Find session, which fills that
+  // pair's votes with the detector's call for every item (issue #3639).
+  describe('labelset-scoped read', () => {
+    it('asks for the named detector when one is given', async () => {
+      fixture.componentRef.setInput('labelsetDetectorName', 'Sirens');
+      TestBed.tick();
+      await settleResource();
+      httpMock
+        .expectOne('/api/dataset/status')
+        .flush({ display_name: 'My Dataset' });
+      httpMock.expectOne('/api/exporters').flush(mockExporters);
+      const req = httpMock.expectOne((r) => r.url === '/api/labels/export');
+      expect(req.request.params.get('detector_name')).toBe('Sirens');
+      req.flush(mockLabels);
+      await settleResource();
+    });
+
+    it('reads the live session when no detector is named', async () => {
+      TestBed.tick();
+      await settleResource();
+      httpMock
+        .expectOne('/api/dataset/status')
+        .flush({ display_name: 'My Dataset' });
+      httpMock.expectOne('/api/exporters').flush(mockExporters);
+      const req = httpMock.expectOne((r) => r.url === '/api/labels/export');
+      expect(req.request.params.has('detector_name')).toBe(false);
+      req.flush(mockLabels);
+      await settleResource();
+    });
+  });
+
   it('reports correction availability', async () => {
     await flushInit();
     expect(component.hasCorrections).toBe(true);

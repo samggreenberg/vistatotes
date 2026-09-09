@@ -210,6 +210,70 @@ class TestAffineScaling:
         assert weights[0] == pytest.approx(0.4)  # download + extract share step 1
 
 
+class TestSkippedSteps:
+    """A step this run will not enter is priced at zero, not merely cheap.
+
+    #3596: `text_sort`'s `load_model` is seconds on a process's first sort and
+    exactly zero on the next 47, so no single coefficient paces both branches —
+    every profile #3521 fitted, and the shipped defaults, sat at 0.80-0.85 bar
+    error on the task. The caller can tell the branches apart before it starts;
+    `skip_steps` is how it says so.
+    """
+
+    def test_a_skipped_step_gives_its_whole_slice_to_the_others(self):
+        # Shipped defaults: (0.75, 0.05, 0.20). Warm, the load never happens.
+        warm = _weights("text_sort", device="cpu", skip_steps=("load_model",))
+        assert warm[0] == 0.0
+        assert warm[1] == pytest.approx(0.2)
+        assert warm[2] == pytest.approx(0.8)
+        assert sum(warm) == pytest.approx(1.0)
+
+    def test_a_measured_cell_is_skipped_the_same_way(self, tmp_path):
+        path = _write(
+            tmp_path,
+            _profile(
+                {
+                    "text_sort": {
+                        "cells": {
+                            "cpu||": {
+                                "steps": {
+                                    # What a sweep of 47 warm sorts and one cold
+                                    # one actually fits: a floored model load
+                                    # that is most of the predicted total.
+                                    "load_model": {"a": 0.5},
+                                    "embed_query": {"a": 0.05},
+                                    "score": {"a": 0.85},
+                                }
+                            }
+                        }
+                    }
+                }
+            ),
+        )
+        timing.reload_profile(path)
+        cold = _terms("text_sort", device="cpu")
+        warm = _terms("text_sort", device="cpu", skip_steps=("load_model",))
+        assert cold["load_model"] == pytest.approx(0.5)
+        assert warm["load_model"] == 0.0
+        assert warm["score"] == cold["score"]  # the others are untouched
+        # The floor was 36% of the predicted bar and 0% of the measured one.
+        assert _weights("text_sort", device="cpu")[0] == pytest.approx(0.5 / 1.4)
+        assert _weights("text_sort", device="cpu", skip_steps=("load_model",))[0] == 0.0
+
+    def test_skipping_everything_falls_back_rather_than_dividing_by_zero(self):
+        assert timing.step_weights("text_sort", device="cpu", skip_steps=TASKS["text_sort"].steps) is None
+        assert timing.step_weights(
+            "text_sort", device="cpu", skip_steps=TASKS["text_sort"].steps, fallback=[1.0, 0.0, 0.0]
+        ) == [1.0, 0.0, 0.0]
+
+    def test_an_unknown_step_name_is_inert(self):
+        # Skipping is a claim about this run, not about the registry, so a name
+        # that no longer exists must not blank a task's pacing.
+        assert _weights("text_sort", device="cpu", skip_steps=("no_such_step",)) == pytest.approx(
+            _weights("text_sort", device="cpu")
+        )
+
+
 class TestSlotShares:
     def test_slot_shares_resolve_through_the_same_cell_chain(self, tmp_path):
         path = _write(

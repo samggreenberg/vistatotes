@@ -30,6 +30,12 @@ MEM_PER_TASK=""
 HAS_PATCH_CELLS=0
 CONC=""
 DIVERGES="${PREFLIGHT_DIVERGES:-}"
+HARVEST_BAR=""
+PILOT_CELLS=""
+
+# This script's own directory, so check 16c can reach its sibling sizing script
+# without depending on VTS_REPO -- which check 4 may already have failed on.
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -46,6 +52,8 @@ while [[ $# -gt 0 ]]; do
     --mem) MEM_PER_TASK="$2"; shift 2 ;;
     --patch) HAS_PATCH_CELLS=1; shift ;;
     --conc) CONC="$2"; shift 2 ;;
+    --require-harvest-headroom) HARVEST_BAR="$2"; shift 2 ;;
+    --pilot-cells) PILOT_CELLS="$2"; shift 2 ;;
     --warn-only) WARN_ONLY=1; shift ;;
     *) echo "unknown flag: $1" >&2; exit 2 ;;
   esac
@@ -57,6 +65,9 @@ done
   echo "                    (or declare it once with CALIB_REQUIRE_OPENING=text|known_good|mixed," >&2
   echo "                     which run_cells.py also asserts per cell)" >&2
   echo "                    [--reuse-prepare RESULTS_DIR]" >&2
+  echo "                    [--require-harvest-headroom BAR]  # the pre-registered compression bar," >&2
+  echo "                    [--pilot-cells DIR]               # sized off a pilot of the DEEPEST arm" >&2
+  echo "                    (or declare both once with CALIB_HARVEST_BAR / CALIB_HARVEST_PILOT)" >&2
   echo "                    [--job-name NAME] [--mem 64G] [--conc N] [--patch]" >&2
   echo "                    [--diverges knob1,knob2]   # knobs this study MEANS to pin off-production" >&2
   exit 2
@@ -80,6 +91,13 @@ case "${CALIB_REQUIRE_OPENING:-}" in
   mixed|"") ;;
   *) echo "CALIB_REQUIRE_OPENING=${CALIB_REQUIRE_OPENING} is not text|known_good|mixed" >&2; exit 2 ;;
 esac
+
+# Check 16c's declaration, from either half of it: the flags a launcher passes
+# here, or the two `CALIB_*` names -- which a study can export beside its other
+# knobs, so the bar it pre-registered reaches every preflight call in its launch
+# loop without the invocation line having to carry it.
+HARVEST_BAR="${HARVEST_BAR:-${CALIB_HARVEST_BAR:-}}"
+PILOT_CELLS="${PILOT_CELLS:-${CALIB_HARVEST_PILOT:-}}"
 
 FAILED=0
 say_fail() {
@@ -1080,6 +1098,73 @@ PY
         echo "        -> report the realised harvest per arm, and do not size the hazard"
         echo "           from one pilot cell (#3319 did, and was wrong by 25 points)"
         ;;
+    esac
+  fi
+fi
+
+# --- 16c. A DEEP arm that eats its pile before the horizon --------------------
+# 16b asks whether the horizon can EXHAUST the positives.  That is the right
+# question for a run trying to reach 100% and the wrong one for a grid whose
+# contrasts are read off a difference-in-differences, because a tail does not
+# have to be empty to be capped: a pre-registered COMPRESSION BAR (#3547 used a
+# median harvest of 50%) is the point past which an arm's late gains are limited
+# by the pool rather than by the knob under study.
+#
+# What sets harvest is AGGRESSION, and a grid's aggression is set by its deepest
+# arm.  #3547 sized `vg_scale_deep` at 900 positives per class off a SUPPLY bound
+# (what twelve classes could furnish) checked against a HORIZON bound (16b, which
+# it cleared: 450 sim positives against 400 clicks).  Neither is an aggression
+# bound.  Its two deepest arms then harvested 56% and 60%, over the bar, and two
+# of its three deep contrasts were excluded as compressed -- leaving one.
+# Compression is ONE-SIDED, so the excluded arms were not merely noisy: a capped
+# tail biases a DiD toward "no move" or "shallower" and never toward "deeper",
+# and all three of that study's "shallower" readings sat on them.
+#
+# So: SIZE A DEEP GRID FROM ITS DEEPEST ARM, NOT FROM ITS SHIPPED ONE (#3611).
+# Opt in with the bar the study pre-registered (as a flag, or once for the whole
+# launch loop as `CALIB_HARVEST_BAR` / `CALIB_HARVEST_PILOT`); point the pilot at a short
+# pilot wave of the deepest arm (a `cells/` dir, or a base holding
+# `<arm>/results/cells`, in which case every arm is read and the worst one is
+# what the verdict is taken on).  Without a pilot the only bound left is that an
+# arm cannot find more positives than it takes clicks, which clears a deep enough
+# pile outright and otherwise says so rather than guessing.
+#
+# A pilot can FAIL a grid without being able to CLEAR one: harvest is the most
+# category-dependent quantity in this harness, so a pilot that stops short of the
+# horizon, or that misses planned categories, reports UNKNOWN rather than ok
+# (`lessons/2026-09-02-one-pilot-cell-cleared-a-hazard-the-full-wave-hit.md`).
+if [[ -n "$HARVEST_BAR" ]]; then
+  if [[ -z "${CALIB_MAX_STEPS:-}" ]]; then
+    say_fail "--require-harvest-headroom needs CALIB_MAX_STEPS - the horizon it sizes against"
+  else
+    PINFO_H=""
+    for cand in "${REUSE_PREPARE:-}/prepare_info.json" "$EXP/results/prepare_info.json"; do
+      [[ -n "$cand" && -r "$cand" ]] && { PINFO_H="$cand"; break; }
+    done
+    HH_ARGS=(--bar "$HARVEST_BAR" --horizon "$CALIB_MAX_STEPS" --sim-fraction "${CALIB_SIM_FRACTION:-0.5}")
+    [[ -n "$PINFO_H" ]] && HH_ARGS+=(--prepare-info "$PINFO_H")
+    [[ -n "$PILOT_CELLS" ]] && HH_ARGS+=(--pilot "$PILOT_CELLS")
+    HH=$(python "$HERE/calibration/harvest_headroom.py" "${HH_ARGS[@]}" 2>&1)
+    HHV=$(printf '%s\n' "$HH" | tail -1)
+    hh_detail() { printf '%s\n' "$HH" | sed '$d' | sed 's/^/        /'; }
+    case "$HHV" in
+      CLEAR*) say_ok "the deepest arm keeps its headroom: ${HHV#CLEAR?}" ;;
+      UNKNOWN*)
+        say_note "harvest headroom NOT established: ${HHV#UNKNOWN?}"
+        hh_detail
+        echo "        -> compression is one-sided: it biases a difference-in-differences toward"
+        echo "           'no move' or 'shallower', so an arm over the bar cannot be read as either"
+        ;;
+      OVER*)
+        say_fail "the deepest arm is over the compression bar: ${HHV#OVER?}"
+        hh_detail
+        echo "        -> that arm's deep readings would be reported as compressed and excluded,"
+        echo "           which is the grid paying for cells it cannot read (#3547 lost two of"
+        echo "           three deep contrasts this way)"
+        echo "        -> deepen the pile to the positives-per-class above, shorten the horizon,"
+        echo "           or drop the arm from the grid before paying for it"
+        ;;
+      *) say_fail "could not check harvest headroom: $HH" ;;
     esac
   fi
 fi

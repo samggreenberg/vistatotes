@@ -604,6 +604,88 @@ class TestRoundTrip:
         lines = "\n".join(coverage_report(rows, fit_profile(rows, min_samples=2)))
         assert "below 0.90" in lines
 
+    def test_coverage_report_says_when_a_task_is_too_short_to_pace(self):
+        # #3596: text_sort's 288 step-samples were the largest count in #3521's
+        # report and described a 0.9 s job that every arm of that study paced
+        # 0.80-0.85 wrong. A sample count reads that as excellent coverage, so
+        # the report has to say the other thing out loud.
+        rows = [
+            {
+                "task": "text_sort",
+                "device": "cpu",
+                "media_type": "image",
+                "embedder": "siglip",
+                "n": n,
+                "size_mb": 0,
+                "step": step,
+                "seconds": secs,
+                "ok": True,
+                "complete": True,
+                "cold_model": False,
+            }
+            for n in (1000, 2000, 3000)
+            for step, secs in (("load_model", 0.0), ("embed_query", 0.05), ("score", 0.0003 * n))
+        ]
+        lines = "\n".join(coverage_report(rows, fit_profile(rows, min_samples=2)))
+        assert "TOO SHORT TO PACE" in lines
+        assert "load_model 0.00" in lines and "embed_query 0.05" in lines
+
+    def test_coverage_report_names_the_deferred_floor_beside_the_measurement(self):
+        # The floor is right (a cold run really does pay it) and invisible: on a
+        # sub-second task it is most of the predicted total, so it redistributes
+        # the bar for every warm run while the rows say the step was free.
+        rows = [
+            {
+                "task": "text_sort",
+                "device": "cpu",
+                "media_type": "image",
+                "embedder": "siglip",
+                "n": n,
+                "size_mb": 0,
+                "step": step,
+                "seconds": secs,
+                "ok": True,
+                "complete": True,
+                "cold_model": cold,
+            }
+            for cold, n in ((True, 1000), (False, 2000), (False, 3000))
+            for step, secs in (
+                ("load_model", 15.4 if cold else 0.0),
+                ("embed_query", 0.05),
+                ("score", 0.0003 * n),
+            )
+        ]
+        fitted = fit_profile(rows, min_samples=2)
+        # The fit really does store the floor, which is what the line reports.
+        assert fitted["tasks"]["text_sort"]["cells"]["cpu|image|siglip"]["steps"]["load_model"]["a"] == 0.5
+        lines = "\n".join(coverage_report(rows, fitted))
+        assert "load_model: measured 0.00 s on 2 of 3 runs and real on 1" in lines
+        assert "0.50 s floor" in lines
+
+    def test_coverage_report_leaves_a_paceable_task_alone(self):
+        # The counterpart the two tests above need: a task whose steps are long
+        # enough to pace gets no pacing complaint, so the line means something.
+        rows = [
+            {
+                "task": "text_sort",
+                "device": "cpu",
+                "media_type": "image",
+                "embedder": "siglip",
+                "n": n,
+                "size_mb": 0,
+                "step": step,
+                "seconds": secs,
+                "ok": True,
+                "complete": True,
+                "cold_model": False,
+            }
+            for n in (1000, 2000, 3000)
+            for step, secs in (("load_model", 8.0), ("embed_query", 0.05), ("score", 0.003 * n))
+        ]
+        lines = "\n".join(coverage_report(rows, fit_profile(rows, min_samples=2)))
+        assert "TOO SHORT TO PACE" not in lines
+        assert "floor" not in lines
+
     def test_coverage_report_does_not_score_a_step_it_did_not_fit_as_a_line(self):
         # A byte-scaled step and a median fallback carry no r2 at all. Counting
         # either as a bad fit would be the exact confusion #3345 set out to

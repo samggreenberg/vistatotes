@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 
 import { SortingApiService } from './sorting-api.service';
+import { SKIP_ERROR_TOAST } from '../interceptors/error.interceptor';
 import { provideHttpTesting } from '../testing/test-providers';
 
 describe('SortingApiService', () => {
@@ -100,6 +101,20 @@ describe('SortingApiService', () => {
     req.flush({ labels: [] });
   });
 
+  it('exportLabels with detectorName should scope to that detector', () => {
+    service.exportLabels(false, { detectorName: 'My Detector' }).subscribe();
+    const req = httpMock.expectOne(r => r.url === '/api/labels/export');
+    expect(req.request.params.get('detector_name')).toBe('My Detector');
+    req.flush({ labels: [] });
+  });
+
+  it('exportLabels omits detector_name when no detector is named', () => {
+    service.exportLabels(false, { enrich: true }).subscribe();
+    const req = httpMock.expectOne(r => r.url === '/api/labels/export');
+    expect(req.request.params.has('detector_name')).toBe(false);
+    req.flush({ labels: [] });
+  });
+
   it('importLabels should POST', () => {
     service.importLabels({ labels: [{ md5: 'abc', label: 'good' }] }).subscribe(data => {
       expect(data.applied).toBe(1);
@@ -135,6 +150,18 @@ describe('SortingApiService', () => {
     service.getLabelingStatus().subscribe();
     const req = httpMock.expectOne('/api/labeling-status');
     expect(req.request.method).toBe('GET');
+    req.flush({});
+  });
+
+  // Issue #3644: this is a 2s poll for the whole labeling session, and
+  // adaptivePoll already absorbs a failed tick. A tick that lands while
+  // ContextSwitchService is still loading the pair 409s `detector_not_loaded`,
+  // which resolves itself moments later; without the opt-out the global
+  // interceptor puts a red toast over the panel a reviewer just opened.
+  it('getLabelingStatus should opt out of the global error toast', () => {
+    service.getLabelingStatus().subscribe({ error: () => undefined });
+    const req = httpMock.expectOne('/api/labeling-status');
+    expect(req.request.context.get(SKIP_ERROR_TOAST)).toBe(true);
     req.flush({});
   });
 

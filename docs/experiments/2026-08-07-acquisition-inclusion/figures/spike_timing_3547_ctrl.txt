@@ -1,0 +1,5 @@
+base /expscratch/sgreenberg/acq-3547-ctrl/bin   split at t=100
+arm       cells      any first<=100 first>100   first-spike t (quartiles)
+prod        192        1         1         0   65 / 65 / 65
+acq_m3      192       11         0        11   193 / 258 / 276
+wrote /expscratch/sgreenberg/acq-3547-ctrl/analysis/frontier_csv/spike_timing_3547_cells.csv (384 cells)

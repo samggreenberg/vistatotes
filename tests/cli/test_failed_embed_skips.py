@@ -15,6 +15,7 @@ and ``route_and_embed`` already used: drop the item, say so, score the rest.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -145,8 +146,9 @@ class TestTrainAndThresholdOverAPartlyEmbeddedHaystack:
         assert calls == []
 
     def test_wholly_unembedded_haystack_falls_back_to_the_no_snap_threshold(self, client):
-        """The CLI importer path: the chunk is embedded later, per detector
-        group, so at train time nothing in it is scoreable."""
+        """A haystack in which nothing is scoreable - every media reachable
+        only through a converter route, embedded later by ``route_and_embed``
+        in the detector's target space - fits on no distribution at all."""
         from vtscore.detectors.training import train_and_threshold
 
         snap = {1: _media(1, None), 2: _media(2, None)}
@@ -156,67 +158,110 @@ class TestTrainAndThresholdOverAPartlyEmbeddedHaystack:
         assert with_empty_snap == pytest.approx(with_no_snap)
 
 
+def _stage_folder_run(tmp_path, monkeypatch) -> tuple[str, str, str]:
+    """Stage a four-file audio folder, a detector over two of them, and settings.
+
+    Returns ``(folder, settings_path, out_path)`` ready for
+    ``autodetect_importer_main("server_folder", ...)``.
+    """
+    from contextlib import contextmanager
+
+    import vtscore.detectors.resolver as resolver_mod
+    from vtscore.detectors.store import _detector_path, _write_detector
+
+    folder = tmp_path / "sounds"
+    folder.mkdir()
+    files = {}
+    for i, name in enumerate(["alpha.wav", "beta.wav", "gamma.wav", "delta.wav"]):
+        path = folder / name
+        path.write_bytes(generate_wav(220 + 110 * i, 0.1))
+        files[name] = path
+
+    @contextmanager
+    def _fake_ctx(origin, origin_name="", filename=""):
+        yield files.get(origin_name) or files.get(filename)
+
+    monkeypatch.setattr(resolver_mod, "resolve_file_context", _fake_ctx)
+
+    labelset = {
+        "labels": [
+            {
+                "md5": "a" * 32,
+                "label": "good",
+                "origin": {"importer": "ds_a", "params": {}},
+                "origin_name": "alpha.wav",
+            },
+            {
+                "md5": "c" * 32,
+                "label": "bad",
+                "origin": {"importer": "ds_a", "params": {}},
+                "origin_name": "gamma.wav",
+            },
+        ]
+    }
+    _write_detector(
+        _detector_path("folder-det"),
+        {"name": "folder-det", "media_type": "audio", "labelset": labelset},
+    )
+
+    settings_path = tmp_path / "settings.json"
+    settings_path.write_text(
+        json.dumps({"autofind_detectors": ["folder-det"], "detectors_dir": str(get_detectors_dir())})
+    )
+    return str(folder), str(settings_path), str(tmp_path / "hits.json")
+
+
 class TestCliImporterRunCompletes:
     """End-to-end regression: ``--autodetect --importer server_folder`` used to
     exit(1) on every run, since the importer leaves each media unembedded and
     the training pass scored that raw chunk."""
 
     def test_folder_importer_autodetect_exports_hits(self, client, tmp_path, monkeypatch):
-        from contextlib import contextmanager
-
-        import vtscore.detectors.resolver as resolver_mod
         from vtscore.cli import autodetect_importer_main
-        from vtscore.detectors.store import _detector_path, _write_detector
 
-        folder = tmp_path / "sounds"
-        folder.mkdir()
-        files = {}
-        for i, name in enumerate(["alpha.wav", "beta.wav", "gamma.wav", "delta.wav"]):
-            path = folder / name
-            path.write_bytes(generate_wav(220 + 110 * i, 0.1))
-            files[name] = path
-
-        @contextmanager
-        def _fake_ctx(origin, origin_name="", filename=""):
-            yield files.get(origin_name) or files.get(filename)
-
-        monkeypatch.setattr(resolver_mod, "resolve_file_context", _fake_ctx)
-
-        labelset = {
-            "labels": [
-                {
-                    "md5": "a" * 32,
-                    "label": "good",
-                    "origin": {"importer": "ds_a", "params": {}},
-                    "origin_name": "alpha.wav",
-                },
-                {
-                    "md5": "c" * 32,
-                    "label": "bad",
-                    "origin": {"importer": "ds_a", "params": {}},
-                    "origin_name": "gamma.wav",
-                },
-            ]
-        }
-        _write_detector(
-            _detector_path("folder-det"),
-            {"name": "folder-det", "media_type": "audio", "labelset": labelset},
-        )
-
-        settings_path = tmp_path / "settings.json"
-        settings_path.write_text(
-            json.dumps({"autofind_detectors": ["folder-det"], "detectors_dir": str(get_detectors_dir())})
-        )
-        out_path = tmp_path / "hits.json"
+        folder, settings_path, out_path = _stage_folder_run(tmp_path, monkeypatch)
 
         autodetect_importer_main(
             "server_folder",
-            {"path": str(folder), "media_type": "audio"},
-            settings_path=str(settings_path),
+            {"path": folder, "media_type": "audio"},
+            settings_path=settings_path,
             exporter_name="server_json_file",
-            exporter_field_values={"filepath": str(out_path)},
+            exporter_field_values={"filepath": out_path},
         )
 
-        det = json.loads(out_path.read_text())["results"]["folder-det"]
+        det = json.loads(Path(out_path).read_text())["results"]["folder-det"]
         # All four files scored: none was dropped, and the run did not exit(1).
         assert len(det["hits"]) + len(det["negative_hits"]) == 4
+
+    def test_the_haystack_reaches_calibration_fully_embedded(self, client, tmp_path, monkeypatch):
+        """Issue #3556's second half.  ``train_from_labelset`` fits the detector's
+        threshold on the snap it is handed, and ``scoring_rows_for_snap`` drops
+        every media in it with no vector - so a snap that arrives part-embedded
+        calibrates the cut on a strict subset of the dataset, silently and
+        plausibly.  The CLI used to hand it the raw importer output and let
+        ``route_and_embed`` fill the vectors in afterwards.
+        """
+        import vtscore.detectors.labelset_training as labelset_training
+        from vtscore.cli import autodetect_importer_main
+        from vtscore.embedding.media_vectors import media_embedding
+
+        folder, settings_path, out_path = _stage_folder_run(tmp_path, monkeypatch)
+
+        snaps: list[list[bool]] = []
+        real = labelset_training.train_from_labelset
+
+        def _spy(ctx, labelset, media_type="", snap=None, **kw):
+            snaps.append([media_embedding(m) is not None for m in (snap or {}).values()])
+            return real(ctx, labelset, media_type=media_type, snap=snap, **kw)
+
+        monkeypatch.setattr(labelset_training, "train_from_labelset", _spy)
+
+        autodetect_importer_main(
+            "server_folder",
+            {"path": folder, "media_type": "audio"},
+            settings_path=settings_path,
+            exporter_name="server_json_file",
+            exporter_field_values={"filepath": out_path},
+        )
+
+        assert snaps == [[True] * 4]

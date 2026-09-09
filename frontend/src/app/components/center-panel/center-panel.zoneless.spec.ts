@@ -551,4 +551,54 @@ describe('CenterPanelComponent', () => {
       expect(component.marqueeAriaLabel).toBe('Marquee: draw region');
     });
   });
+
+  // The panel owns the vertical band below the image (toolbar, vote row,
+  // metadata tray), so it is the only place a mousedown there can be caught and
+  // handed to the viewer. It stays a pure delegation: the viewer decides whether
+  // to claim the event.
+  describe('off-canvas region-draw delegation', () => {
+    const imageMedia: Media = { ...mockMedia, media_type: 'image', filename: 'pic.png' };
+
+    function stubViewer(): { calls: MouseEvent[] } {
+      const calls: MouseEvent[] = [];
+      (component as unknown as { imageViewer: () => unknown }).imageViewer = () => ({
+        tryStartOffCanvasDraw: (e: MouseEvent) => calls.push(e),
+        regionDrawActive: true,
+      });
+      return { calls };
+    }
+
+    function mousedown(): MouseEvent {
+      return { button: 0, clientX: 10, clientY: 10, target: document.createElement('div') } as unknown as MouseEvent;
+    }
+
+    it('forwards a panel mousedown to the image viewer', () => {
+      fixture.componentRef.setInput('media', imageMedia);
+      const { calls } = stubViewer();
+      component.onPanelMouseDown(mousedown());
+      expect(calls.length).toBe(1);
+    });
+
+    it('does not forward for non-image media', () => {
+      fixture.componentRef.setInput('media', { ...mockMedia, media_type: 'audio' });
+      const { calls } = stubViewer();
+      component.onPanelMouseDown(mousedown());
+      expect(calls.length).toBe(0);
+    });
+
+    it('reports regionDrawActive only for images, for the panel-wide crosshair', () => {
+      fixture.componentRef.setInput('media', imageMedia);
+      stubViewer();
+      expect(component.regionDrawActive).toBe(true);
+      fixture.componentRef.setInput('media', { ...mockMedia, media_type: 'audio' });
+      expect(component.regionDrawActive).toBe(false);
+    });
+
+    it('is inert when there is no image viewer mounted', () => {
+      fixture.componentRef.setInput('media', imageMedia);
+      (component as unknown as { imageViewer: () => unknown }).imageViewer = () => undefined;
+      expect(component.regionDrawActive).toBe(false);
+      expect(() => component.onPanelMouseDown(mousedown())).not.toThrow();
+    });
+  });
 });

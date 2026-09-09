@@ -1,0 +1,60 @@
+{
+ "class": "bicycle",
+ "names": [
+  "bicyclist",
+  "bike",
+  "bike tire",
+  "bikes",
+  "tricycle"
+ ],
+ "embedder": "siglip",
+ "pool": 3900,
+ "withheld": 61,
+ "base_rate": 0.01564102564102564,
+ "prefixes": [
+  {
+   "k": 50,
+   "withheld": 14,
+   "share": 0.28,
+   "lift": 17.901639344262296
+  },
+  {
+   "k": 100,
+   "withheld": 25,
+   "share": 0.25,
+   "lift": 15.98360655737705
+  },
+  {
+   "k": 250,
+   "withheld": 46,
+   "share": 0.184,
+   "lift": 11.763934426229508
+  },
+  {
+   "k": 500,
+   "withheld": 49,
+   "share": 0.098,
+   "lift": 6.2655737704918035
+  },
+  {
+   "k": 1000,
+   "withheld": 54,
+   "share": 0.054,
+   "lift": 3.4524590163934423
+  },
+  {
+   "k": 2000,
+   "withheld": 59,
+   "share": 0.0295,
+   "lift": 1.8860655737704917
+  },
+  {
+   "k": 3900,
+   "withheld": 61,
+   "share": 0.01564102564102564,
+   "lift": 1.0
+  }
+ ],
+ "median_pct_rank_withheld": 0.02846153846153846,
+ "median_pct_rank_retained": 0.5071794871794871
+}

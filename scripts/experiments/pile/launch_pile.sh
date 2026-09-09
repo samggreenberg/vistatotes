@@ -5,14 +5,32 @@
 #   bash launch_pile.sh              # prefetch + submit all three dataset jobs
 #   bash launch_pile.sh coco_val     # just one dataset's job
 #   VTS_GPU_NODE=rack7n03 bash launch_pile.sh visual_genome_m   # pin the device
+#   VTS_BUILD_ARGS=--force bash launch_pile.sh vg_scale         # REBUILD, not fill
+#   VTS_MAX_BEHIND=0 bash launch_pile.sh vg_scale   # build from an OLD checkout
 #
 # Weights are prefetched in a separate CPU step because parallel GPU jobs would
 # otherwise race to populate the same shared HF cache (see prefetch_models.py).
+#
+# `VTS_BUILD_ARGS` is passed through to `build_pile.py` verbatim, and it exists
+# for one job: `--force`. Filling a gap and *rebuilding a cell that already
+# exists* are different operations with different risks -- the second replaces a
+# file other studies are reading -- and until #3667 the second had no launcher
+# at all, so a rebuild meant hand-writing an sbatch that skipped the canary and
+# the CPU-dispatch pin this script exists to apply. A rebuild is exactly the run
+# that must not skip them: a cell rebuilt without ATEN_CPU_CAPABILITY is a cell
+# whose vectors no longer match its own fingerprint (#3160).
 set -euo pipefail
 
 SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 USER="${USER:-sgreenberg}"
-REPO="${VTS_REPO:-/exp/$USER/projects/vts-pile}"
+# The checkout the jobs import. DERIVED from this script's own location, never a
+# fixed path: the old default pointed at `/exp/$USER/projects/vts-pile`, so
+# running `bash launch_pile.sh` from any other worktree submitted jobs that built
+# the pile from a DIFFERENT checkout -- 1,420 commits behind dev by 2026-09-06,
+# predating `vg_scale` entirely. Nothing in the launch output said so; the build
+# would have reported success against code nobody was looking at. Same shape as
+# #3269, where a study measured a retired head because its worktree was stale.
+REPO="${VTS_REPO:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)}"
 PILE="${VTS_PILE:-/expscratch/$USER/vts-cache}"
 HERE="$REPO/scripts/experiments/pile"
 LOGS="${PILE}/logs"
@@ -25,8 +43,24 @@ CPUS="${VTS_CPUS:-8}"
 
 mkdir -p "$LOGS"
 
+# Name the checkout before anything is submitted, and refuse one that is stale.
+# The fixed default above was only half of #3693: the other half is that the
+# launch output said `submitted vg_scale -> job NNN` and never named the tree or
+# the commit, so a build from a checkout 1,420 commits behind dev had nothing on
+# screen to be wrong. This prints both and applies preflight.sh check 4's bar
+# (VTS_MAX_BEHIND, default 100) to the pile -- the artifact every study reads.
+# shellcheck source=../repo_stamp.sh
+source "$SELF_DIR/../repo_stamp.sh"
+repo_stamp "$REPO" || exit 1
+echo
+
 ENVSET="module load python/3.12.3 && source /exp/$USER/projects/VTSearch/.venv/bin/activate"
 ENVSET="$ENVSET && export VTS_REPO=$REPO VTS_PILE=$PILE"
+# The commit as it stood at LAUNCH time, carried into the job so the cell's
+# provenance can compare it against the commit the build actually resolves. A
+# pile job sits in the queue for hours; a worktree that changes branch in the
+# meantime builds from code the launch banner never showed anyone.
+ENVSET="$ENVSET && export VTS_LAUNCH_COMMIT=${REPO_STAMP_COMMIT:-}"
 # Keep HF off /exp: one model download there fills the 50G quota.
 ENVSET="$ENVSET && export HF_HOME=$PILE/models VTSEARCH_MODELS_DIR=$PILE/models"
 ENVSET="$ENVSET && export VTSEARCH_DATA_DIR=$PILE/datadir && cd $HERE"
@@ -55,6 +89,12 @@ BUILDENV="$BUILDENV ATEN_CPU_CAPABILITY=${VTS_CPU_CAPABILITY:-avx2}"
 DATASETS=("${@:-visual_genome_m caltech101_m coco_val}")
 read -r -a DATASETS <<< "${DATASETS[@]}"
 DS_CSV="$(IFS=,; echo "${DATASETS[*]}")"
+
+# Word-split on purpose: this is a flag list, not one argument.
+read -r -a BUILD_ARGS <<< "${VTS_BUILD_ARGS:-}"
+if [[ ${#BUILD_ARGS[@]} -gt 0 ]]; then
+  echo "build args: ${BUILD_ARGS[*]}"
+fi
 
 # --- Stage 1: rebuild canary, then weights (CPU, blocking) ----------------
 # The canary runs in front of every launch because that is the only thing that
@@ -132,7 +172,7 @@ for ds in "${DATASETS[@]}"; do
     --mem="$MEM" \
     --time="$TIME" \
     --output="$LOGS/pile-$ds-%j.out" \
-    --wrap "bash -lc '$BUILDENV && python build_pile.py --datasets $ds'")
+    --wrap "bash -lc '$BUILDENV && python build_pile.py --datasets $ds ${BUILD_ARGS[*]}'")
   # An empty job id means sbatch silently refused the request -- treat it as a
   # failure rather than reporting a launch that never happened (LESSONS.md).
   if [[ -z "$jid" ]]; then
@@ -143,5 +183,6 @@ for ds in "${DATASETS[@]}"; do
 done
 
 echo
+echo "built from: $REPO @ ${REPO_STAMP_COMMIT:0:9} (${REPO_STAMP_BRANCH:-unknown})"
 echo "watch:   squeue -u $USER"
 echo "verify:  cd $HERE && python build_pile.py --verify"

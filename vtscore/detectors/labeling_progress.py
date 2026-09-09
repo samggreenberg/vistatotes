@@ -1,14 +1,40 @@
 """Labeling-session analyzer: per-step model cache and stopping-condition metrics.
 
-Caches trained MLPs and stability metrics per labelling step so that
-repeated queries (the progress button, the auto-indicator) never retrain
-models that have already been computed.
+Caches the detectors the app actually trained, plus their stability metrics,
+per labelling step, so repeated queries (the progress button, the
+auto-indicator) never recompute what is already known.
+
+Only the shipped detector is ever measured (issue #3757)
+-------------------------------------------------------
+A step carries a model **only** when the app trained one for exactly that
+label set - i.e. a learned sort ran and ``inject_live_model`` handed its head
+and threshold over.  Every other step carries ``model=None`` and contributes
+no point to the Smart curve and no entry to the Stable series.
+
+That leaves gaps, and the gaps are the honest answer.  This module used to
+fill them by training a *stand-in* of its own: a linear SVM over the
+labelset's image-level vectors with an in-sample threshold.  On a patch
+dataset that is a different detector from the shipped one, which trains each
+Good vote on its boxed patch and floods every Bad vote's whole row stack, and
+scores a media by the **max** over those rows.  Because a learned sort is
+coalesced when votes outrun it (one job at a time, one pending slot - see
+:class:`~vtscore.concurrency.async_jobs.JobManager`), roughly every other step
+got a real model and the rest got a stand-in, so the plotted curve alternated
+between two unrelated model families and read as a detector violently
+changing its mind.  Worse, Smart and Stable gate Autopilot's phase machine, so
+the stand-ins steered the run as well as the picture.
+
+The same rule fixes the geometry, which is the other half of #3757: a model is
+now scored the way it is *served*, over
+:func:`~vtscore.detectors.training.scoring_rows_for_snap` rows with a
+segmented max-pool, rather than over image-level vectors it was never fitted
+on.  Both the Smart eval set and the Stable comparison pool go through that
+one definition, so neither can drift from what the user's ranking shows.
 
 Cache shape
 -----------
 All cache state lives in :class:`_ProgressCache` instances held in ``_caches``,
-an LRU-bounded map keyed by ``(dataset_id, detector_id)``, plus the
-per-*dataset* :class:`_MonitoredPool` tensors those caches share.  Every entry
+an LRU-bounded map keyed by ``(dataset_id, detector_id)``.  Every entry
 point opens with ``cache = _active_cache()`` (or ``_ensure_cache``, which
 returns one) under ``_progress_lock`` and works through that object.  Keying by
 the pair is a correctness requirement, not a convenience: without it one
@@ -34,6 +60,11 @@ and any of the resolve-context-then-mutate functions in
 :mod:`vtscore.state.votes` / :mod:`vtscore.state.coverage`.  Holding
 both locks in the opposite order would establish a cross-module cycle
 and could deadlock.
+
+That ordering is why the score rows this module measures over are built by the
+*caller*, outside the lock, and passed in: :func:`_build_pool` and
+:func:`_build_eval_rows` both reach the embedding-matrix layer, which takes
+``_state_lock``.  :func:`_advance_cache` is the wrapper that does the dance.
 """
 
 from __future__ import annotations
@@ -47,37 +78,16 @@ import numpy as np
 
 from vtscore.concurrency.async_jobs import check_job_cancelled
 from vtscore.embedding.media_vectors import media_embedding
-from vtscore.training.mlp import LINEAR_SVM_HEAD, train_model
-from vtscore.training.thresholds import conformal_threshold, inclusion_cost_weights, weighted_error_cost
+from vtscore.training.thresholds import inclusion_cost_weights, weighted_error_cost
 
 if TYPE_CHECKING:
     import torch.nn as nn
 
+    from vtscore.detectors.training import ScoringRows
+
 # ---------------------------------------------------------------------------
 # Per-(dataset, detector) cache
 # ---------------------------------------------------------------------------
-
-
-@dataclass
-class _MonitoredPool:
-    """The fixed pool the per-step stability forward pass scores.
-
-    Built once per *dataset* and reused by every step of every cache over that
-    dataset.  ``X`` is a device-resident float tensor of the pool's embeddings;
-    ``id_set`` is the id set for O(labels) unlabeled counting.  In-memory only -
-    never serialized (see the "No Persisted Vectors" rule).
-
-    Keyed by ``dataset_id`` rather than by the full cache key because the pool
-    is a pure function of ``clips_dict``: two detectors over the same dataset
-    would build byte-identical tensors, and the tensor is by far the largest
-    thing this module holds (up to ``_STABILITY_MAX_SAMPLES`` x embedding-dim
-    floats).  Sharing it is what keeps caching several pairs at once from
-    multiplying peak memory.
-    """
-
-    ids: list[int]
-    X: Any  # torch.Tensor | None
-    id_set: set[int]
 
 
 @dataclass
@@ -122,10 +132,22 @@ class _ProgressCache:
 
     #: Live models injected by ``train_and_score`` during sorting.  Keyed by
     #: ``(frozenset(good_ids), frozenset(bad_ids))`` so that ``_ensure_cache``
-    #: can look up the actual model that was used at each label step instead of
-    #: retraining from scratch.  Per-pair because the lookup is by labelset
-    #: alone, so a model must not outlive the detector it was trained for.
+    #: can look up the actual model that was used at each label step.  Per-pair
+    #: because the lookup is by labelset alone, so a model must not outlive the
+    #: detector it was trained for.
+    #:
+    #: This is the **only** source of models in this module: a step whose label
+    #: set never had a sort run against it stays modelless rather than being
+    #: filled with a locally-trained stand-in (see the module docstring).
     live_models: dict[tuple[frozenset[int], frozenset[int]], tuple[Any, float]] = field(default_factory=dict)
+
+    #: Memoised Smart status, as ``(key, status)``.  ``_compute_smart_status``
+    #: re-scores the whole recent-model window against the current labelset -
+    #: forward passes over every labelled media's score rows - which is far too
+    #: expensive to repeat on each 2 s ``/api/labeling-status`` poll when
+    #: nothing has changed.  The key covers everything the status reads, so a
+    #: hit is exactly the answer a recompute would produce.
+    smart_memo: Optional[tuple[Any, dict[str, Any]]] = None
 
     def reset(self) -> None:
         """Drop everything derived from labels, keeping the pair identity.
@@ -141,6 +163,7 @@ class _ProgressCache:
         self.inclusion = None
         self.coverage_atlas = None
         self.live_models.clear()
+        self.smart_memo = None
         # Drop the status snapshot too: it belonged to the just-cleared
         # labelset and would otherwise be served (stale) for the rebuild until
         # its first background refresh lands.
@@ -152,36 +175,25 @@ class _ProgressCache:
 # limit; the LRU victim is simply rebuilt on demand if it is selected again.
 _caches: OrderedDict[tuple[str, str], _ProgressCache] = OrderedDict()
 
-# Stability pools keyed by ``dataset_id``, shared by every cache over that
-# dataset (see :class:`_MonitoredPool`).  Pruned whenever the last cache
-# referencing a dataset goes away.
-_monitored_pools: dict[str, _MonitoredPool] = {}
-
 # How many ``(dataset, detector)`` pairs stay warm at once.  Small on purpose:
-# each cache holds one trained MLP per label-history step plus a
-# ``prev_predictions`` map over the monitored pool, so the point is to keep an
-# A-to-B-and-back detector toggle from throwing away work, not to cache
-# everything a long session ever touched.
+# each cache holds the app's trained head for every label-history step that had
+# a sort, plus a ``prev_predictions`` map over the scored pool, so the point is
+# to keep an A-to-B-and-back detector toggle from throwing away work, not to
+# cache everything a long session ever touched.
 _MAX_CACHED_PAIRS = 3
 
-# Reentrant lock protecting ``_caches``, ``_monitored_pools``, and every field
-# of every cache in them.  RLock is used because public functions call
-# _ensure_cache which may call ``_ProgressCache.reset`` internally (inclusion
-# change) while already holding the lock.
+# Reentrant lock protecting ``_caches`` and every field of every cache in it.
+# RLock is used because public functions call _ensure_cache which may call
+# ``_ProgressCache.reset`` internally (inclusion change) while already holding
+# the lock.
 _progress_lock = threading.RLock()
 
-# Upper bound on the number of items the per-step stability forward pass
-# evaluates.  Advancing a cache (from the ``/api/labeling-status``
-# background worker, or the ``/api/eval/train-and-score`` job) runs a forward
-# over the whole monitored pool once per label step - O(dataset) per new vote.
-# Above this cap we score a deterministic seeded sample of the eligible pool
-# instead, holding the per-step cost flat as datasets grow.  The "stable"
-# indicator keys off the flip *rate* (num_flips / num_unlabeled), for which a
-# fixed random sample is an unbiased estimator; sampling from the *full*
-# eligible pool (not the shrinking unlabeled set) keeps the monitored ids
-# stable across steps so the step-to-step flip comparison stays meaningful.
-# Mirrors ``_GMM_MAX_SAMPLES`` in ``vtscore.training.thresholds``.
-_STABILITY_MAX_SAMPLES = 50_000
+# How many models back the Smart trend regresses.  Counted in *models*, not in
+# label-history steps: most steps carry none (see the module docstring), so a
+# step-counted window would silently shrink to a handful of points - or to
+# fewer than the three the regression needs - exactly when sorts are slowest
+# and the coalescing is heaviest.
+_SMART_WINDOW_MODELS = 10
 
 # How long :func:`cached_indicator_history` will wait for ``_progress_lock``
 # before declaring the cache unreadable.  Long enough to ride out the brief
@@ -216,13 +228,6 @@ def _active_cache_key() -> tuple[str, str]:
         return ("", "")
 
 
-def _prune_monitored_pools() -> None:
-    """Drop stability pools no live cache refers to any more."""
-    live = {key[0] for key in _caches}
-    for dataset_id in [d for d in _monitored_pools if d not in live]:
-        del _monitored_pools[dataset_id]
-
-
 def _active_cache() -> _ProgressCache:
     """Return the cache for the active ``(dataset, detector)`` pair.
 
@@ -245,7 +250,6 @@ def _active_cache() -> _ProgressCache:
     _caches.move_to_end(key)
     while len(_caches) > _MAX_CACHED_PAIRS:
         _caches.popitem(last=False)
-    _prune_monitored_pools()
     return cache
 
 
@@ -267,7 +271,6 @@ def clear_progress_cache() -> None:
     """
     with _progress_lock:
         _caches.clear()
-        _monitored_pools.clear()
 
 
 def invalidate_progress_cache_from(media_id: int) -> None:
@@ -322,6 +325,9 @@ def invalidate_progress_cache_from(media_id: int) -> None:
 
         # Clear live models - some may have been trained with the old label.
         cache.live_models.clear()
+
+        # The Smart memo was computed over the discarded suffix's models.
+        cache.smart_memo = None
 
         # Rewind the coverage-atlas overlay and replay the surviving labels
         # rather than nulling the atlas (which would force a full hierarchical
@@ -447,105 +453,152 @@ def _sync_coverage_atlas(
     }
 
 
-def _collect_training_data(
-    cache: _ProgressCache,
-    clips_dict: dict[int, dict[str, Any]],
-) -> tuple[list[np.ndarray], list[float]]:
-    """Gather embeddings and labels from *cache*'s running good/bad ID sets."""
-    X_list: list[np.ndarray] = []
-    y_list: list[float] = []
-    for cid in cache.good_ids:
-        if cid in clips_dict and media_embedding(clips_dict[cid]) is not None:
-            X_list.append(media_embedding(clips_dict[cid]))
-            y_list.append(1.0)
-    for cid in cache.bad_ids:
-        if cid in clips_dict and media_embedding(clips_dict[cid]) is not None:
-            X_list.append(media_embedding(clips_dict[cid]))
-            y_list.append(0.0)
-    return X_list, y_list
+@dataclass
+class _ScoredPool:
+    """The rows every stability pass scores, and the ids they belong to.
 
+    ``rows`` is exactly what a learned sort scores the same snapshot over -
+    :func:`~vtscore.detectors.training.scoring_rows_for_snap` output, image-level
+    row plus every raw patch on a patch dataset, one row per media otherwise -
+    so a step's predictions here are the predictions the user's ranking showed.
+    ``id_set`` is carried alongside for O(labels) unlabeled counting.
 
-def _monitored_pool(
-    dataset_id: str,
-    clips_dict: dict[int, dict[str, Any]],
-    all_media_ids: list[int],
-) -> _MonitoredPool:
-    """Return the fixed pool the stability pass scores for *dataset_id*.
-
-    The pool is the embeddable subset of *all_media_ids*, bounded to a
-    deterministic seeded sample of ``_STABILITY_MAX_SAMPLES``.  Sampling the
-    full eligible pool (rather than the per-step unlabeled set) keeps the
-    monitored ids stable across steps, so the flip comparison against
-    ``cache.prev_predictions`` stays over a consistent id set; the resulting
-    flip *rate* is an unbiased estimate of the true rate.
-
-    Built once per dataset and memoised.  It used to be rebuilt inside every
-    step - an O(N x D) numpy materialisation per label-history step, which
-    dominated the cost of advancing the cache.  The pool depends only on
-    *clips_dict*, which cannot change without a ``clear_progress_cache()``, so
-    one build per dataset is sound - and is why the memo is keyed by dataset
-    rather than by the full ``(dataset, detector)`` pair.
+    On the active dataset the underlying matrix is the one
+    :func:`~vtscore.embedding.matrix.get_region_matrix_for_snap` already caches
+    on the :class:`~vtscore.state.core.DatasetContext`, so holding this costs no
+    memory beyond what the sort path holds anyway - which is also the bound on
+    what a stability pass can cost: one scoring pass over rows the app scores on
+    every sort, run once per step that has a model, i.e. once per sort.
     """
-    pool = _monitored_pools.get(dataset_id)
-    if pool is not None:
-        return pool
 
-    import torch  # noqa: PLC0415
+    rows: "ScoringRows"
+    id_set: set[int]
 
-    from vtscore.embedding.loader import ensure_torch_configured, get_torch_device  # noqa: PLC0415
 
-    eligible = [cid for cid in all_media_ids if media_embedding(clips_dict.get(cid, {})) is not None]
-    if len(eligible) > _STABILITY_MAX_SAMPLES:
-        rng = np.random.default_rng(42)
-        sampled = set(rng.choice(np.asarray(eligible), size=_STABILITY_MAX_SAMPLES, replace=False).tolist())
-        eligible = [cid for cid in eligible if cid in sampled]
+def _detector_score_embedder(clips_dict: dict[int, dict[str, Any]]) -> Optional[str]:
+    """The embedder the active detector trains and scores in, or ``None``.
 
-    if eligible:
-        ensure_torch_configured()
-        embs = np.array([media_embedding(clips_dict[cid]) for cid in eligible])
-        # Park the tensor on the training device once so per-step scoring is a
-        # pure forward pass with no host->device copy.
-        X = torch.tensor(embs, dtype=torch.float32).to(get_torch_device())
-    else:
-        X = None
+    Delegates to :func:`~vtscore.detectors.training.detector_score_embedder`, the
+    same resolver ``train_and_score`` uses, so the rows built here land in the
+    space the cached heads were fitted in.  Falls back to ``None`` - "read each
+    media's primary vector" - when no detector context resolves, which is the
+    same fallback a detector with no chosen primary already gets.
+    """
+    from vtscore.detectors.training import detector_score_embedder  # noqa: PLC0415
 
-    pool = _MonitoredPool(ids=eligible, X=X, id_set=set(eligible))
-    _monitored_pools[dataset_id] = pool
-    return pool
+    try:
+        from vtscore.state.core import get_active_detector_context  # noqa: PLC0415
+
+        det_ctx = get_active_detector_context()
+    except Exception:
+        det_ctx = None
+    return detector_score_embedder(det_ctx, clips_dict)
+
+
+def _build_pool(clips_dict: dict[int, dict[str, Any]]) -> _ScoredPool:
+    """Build the stability pool for *clips_dict*.
+
+    **Must be called without** ``_progress_lock`` **held**: it reaches
+    :func:`~vtscore.embedding.matrix.get_region_matrix_for_snap`, which takes
+    ``_state_lock``, and this module's lock ordering forbids that nesting (see
+    the module docstring).  Every caller therefore builds the pool first and
+    hands it to :func:`_ensure_cache`.
+    """
+    from vtscore.detectors.training import scoring_rows_for_snap  # noqa: PLC0415
+
+    rows = scoring_rows_for_snap(clips_dict, _detector_score_embedder(clips_dict))
+    return _ScoredPool(rows=rows, id_set=set(rows.ids))
+
+
+def _build_eval_rows(
+    clips_dict: dict[int, dict[str, Any]],
+    current_good_votes: dict[int, None],
+    current_bad_votes: dict[int, None],
+) -> Optional[tuple["ScoringRows", list[float]]]:
+    """Build the evaluation rows and labels from the current votes.
+
+    Returns ``(rows, labels)`` aligned on ``rows.ids``, or ``None`` when there
+    is nothing usable to evaluate against.  Built once and reused by every model
+    in a window, so all points of the Smart indicator's slope regression share
+    one eval set.
+
+    The rows are the labelled media's **scoring** rows, not their image-level
+    vectors: a production head is served by max-pooling over that stack, and a
+    patch head is fitted on a Good vote's boxed patch and against every row of a
+    Bad vote, so measuring it on image-level vectors alone scores it on a
+    geometry it was never fitted for - half of issue #3757.  Media with no
+    usable vector in the detector's space are dropped by
+    :func:`~vtscore.detectors.training.scoring_rows_for_snap` rather than being
+    fatal, and the labels follow the surviving ids.
+
+    **Must be called without** ``_progress_lock`` **held** - see
+    :func:`_build_pool`.
+    """
+    from vtscore.detectors.training import scoring_rows_for_snap  # noqa: PLC0415
+
+    labels: dict[int, float] = {}
+    for cid in current_good_votes:
+        labels[cid] = 1.0
+    for cid in current_bad_votes:
+        labels[cid] = 0.0
+
+    subset = {cid: clips_dict[cid] for cid in labels if cid in clips_dict}
+    if not subset:
+        return None
+
+    rows = scoring_rows_for_snap(subset, _detector_score_embedder(clips_dict))
+    if not rows.ids:
+        return None
+    return rows, [labels[cid] for cid in rows.ids]
 
 
 def _compute_step_stability(
     cache: _ProgressCache,
     model: nn.Sequential,
     threshold: float,
-    clips_dict: dict[int, dict[str, Any]],
-    all_media_ids: list[int],
+    pool: Optional[_ScoredPool],
     t: int,
     num_labels: int,
 ) -> Optional[dict[str, Any]]:
-    """Compute prediction stability by comparing to the previous step's predictions."""
-    import torch  # noqa: PLC0415
+    """Compute prediction stability by comparing to the previous step's predictions.
 
-    pool = _monitored_pool(cache.key[0], clips_dict, all_media_ids)
+    Scores *pool* the way the detector is served - one forward pass over its
+    score rows, max-pooled per media (:func:`score_rows_with_model`) - so a flip
+    means an item the user would have seen move across the cut, not an item a
+    differently-shaped scorer would have.
+
+    The comparison is against the previous **model**, which is not necessarily
+    the previous step: steps whose label set no sort ran against carry no
+    detector, so nothing moved across them.  One entry therefore covers one
+    retraining, however many votes the sort was coalesced over.
+
+    *pool* is ``None`` only when the caller decided no step could carry a model
+    and a sort injected one in the meantime.  There is then nothing to score, so
+    the chain is dropped and restarted at the next step rather than comparing
+    against a baseline this step cannot itself refresh.
+    """
+    from vtscore.detectors.training import score_rows_with_model  # noqa: PLC0415
+
+    if pool is None:
+        cache.prev_predictions = None
+        return None
 
     labeled_ids = cache.good_ids | cache.bad_ids
     # Labels are few relative to the pool, so count the overlap from the
     # labelset rather than rescanning the pool.
-    num_unlabeled = len(pool.ids) - sum(1 for cid in labeled_ids if cid in pool.id_set)
+    num_unlabeled = len(pool.rows.ids) - sum(1 for cid in labeled_ids if cid in pool.id_set)
 
-    if num_unlabeled <= 0 or pool.X is None:
+    if num_unlabeled <= 0 or not pool.rows.ids:
         return {"time_index": t, "num_labels": num_labels, "num_flips": 0, "num_unlabeled": 0}
 
-    # Score the whole monitored pool in one pass and drop the currently-labeled
-    # ids afterwards.  Scoring the handful of extra (labeled) rows is far
-    # cheaper than re-materialising a per-step tensor of the unlabeled subset.
-    with torch.no_grad():
-        X_in = pool.X.to(next(model.parameters()).device)
-        scores_unl = torch.sigmoid(model(X_in)).squeeze(1).cpu().tolist()
+    # Score the whole pool in one pass and drop the currently-labeled ids
+    # afterwards.  Scoring the handful of extra (labeled) media is far cheaper
+    # than re-materialising a per-step row stack of the unlabeled subset.
+    scores, _best_rows = score_rows_with_model(model, pool.rows)
 
     predictions: dict[int, int] = {
         cid: 1 if score >= threshold else 0
-        for cid, score in zip(pool.ids, scores_unl, strict=True)
+        for cid, score in zip(pool.rows.ids, scores, strict=True)
         if cid not in labeled_ids
     }
 
@@ -565,98 +618,65 @@ def _compute_step_stability(
     return stability
 
 
-def _train_step(
-    cache: _ProgressCache,
-    clips_dict: dict[int, dict[str, Any]],
-    all_media_ids: list[int],
-    t: int,
-    num_labels: int,
-    inclusion_value: int,
-) -> tuple[Optional[nn.Sequential], Optional[float], Optional[dict[str, Any]]]:
-    """Train a model for one cache step and compute stability.
-
-    Returns ``(model, threshold, stability)``.  All three are ``None`` when
-    training is not possible (e.g. only one label polarity present).
-    """
-    if not cache.good_ids or not cache.bad_ids:
-        # No model possible - clear prediction baseline so the first step
-        # after regaining a model doesn't produce a misleading flip count.
-        cache.prev_predictions = None
-        return None, None, None
-
-    X_list, y_list = _collect_training_data(cache, clips_dict)
-    if len(X_list) < 2:
-        return None, None, None
-
-    import torch  # noqa: PLC0415
-
-    X = torch.tensor(np.array(X_list), dtype=torch.float32)
-    y = torch.tensor(y_list, dtype=torch.float32).unsqueeze(1)
-
-    # Linear SVM head, matching the production detector this previews.
-    model = train_model(X, y, X.shape[1], hidden_dim=LINEAR_SVM_HEAD)
-
-    with torch.no_grad():
-        X_dev = X.to(next(model.parameters()).device)
-        scores = torch.sigmoid(model(X_dev)).squeeze(1).cpu().tolist()
-    # Training-set scores, not held-out ones: this cache only needs a rough
-    # per-step cutoff for the stability curve, so the optimistic (tighter)
-    # band from in-sample quantiles is acceptable here.
-    threshold = conformal_threshold(scores, y_list, inclusion_value)
-
-    stability = _compute_step_stability(cache, model, threshold, clips_dict, all_media_ids, t, num_labels)
-    return model, threshold, stability
-
-
 def _resolve_step_model(
     cache: _ProgressCache,
-    clips_dict: dict[int, dict[str, Any]],
-    all_media_ids: list[int],
+    pool: Optional[_ScoredPool],
     t: int,
     num_labels: int,
-    inclusion_value: int,
     good_ids: list[int],
     bad_ids: list[int],
     prev: Optional[dict[str, Any]],
 ) -> tuple[Optional[nn.Sequential], Optional[float], Optional[dict[str, Any]]]:
     """Resolve the model, threshold, and stability for one cache step.
 
-    Reuses the previous step's model when the training data is unchanged,
-    otherwise reuses a live model injected by ``train_and_score`` for this
-    exact label set, or trains a fresh one.  Returns ``(model, threshold,
-    stability)``.
+    Reuses the previous step's model when the training data is unchanged;
+    otherwise takes the model ``train_and_score`` injected for this exact label
+    set, and **leaves the step modelless when there isn't one**.  Returns
+    ``(model, threshold, stability)``.
+
+    There is deliberately no fallback that trains something here.  A model this
+    module fitted for itself is not the detector the user is building - on a
+    patch dataset it is not even the same shape of detector - so plotting it
+    beside the real ones produced the alternating Smart curve of issue #3757 and
+    fed Autopilot's phase machine a mix of the two.  A gap is the honest answer,
+    and the curve is plotted against label count, so a gap reads as a gap.
     """
     # Check whether the training data actually changed compared to the
     # previous step.  If the good/bad ID sets are identical, the model
-    # would be the same - skip training and stability recording so the
-    # line graph and Stable indicator only reflect genuine model updates.
+    # would be the same - skip the stability recording so the line graph and
+    # Stable indicator only reflect genuine model updates.
     training_data_changed = (
         prev is None or set(good_ids) != set(prev["good_ids"]) or set(bad_ids) != set(prev["bad_ids"])
     )
 
     if not training_data_changed:
-        # Reuse previous model - no new training or stability entry.
+        # Reuse previous model - no new stability entry.
         model = prev["model"] if prev else None
         threshold = prev["threshold"] if prev else None
         return model, threshold, None
 
-    # Check whether train_and_score already produced a model for
-    # this exact label set during live sorting.  If so, reuse it
-    # (correct cross-calibrated threshold, zero compute cost).
-    live_key = (frozenset(cache.good_ids), frozenset(cache.bad_ids))
-    live = cache.live_models.get(live_key)
-    if live is not None:
-        model, threshold = live
-        stability = _compute_step_stability(cache, model, threshold, clips_dict, all_media_ids, t, num_labels)
-        return model, threshold, stability
+    live = cache.live_models.get((frozenset(cache.good_ids), frozenset(cache.bad_ids)))
+    if live is None:
+        # No sort ran against this label set, so the app never had a detector
+        # here.  The prediction baseline is deliberately *kept*: Stable measures
+        # movement between successive detectors, and nothing moved across a gap
+        # in which no detector existed.  Dropping it would mean that a session
+        # whose sorts are coalesced onto every other vote - the exact shape of
+        # issue #3757 - never has two adjacent model-bearing steps, produces no
+        # stability entries at all, and leaves the indicator stuck on "not
+        # enough history" forever, which also stops Autopilot ever finishing.
+        return None, None, None
 
-    return _train_step(cache, clips_dict, all_media_ids, t, num_labels, inclusion_value)
+    model, threshold = live
+    stability = _compute_step_stability(cache, model, threshold, pool, t, num_labels)
+    return model, threshold, stability
 
 
 def _ensure_cache(
     clips_dict: dict[int, dict[str, Any]],
     label_history: list[tuple[int, str, float]],
     inclusion_value: int,
+    pool: Optional[_ScoredPool] = None,
 ) -> _ProgressCache:
     """Bring the active pair's cache up to date with *label_history*.
 
@@ -664,17 +684,18 @@ def _ensure_cache(
     differs from the value used for existing cache entries the entire cache
     is rebuilt.  Returns the cache, so callers never have to re-resolve it.
 
+    *pool* is the stability pool, built by the caller **outside** this module's
+    lock (see :func:`_build_pool`); ``None`` means the caller established that
+    no step could carry a model, and any step that turns out to have one records
+    no stability entry rather than reaching for ``_state_lock`` from here.
+
     Must be called with ``_progress_lock`` held.
     """
     cache = _active_cache()
 
     if cache.inclusion is not None and cache.inclusion != inclusion_value:
-        # Same pair, different inclusion: rebuild in place.  The monitored pool
-        # is a pure function of ``clips_dict`` and so survives, but medias may
-        # have changed under us, so drop it alongside the rest for parity with
-        # the full clear.
+        # Same pair, different inclusion: rebuild in place.
         cache.reset()
-        _monitored_pools.pop(cache.key[0], None)
 
     if cache.inclusion is None:
         cache.inclusion = inclusion_value
@@ -682,8 +703,6 @@ def _ensure_cache(
     start = len(cache.steps)
     if start >= len(label_history):
         return cache  # already up to date
-
-    all_media_ids = sorted(clips_dict.keys())
 
     if cache.coverage_atlas is None:
         cache.coverage_atlas = _build_coverage_atlas(clips_dict)
@@ -699,10 +718,10 @@ def _ensure_cache(
                     cache.coverage_atlas.label(mid, good=mid in cache.good_ids)
 
     for t in range(start, len(label_history)):
-        # Each step retrains a model; honour a cancel of the owning eval job
-        # here so a long history doesn't run to completion after cancel.  The
-        # partially-built cache is a valid prefix (steps 0..t-1), so the next
-        # run resumes cleanly from ``len(cache.steps)``.  No-op outside a
+        # Each step may run a scoring pass; honour a cancel of the owning eval
+        # job here so a long history doesn't run to completion after cancel.
+        # The partially-built cache is a valid prefix (steps 0..t-1), so the
+        # next run resumes cleanly from ``len(cache.steps)``.  No-op outside a
         # job (see ``async_jobs.check_job_cancelled``).
         check_job_cancelled()
         media_id, label, _ = label_history[t]
@@ -715,9 +734,7 @@ def _ensure_cache(
         num_labels = len(good_ids) + len(bad_ids)
 
         prev = cache.steps[-1] if cache.steps else None
-        model, threshold, stability = _resolve_step_model(
-            cache, clips_dict, all_media_ids, t, num_labels, inclusion_value, good_ids, bad_ids, prev
-        )
+        model, threshold, stability = _resolve_step_model(cache, pool, t, num_labels, good_ids, bad_ids, prev)
 
         cache.steps.append(
             {
@@ -730,7 +747,42 @@ def _ensure_cache(
             }
         )
 
+    # Any Smart status memoised before this advance was computed over a shorter
+    # step list, so it no longer describes the cache.
+    cache.smart_memo = None
     return cache
+
+
+def _advance_cache(
+    clips_dict: dict[int, dict[str, Any]],
+    label_history: list[tuple[int, str, float]],
+    inclusion_value: int,
+) -> _ProgressCache:
+    """Bring the active pair's cache up to date, building its pool off-lock.
+
+    The lock dance is the point: :func:`_build_pool` must run **outside**
+    ``_progress_lock`` (it takes ``_state_lock``, and the ordering is fixed the
+    other way), while :func:`_ensure_cache` must run **inside** it.  So the
+    state is sampled under the lock, the pool is built between the two holds,
+    and ``_ensure_cache`` re-derives everything it needs from the live cache -
+    a concurrent advance in the gap costs nothing but a redundant pool.
+
+    The pool is skipped entirely when the cache holds no live models, because
+    then no step can resolve one and nothing will be scored.  That is the
+    common cold-start shape - a session that has loaded a dataset and voted but
+    not yet sorted - and it keeps the first poll off the whole-dataset matrix
+    build.
+    """
+    with _progress_lock:
+        cache = _active_cache()
+        rebuilding = cache.inclusion is not None and cache.inclusion != inclusion_value
+        behind = rebuilding or len(cache.steps) < len(label_history)
+        needs_pool = behind and bool(cache.live_models)
+
+    pool = _build_pool(clips_dict) if needs_pool else None
+
+    with _progress_lock:
+        return _ensure_cache(clips_dict, label_history, inclusion_value, pool)
 
 
 # ---------------------------------------------------------------------------
@@ -740,7 +792,7 @@ def _ensure_cache(
 
 def _score_step(
     step: dict[str, Any],
-    X_eval: Any,
+    eval_rows: "ScoringRows",
     eval_labels: list[float],
     fpr_weight: float,
     fnr_weight: float,
@@ -751,16 +803,17 @@ def _score_step(
     Returns an error-cost dict for the step.  The caller guarantees
     ``step["model"]`` is not ``None``.
 
-    The weighted FPR/FNR arithmetic is
-    :func:`~vtscore.training.thresholds.weighted_error_cost`, shared with the
-    eval harness (``vtscore.eval.step_trainers._labelset_error_costs``) so the
-    Smart indicator a study measures is the one the app shows.
+    Scoring goes through :func:`~vtscore.detectors.training.score_rows_with_model`,
+    the same call the sort path makes, so a media's score here is the max over
+    the rows the detector is actually served on.  The weighted FPR/FNR
+    arithmetic is :func:`~vtscore.training.thresholds.weighted_error_cost`,
+    shared with the eval harness
+    (``vtscore.eval.step_trainers._labelset_error_costs``) so the Smart
+    indicator a study measures is the one the app shows.
     """
-    import torch  # noqa: PLC0415
+    from vtscore.detectors.training import score_rows_with_model  # noqa: PLC0415
 
-    with torch.no_grad():
-        X_in = X_eval.to(next(step["model"].parameters()).device)
-        scores = torch.sigmoid(step["model"](X_in)).squeeze(1).cpu().tolist()
+    scores, _best_rows = score_rows_with_model(step["model"], eval_rows)
 
     error_cost, fpr, fnr = weighted_error_cost(scores, eval_labels, step["threshold"], fpr_weight, fnr_weight)
 
@@ -773,79 +826,41 @@ def _score_step(
     }
 
 
-def _build_eval_set(
-    clips_dict: dict[int, dict[str, Any]],
-    current_good_votes: dict[int, None],
-    current_bad_votes: dict[int, None],
-) -> Optional[tuple[Any, list[float]]]:
-    """Build the evaluation tensor and label set from the current votes.
-
-    Returns ``(X_eval, eval_labels)`` or ``None`` when there are no usable
-    labeled medias to evaluate against.  Built once and reused by every model
-    in the window, so all points of the Smart indicator's slope regression
-    share one eval set.
-    """
-    # Build evaluation set from current votes
-    current_labels: dict[int, float] = {}
-    for cid in current_good_votes:
-        current_labels[cid] = 1.0
-    for cid in current_bad_votes:
-        current_labels[cid] = 0.0
-
-    if not current_labels:
-        return None
-
-    eval_embs: list[np.ndarray] = []
-    eval_labels: list[float] = []
-    for cid, lbl in current_labels.items():
-        if cid in clips_dict and media_embedding(clips_dict[cid]) is not None:
-            eval_embs.append(media_embedding(clips_dict[cid]))
-            eval_labels.append(lbl)
-
-    if not eval_embs:
-        return None
-
-    import torch  # noqa: PLC0415
-
-    return torch.tensor(np.array(eval_embs), dtype=torch.float32), eval_labels
+def _model_step_indices(cache: _ProgressCache) -> list[int]:
+    """Indices of the cached steps that carry a model the app actually trained."""
+    return [t for t, step in enumerate(cache.steps) if step["model"] is not None]
 
 
 def _eval_cached_models(
     cache: _ProgressCache,
-    clips_dict: dict[int, dict[str, Any]],
-    current_good_votes: dict[int, None],
-    current_bad_votes: dict[int, None],
+    eval_set: Optional[tuple["ScoringRows", list[float]]],
     inclusion_value: int,
-    start: int = 0,
-    end: Optional[int] = None,
+    indices: Optional[list[int]] = None,
 ) -> list[dict[str, Any]]:
     """Score *cache*'s models against the current labelset (forward passes only).
 
-    Returns a list of error-cost dicts for every cached step in
-    ``[start, end)`` that has a trained model.  The Inclusion weights come from
-    the shipped :func:`~vtscore.training.thresholds.inclusion_cost_weights`, so
-    the indicator prices a miss exactly as the threshold rule that produced the
-    cut does.
-    """
-    fpr_weight, fnr_weight = inclusion_cost_weights(inclusion_value)
+    Returns one error-cost dict per cached step in *indices* (every
+    model-bearing step when ``None``).  Steps with no model contribute nothing:
+    the app never had a detector at that label count, so there is no accuracy to
+    report there - see the module docstring.
 
-    eval_set = _build_eval_set(clips_dict, current_good_votes, current_bad_votes)
+    The Inclusion weights come from the shipped
+    :func:`~vtscore.training.thresholds.inclusion_cost_weights`, so the
+    indicator prices a miss exactly as the threshold rule that produced the cut
+    does.  *eval_set* comes from :func:`_build_eval_rows`, built by the caller
+    outside ``_progress_lock``; ``None`` means there is nothing to measure
+    against and the series is empty.
+    """
     if eval_set is None:
         return []
-    X_eval, eval_labels = eval_set
+    eval_rows, eval_labels = eval_set
 
-    if end is None:
-        end = len(cache.steps)
+    fpr_weight, fnr_weight = inclusion_cost_weights(inclusion_value)
 
-    results: list[dict[str, Any]] = []
-    for t in range(start, end):
-        step = cache.steps[t]
-        if step["model"] is None:
-            continue
+    if indices is None:
+        indices = _model_step_indices(cache)
 
-        results.append(_score_step(step, X_eval, eval_labels, fpr_weight, fnr_weight, t))
-
-    return results
+    return [_score_step(cache.steps[t], eval_rows, eval_labels, fpr_weight, fnr_weight, t) for t in indices]
 
 
 # ---------------------------------------------------------------------------
@@ -859,7 +874,11 @@ def recreate_model_at_time(
     time_index: int,
     inclusion_value: int = 0,
 ) -> tuple[Optional[nn.Sequential], Optional[float], list[int], list[int]]:
-    """Return the cached model for a given labelling step, training it if needed.
+    """Return the cached model for a given labelling step.
+
+    The model is the one the app trained for that step's label set, or ``None``
+    when no sort ever ran against it - this module trains nothing of its own
+    (see the module docstring).
 
     Args:
         clips_dict: Mapping of media ID to media data dict with ``"embedding"``.
@@ -873,9 +892,8 @@ def recreate_model_at_time(
     if time_index < 0 or time_index >= len(label_history):
         return None, None, [], []
 
+    cache = _advance_cache(clips_dict, label_history, inclusion_value)
     with _progress_lock:
-        cache = _ensure_cache(clips_dict, label_history, inclusion_value)
-
         step = cache.steps[time_index]
         return step["model"], step["threshold"], step["good_ids"], step["bad_ids"]
 
@@ -887,13 +905,16 @@ def calculate_error_cost_over_time(
     current_bad_votes: dict[int, None],
     inclusion_value: int = 0,
 ) -> list[dict[str, Any]]:
-    """Calculate classification error cost at each labelling step.
+    """Calculate classification error cost at each labelling step that had a detector.
 
-    Uses cached models - no retraining.
+    Uses cached models - nothing is trained here.  Steps the app never trained a
+    model for are absent from the series, so it is shorter than the label
+    history and its ``num_labels`` values are not contiguous.
     """
+    cache = _advance_cache(clips_dict, label_history, inclusion_value)
+    eval_set = _build_eval_rows(clips_dict, current_good_votes, current_bad_votes)
     with _progress_lock:
-        cache = _ensure_cache(clips_dict, label_history, inclusion_value)
-        return _eval_cached_models(cache, clips_dict, current_good_votes, current_bad_votes, inclusion_value)
+        return _eval_cached_models(cache, eval_set, inclusion_value)
 
 
 def calculate_prediction_stability_over_time(
@@ -901,38 +922,96 @@ def calculate_prediction_stability_over_time(
     label_history: list[tuple[int, str, float]],
     inclusion_value: int = 0,
 ) -> list[dict[str, Any]]:
-    """Return cached prediction-stability metrics for every step."""
+    """Return cached prediction-stability metrics for every step that had a detector."""
+    cache = _advance_cache(clips_dict, label_history, inclusion_value)
     with _progress_lock:
-        cache = _ensure_cache(clips_dict, label_history, inclusion_value)
         return [step["stability"] for step in cache.steps if step["stability"] is not None]
+
+
+def _smart_memo_key(cache: _ProgressCache, model_steps: list[int], good: int, bad: int, inclusion_value: int) -> Any:
+    """Everything :func:`_compute_smart_status` reads, as a comparable key.
+
+    Steps are append-only between resets (a polarity flip truncates *and* drops
+    the memo), so a matching step count and model count mean the same models;
+    a matching vote count means the same eval set, because the only ways to
+    change the labelset without changing its size - a polarity flip - reset the
+    memo too.
+    """
+    return (len(cache.steps), tuple(model_steps[-_SMART_WINDOW_MODELS:]), good, bad, inclusion_value)
+
+
+def _smart_status_memoized(
+    cache: _ProgressCache,
+    inclusion_value: int,
+    good: int,
+    bad: int,
+) -> Optional[dict[str, Any]]:
+    """The memoised Smart status when it still describes *cache*, else ``None``.
+
+    Split out from :func:`_compute_smart_status` so a caller can ask "will this
+    need the eval rows?" *before* paying to build them - the rows are a
+    whole-labelset row stack, and the poll that asks for them arrives every 2 s
+    whether or not anything moved.
+
+    Must be called with ``_progress_lock`` held.
+    """
+    if cache.smart_memo is None:
+        return None
+    key = _smart_memo_key(cache, _model_step_indices(cache), good, bad, inclusion_value)
+    if cache.smart_memo[0] != key:
+        return None
+    return dict(cache.smart_memo[1])
 
 
 def _compute_smart_status(
     cache: _ProgressCache,
-    clips_dict: dict[int, dict[str, Any]],
-    label_history: list[tuple[int, str, float]],
-    current_good_votes: dict[int, None],
-    current_bad_votes: dict[int, None],
+    eval_set: Optional[tuple["ScoringRows", list[float]]],
     inclusion_value: int,
     good: int,
     bad: int,
-    total: int,
 ) -> dict[str, Any]:
-    """Compute Smart (error-cost flatness) red/yellow/green status."""
+    """Compute Smart (error-cost flatness) red/yellow/green status.
+
+    Regresses over the last :data:`_SMART_WINDOW_MODELS` **models**, not the
+    last N label-history steps: most steps carry no model, so a step-counted
+    window shrinks with the sort backlog and would report "not enough history"
+    exactly when the run is busiest.
+
+    Memoised on *cache* because every branch is re-read by each 2 s poll while
+    the answer cannot have changed.
+    """
+    model_steps = _model_step_indices(cache)
+    memo_key = _smart_memo_key(cache, model_steps, good, bad, inclusion_value)
+    if cache.smart_memo is not None and cache.smart_memo[0] == memo_key:
+        return dict(cache.smart_memo[1])
+
+    status = _smart_status_uncached(cache, model_steps, eval_set, inclusion_value, good, bad)
+    cache.smart_memo = (memo_key, dict(status))
+    return status
+
+
+def _smart_status_uncached(
+    cache: _ProgressCache,
+    model_steps: list[int],
+    eval_set: Optional[tuple["ScoringRows", list[float]]],
+    inclusion_value: int,
+    good: int,
+    bad: int,
+) -> dict[str, Any]:
+    """The body of :func:`_compute_smart_status`, before memoisation."""
     if good < 5 or bad < 5:
         return {
             "status": "red",
             "reason": f"Need at least 5 good and 5 bad. Currently {good}g, {bad}b.",
         }
 
-    n = len(cache.steps)
-    if n < 3:
-        return {"status": "yellow", "reason": "Not enough label history steps to assess trend."}
+    if len(model_steps) < 3:
+        return {
+            "status": "yellow",
+            "reason": "Not enough trained detectors yet to assess trend. Sort to train one.",
+        }
 
-    start_idx = max(0, n - 10)
-    recent_entries = _eval_cached_models(
-        cache, clips_dict, current_good_votes, current_bad_votes, inclusion_value, start_idx, n
-    )
+    recent_entries = _eval_cached_models(cache, eval_set, inclusion_value, model_steps[-_SMART_WINDOW_MODELS:])
     recent_error_costs = [e["error_cost"] for e in recent_entries]
 
     if len(recent_error_costs) < 3:
@@ -1071,23 +1150,32 @@ def compute_labeling_status(
     three sub-dicts: ``smart``, ``stable``, and ``span``, each with a
     ``status`` field of ``"red"``, ``"yellow"``, or ``"green"``.
 
-    Advancing the per-step cache (``_ensure_cache``) can retrain MLPs and run a
-    forward pass over every unlabeled media, so this is the *heavy* path.  The
-    result is stashed in the pair's ``status_snapshot`` so the
-    ``/api/labeling-status`` route can serve it immediately (marked ``stale``)
-    on subsequent polls while a background worker calls this to advance the
-    cache off the request thread (issue #2397).
+    Advancing the per-step cache scores the whole pool once per step that has a
+    detector, and Smart re-scores its recent-model window against the current
+    labelset, so this is the *heavy* path.  The result is stashed in the pair's
+    ``status_snapshot`` so the ``/api/labeling-status`` route can serve it
+    immediately (marked ``stale``) on subsequent polls while a background worker
+    calls this to advance the cache off the request thread (issue #2397).
     """
     good = len(current_good_votes)
     bad = len(current_bad_votes)
     total = good + bad
 
-    with _progress_lock:
-        cache = _ensure_cache(clips_dict, label_history, inclusion_value)
+    cache = _advance_cache(clips_dict, label_history, inclusion_value)
 
-        smart = _compute_smart_status(
-            cache, clips_dict, label_history, current_good_votes, current_bad_votes, inclusion_value, good, bad, total
-        )
+    # The eval rows are built off-lock (they reach the embedding-matrix layer,
+    # which takes ``_state_lock``), which means deciding *before* the build
+    # whether Smart will read them at all.  It will not when the memo still
+    # holds - the common case, since the 2 s poll outruns the vote rate by an
+    # order of magnitude - nor below the 5g/5b quorum, where the status is red
+    # without looking at a model.
+    with _progress_lock:
+        memo = _smart_status_memoized(cache, inclusion_value, good, bad)
+    needs_eval = memo is None and good >= 5 and bad >= 5
+    eval_set = _build_eval_rows(clips_dict, current_good_votes, current_bad_votes) if needs_eval else None
+
+    with _progress_lock:
+        smart = memo if memo is not None else _compute_smart_status(cache, eval_set, inclusion_value, good, bad)
         stable = _compute_stable_status(cache, good, bad, total)
 
     # Span status from coverage atlas info (passed in from the route).
@@ -1131,16 +1219,27 @@ def cached_indicator_history(
     ``/api/eval/train-and-score`` job, which does the same work on a background
     thread with progress and cancellation.
 
+    ``complete`` says the *cache* is caught up, not that every label step has a
+    point: a step the app never trained a detector for has no accuracy to
+    report and is simply absent (see the module docstring).  A complete-but-
+    empty ``smart`` series is the honest answer for a session that has voted
+    but never sorted, and the modal renders it as "no history yet" rather than
+    inventing one.
+
     This is the counterpart to the ``calculate_*_over_time`` functions, which
-    call :func:`_ensure_cache` and therefore retrain an MLP per uncached step
-    on the calling thread.  Doing that inline is exactly what
+    call :func:`_advance_cache` and therefore score the pool once per uncached
+    step on the calling thread.  Doing that inline is exactly what
     ``/api/labeling-status`` refuses to do (issue #2397), so the read path that
     backs the progress-plot modal must not do it either.
 
-    When the cache *is* complete every branch is cheap: ``smart`` runs forward
-    passes of the cached models over the (small) labeled set, and ``stable`` /
-    ``diverse`` are plain reads of values recorded during the cache build.
+    When the cache *is* complete every branch is cheap: ``smart`` runs one
+    forward pass per cached model over the (small) labelled set, and ``stable``
+    / ``diverse`` are plain reads of values recorded during the cache build.
     """
+    # Coverage first, and on its own: while the user is labelling the answer is
+    # usually "behind", and the Smart branch below would otherwise have built a
+    # row stack over every labelled media only to throw it away.
+    #
     # Reading the cache needs ``_progress_lock``, but a background worker holds
     # that lock for the *entire* duration of a cache build - which is exactly
     # the multi-second work this function exists to avoid waiting on.  Blocking
@@ -1150,12 +1249,29 @@ def cached_indicator_history(
     if not _progress_lock.acquire(timeout=_CACHE_READ_LOCK_TIMEOUT):
         return [], False
     try:
-        if not is_status_cache_fresh(label_history, inclusion_value):
+        if not _cache_covers_history(_active_cache(), label_history, inclusion_value):
+            return [], False
+    finally:
+        _progress_lock.release()
+
+    # The Smart series measures the cached models against the *current* votes,
+    # and building those rows reaches the embedding-matrix layer, which takes
+    # ``_state_lock`` - so it has to happen with ``_progress_lock`` released,
+    # never inside it (see the module docstring's lock-ordering note).
+    eval_set = _build_eval_rows(clips_dict, current_good_votes, current_bad_votes) if metric == "smart" else None
+
+    if not _progress_lock.acquire(timeout=_CACHE_READ_LOCK_TIMEOUT):
+        return [], False
+    try:
+        cache = _active_cache()
+        # Re-checked: the gap above is exactly when a background worker can
+        # advance or reset the cache, and a series read off a cache that no
+        # longer covers this history would be a truncated plot.
+        if not _cache_covers_history(cache, label_history, inclusion_value):
             return [], False
 
-        cache = _active_cache()
         if metric == "smart":
-            data = _eval_cached_models(cache, clips_dict, current_good_votes, current_bad_votes, inclusion_value)
+            data = _eval_cached_models(cache, eval_set, inclusion_value)
         elif metric == "stable":
             data = [step["stability"] for step in cache.steps if step["stability"] is not None]
         else:
@@ -1165,21 +1281,40 @@ def cached_indicator_history(
         _progress_lock.release()
 
 
+def _cache_covers_history(
+    cache: _ProgressCache,
+    label_history: list[tuple[int, str, float]],
+    inclusion_value: int,
+) -> bool:
+    """Whether *cache* already holds a step for every event in *label_history*.
+
+    A mismatched ``inclusion_value`` counts as not-covered because
+    :func:`_ensure_cache` would rebuild the cache from scratch.  The length
+    comparison is against the pair's own cache, so another detector's longer
+    history can never be read as covering this one's.
+
+    Must be called with ``_progress_lock`` held.
+    """
+    if cache.inclusion is not None and cache.inclusion != inclusion_value:
+        return False
+    return len(cache.steps) >= len(label_history)
+
+
 def is_status_cache_fresh(label_history: list[tuple[int, str, float]], inclusion_value: int) -> bool:
     """Return ``True`` when the per-step cache already covers *label_history*.
 
-    A fresh cache means ``compute_labeling_status`` will not retrain any model,
-    so the route can compute the status inline instead of deferring to a
-    background worker.  A mismatched ``inclusion_value`` counts as not-fresh
-    because :func:`_ensure_cache` would rebuild the cache from scratch.  The
-    length comparison is against the *active pair's* cache, so another
-    detector's longer history can never be read as covering this one's.
+    A fresh cache means ``compute_labeling_status`` will not advance a step, and
+    therefore will not score the pool, so the route can compute the status
+    inline instead of deferring to a background worker.
+
+    It does **not** promise the Smart status is memoised, and deliberately so.
+    The worker that advances the cache computes the status in the same call, so
+    after every vote the memo is warm before the next poll arrives; requiring it
+    here would only mean a brand-new detector - no votes, no steps, nothing to
+    compute - reported its indicators as "computing" for one extra poll.
     """
     with _progress_lock:
-        cache = _active_cache()
-        if cache.inclusion is not None and cache.inclusion != inclusion_value:
-            return False
-        return len(cache.steps) >= len(label_history)
+        return _cache_covers_history(_active_cache(), label_history, inclusion_value)
 
 
 def _pending_labeling_status(
@@ -1241,10 +1376,12 @@ def calculate_diversity_level_over_time(
 
     Diversity levels are computed and stored by :func:`_ensure_cache` as it
     processes each label-history step, so this function ensures the cache is
-    current before reading it.
+    current before reading it.  Unlike Smart and Stable this series has a point
+    for every step: coverage is a property of the votes, not of a detector, so
+    it does not depend on whether a sort ever ran.
     """
+    cache = _advance_cache(clips_dict, label_history, inclusion_value)
     with _progress_lock:
-        cache = _ensure_cache(clips_dict, label_history, inclusion_value)
         return [step["diversity"] for step in cache.steps if step.get("diversity") is not None]
 
 
@@ -1259,15 +1396,19 @@ def analyze_labeling_progress(
 
     Models and stability metrics are read from the per-step cache.  Error
     cost is recomputed cheaply using cached models (forward passes only).
+    The error-cost and stability series cover only the steps the app trained a
+    detector for, so they are shorter than ``total_labels``; diversity covers
+    every step.
     """
-    with _progress_lock:
-        cache = _ensure_cache(clips_dict, label_history, inclusion_value)
+    cache = _advance_cache(clips_dict, label_history, inclusion_value)
+    eval_set = _build_eval_rows(clips_dict, current_good_votes, current_bad_votes)
 
-        error_cost = _eval_cached_models(cache, clips_dict, current_good_votes, current_bad_votes, inclusion_value)
+    with _progress_lock:
+        error_cost = _eval_cached_models(cache, eval_set, inclusion_value)
 
         stability = [step["stability"] for step in cache.steps if step["stability"] is not None]
 
-        diversity = calculate_diversity_level_over_time(clips_dict, label_history, inclusion_value)
+        diversity = [step["diversity"] for step in cache.steps if step.get("diversity") is not None]
 
     return {
         "error_cost_over_time": error_cost,

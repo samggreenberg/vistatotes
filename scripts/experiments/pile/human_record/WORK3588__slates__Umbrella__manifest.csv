@@ -1,0 +1,201 @@
+image_id,class,stratum,cell,text_score,reference,exhaustive,n_boxes,detector,driver
+2387068,Umbrella,boundary,,0.1055,,no,0,Umbrella,kite
+2393864,Umbrella,boundary,,0.1016,absent,yes,0,Umbrella,fire hydrant
+2392337,Umbrella,boundary,,0.101,absent,yes,0,Umbrella,sink
+2315792,Umbrella,boundary,,0.0966,absent,yes,0,Umbrella,bench
+2360117,Umbrella,boundary,,0.0912,absent,yes,0,Umbrella,kite
+2384924,Umbrella,boundary,,0.0906,absent,yes,0,Umbrella,truck
+2334934,Umbrella,boundary,,0.0893,absent,yes,0,Umbrella,kite
+2322248,Umbrella,boundary,,0.0874,absent,yes,0,Umbrella,kite
+2391377,Umbrella,boundary,,0.0874,,no,0,Umbrella,kite
+2326762,Umbrella,boundary,,0.085,,no,0,Umbrella,sink
+498270,Umbrella,boundary,,0.0849,,no,0,Umbrella,boat
+2400821,Umbrella,boundary,,0.0844,absent,yes,0,Umbrella,sink
+2385504,Umbrella,boundary,,0.0834,absent,yes,0,Umbrella,kite
+2367901,Umbrella,boundary,,0.0832,,no,0,Umbrella,stop sign
+2339643,Umbrella,boundary,,0.0827,absent,yes,0,Umbrella,kite
+2325700,Umbrella,boundary,,0.0819,absent,yes,0,Umbrella,kite
+3561,Umbrella,boundary,,0.0818,,no,0,Umbrella,chair
+2404693,Umbrella,boundary,,0.0817,,no,0,Umbrella,kite
+2395745,Umbrella,boundary,,0.0806,,no,0,Umbrella,kite
+2394130,Umbrella,boundary,,0.0803,absent,yes,0,Umbrella,kite
+2322535,Umbrella,boundary,,0.0799,absent,yes,0,Umbrella,kite
+2352709,Umbrella,boundary,,0.0792,,no,0,Umbrella,kite
+2411912,Umbrella,boundary,,0.0786,absent,yes,0,Umbrella,stop sign
+2346019,Umbrella,boundary,,0.0784,absent,yes,0,Umbrella,stop sign
+2383707,Umbrella,boundary,,0.077,,no,0,Umbrella,kite
+2365421,Umbrella,boundary,,0.0766,absent,yes,0,Umbrella,cell phone
+2325332,Umbrella,boundary,,0.0766,absent,yes,0,Umbrella,truck
+2331220,Umbrella,boundary,,0.0759,,no,0,Umbrella,kite
+2361029,Umbrella,boundary,,0.0758,,no,0,Umbrella,cell phone
+2376806,Umbrella,boundary,,0.0755,absent,yes,0,Umbrella,stop sign
+2402410,Umbrella,boundary,,0.0753,,no,0,Umbrella,stop sign
+2379075,Umbrella,boundary,,0.0751,,no,0,Umbrella,dog
+2374487,Umbrella,boundary,,0.0749,absent,yes,0,Umbrella,stop sign
+2350610,Umbrella,boundary,,0.0745,absent,yes,0,Umbrella,kite
+2392128,Umbrella,boundary,,0.0745,absent,yes,0,Umbrella,stop sign
+2333001,Umbrella,boundary,,0.0739,absent,yes,0,Umbrella,kite
+1159420,Umbrella,boundary,,0.0735,absent,yes,0,Umbrella,truck
+2392264,Umbrella,boundary,,0.0734,,no,0,Umbrella,stop sign
+2358316,Umbrella,boundary,,0.0732,absent,yes,0,Umbrella,sink
+2393671,Umbrella,boundary,,0.073,absent,yes,0,Umbrella,dog
+2323658,Umbrella,boundary,,0.0729,,no,0,Umbrella,dog
+2407548,Umbrella,boundary,,0.0729,,no,0,Umbrella,bus
+2407502,Umbrella,boundary,,0.0728,absent,yes,0,Umbrella,spoon
+2367117,Umbrella,boundary,,0.0723,,no,0,Umbrella,kite
+2327398,Umbrella,boundary,,0.0721,absent,yes,0,Umbrella,kite
+2350334,Umbrella,boundary,,0.0718,absent,yes,0,Umbrella,knife
+2369018,Umbrella,boundary,,0.0714,,no,0,Umbrella,kite
+2399091,Umbrella,boundary,,0.0711,,no,0,Umbrella,sink
+2358000,Umbrella,boundary,,0.0706,absent,yes,0,Umbrella,cell phone
+2336745,Umbrella,boundary,,0.0704,,no,0,Umbrella,bus
+2413072,Umbrella,boundary,,0.0701,,no,0,Umbrella,stop sign
+2391765,Umbrella,boundary,,0.0697,absent,yes,0,Umbrella,chair
+2330568,Umbrella,boundary,,0.0697,absent,yes,0,Umbrella,bus
+2410628,Umbrella,boundary,,0.0695,,no,0,Umbrella,dog
+2348108,Umbrella,boundary,,0.0692,,no,0,Umbrella,stop sign
+2354790,Umbrella,boundary,,0.0692,absent,yes,0,Umbrella,bus
+2394898,Umbrella,boundary,,0.0685,,no,0,Umbrella,dog
+2416246,Umbrella,boundary,,0.0685,absent,yes,0,Umbrella,stop sign
+2316125,Umbrella,boundary,,0.0684,,no,0,Umbrella,kite
+2327098,Umbrella,boundary,,0.0683,,no,0,Umbrella,sink
+2362065,Umbrella,boundary,,0.0679,absent,yes,0,Umbrella,sink
+2336569,Umbrella,boundary,,0.0676,absent,yes,0,Umbrella,stop sign
+2413495,Umbrella,boundary,,0.0673,absent,yes,0,Umbrella,stop sign
+2338255,Umbrella,boundary,,0.0673,absent,yes,0,Umbrella,bench
+2362762,Umbrella,boundary,,0.067,absent,yes,0,Umbrella,vase
+2322849,Umbrella,boundary,,0.0669,,no,0,Umbrella,backpack
+2392420,Umbrella,boundary,,0.0667,absent,yes,0,Umbrella,vase
+2329296,Umbrella,boundary,,0.0665,absent,yes,0,Umbrella,stop sign
+2416700,Umbrella,boundary,,0.0664,absent,yes,0,Umbrella,cell phone
+2417852,Umbrella,boundary,,0.0664,,no,0,Umbrella,boat
+4185,Umbrella,boundary,,0.0662,,no,0,Umbrella,stop sign
+2325379,Umbrella,boundary,,0.0661,,no,0,Umbrella,kite
+2368073,Umbrella,boundary,,0.0661,,no,0,Umbrella,stop sign
+2355890,Umbrella,boundary,,0.066,absent,yes,0,Umbrella,stop sign
+1592013,Umbrella,boundary,,0.0657,absent,yes,0,Umbrella,bench
+2417678,Umbrella,boundary,,0.0657,,no,0,Umbrella,kite
+2360975,Umbrella,boundary,,0.0656,absent,yes,0,Umbrella,kite
+2407927,Umbrella,boundary,,0.0656,,no,0,Umbrella,bowl
+2355650,Umbrella,boundary,,0.0656,,no,0,Umbrella,stop sign
+2415598,Umbrella,boundary,,0.0652,,no,0,Umbrella,sink
+2393732,Umbrella,boundary,,0.0648,,no,0,Umbrella,stop sign
+2398807,Umbrella,boundary,,0.0647,,no,0,Umbrella,stop sign
+2360,Umbrella,boundary,,0.0646,,no,0,Umbrella,stop sign
+2400101,Umbrella,boundary,,0.0644,,no,0,Umbrella,kite
+2380685,Umbrella,boundary,,0.0641,,no,0,Umbrella,sink
+1986,Umbrella,boundary,,0.0639,,no,0,Umbrella,cell phone
+2353986,Umbrella,boundary,,0.0638,,no,0,Umbrella,kite
+2388314,Umbrella,boundary,,0.0637,absent,yes,0,Umbrella,bench
+2383506,Umbrella,boundary,,0.0634,absent,yes,0,Umbrella,sink
+2379050,Umbrella,boundary,,0.0632,absent,yes,0,Umbrella,dog
+2323842,Umbrella,boundary,,0.0627,,no,0,Umbrella,kite
+2372457,Umbrella,boundary,,0.0624,,no,0,Umbrella,spoon
+2363995,Umbrella,boundary,,0.062,,no,0,Umbrella,sink
+2346929,Umbrella,boundary,,0.0619,,no,0,Umbrella,bus
+2343839,Umbrella,boundary,,0.0618,absent,yes,0,Umbrella,stop sign
+2417271,Umbrella,boundary,,0.0617,absent,yes,0,Umbrella,cell phone
+2399554,Umbrella,boundary,,0.0616,,no,0,Umbrella,sink
+2393952,Umbrella,boundary,,0.0616,,no,0,Umbrella,sink
+2398287,Umbrella,boundary,,0.0614,absent,yes,0,Umbrella,bowl
+2380089,Umbrella,boundary,,0.0613,absent,yes,0,Umbrella,kite
+2379377,Umbrella,random,,0.006,,no,0,Umbrella,bird
+2389518,Umbrella,random,,0.0262,,no,0,Umbrella,boat
+2387690,Umbrella,random,,0.0414,absent,yes,0,Umbrella,bus
+2341258,Umbrella,random,,0.0075,,no,0,Umbrella,bench
+2343133,Umbrella,random,,0.0122,,no,0,Umbrella,bench
+2410471,Umbrella,random,,0.0238,,no,0,Umbrella,bird
+2338452,Umbrella,random,,0.0149,absent,yes,0,Umbrella,bird
+2399496,Umbrella,random,,0.0389,,no,0,Umbrella,kite
+655,Umbrella,random,,0.0285,,no,0,Umbrella,boat
+2406950,Umbrella,random,,0.0483,,no,0,Umbrella,bowl
+2416176,Umbrella,random,,0.0246,,no,0,Umbrella,bus
+2379431,Umbrella,random,,0.0299,absent,yes,0,Umbrella,bus
+2386624,Umbrella,random,,0.0363,absent,yes,0,Umbrella,dog
+2376171,Umbrella,random,,0.0455,,no,0,Umbrella,bicycle
+2342757,Umbrella,random,,0.0091,,no,0,Umbrella,car
+2370802,Umbrella,random,,0.0289,absent,yes,0,Umbrella,stop sign
+2379036,Umbrella,random,,0.0487,,no,0,Umbrella,kite
+2372245,Umbrella,random,,0.0584,,no,0,Umbrella,stop sign
+1556,Umbrella,random,,0.0293,,no,0,Umbrella,car
+2328476,Umbrella,random,,0.0054,,no,0,Umbrella,bench
+2379254,Umbrella,random,,0.0072,absent,yes,0,Umbrella,dog
+2334823,Umbrella,random,,0.0328,absent,yes,0,Umbrella,kite
+2413407,Umbrella,random,,0.0297,,no,0,Umbrella,spoon
+1490,Umbrella,random,,0.0228,,no,0,Umbrella,bench
+2368814,Umbrella,random,,0.0076,,no,0,Umbrella,bird
+2408671,Umbrella,random,,0.048,absent,yes,0,Umbrella,bowl
+2381000,Umbrella,random,,0.0398,absent,yes,0,Umbrella,cup
+2410237,Umbrella,random,,0.0191,absent,yes,0,Umbrella,fork
+2395379,Umbrella,random,,0.0472,,no,0,Umbrella,sink
+2375949,Umbrella,random,,0.0249,,no,0,Umbrella,cup
+2415129,Umbrella,random,,0.0367,absent,yes,0,Umbrella,kite
+2399434,Umbrella,random,,0.0178,,no,0,Umbrella,bowl
+2382828,Umbrella,random,,0.0059,absent,yes,0,Umbrella,dog
+2364216,Umbrella,random,,0.0505,absent,yes,0,Umbrella,bus
+2416508,Umbrella,random,,0.0089,,no,0,Umbrella,bird
+2323085,Umbrella,random,,0.0491,absent,yes,0,Umbrella,kite
+2334729,Umbrella,random,,0.0472,,no,0,Umbrella,bus
+2411277,Umbrella,random,,0.0112,,no,0,Umbrella,bowl
+2392094,Umbrella,random,,0.0195,absent,yes,0,Umbrella,truck
+2386347,Umbrella,random,,0.039,absent,yes,0,Umbrella,bowl
+2340056,Umbrella,random,,0.0461,absent,yes,0,Umbrella,knife
+2392807,Umbrella,random,,0.0315,absent,yes,0,Umbrella,bus
+2382264,Umbrella,random,,0.0122,,no,0,Umbrella,dog
+2398852,Umbrella,random,,0.0303,,no,0,Umbrella,knife
+2336335,Umbrella,random,,0.0054,,no,0,Umbrella,car
+2357898,Umbrella,random,,0.0097,,no,0,Umbrella,bench
+2384185,Umbrella,random,,0.0402,,no,0,Umbrella,backpack
+2352095,Umbrella,random,,0.0262,absent,yes,0,Umbrella,bus
+2385477,Umbrella,random,,0.0176,,no,0,Umbrella,kite
+2332648,Umbrella,random,,0.0099,,no,0,Umbrella,sink
+2368984,Umbrella,random,,0.0302,,no,0,Umbrella,bus
+2370144,Umbrella,random,,0.0122,,no,0,Umbrella,bowl
+2358419,Umbrella,random,,0.0443,,no,0,Umbrella,bus
+3801,Umbrella,random,,0.0487,,no,0,Umbrella,bench
+2315796,Umbrella,random,,0.0284,,no,0,Umbrella,car
+2370271,Umbrella,random,,0.0186,absent,yes,0,Umbrella,bird
+2393325,Umbrella,random,,0.01,absent,yes,0,Umbrella,cup
+2388486,Umbrella,random,,0.0236,absent,yes,0,Umbrella,bowl
+1592557,Umbrella,random,,0.0233,,no,0,Umbrella,fork
+497980,Umbrella,random,,0.0123,,no,0,Umbrella,bench
+2403285,Umbrella,random,,0.019,absent,yes,0,Umbrella,kite
+2411445,Umbrella,random,,0.0491,,no,0,Umbrella,bicycle
+2402404,Umbrella,random,,0.032,,no,0,Umbrella,umbrella
+2341076,Umbrella,random,,0.0401,absent,yes,0,Umbrella,bowl
+2392734,Umbrella,random,,0.0268,absent,yes,0,Umbrella,kite
+2320550,Umbrella,random,,0.0117,absent,yes,0,Umbrella,bench
+2318153,Umbrella,random,,0.0302,absent,yes,0,Umbrella,fork
+2358239,Umbrella,random,,0.0114,absent,yes,0,Umbrella,bird
+2373243,Umbrella,random,,0.013,,no,0,Umbrella,bird
+2392277,Umbrella,random,,0.0255,,no,0,Umbrella,bowl
+4214,Umbrella,random,,0.0134,,no,0,Umbrella,fork
+2352911,Umbrella,random,,0.0331,,no,0,Umbrella,bowl
+2329538,Umbrella,random,,0.0147,,no,0,Umbrella,bench
+2409231,Umbrella,random,,0.017,,no,0,Umbrella,bowl
+2321487,Umbrella,random,,0.0043,absent,yes,0,Umbrella,bird
+2386652,Umbrella,random,,0.014,absent,yes,0,Umbrella,bird
+2316043,Umbrella,random,,0.0192,absent,yes,0,Umbrella,car
+2340667,Umbrella,random,,0.02,,no,0,Umbrella,bicycle
+2353402,Umbrella,random,,0.0515,,no,0,Umbrella,bus
+1593184,Umbrella,random,,0.0417,absent,yes,0,Umbrella,dog
+2392480,Umbrella,random,,0.0531,,no,0,Umbrella,bowl
+2361524,Umbrella,random,,0.0098,absent,yes,0,Umbrella,boat
+2334397,Umbrella,random,,0.007,,no,0,Umbrella,bowl
+2320159,Umbrella,random,,0.0198,absent,yes,0,Umbrella,spoon
+2359994,Umbrella,random,,0.02,,no,0,Umbrella,bus
+2366442,Umbrella,random,,0.0404,absent,yes,0,Umbrella,bowl
+2380376,Umbrella,random,,0.0097,,no,0,Umbrella,car
+2416293,Umbrella,random,,0.0191,absent,yes,0,Umbrella,kite
+2335019,Umbrella,random,,0.0156,,no,0,Umbrella,bench
+2374137,Umbrella,random,,0.0087,,no,0,Umbrella,dog
+2316533,Umbrella,random,,0.025,absent,yes,0,Umbrella,kite
+2372204,Umbrella,random,,0.0081,,no,0,Umbrella,bowl
+2364952,Umbrella,random,,0.0186,absent,yes,0,Umbrella,bird
+2327535,Umbrella,random,,0.0311,,no,0,Umbrella,cup
+1159799,Umbrella,random,,0.0239,,no,0,Umbrella,bowl
+61589,Umbrella,random,,0.0178,,no,0,Umbrella,kite
+2396098,Umbrella,random,,0.0475,absent,yes,0,Umbrella,bench
+2363160,Umbrella,random,,0.0104,absent,yes,0,Umbrella,bird
+2357470,Umbrella,random,,0.0348,absent,yes,0,Umbrella,dog
+2410026,Umbrella,random,,0.0285,,no,0,Umbrella,kite

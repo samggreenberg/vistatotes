@@ -31,6 +31,25 @@ If you see one, **stop**: that sentence is an `AskUserQuestion` call you almost 
 
 This rule has **no exceptions for "quick" yes/no follow-ups.** Yes/no offers belong in the tool too (with `["Yes", "No"]` options); they are exactly the case where a one-click reply beats a typed reply. A pure progress update with no question at the end is fine; an update that ends in an offer is not.
 
+## A bare `#N` prompt is a complete instruction (CRITICAL)
+
+When the user's whole prompt is just a number — `#3421`, or bare `3421` — it names a GitHub issue or pull request **in this repo**, and it is already a full instruction. Do not ask what to do with it; do not answer with a summary of the issue and stop. Resolve the number first (GitHub draws issues and PRs from one sequence, so a given number is one or the other, never both), then follow the matching workflow below.
+
+**This applies on every surface.** Claude Code on the web, the desktop app, the laptop CLI — the convention is repo policy, not a per-session preference, so it holds wherever this file is loaded.
+
+### If `#N` is an issue
+
+1. **Assign `samggreenberg` immediately.** The moment the number resolves to an issue — before you read it, before you evaluate it, before any analysis — write `assignees: ["samggreenberg"]`. Evaluation is itself work on the issue, and it is exactly the window in which a second session picks up the same number. Do this even if you go on to disagree with the issue; if you end up walking away, clear the assignee then.
+2. **Read it, then evaluate it.** Decide whether the premise is correct and whether you agree with the solution it proposes. This is a real gate, not a formality: an issue can be stale, already fixed, based on a misreading, or right about the symptom and wrong about the fix.
+3. **If you disagree — or the right scope is unclear — stop and ask** via `AskUserQuestion` before writing any code. Say what the issue claims, what you found instead, and what you'd do differently.
+4. **If you agree, do the work off a fresh `dev`:** `git fetch origin --prune && git checkout -B <branch> origin/dev`. Never build on whatever the branch happened to be pointing at.
+5. **If the issue carries the `experiment` label, do the work entirely on the GRID, on a fresh worktree.** See the `grid-experiments` skill for how those runs are launched and monitored.
+6. **Run the rest of the issue lifecycle**, per the sections below: open the PR with `base=dev` and a closing keyword; comment `Addressed in #M` on the issue; add `solved` and clear the assignee; leave the issue open for the `dev`→`main` sweep to close.
+
+### If `#N` is a pull request
+
+It is conflicted, and the ask is to **resolve the conflicts so the PR can merge into `dev`** — nothing more. Fetch, merge `origin/dev` into the PR's head branch, resolve, run the tests, and push. Do not rewrite the branch's history (no rebase, amend, or force-push) and do not fold in unrelated changes while you are there; a reviewer should see conflict resolution and nothing else.
+
 ## Branch Policy (CRITICAL)
 
 - **Always base work on `dev`.** The `.claude/hooks/session-start.sh` SessionStart hook fetches `origin --prune` and then lands the working branch on `origin/dev` automatically in remote sessions. The harness cuts the working branch off `main` (the GitHub default), so this is required to pick up work already merged to `dev`. The GitHub default stays `main` so new users land on the stable branch: `dev` is Claude's starting point, not the public default.
@@ -50,6 +69,53 @@ Before comparing branches (`git log a..b`, `git diff a...b`, etc.), always run `
 When you're done with your changes, open a PR targeting `dev`. Do not ask; just create it. Always pass `base=dev` explicitly (the GitHub PR-creation URL printed by `git push` defaults to `main`).
 
 This standing instruction **is** the explicit request that the remote-environment harness rule ("do not create a pull request unless the user explicitly asks for one") defers to. The harness rule only suppresses *unsolicited* PRs; a durable, repo-committed instruction to auto-open one satisfies its "unless the user explicitly asks" carve-out. So the two do not conflict: in this repo, finishing your changes is your cue to open the PR (base `dev`) without further prompting.
+
+## Merging a PR
+
+**Use a normal merge commit: `gh pr merge <n> --merge`.** Never `--squash`, never
+`--rebase`.
+
+This is not a style preference. [`docs/RELEASE.md`](docs/RELEASE.md) steps 4 and 6
+find what shipped by walking the release window, and until #3691 they walked
+**merge commits** specifically — a squashed PR is not one: it lands as an ordinary
+commit whose subject ends `(#N)`, so `git log --merges origin/main..origin/dev`
+never listed it. Measured on a live window (197 commits, 52 of them merges): a PR
+squashed by mistake was **absent** from that walk while one merged normally an hour
+later was present. The issue sweep had a second net — step 6's orphan backstop reads
+`Addressed in #M` comments, which is PR data rather than git — but the release
+summary and the punch-card data (`scripts/punchcard/pr_merges.txt`) had none, so a
+squashed PR could drop out of both without anything saying so.
+
+**That half is now fixed at the other end, and the rule still stands.** Four
+squashes were already on `dev` before this rule existed, and no convention can
+retroactively un-squash them, so `scripts/release-prs.py` walks `--first-parent`
+and reads either shape. The release walk is therefore no longer a reason to merge
+rather than squash — but the two costs below are not recoverable by any script,
+and a subject-line parse is a weaker thing for a release to rest on than a merge
+commit. Do not read the fix as permission.
+
+Two smaller costs, both paid at merge time:
+
+- **Ancestry.** A squash-merged branch is no longer an ancestor of `dev`, so a
+  follow-up PR from it re-shows its *entire* diff rather than the new commits.
+  Sessions here routinely keep working on a branch after its PR lands, which is
+  exactly when that bites.
+- **Structure.** Every commit collapses into one. The messages survive in the
+  squash body, but `cherry picked from` provenance and the shape of the work do
+  not.
+
+None of it is repairable afterwards: fixing the history means rewriting a shared,
+protected branch. So the check belongs **before** the merge. If you are ever
+unsure what this repo does, ask the repo rather than the last commit you happened
+to read — a two-commit sample is not a convention:
+
+```
+git log --pretty=%s -100 origin/dev | grep -c "^Merge pull request"   # 21
+git log --pretty=%s -100 origin/dev | grep -cE "\(#[0-9]+\) \(#[0-9]+\)$"  # 3
+```
+
+**Merging is not part of Auto-PR.** Open the PR without being asked; merge it
+only when the user says so.
 
 ## Linking a fix PR to its GitHub issue
 
@@ -114,7 +180,9 @@ This is why closing an issue by hand didn't previously "trickle back": the item 
 
 ## Label every issue you file (CRITICAL)
 
-**Every GitHub issue you create must carry the `claude` label**, and the `experiment` label when it applies. Apply them at creation time (`labels: ["claude", …]`), not as a follow-up edit. If a label is missing from the repo, applying it via the issues API creates it automatically — do not skip a label because it doesn't exist yet.
+**Every GitHub issue you create must carry the `claude` label**, and the `experiment` label when it applies. Apply them at creation time — `labels: ["claude", …]` through the MCP tool, or `--label claude,experiment` through the `gh` CLI — not as a follow-up edit. If a label is missing from the repo, applying it creates it automatically — do not skip a label because it doesn't exist yet.
+
+**Both spellings matter, because both get used.** The rule reads as if there were one way to file an issue; in practice sessions here file through `gh issue create` far more often than through the MCP tool. A `PreToolUse` hook enforces the rule on both paths (`.claude/hooks/require-issue-labels.py`) — it watched only the MCP tool for its first weeks, during which 29 unlabeled issues went through the `gh` path it could not see.
 
 A third label, **`solved`**, is a *status* rather than something you choose when filing — it goes on when a fix PR exists. Read its section below before closing any issue.
 
@@ -158,9 +226,9 @@ Three rules bind you directly:
 
 - **Apply it when you open the fix PR**, in the same motion as the `Addressed in #M` comment (see "Linking a fix PR to its GitHub issue" above). Pass `labels` explicitly with the issue's existing labels plus `solved` — `labels` *replaces* the whole set, so read the issue first if you don't already know them. **Clear the assignee in the same write** — see "Assign the owner while you are working an issue" below.
 - **Take it back off if the fix falls through.** If your PR is closed without merging, or review concludes the fix is wrong and the issue needs solving again, strip `solved` — the issue belongs back in the human queue. This is the one removal a fix session does itself.
-- **Closing an issue strips `solved`.** Pass `labels` explicitly on a `completed` close, listing every label the issue keeps (`claude`, `experiment`, …) and omitting `solved`; passing `[]` would wipe the rest. A `PreToolUse` hook blocks a close that keeps the label or omits the array.
+- **Closing an issue strips `solved`.** Pass `labels` explicitly on a `completed` close, listing every label the issue keeps (`claude`, `experiment`, …) and omitting `solved`; passing `[]` would wipe the rest. A `PreToolUse` hook blocks a close that keeps the label or omits the array. Through `gh issue close` — which has no `--label` flag to restate a set with, and is how closes here actually happen — the same hook asks GitHub for the issue's current labels and blocks only when `solved` is really there, naming the fix: `gh issue edit <n> --remove-label solved && <your close command>`. That lookup is the hook's one piece of I/O, so it fires on closes alone and allows whenever it cannot get an answer (no `gh`, unauthenticated, offline, slow) — meaning it catches the common mistake but is not a guarantee, and `scripts/reconcile-solved-labels.py` stays the backstop.
 
-`scripts/reconcile-solved-labels.py` is the backstop for all three, and for the assignee — it catches issues a session forgot to label, issues whose fix PR was abandoned, stale labels left behind by a close, and solved or closed issues still showing an assignee. It encodes `docs/RELEASE.md` step 6's resolution logic — closing keywords vs. `Refs`, `Partially addressed in #M` vs. `Addressed in #M`, and the ambiguity of a comment posted *after* a fix pointer. It is a pure function from data to plan: the GitHub REST API is unreachable from a Claude session (`GITHUB_TOKEN` is present but 403s, since GitHub access is intermediated by the MCP server), so gather the PR and issue data with the `github` MCP tools and pipe it in. See `docs/RELEASE.md` for the recipe.
+`scripts/reconcile-solved-labels.py` is the backstop for all three, and for the assignee — it catches issues a session forgot to label, issues whose fix PR was abandoned, stale labels left behind by a close, and solved or closed issues still showing an assignee. It encodes `docs/RELEASE.md` step 6's resolution logic — closing keywords vs. `Refs`, `Partially addressed in #M` vs. `Addressed in #M`, and the ambiguity of a comment posted *after* a fix pointer. It is a pure function from data to plan — it does no network I/O of its own, so gather the PR and issue data with the `gh` CLI (`gh api`, `gh pr list`, `gh issue list`) and pipe it in. `gh` carries its own authenticated token and works normally; only a raw `GITHUB_TOKEN` 403s. **That is true on the laptop, and false in a Claude Code on the web container**, where `gh` is not installed at all and, once installed, authenticates with the ambient `GH_TOKEN` — which 403s on REST *and* GraphQL (`GitHub access is not enabled for this session`). So run this recipe from the laptop; from a web session, reach for the `github` MCP tools instead. See `docs/RELEASE.md` for the recipe.
 
 **A comment after the fix pointer is never guessed at.** If someone comments below an `Addressed in #M` pointer, the script reports the issue as needing review rather than tagging or skipping it. The later comment might be a maintainer saying "thanks" or the reporter saying the fix doesn't work; tagging would bury a dispute (hiding an issue that still needs solving), and skipping would leave solved work in the human queue. Ambiguity gets surfaced, not resolved by a coin flip.
 
@@ -182,7 +250,7 @@ Assignment is writable exactly like labels: `issue_write` with `method: "update"
 
 Three rules bind you directly:
 
-- **Assign at the start.** When you begin work on an issue — before the first edit, not after the PR — write `assignees: ["samggreenberg"]`. Do this even when you filed the issue yourself in the same session, and even for issues filed by someone else: the assignee names who is *doing* the work, not who reported it, and every Claude session here works through the owner's account.
+- **Assign at the start.** When you begin work on an issue, write `assignees: ["samggreenberg"]`. "The start" means the moment you know which issue you are on — **before you read and evaluate it**, not before the first edit and not after the PR. Investigating an issue *is* working it, and it is the longest window in which someone else could start the same one. (For a bare `#N` prompt this is step 1 of the issue workflow above, ahead of the evaluation gate.) Do this even when you filed the issue yourself in the same session, and even for issues filed by someone else: the assignee names who is *doing* the work, not who reported it, and every Claude session here works through the owner's account. If evaluation ends with you walking away — you disagree, or the user redirects you — clear the assignee so the issue reads as free.
 - **Unassign when you apply `solved`.** In the same motion as the `solved` label and the `Addressed in #M` comment, write `assignees: []`. Once the issue is solved, nobody is working it — only merges remain — so an assignee would assert something false. (These are two separate fields on one `issue_write` call; set both.)
 - **Re-assign if the fix falls through and you pick it back up.** Stripping `solved` (per the rule above) puts the issue back in the human queue. If you are the one resuming it, assign again; if you are walking away, leave it unassigned so someone else can take it.
 
@@ -388,6 +456,7 @@ A flow can legitimately carry both: a nested view shows `← Back` at the top to
 - **Run tests (CPU, fast)**: `./run-tests.sh` (runs every gate listed under "What `run-tests.sh` gates" below, then pytest)
 - **Run tests by group**: `./run-tests.sh core`, `./run-tests.sh sorting`, `./run-tests.sh api` (see Test Groups below; every invocation runs the cheap serial gates — linters, doc checks, snapshot drift — first, but a group run **skips the heavy whole-repo gates** (pyright, pip-audit, and the frontend gates unless the group is `core`/`frontend`) to keep the inner loop fast; it says so in its output. `VTSEARCH_FULL_GATES=1` forces them. A **full** `./run-tests.sh` runs everything and is mandatory before pushing. `core` and `frontend` additionally run the frontend build + `npm audit`, and `frontend` alone also runs the Vitest unit suite)
 - **Run tests for a slides-only change**: `./run-tests.sh slides` (~4s; the four gates a deck can trip. This is the *complete* gate for a change confined to `slides/` — see the Test Groups table — and it refuses to run if the branch touches anything else)
+- **Run tests for a markdown-only change**: nothing to type — a bare `./run-tests.sh` detects that the branch changes only tracked markdown and narrows itself, announcing what it skipped. `./run-tests.sh docs` asserts the same thing explicitly (and blocks if the branch changes anything else); `VTSEARCH_FULL_GATES=1 ./run-tests.sh` opts out
 - **Run tests with coverage**: `VTSEARCH_COVERAGE=1 ./run-tests.sh` (opt-in; adds ~10-20% overhead)
 - **Run multiple groups**: `./run-tests.sh core sorting api`
 - **Run tests with extra args**: `./run-tests.sh core -- -x --tb=long` (args after `--` go to pytest)
@@ -457,7 +526,9 @@ Wrapping everything: a wall-clock cap (`VTSEARCH_TEST_TIMEOUT`, default **1800s 
 | Frontend unit tests | `cd frontend && npm run test:ci` | Full run or `frontend` **only** — deliberately off the fast `core` path | Headless Vitest. |
 | Python tests | `pytest tests/ tests_lib/ -n auto --dist loadgroup` | Every run except a `frontend`-only group | |
 
-**Group runs skip the whole-repo stage-3 gates** (pyright, pip-audit, the vulture whitelist check, and the frontend gates unless the group asks for them) so the edit/test loop stays in the seconds — the skip is announced in the output, and `VTSEARCH_FULL_GATES=1` forces the complete chain on a group run. Stage 1 runs on every invocation. This is a deliberate trade: the fast inner loop may miss a type error or CVE, which is why **a full `./run-tests.sh` remains mandatory before pushing** — with exactly one exception, `./run-tests.sh slides`, whose narrower scope is a proof rather than a gamble (see the Test Groups table) and which blocks itself the moment the diff stops being slides-only.
+**Group runs skip the whole-repo stage-3 gates** (pyright, pip-audit, the vulture whitelist check, and the frontend gates unless the group asks for them) so the edit/test loop stays in the seconds — the skip is announced in the output, and `VTSEARCH_FULL_GATES=1` forces the complete chain on a group run. Stage 1 runs on every invocation. This is a deliberate trade: the fast inner loop may miss a type error or CVE, which is why **a full `./run-tests.sh` remains mandatory before pushing** — with two exceptions, `slides` and `docs`, whose narrower scope is a proof rather than a gamble (see the Test Groups table). Both block themselves the moment the diff stops matching.
+
+**The `docs` narrowing does not wait to be asked.** A bare `./run-tests.sh` looks at what the branch changes relative to `dev` and, when the answer is tracked markdown and nothing else, keeps the whole of stage 1 and cuts pytest to the tests that can open a doc. That is deliberate: the case it fixes — a session that writes one plan file and pays 3.5 minutes to prove its prose lints — arrives by running the command everybody runs, so a group name you had to remember would never have been typed. The pruning prints a banner listing the changed files and every lane it skipped, and `VTSEARCH_FULL_GATES=1` turns it off.
 
 ## Test Groups
 
@@ -479,11 +550,16 @@ Tests are grouped by folder under `tests/` and `tests_lib/`. Each folder is a py
 | `meta` | lib only | Repo/tooling meta-tests: packaging and requirements files, Dockerfiles, docs, the frontend's SCSS text, `scripts/`, `.claude/hooks/`, the `run-tests.sh` gates themselves, and the test harness in `tests_shared/`. Nothing here tests shipped `vtsearch`/`vtscore` behaviour — see the note below the table. |
 | `frontend` | n/a | Frontend-only gate: Angular `build:prod` + `npm audit` + the headless Vitest unit suite. No Python tests; `./run-tests.sh frontend` skips pytest. Also runs as part of the full `./run-tests.sh`. |
 | `slides` | n/a | Slide-deck gate — see the note below the table. |
+| `docs` | n/a | Markdown-only gate — see the note below the table. Auto-engages on a bare run. |
 | `gpu` | lib only | CUDA-only tests (excluded by default) |
 
 The `meta` group is the one whose subject is *this repository* rather than the product: a reader asking "what does VTSearch do?" would never open a file in it, and a reader asking "how is this repo built and checked?" would. That is the whole membership test — packaging and requirements files, Dockerfiles, docs and their anchors, SCSS text, `scripts/` (including the experiment tooling under `scripts/experiments/`), `.claude/hooks/`, the `run-tests.sh` gates' own self-tests, and the shared test harness. It exists because those tests had silted into `core` (issue #3421), so the fast inner loop for "basic app functionality" was running a Dockerfile text parser and five gate self-tests. It lives under `tests_lib/` because every member satisfies the library tier's contract trivially (it imports no product code at all), which keeps `./run-tests.sh vtscore-clean` proving it. **Do not put a test here just because it is slow, awkward, or hard to file** — that is how `core` became a junk drawer in the first place.
 
 The `slides` group runs `ruff`, `codespell`, `check-docs.py`, and `slides/build.py --check`; no Python tests, no whole-repo gates. **The one group that also gates a push**, because a change confined to `slides/` cannot reach the rest of the repo: nothing imports `slides/build.py`, `pyrightconfig.json` excludes it, and no test in either tree reads a deck. Self-policing — the group refuses to run when the branch changes anything outside `slides/`, so the exemption can't be taken by mistake. Also runs as part of the full `./run-tests.sh`.
+
+The `docs` group is the same exemption one step wider, and it is the only one that **engages by itself**: a bare `./run-tests.sh` narrows to it when the branch changes nothing but tracked markdown. It keeps the *whole* of stage 1 — those gates are precisely the ones that read markdown (`check-docs.py`, `codespell`, the doc-inventory and screenshot-wiring snapshots, the deck preflight) — and skips pyright, pip-audit, the vulture whitelist check, the frontend build/audit/unit suite, and all of pytest except the tests that can open a doc. ~35s against ~3.5min (measured warm: 12s of gates, 23s of pytest).
+
+That last clause is the load-bearing one, and it is checked rather than asserted. The tests that read a repo doc are named in [`tests_shared/markdown_surface.py`](tests_shared/markdown_surface.py) — `tests_lib/meta/` plus `tests/core/test_achievements.py`, whose Readme Reader achievement pins a phrase inside `README.md`, `docs/user/USER_GUIDE.md`, `docs/CLI.md` and `docs/API.md` and reaches them through `vtsearch/achievements_catalog.py` rather than naming a doc itself. `tests_lib/meta/test_markdown_surface.py` fails when a test outside that list learns to read a doc, in either shape: naming a tracked `.md` path directly, or importing a registered module that carries one. **If you add a test that reads a repo doc, put it in `tests_lib/meta/` or add it to that list** — otherwise markdown changes silently stop running it.
 
 **Recommended workflow**: Run `./run-tests.sh <group>` for the area you changed, then `./run-tests.sh` for the full suite.
 
@@ -648,6 +724,6 @@ def slow_load():
 - [`slides/STYLE.md`](slides/STYLE.md) — house rules for every slide deck (no running footer, real subscripts, colour reserved for meaning, the 20px type floor, the opening outline); [`slides/README.md`](slides/README.md) is the build mechanics.
 - [`docs/plans/`](docs/plans/) — future-work design docs (open/proposed; shipped work is pruned out, not archived); check here before adding a "Phase N" feature.
 - [`docs/RELEASE.md`](docs/RELEASE.md) — the `dev` → `main` release runbook (the procedure the Dev2Main Routine follows: vulture audit, release summary, punch-card refresh, release PR, issue close-out, plan-pointer prune).
-- [`docs/branch-protection.md`](docs/branch-protection.md) — who can land on `main` vs `dev`, and what the Free-plan private repo can and cannot enforce.
+- [`docs/branch-protection.md`](docs/branch-protection.md) — who can land on `main` vs `dev`, the branch protection in force on each, and why `dev` survives the Dev2Main release PR now that merged head branches are auto-deleted.
 - [`docs/style-guide.md`](docs/style-guide.md) — frontend SCSS conventions (the styling half of [`docs/FRONTEND.md`](docs/FRONTEND.md)).
 - [`CHANGELOG.md`](CHANGELOG.md) — curated record of notable user-facing app changes ([`vtscore/CHANGELOG.md`](vtscore/CHANGELOG.md) is the library's).

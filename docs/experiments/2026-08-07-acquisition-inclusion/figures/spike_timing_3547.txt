@@ -1,0 +1,8 @@
+arm       cells      any first<=100 first>100   first-spike t (quartiles)
+prod        192        1        1        0   35 / 35 / 35
+acq_m1      192        1        1        0   21 / 21 / 21
+acq_m3      192        2        2        0   36 / 46 / 56
+acq_m4      192        4        4        0   36 / 42 / 46
+acq_m5      192        2        2        0   24 / 27 / 30
+acq_m6      192        5        5        0   21 / 29 / 31
+acq_p2      192       14       14        0   21 / 36 / 47

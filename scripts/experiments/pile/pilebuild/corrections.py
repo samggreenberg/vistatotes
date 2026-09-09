@@ -12,11 +12,59 @@ downstream can see the disagreement.
 
 from __future__ import annotations
 
+import fcntl
 import json
 import os
 from pathlib import Path
 
 import pile_config as pc
+
+
+def dropped_rows(old: list[dict], new: list[dict]) -> dict[str, int]:
+    """``{source: n}`` for pairs the old file has and the new one does not.
+
+    A regeneration is supposed to be a function of the inputs, so a *smaller*
+    result means the inputs are not the ones that produced what is on disk.
+    Measured on the live file: the defaults in this script reproduce 488 of its
+    640 rows, and no invocation anyone could reconstruct reproduces all of them
+    -- 379 rows come from verdict files, triage flags and adjudications nobody
+    recorded. Overwriting on those terms is a silent deletion of human work,
+    which is why :func:`main` refuses rather than warns.
+    """
+    have = {(int(r["image_id"]), r["class"]) for r in new}
+    lost: dict[str, int] = {}
+    for r in old:
+        if (int(r["image_id"]), r["class"]) not in have:
+            lost[r.get("source", "unknown")] = lost.get(r.get("source", "unknown"), 0) + 1
+    return lost
+
+
+def write_json_locked(path: Path, payload: object, indent: int = 1) -> None:
+    """Write *payload* to *path* atomically, under an exclusive lock.
+
+    Both halves matter for a file several sessions share on one pile (#3729).
+
+    **Atomic**, because the old spelling was ``path.write_text(...)``: it
+    truncates first, so a reader that arrives mid-write gets a half file and a
+    writer that dies mid-write leaves one. The verdicts are the least
+    reproducible thing here and were being rewritten in place with no landing
+    strip.
+
+    **Locked**, because two sessions regenerating this file at once is not
+    hypothetical -- the pile is shared, and `corrections.json` is rebuilt from
+    the verdict files by whoever ingests a slate. Without the lock the later
+    writer silently wins with whatever inputs *it* could see; with it, the two
+    runs serialise and the second reads the first's output. The lock is held on
+    a sidecar rather than on the file itself so that the ``os.replace`` below
+    cannot pull the locked inode out from under a waiter.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lock = path.with_suffix(path.suffix + ".lock")
+    with lock.open("w") as fh:
+        fcntl.flock(fh, fcntl.LOCK_EX)
+        tmp = path.with_suffix(path.suffix + ".tmp")
+        tmp.write_text(json.dumps(payload, indent=indent) + "\n")
+        os.replace(tmp, path)
 
 
 def load_corrections() -> dict[tuple[int, str], dict]:

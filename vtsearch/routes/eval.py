@@ -42,11 +42,33 @@ from vtscore.concurrency.progress import (
     CancelledError,
     update_eval_progress,
 )
+from vtscore.state.core import (
+    DatasetNotLoadedError,
+    DetectorNotLoadedError,
+    RequestMissingContextError,
+)
 
 eval_bp = Blueprint(
     "eval",
     __name__,
     description="Labeling-progress analysis and learned-sort eval indicators.",
+)
+
+
+# Failures of *context resolution* are not this blueprint's 500s.  Every route
+# below reads the request-scoped proxies (``label_history``, ``good_votes``,
+# ``snapshot_medias()``, ``get_inclusion()``), and each of those raises when
+# the client named a dataset / detector the backend has not finished loading -
+# which ``vtsearch/errors.py`` maps to the app-wide 409 ``dataset_not_loaded``
+# / ``detector_not_loaded`` (or a 400 for the request-missing sentinel).  A
+# blanket ``except Exception`` swallows that contract and reports a load-window
+# poll as an opaque "computation failed" 500, which is what made issue #3644
+# read as a bug in the empty-labelset branch rather than a detector that was
+# still loading.  Let these through; only genuine computation faults are 500s.
+_CONTEXT_ERRORS = (
+    DatasetNotLoadedError,
+    DetectorNotLoadedError,
+    RequestMissingContextError,
 )
 
 
@@ -64,6 +86,8 @@ def labeling_progress():
 
     try:
         return analyze_labeling_progress(snapshot_medias(), label_history, good_votes, bad_votes, get_inclusion())
+    except _CONTEXT_ERRORS:
+        raise
     except Exception:
         import logging
 
@@ -155,6 +179,8 @@ def labeling_status_indicator():
         status["stale"] = True
         _schedule_status_refresh(span)
         return status
+    except _CONTEXT_ERRORS:
+        raise
     except Exception:
         import logging
 
@@ -197,6 +223,8 @@ def indicator_score_history(query: dict):
     try:
         data, complete = cached_indicator_history(metric, clips, label_history, good_votes, bad_votes, inclusion)
         return {"metric": metric, "history": data, "complete": complete}
+    except _CONTEXT_ERRORS:
+        raise
     except Exception:
         import logging
 

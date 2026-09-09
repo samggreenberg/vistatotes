@@ -15,7 +15,111 @@ not list every commit. Use `git log` for the full history.
 
 ## Unreleased
 
+### Changed
+
+- **Opening a saved dataset paces its progress bar for the branch its coverage
+  atlas actually takes.** That step either restores the atlas cached in the
+  dataset's pickle (~10 ms) or rebuilds a hierarchical k-means from scratch
+  (0.0026 s/item, so seconds at the sizes anybody has swept and minutes only
+  near the auto-build threshold) - measured 110-700x apart on the same
+  datasets - and a
+  timing profile could hold only one number for both, so whichever it held made
+  the other case's bar up to 0.94 of a bar wrong. A profile can now carry
+  coefficients for each branch, and the load route names the branch it is taking
+  as soon as it knows, before the expensive part starts. It also remembers on
+  the registry entry which branch that dataset took last time, so the weights
+  are right from the first update rather than from the middle of the load.
+  Pacing only: nothing about what is loaded or stored changes.
+
 ### Fixed
+
+- **Startup no longer stalls for minutes on a cold NFS install** (issue #3715).
+  `transformers` builds `importlib.metadata.packages_distributions()` when it is
+  imported, and the stdlib version of that stats every file recorded by every
+  installed distribution - ~85,000 of them in a venv carrying torch, onnx and
+  RAPIDS. With the venv's metadata in page cache that is milliseconds; on an
+  NFS-mounted venv whose dentries have been evicted it is 85,000 serialized
+  round trips, measured at 78/sec on the GRID: **16 minutes 23 seconds** during
+  which the process sat in `D` state after printing
+  `Running in PRODUCTION mode` and looked hung. Startup now installs a
+  stat-free replacement that reads each distribution's `top_level.txt` (falling
+  back to parsing `RECORD` as text) before anything can import transformers, so
+  the walk never happens.
+
+- **A mixed-media dataset is no longer scored against another embedding space's
+  vectors.** Asking the matrix layer for a specific embedder checked only the
+  *first* media to decide whether that name was the dataset's primary - and if
+  it was, every media then contributed whatever vector it happened to carry.
+  On a dataset holding, say, native images in one space and videos in another,
+  that stacked the videos' vectors into the images' matrix and scored them
+  through the images' detector head: no error, plausible-looking numbers, and a
+  different answer if the same items were loaded in a different order. It was
+  reachable whenever the two spaces share a dimension, which is common. The
+  check now requires every media to agree, so a request for one space reads
+  only that space and reports the media it had to leave out.
+
+- **A CLI Auto-Find run that converts or re-clips its dataset now calibrates the
+  threshold on what it actually scores.** The cut was fitted on the loaded
+  medias while scoring read the converted frames, pages or clips those medias
+  fan out into - and those are systematically different populations, because a
+  media's score is the *max* over its sub-items and is therefore never below its
+  own whole-item score. A cut chosen as a quantile of the first distribution
+  lands far lower in the second, so the run reported more hits than the
+  algorithm ever chose, with nothing in the output looking wrong. On a dataset
+  the detector needs no conversion or re-clip for - the common case, and the
+  only one anyone had noticed - the two populations are the same set and
+  thresholds are unchanged. Everywhere else the threshold moves, generally up.
+  A pure converter route was the sharper edge of the same bug: none of the
+  loaded medias carried a vector in the detector's space yet, so the population
+  estimator saw an empty haystack and silently did not run at all, shipping the
+  plain cross-calibration cut. Both now read the routed snapshot, which is
+  prepared once and shared between calibration and scoring rather than built
+  twice.
+
+- **The Dashboard's `⋯` › Export labels now exports the detector whose row you
+  clicked.** It exported the *active* pair's live labels instead - whatever the
+  top-bar pulldown was on, which the row's checkbox does not change - so the
+  same row gave three different answers depending only on where the app had
+  been: the right labels when the pulldown happened to agree, nothing at all
+  after a refresh left no detector active, and the entire dataset after a Find
+  run, because Find fills that pair's votes with the detector's own call for
+  every item (they are presumptions, deliberately kept out of the labelset, and
+  the export was reading them as labels). The row action now names its detector
+  and reads that detector's persisted labelset - the exact artefact that
+  re-imports as the detector - so it is right whatever else the app is pointed
+  at. The Find and Train windows' exports are unchanged: there the live session
+  *is* what you are exporting.
+
+- **The text-sort progress bar no longer reserves most of itself for a model
+  load that has already happened.** `text_sort` paces three steps -- load the
+  embedder, embed the query, score every media -- and the first one is either
+  seconds (the first sort a server process runs) or *exactly zero* (every sort
+  after it, since the encoder stays resident). One static weight vector cannot
+  serve both, and every vector the app has ever shipped or measured was the
+  cold one: [#3521](docs/experiments/2026-09-03-drive-cold-3521/REPORT.md)
+  scored both fitted timing profiles and the shipped defaults at 0.80-0.85
+  *bar error* on this task -- the fraction of the bar budgeted to the wrong
+  step -- while their per-step predictions were off by only ~20 %. So the most
+  frequently run bar in the app spent three quarters of itself parked on a step
+  that was already over. The sort route now asks whether the encoder is
+  resident (it is a lookup, not a guess) and drops the load step out of the
+  pacing when it is, which is the overwhelmingly common case.
+
+- **CLI autodetect no longer drops media the GUI keeps, and its detector
+  threshold no longer moves as a result.** The CLI forced *thin* loading on
+  every import -- storing a path reference in place of each media's bytes --
+  while the GUI passed the user's "Reference files in place" choice. Thin is
+  only a deferral when something outside the source can reproduce the bytes; a
+  self-contained pickle, or an importer whose items have no local file, lost
+  its only copy. Those media could not be embedded, so they were skipped at
+  scoring, and because a detector's threshold is calibrated against the
+  population actually being scored, the smaller survivor set also moved the
+  cut. The same dataset and detector therefore returned more hits, at a lower
+  threshold, from the CLI than from the GUI. Two fixes: the pickle loader now
+  keeps inline bytes that nothing can re-read (thin still drops bytes that are
+  also on disk, in an archive member, or behind a URL), and the CLI honours the
+  importer's own `--reference-files` / `--no-reference-files` flag -- which
+  previously did nothing at all -- defaulting to off, as the GUI does.
 
 - **Staging a dataset for the combine flow now queues behind the same
   concurrency limits a regular import does, and a cancelled staging no longer

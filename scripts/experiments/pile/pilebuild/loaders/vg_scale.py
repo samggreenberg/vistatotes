@@ -2,23 +2,46 @@
 
 The construction, in one paragraph: one image pool and one class list
 (:data:`pile_config.SCALE_CLASSES`); for a class *c* and band *B* an image is a
-**positive** when its compact union box for *c* falls in *B*, a **negative**
-when it holds no instance of any class in *C*, and **excluded** otherwise -- it
-holds *c* at some other size, so scoring it as a negative would penalise a
+**positive** when its compact union box for *c* falls in *B*, and a **negative**
+when it does not hold *c* at all. It is **excluded** from *c*'s cells only when
+it holds *c* at some other size -- scoring it as a negative would penalise a
 detector for finding a real bus, which is what #3156 is about. Exclusion is
 carried per media as ``evaluable_categories`` and honoured by
 ``vtscore.eval.labels.evaluable_pool``.
 
+That "does not hold *c*" is a claim about the image, and it is only free on the
+COCO-annotated half, where all eighty classes are answered at once; off COCO it
+would be VG's silence. So :func:`_evaluable` gates the cross-class half of the
+rule on ``labels_exhaustive`` (#3667), and until that issue an image was
+evaluable **only in its own cells** -- an image holding a book and no bus was
+neither a bus positive nor a bus negative, and 41.9% of the pile fell out of
+every class's evaluation.
+
 Cells are *designated* rather than inferred: exactly ``SCALE_N_POS`` positives
-and one shared pool of ``SCALE_N_NEG`` negatives each. Every cell therefore has
-identical prevalence and identical negatives, so a small-vs-large difference is
-a paired contrast on one class rather than two datasets of different difficulty.
+and one shared pool of ``SCALE_N_NEG`` negatives each, so **within a class the
+three bands are scored against identical negatives** -- a small-vs-large
+difference is a paired contrast on one class rather than two datasets of
+different difficulty. Across classes they are no longer identical, which is the
+trade #3667 made deliberately: the shared pool is still shared, but each class
+also gets the positives of the other eleven as negatives, and how many of those
+there are depends on the class. :data:`pile_config.SCALE_PREVALENCE` is
+therefore the **designed** prevalence, not the realised one -- see
+``docs/experiments/2026-09-06-cross-class-negatives-3667/REPORT.md``.
 
 **The labels are COCO's, and the pool is the half of VG that can carry them.**
 VG's own annotation is not exhaustive and measurably fails this construction --
 see :func:`anchor_to_coco` and ``coco_anchor.py``.
 
-The build is six passes, and they are named rather than inlined because two of
+**On the other half, VG's vocabulary is the construction's weak point.** VG names
+objects in free text and the read matches an object's primary name only, so a
+class is built from one spelling out of several. What that costs is not supply:
+an instance annotated `bike` while the class is `bicycle` is not a missing
+positive, it is a *negative*, because on the non-COCO half VG's silence is the
+only evidence of absence (#3605). :func:`canonicalise` folds in the spellings
+measured to be the same object, and :func:`lift_ambiguous` withholds the ones
+that may not be -- from the bands and from the negative pool alike.
+
+The build is eight passes, and they are named rather than inlined because two of
 them are where this dataset's expensive bugs have lived: :func:`apply_corrections`
 is the single point at which a box crosses from normalised into pixel space
 (#3281), and :func:`designate_cells` is what decides whether a rebuild keeps the
@@ -59,6 +82,169 @@ def read_vg_labels(
     return labels
 
 
+#: How :func:`canonicalise` reconciles an alias box with a class box that is
+#: already on the image. The three are the readings of #3637. All three behave
+#: identically where the class has no box of its own, which is the repair the
+#: name table exists for; they differ only in what an alias box may do to an
+#: image the class already sees:
+#:
+#: * ``fold`` -- always merge. The scatter guard then judges the union, so an
+#:   image the class already banded can leave every band on the strength of a
+#:   second spelling.
+#: * ``guarded`` -- merge, but keep the class's own boxes on the images where
+#:   the merge would push a cleanly-banded one out of every band. Differs from
+#:   ``fold`` on those images alone.
+#: * ``additive`` -- merge only where the class has no box of its own, so a fold
+#:   can add an image but never re-describe one. Differs from ``fold`` wherever
+#:   both spellings appear, whether or not a band changes.
+FOLD_MODES = ("fold", "guarded", "additive")
+
+
+def canonicalise(
+    labels: dict[int, dict[str, list[list[float]]]],
+    vg_names: dict[str, tuple[str, ...]],
+    box_dims: dict[int, tuple[int, int]] | None = None,
+    mode: str = "fold",
+) -> tuple[dict[str, int], dict[str, int]]:
+    """Fold each class's alternate VG spellings onto the class name, in place.
+
+    ``vg_boxes_by_name`` matches VG's PRIMARY name only, so `hydrant` and
+    `fire hydrant` arrive as two categories of one object. Merging after the read
+    -- rather than aliasing during it -- keeps the merge visible and reversible,
+    and keeps it out of the shared reader every other VG build uses.
+
+    Returns ``(folded, contested)``, the two numbers the build reports per class:
+
+    * ``folded`` -- boxes actually merged onto the class name. A merge that
+      folds nothing has either been mis-spelled or is not needed, and both are
+      worth seeing.
+    * ``contested`` -- images where the class had a box of its own, that box put
+      the image in a band, and the merged union does not land in one. Under
+      ``fold`` that is the count of images the fold **un-bands**; under the other
+      two modes it is the count it rescues. Either way it is the price of the
+      table, and #3637 is the issue that it went unmeasured for a release.
+
+    *box_dims* is what makes ``contested`` measurable, since a band is a share of
+    image area. Without it the count is zero and ``guarded`` -- whose whole
+    decision *is* the count -- is refused rather than silently degraded into
+    ``fold``; ``additive`` does not consult it and is unaffected.
+    **Run this after :func:`anchor_to_coco`**, which is where
+    ``box_dims`` comes from and which makes the count exact: on an anchored image
+    COCO's labels replace VG's wholesale, so a fold there is discarded and
+    counting it would report a price the build never pays.
+    """
+    if mode not in FOLD_MODES:
+        raise ValueError(f"canonicalise: unknown mode {mode!r} (want one of {FOLD_MODES})")
+    if mode == "guarded" and box_dims is None:
+        raise ValueError("canonicalise: mode 'guarded' needs box_dims; a band is a share of image area")
+    reverse = {n: cls for cls, names in vg_names.items() for n in names if n != cls}
+    folded: dict[str, int] = {c: 0 for c in vg_names}
+    contested: dict[str, int] = {c: 0 for c in vg_names}
+    for iid, by_name in labels.items():
+        # Every alias of one class is collected before any of them is judged: two
+        # spellings on one image are one merge, and deciding them one at a time
+        # would ask the scatter guard about a union that never exists.
+        hits: dict[str, list[list[float]]] = {}
+        for vg_name in [n for n in by_name if n in reverse]:
+            hits.setdefault(reverse[vg_name], []).extend(by_name.pop(vg_name))
+        for cls, boxes in hits.items():
+            own = by_name.get(cls)
+            if own and box_dims is not None:
+                W, H = box_dims[iid]
+                if band_for(own, W, H) in pc.BOX_BANDS and band_for(own + boxes, W, H) not in pc.BOX_BANDS:
+                    contested[cls] += 1
+                    if mode == "guarded":
+                        continue
+            if own and mode == "additive":
+                continue
+            by_name.setdefault(cls, []).extend(boxes)
+            folded[cls] += len(boxes)
+    return folded, contested
+
+
+def lift_ambiguous(
+    labels: dict[int, dict[str, list[list[float]]]],
+    vg_names: dict[str, tuple[str, ...]],
+    exhaustive: set[int],
+    classes: tuple[str, ...] | None = None,
+) -> set[tuple[int, str]]:
+    """Take ambiguous spellings out of *labels*, and return the pairs they suppress.
+
+    A name in :data:`pile_config.SCALE_VG_AMBIGUOUS` may denote its class or
+    something else -- VG's `bike` sits on a COCO `bicycle` 40% of the time, and
+    59.6% of the time on no COCO class at all, because much of it is motorcycles
+    (#3605). It is therefore evidence in neither direction: too weak to band as a
+    positive, and far too strong to leave in the shared negative pool, where it
+    would score a detector wrong for finding the bicycle that is really there.
+
+    So the boxes are dropped, and the ``(image, class)`` pair joins the
+    ``unbanded`` set :func:`band_candidates` already keeps out of both. Three
+    things stop a pair being suppressed, and they are the whole judgment in this
+    pass:
+
+    * **The image is exhaustively labelled.** COCO annotates C exhaustively and a
+      reviewer has looked; either answers the question the spelling leaves open,
+      so the spelling is ignored and the image stays a usable negative. This is
+      why the pass runs after :func:`anchor_to_coco` and
+      :func:`apply_corrections` rather than straight off the read -- on the ~48%
+      of VG that is COCO-sourced the defect does not exist, and suppressing there
+      would throw away good negatives to fix nothing.
+    * **The class is already established on the image.** It is confirmed present
+      by a box we trust, and an ambiguous box can only make its extent less
+      certain -- a smaller question than this one, and not worth discarding a
+      confirmed positive over.
+    * The name is the class name itself, which is not ambiguous by definition.
+
+    The boxes are dropped either way: :func:`band_candidates` bands by category
+    name and has no cell to put a `bike` in.
+
+    **That last sentence is why a table entry must never name another class in
+    C.** The drop is unconditional and global -- it happens before the three
+    exemptions are even consulted -- so an entry naming a class deletes that
+    class's own boxes from every image in the corpus. `truck` listed as
+    ambiguous for `car` took `truck` from 3,386 band-free positives to zero in
+    all three bands, and the run said nothing: the fold ledger still printed
+    `truck+273/23`, because the fold had already run. The guard is in the suite
+    (``test_no_listed_spelling_is_itself_a_class_in_c``) rather than here,
+    because this function receives the table as an argument and is used by tests
+    with deliberately small ones (#3588).
+
+    *classes* is the second line of that defence, for the callers the suite guard
+    cannot see: it compares the shipped table against the shipped *C*, and a
+    caller that widens `SCALE_CLASSES` at runtime is outside that frame.
+    `negpool_supply.py` is one, and its `all25` scope simulates precisely the
+    twelve-to-twenty-five transition that produced the `truck` entry. Defaults to
+    `pile_config.SCALE_CLASSES`; pass the small list beside a small table.
+    """
+    in_c = set(pc.SCALE_CLASSES if classes is None else classes)
+    stolen = sorted({n for cls, names in vg_names.items() for n in names if n in in_c and n != cls})
+    if stolen:
+        raise ValueError(
+            f"lift_ambiguous: {stolen} name a class in C. The drop below is unconditional, so "
+            "suppressing one deletes that class's own boxes from every image -- and on a "
+            "COCO-anchored image the `exhaustive` exemption then files it as CLEAN, putting a "
+            "confirmed positive into the shared negative pool (#3588)."
+        )
+    reverse = {n: cls for cls, names in vg_names.items() for n in names if n != cls}
+    pairs: set[tuple[int, str]] = set()
+    for iid, by_name in labels.items():
+        for vg_name in [n for n in by_name if n in reverse]:
+            cls = reverse[vg_name]
+            by_name.pop(vg_name)
+            if cls not in by_name and iid not in exhaustive:
+                pairs.add((iid, cls))
+    return pairs
+
+
+#: The four things the anchor can do to a ``(image, class)`` pair whose VG boxes
+#: put the image in a band -- the keys of each class's row in
+#: :func:`anchor_to_coco`'s ``rebanded`` ledger, in the order the log prints
+#: them. ``absent`` is not a fifth kind of band change but its own fact: COCO
+#: looked at the image exhaustively and the class is not there, so the pair
+#: leaves the class's cells as a *negative* rather than moving between them.
+REBAND_OUTCOMES = ("kept", "moved", "unbanded", "absent")
+
+
 def anchor_to_coco(
     labels: dict[int, dict[str, list[list[float]]]],
     dims: dict[int, tuple[int, int]],
@@ -66,11 +252,11 @@ def anchor_to_coco(
     truth: dict[int, dict[str, list[list[float]]]],
     coco_dims: dict[int, tuple[int, int]],
     wanted: set[str],
-) -> tuple[dict[int, tuple[int, int]], set[int], int, int]:
+) -> tuple[dict[int, tuple[int, int]], set[int], int, int, dict[str, dict[str, int]]]:
     """Replace VG's labels with COCO's wherever COCO annotates the same image.
 
-    Returns ``(box_dims, exhaustive, n_anchored, n_reframed)`` and edits
-    *labels* in place.
+    Returns ``(box_dims, exhaustive, n_anchored, n_reframed, rebanded)`` and
+    edits *labels* in place.
 
     VG's own annotation is not exhaustive: measured against COCO its recall over
     C is 0.61, and 1.35% of the images it treats as negatives actually hold the
@@ -91,9 +277,37 @@ def anchor_to_coco(
     COCO box normalised by the VG file's dimensions lands in the wrong place and
     with the wrong extent. Every box is normalised by the dimensions of the
     image its coordinates were measured on.
+
+    ``rebanded`` is what that replacement did, per class, over the pairs where
+    **VG's own spelling put the image in a band** -- one row of
+    :data:`REBAND_OUTCOMES` counts each. It is the anchor's half of the ledger
+    :func:`canonicalise` prints for the fold, and it is the larger half by eight
+    times: measured in #3637, over the 11,156 such pairs the anchor keeps the
+    band on 67%, MOVES it on 6.2%, UN-BANDS the image on 17%, and finds the
+    class absent on 10% -- so a third of the anchored half's band memberships
+    change on every build, and the line above this one has only ever said how
+    many images the pass touched (#3659).
+
+    That is not a defect to be fixed: COCO's boxes are the exhaustive reference
+    the banding rule was validated against, and #3637's finding is that they are
+    right where VG's disagree. It is a defect to leave *unreported*, because a
+    class whose anchored half is mostly un-banded is a class whose VG spelling
+    frames a different thing from COCO's -- a signal
+    :data:`pile_config.SCALE_VG_NAMES_AUDITED` cannot give, since it measures
+    the spellings against each other rather than against a band.
+
+    Counting has to read ``band_for`` over VG's boxes BEFORE the replacement
+    overwrites them, which is why it happens here rather than in a later pass
+    reading the result: after the assignment below, VG's reading of an anchored
+    image is gone. This is the same rule as the fold's -- count where the work
+    lands, not where it is attempted -- read from the other end.
+    ``scripts/experiments/pile/band_fold.py --phase truth`` computes the same
+    four numbers off the raw source, so the two can be checked against each
+    other.
     """
     box_dims: dict[int, tuple[int, int]] = dict(dims)
     exhaustive: set[int] = set()
+    rebanded: dict[str, dict[str, int]] = {c: dict.fromkeys(REBAND_OUTCOMES, 0) for c in sorted(wanted)}
     n_anchored = 0
     n_reframed = 0
     for iid in labels:
@@ -111,11 +325,30 @@ def anchor_to_coco(
         # VG's pixels at all. Those keep VG's own labels and stay unanchored
         # rather than importing a box that points at the wrong part of a
         # different framing.
-        vw, vh = dims[iid]
-        if abs((vw / vh) - (wh[0] / wh[1])) / (wh[0] / wh[1]) > pc.MAX_ASPECT_DRIFT:
+        if not pc.aspect_transferable(dims[iid], wh):
             n_reframed += 1
             continue
         box_dims[iid] = wh
+        # Read VG's verdict while it still exists. Only the class's OWN spelling
+        # is consulted, and that is not an omission: the fold runs after this
+        # pass and is discarded on an anchored image, so an alias box has no
+        # effect here to count. Pairs VG does not band are skipped rather than
+        # counted as a fifth outcome -- the question is what the replacement does
+        # to a band that exists, and an image VG left scattered has none to lose.
+        for cls in wanted & labels[iid].keys():
+            own = labels[iid][cls]
+            if not own:
+                continue
+            was = band_for(own, *dims[iid])
+            if was not in pc.BOX_BANDS:
+                continue
+            now = band_for(ref[cls], *wh) if ref.get(cls) else None
+            if now is None:
+                rebanded[cls]["absent"] += 1
+            elif now not in pc.BOX_BANDS:
+                rebanded[cls]["unbanded"] += 1
+            else:
+                rebanded[cls]["moved" if now != was else "kept"] += 1
         # COCO's annotation REPLACES VG's for this image rather than merging
         # with it: the two disagree in both directions, and only one of them is
         # exhaustive. Keeping VG's extra boxes would reintroduce exactly the
@@ -123,7 +356,7 @@ def anchor_to_coco(
         labels[iid] = {name: bs for name, bs in ref.items() if name in wanted}
         exhaustive.add(iid)
         n_anchored += 1
-    return box_dims, exhaustive, n_anchored, n_reframed
+    return box_dims, exhaustive, n_anchored, n_reframed, rebanded
 
 
 def apply_corrections(
@@ -131,6 +364,8 @@ def apply_corrections(
     corrections: dict[tuple[int, str], dict],
     box_dims: dict[int, tuple[int, int]],
     exhaustive: set[int],
+    classes: tuple[str, ...] | None = None,
+    designated: dict[tuple[int, str], list[list[float]]] | None = None,
 ) -> set[tuple[int, str]]:
     """Fold human verdicts into *labels*, and return the pairs that cannot be banded.
 
@@ -144,19 +379,78 @@ def apply_corrections(
     the cell name and its boxes stayed consistent with each other all the way
     into the study.
 
+    **A drawn box designates rather than replaces** when *designated* is given
+    (#3726). The reviewer's box is recorded there and kept at the head of the
+    class's box list; the instances VG already had are kept behind it, where the
+    old behaviour dropped them. Passing ``None`` keeps the pre-#3726 semantics,
+    which is what every caller that only wants the labels still does.
+
     A pair a reviewer ruled "present" without drawing a box cannot be banded: a
     band is a claim about size, and no size was measured. It leaves every cell of
     that class instead -- neither a positive nor a negative -- which is precisely
     what the third value is for.
+
+    **A confirmation is not that row, and the difference is a deletion.** A
+    verdict carrying :data:`pile_config.CORRECTION_SOURCE_CONFIRMED` says the
+    reviewer looked and agreed with the box already there; it also carries no
+    boxes, so reading it by shape would pop the class and retire the positive it
+    confirms. It is answered first, and answered by changing nothing except the
+    fact that somebody answered (#3727).
+
+    **A verdict on a class outside *C* is skipped**, and that is not a nicety.
+    `corrections.json` is shared by every build of this family, so it holds rows
+    for classes a given build does not have: #3588's negative pass added
+    thirteen, and from that moment a twelve-class build died in
+    :func:`band_candidates` with ``KeyError: 'car'`` -- a shared file making the
+    shipped construction unbuildable, reported as a dict lookup three passes
+    later. Skipping is also the only *correct* reading: a verdict about `car`
+    cannot move a `bus` cell, and folding it in would write a class the supply
+    table has no column for.
+
+    The skip covers ``exhaustive`` too, which is the half that would have
+    survived a narrower fix. Marking an image exhaustive means "absence is a
+    fact here for every class in *C*"; a human who looked for a `car` did not
+    establish that, and under #3670 that flag is what admits an image to the
+    provable negative pool.
     """
+    in_c = set(pc.SCALE_CLASSES if classes is None else classes)
     unbanded: set[tuple[int, str]] = set()
     for (iid, name), verdict in corrections.items():
-        if iid not in labels:
+        if iid not in labels or name not in in_c:
+            continue
+        if verdict.get("source") == pc.CORRECTION_SOURCE_CONFIRMED:
+            # A confirmation asserts that the label already there is right, so
+            # there is nothing to merge -- but it is still an answer, and the
+            # pair has to read as reviewed downstream (#3727). It must not fall
+            # through: with no boxes the `present` branch below POPS the class,
+            # which would delete the positive the reviewer just confirmed.
+            exhaustive.add(iid)
             continue
         if verdict.get("present"):
             boxes = correction_boxes_px(verdict, *box_dims[iid])
             if boxes:
-                labels[iid][name] = boxes
+                # A reviewer's box does TWO things, and the build used to hear
+                # only one of them (#3726). It annotates an instance, and it
+                # *designates* which instance this cell is about -- Sam's own
+                # description of what he was doing: "there was a different,
+                # more-prominent example elsewhere in the image".
+                #
+                # Replacing the set hears the designation and throws the
+                # annotation away: 26 of 470 boxed corrections collapsed a
+                # multi-instance set, `book` 713617 from 14 boxes to 1. Merging
+                # without designating hears the annotation and loses the choice:
+                # `band_for` would union the drawn box with the others, the image
+                # would not move to the band the reviewer picked, and a scattered
+                # set would take it out of every band -- overturning #3616.
+                #
+                # So both are recorded. The set keeps every instance; the
+                # designation is carried beside it and is what bands the cell.
+                if designated is not None:
+                    designated[(iid, name)] = boxes
+                    existing = labels[iid].get(name) or []
+                    labels[iid][name] = boxes + [b for b in existing if b not in boxes]
+                else:
+                    labels[iid][name] = boxes
             else:
                 labels[iid].pop(name, None)
                 unbanded.add((iid, name))
@@ -166,47 +460,96 @@ def apply_corrections(
     return unbanded
 
 
+#: What :func:`band_for` returns for boxes that fall in no band. Named because
+#: they are two different facts about an image and an audit has to tell them
+#: apart: ``SCATTERED`` means several instances too far apart to be one region,
+#: ``OVERSIZE`` means one box bigger than :data:`pile_config.MAX_VOTED_AREA` --
+#: not a region, the image.
+SCATTERED = "scattered"
+OVERSIZE = "oversize"
+
+
+def band_for(boxes: list[list[float]], W: int, H: int) -> str:
+    """The band one class's boxes put an image in, or why they put it in none.
+
+    Returns a key of :data:`pile_config.BOX_BANDS`, or :data:`SCATTERED` /
+    :data:`OVERSIZE`. Split out of :func:`band_candidates` so that anything
+    asking "what band would these boxes imply?" -- the builder, and
+    ``audit_band_drift.py``, which re-bands the same images off a second
+    annotation source -- asks it of one implementation. A second copy of this
+    rule would answer a drift question with its own drift.
+
+    *boxes* must be non-empty and in the pixel space of ``(W, H)``.
+    """
+    area = float(W * H)
+    ux0 = min(b[0] for b in boxes)
+    uy0 = min(b[1] for b in boxes)
+    ux1 = max(b[2] for b in boxes)
+    uy1 = max(b[3] for b in boxes)
+    union = max(0.0, ux1 - ux0) * max(0.0, uy1 - uy0) / area
+    largest = max((b[2] - b[0]) * (b[3] - b[1]) for b in boxes) / area
+    # Scattered instances in *this* image: the union box describes the scatter
+    # rather than the object, so the image is excluded from every band of this
+    # class rather than banded by a box no user would drag.
+    if union > largest * pc.BAND_MAX_INFLATION:
+        return SCATTERED
+    for band, (lo, hi) in pc.BOX_BANDS.items():
+        if lo <= union < hi:
+            return band
+    return OVERSIZE
+
+
 def band_candidates(
     labels: dict[int, dict[str, list[list[float]]]],
     box_dims: dict[int, tuple[int, int]],
     unbanded: set[tuple[int, str]],
+    classes: tuple[str, ...] | None = None,
+    designated: dict[tuple[int, str], list[list[float]]] | None = None,
 ) -> tuple[dict[str, dict[str, list[int]]], dict[tuple[int, str], list[list[float]]], list[int]]:
     """Sort every image into ``(class, band)`` supply, or into the clean pool.
 
+    Returns ``(supply, boxes_for, clean)``. *designated* carries a reviewer's
+    chosen box per ``(image, class)`` (#3726): it decides the **band**, while
+    ``boxes_for`` still carries every instance, so the cell knows what the class
+    has in the image and the band still says which one was picked.
+
     Returns ``(supply, boxes_for, clean)``. An image with no instance of any
-    class in C joins ``clean`` -- unless a reviewer said one *is* present without
-    drawing it, which makes it neither a positive nor a true negative.
+    class in C joins ``clean`` -- unless its ``(image, class)`` pair is in
+    *unbanded*, which makes it neither a positive nor a true negative. Two things
+    put a pair there: a reviewer who said one *is* present without drawing it (no
+    size was measured, and a band is a claim about size), and an ambiguous VG
+    spelling that may or may not be the class (:func:`lift_ambiguous`).
+
+    *classes* defaults to :data:`pile_config.SCALE_CLASSES`, i.e. the built
+    dataset. It is a parameter so a class being *considered* for C can be banded
+    by this exact rule -- the scatter filter and the band edges included --
+    rather than by a second implementation in the slate builder that would be
+    free to drift from it (#3588). The default keeps every existing caller
+    byte-identical.
     """
-    supply: dict[str, dict[str, list[int]]] = {c: {b: [] for b in pc.BOX_BANDS} for c in pc.SCALE_CLASSES}
+    classes = tuple(classes) if classes is not None else pc.SCALE_CLASSES
+    supply: dict[str, dict[str, list[int]]] = {c: {b: [] for b in pc.BOX_BANDS} for c in classes}
     boxes_for: dict[tuple[int, str], list[list[float]]] = {}
     clean: list[int] = []
 
     for iid, by_name in labels.items():
         W, H = box_dims[iid]
-        area = float(W * H)
         if not by_name:
             # Only a true negative for every class in C may join the shared pool.
-            if not any((iid, c) in unbanded for c in pc.SCALE_CLASSES):
+            if not any((iid, c) in unbanded for c in classes):
                 clean.append(iid)
             continue
         for name, bs in by_name.items():
-            ux0 = min(b[0] for b in bs)
-            uy0 = min(b[1] for b in bs)
-            ux1 = max(b[2] for b in bs)
-            uy1 = max(b[3] for b in bs)
-            union = max(0.0, ux1 - ux0) * max(0.0, uy1 - uy0) / area
-            largest = max((b[2] - b[0]) * (b[3] - b[1]) for b in bs) / area
-            # Scattered instances in *this* image: the union box describes the
-            # scatter rather than the object, so the image is excluded from
-            # every band of this class rather than banded by a box no user
-            # would drag.
-            if union > largest * pc.BAND_MAX_INFLATION:
+            # The band is a claim about the object this cell is about, so a
+            # reviewer's designation decides it and the other instances do not
+            # drag it (#3726). Without a designation this is exactly the old
+            # behaviour: the union over everything the class has here.
+            picked = (designated or {}).get((iid, name))
+            band = band_for(picked or bs, W, H)
+            if band not in pc.BOX_BANDS:  # scattered, or bigger than a region
                 continue
-            for band, (lo, hi) in pc.BOX_BANDS.items():
-                if lo <= union < hi:
-                    supply[name][band].append(iid)
-                    boxes_for[(iid, pc.scale_cell(name, band))] = bs
-                    break
+            supply[name][band].append(iid)
+            boxes_for[(iid, pc.scale_cell(name, band))] = bs
     return supply, boxes_for, clean
 
 
@@ -268,21 +611,185 @@ def designate_cells(
     return chosen
 
 
-def draw_negatives(clean: list[int], roster: dict) -> tuple[list[int], list[int]]:
+def disqualified_negatives(roster: dict, clean: set[int]) -> list[int]:
+    """Rostered negatives that can no longer BE negatives, accumulated.
+
+    An image holding a class in *C* cannot serve as a negative for anything, so a
+    rebuild is right to drop it -- but `check_review_coverage.py` sees only that
+    a reviewed image is gone and reads a correct rebuild as lost review.
+    Expanding *C* from twelve to 25 disqualified 1,530 of them at once (#3588).
+
+    **Accumulated, not recomputed, and that is the whole point of the function.**
+    ``load`` runs once per embedder and rewrites the roster each time, so the
+    first cell sees the old negatives and records the disqualification while
+    every later cell reads a roster whose negatives are already clean, computes
+    an empty set, and overwrites the fact. The value survived exactly one cell of
+    a five-cell build before this existed. Same shape as the counter that was
+    placed before the pass discarding its work (#3637).
+
+    Spares count too: they are drawn into the pickle and can be designated later,
+    so one becoming ineligible is the same event.
+    """
+    was = {int(i) for i in roster.get("disqualified", [])}
+    pool = list(roster.get("negatives", [])) + list(roster.get("spares", []))
+    return sorted(was | {int(i) for i in pool if int(i) not in clean})
+
+
+def draw_negatives(
+    clean: list[int], roster: dict, coco_scored: set[int], coco_fraction: float
+) -> tuple[list[int], list[int]]:
     """The shared negative pool and its spares, drawn from the clean images.
 
     Spares are drawn beyond the designated pool on purpose: a human verdict can
     retire a contaminated negative later, and re-designating from spares costs a
     relabel rather than a re-embed of every cell.
+
+    The draw is **stratified by provenance** (#3670). *coco_fraction* is the share
+    of the pool that must come from *coco_scored* -- images COCO annotated, where
+    "holds none of C" is a fact rather than VG's silence. The caller derives it
+    from :data:`pile_config.SCALE_NEG_COMPOSITION`: 1.0 for an all-provable pool,
+    the positives' own COCO share for a provenance-matched one.
+
+    ``coco_scored`` is deliberately **not** the ``exhaustive`` set the rest of
+    the build carries. That one also holds every image a human looked at, and a
+    human who looked for a `bus` established nothing about the other eleven
+    classes -- so admitting those here would put images in an "all-provable"
+    pool whose absence claim is still VG's silence for most of *C*. The
+    distinction costs nothing: 34,071 clean images carry a COCO pairing against
+    the 9,900 the pool needs.
+
+    Stratifying rather than filtering is what keeps the roster honest. A pinned
+    image that is still clean keeps its seat **within its own stratum**, so a
+    composition change retires only the images the new composition cannot hold
+    instead of reshuffling the whole draw -- the failure that orphaned 49 of 360
+    reviewed images the last time a selection rule changed.
     """
-    want_neg = pc.SCALE_N_NEG + pc.SCALE_N_NEG_SPARE
     clean_set = set(clean)
-    drawn = [i for i in roster.get("negatives", []) + roster.get("spares", []) if i in clean_set]
-    if len(drawn) < want_neg:
-        extra = sorted(clean_set - set(drawn), key=lambda i: rank("__negatives__", i))
-        drawn += extra[: want_neg - len(drawn)]
-    drawn = drawn[:want_neg]
-    return drawn[: pc.SCALE_N_NEG], drawn[pc.SCALE_N_NEG :]
+    want_prov = round(pc.SCALE_N_NEG * coco_fraction)
+    strata = [
+        (clean_set & coco_scored, want_prov),
+        (clean_set - coco_scored, pc.SCALE_N_NEG - want_prov),
+    ]
+    pinned = [i for i in roster.get("negatives", []) + roster.get("spares", []) if i in clean_set]
+
+    def draw(pool: set[int], want: int, taken: set[int]) -> list[int]:
+        """*want* images from *pool*, roster pins first, then hash-ranked."""
+        avail = pool - taken
+        out = [i for i in pinned if i in avail][:want]
+        if len(out) < want:
+            rest = sorted(avail - set(out), key=lambda i: rank("__negatives__", i))
+            out += rest[: want - len(out)]
+        return out
+
+    negatives: list[int] = []
+    for pool, want in strata:
+        negatives += draw(pool, want, set(negatives))
+
+    # Spares come from the same strata in the same proportion, so promoting one
+    # later cannot change what the pool is made of.
+    spares: list[int] = []
+    for pool, want in strata:
+        share = round(pc.SCALE_N_NEG_SPARE * want / pc.SCALE_N_NEG) if pc.SCALE_N_NEG else 0
+        spares += draw(pool, share, set(negatives) | set(spares))
+    # A short pool yields what there is rather than silently rebalancing: the
+    # builder reports an under-supplied pool, it does not paper over one.
+    short = pc.SCALE_N_NEG + pc.SCALE_N_NEG_SPARE - len(negatives) - len(spares)
+    if short > 0:
+        spares += draw(clean_set, short, set(negatives) | set(spares))
+    return negatives, spares
+
+
+def _cells_by_class(cells: list[str]) -> dict[str, set[str]]:
+    """``{class: {cell, ...}}`` for a cell list, whatever its keying.
+
+    ``vg_scale`` cells are ``class@band`` and ``vg_scale_deep`` cells are the
+    bare class, so the split is on the suffix separator :func:`pile_config.scale_cell`
+    writes. A class name never contains it -- `stop sign` has a space, not an
+    `@` -- so the head of the split is the class in both spellings.
+    """
+    out: dict[str, set[str]] = defaultdict(set)
+    for cell in cells:
+        out[cell.split("@", 1)[0]].add(cell)
+    return dict(out)
+
+
+def _evaluable(
+    iid: int,
+    cats: list[str],
+    cells: list[str],
+    neg_set: set[int],
+    labels: dict[int, dict[str, list[list[float]]]],
+    coco_scored: set[int],
+    reviewed_absent: set[tuple[int, str]],
+    reviewed_present: set[tuple[int, str]],
+) -> list[str]:
+    """Which cells this image can be SCORED in -- positive or negative.
+
+    ``categories`` says what an image *is* a positive for; this says where it is
+    allowed to be judged at all. A shared negative is judged everywhere. A
+    positive was, until #3667, judged **only in its own cells** -- so an image
+    holding a book and no bus was neither a bus positive nor a bus negative, and
+    41.9% of the pile fell out of every class's evaluation.
+
+    The exclusion is right for the same class at another size and wrong for
+    every other class, so it is now applied per class: a class this image does
+    not hold contributes all of its cells, and the image scores there as the
+    negative it is.
+
+    **Gated per class on who actually answered, which is not the same as who
+    looked.** On a COCO-annotated image "holds no bus" is a fact about all eighty
+    classes at once, so ``coco_scored`` admits every class. Off COCO it is VG's
+    silence, which #3588 measured wrong 0.5-2.5% of the time, and importing that
+    into the negatives is a separate decision -- ``SCALE_CROSS_CLASS_NEGATIVES``
+    turns the whole thing off rather than pretending the two halves are alike.
+
+    This used to read ``exhaustive``, and that set has **two** populations in it:
+    images COCO answered, and *any image a human looked at*, because
+    :func:`apply_corrections` adds every reviewed image to it. A reviewer asked
+    "does this hold a `car`?" established a fact about `car` and nothing about
+    `bus` -- so the rule promoted 467 review-only images into cross-class
+    negatives they had not earned, 322 of them designated positives, 4.5% of the
+    designated positive set (#3697). The error ran in the flattering direction:
+    an image reviewed as holding a `car` scored as a *confirmed* negative for
+    `truck`, which is exactly the hard negative a detector has not been shown.
+
+    ``reviewed_absent`` keeps what a review really did establish, per class: a
+    verdict of absent on ``(image, class)`` admits that class's cells and no
+    others. That matters because a **group** pass -- the #3588 negative pass
+    asked "do you see NONE of these twenty-five?" -- legitimately answers for
+    every member it named, and dropping human evidence wholesale would throw
+    those away to fix the one-class case.
+
+    ``reviewed_present`` is the guard the other way, and it is not hypothetical.
+    A **boxless** ``present`` verdict -- "it is here, I cannot draw one box for
+    it" -- makes :func:`apply_corrections` POP the class from ``labels``, so the
+    image then looks to this function exactly like an image that does not hold
+    it. On a COCO-anchored image that would admit the class as a *confirmed
+    negative* on the strength of a human saying it is present. A pair a reviewer
+    touched is never admitted by absence, whatever the anchor says.
+
+    **The cells a class owns are read off ``cells``, never spelled.** This
+    function serves two datasets that name their cells differently --
+    ``vg_scale`` keys on ``class@band`` and ``vg_scale_deep`` on the bare class
+    -- and the first cut of #3667 spelled ``scale_cell(c, band)`` inline. On the
+    deep sibling that wrote 36 band-suffixed names that are not cells of that
+    dataset into every COCO-exhaustive positive, including the image's **own**
+    class at other bands: inert, because nothing matches them, but it is the
+    #3156 guarantee stated backwards in a shipped pickle. Deriving the map from
+    the caller's own cell list is what makes the rule dataset-agnostic.
+    """
+    if not cats:
+        return list(cells) if iid in neg_set else []
+    out = set(cats)
+    if pc.SCALE_CROSS_CLASS_NEGATIVES:
+        held = set(labels.get(iid, {}))
+        anchored = iid in coco_scored
+        for c, owned in _cells_by_class(cells).items():
+            if c in held or (iid, c) in reviewed_present:
+                continue
+            if anchored or (iid, c) in reviewed_absent:
+                out |= owned
+    return sorted(out)
 
 
 def _emit_medias(
@@ -296,8 +803,20 @@ def _emit_medias(
     exhaustive: set[int],
     cells: list[str],
     embedder_name: str,
+    labels: dict[int, dict[str, list[list[float]]]],
+    coco_scored: set[int],
+    reviewed_absent: set[tuple[int, str]],
+    reviewed_present: set[tuple[int, str]],
 ) -> None:
-    """Read the pixels and write one media dict per designated image."""
+    """Read the pixels and write one media dict per designated image.
+
+    ``labels`` is REQUIRED, and was an optional ``None`` for exactly one commit.
+    An absent label read is not an image that holds nothing -- it is no answer
+    at all -- and the two were spellable as the same value, which is how the
+    deep sibling silently got #3667's rule with an empty world (:func:`_evaluable`).
+    A missing measurement must not be expressible as a measurement of zero; the
+    ``vg_box_*`` picker lost a day to the same shape (#3299).
+    """
     from PIL import Image  # noqa: PLC0415
 
     # media id -> the cells it is a positive for. Negatives get every cell.
@@ -344,11 +863,18 @@ def _emit_medias(
             # A designated cell membership, not a closed world: a positive is
             # scorable only in the cells it was drawn for, and the shared
             # negatives are scorable everywhere.
-            "evaluable_categories": cats if cats else (list(cells) if iid in neg_set else []),
+            "evaluable_categories": _evaluable(
+                iid, cats, cells, neg_set, labels, coco_scored, reviewed_absent, reviewed_present
+            ),
             # Whether this image's labels rest on an exhaustive reference (COCO,
             # or a human who looked). False means VG's silence is the only
             # evidence of absence -- which is what the review slates target.
             "labels_exhaustive": iid in exhaustive,
+            # The strict half of the flag above, and the one #3670's composition
+            # is defined on. `labels_exhaustive` is also set by a human looking
+            # at ONE class; this says COCO answered for all eighty at once, which
+            # is what makes a negative provable rather than merely reviewed.
+            "coco_scored": iid in coco_scored,
             "regions": regions,
             "origin": {"importer": "vg_scale", "params": {"embedder": embedder_name, "labels": "coco"}},
             "origin_name": str(path),
@@ -356,10 +882,14 @@ def _emit_medias(
 
 
 def load(dataset: str, medias: dict[int, dict], embedder_name: str) -> None:
-    """Run the six passes over the VG source and write the designated medias."""
+    """Run the eight passes over the VG source and write the designated medias."""
     import coco_anchor as ca  # noqa: PLC0415
 
     wanted = set(pc.SCALE_CLASSES)
+    # The READ has to be wider than the class list: a VG spelling absent from it
+    # is invisible downstream, because an image holding only that spelling then
+    # looks like an image holding nothing -- i.e. like a negative (#3605).
+    wanted_vg = pc.scale_vg_wanted()
     cells = [pc.scale_cell(c, b) for c in pc.SCALE_CLASSES for b in pc.BOX_BANDS]
 
     paths = vg_image_paths()
@@ -373,15 +903,84 @@ def load(dataset: str, medias: dict[int, dict], embedder_name: str) -> None:
     corrections = load_corrections()
     log(f"  {len(coco_of)} VG images carry a coco_id; {len(corrections)} human verdicts on file")
 
-    labels = read_vg_labels(records, paths, dims, wanted)
-    box_dims, exhaustive, n_anchored, n_reframed = anchor_to_coco(labels, dims, coco_of, truth, ca.COCO_DIMS, wanted)
-    unbanded = apply_corrections(labels, corrections, box_dims, exhaustive)
+    labels = read_vg_labels(records, paths, dims, wanted_vg)
+    box_dims, exhaustive, n_anchored, n_reframed, rebanded = anchor_to_coco(
+        labels, dims, coco_of, truth, ca.COCO_DIMS, wanted
+    )
+    # Taken HERE, before `apply_corrections` folds every reviewed image into
+    # `exhaustive`. The two are different claims and #3670 turns on the
+    # difference: `exhaustive` says "someone or something answered for this
+    # image", `coco_scored` says "all eighty classes were answered at once".
+    # Only the second makes "holds none of C" a fact.
+    coco_scored = set(exhaustive)
+    # What a human actually established, per (image, class) -- NOT per image.
+    # `apply_corrections` folds every reviewed image into `exhaustive`, which is
+    # the right claim for the pool draw and the wrong one for #3667's
+    # cross-class rule: a reviewer asked about `car` said nothing about `bus`
+    # (#3697). Absence admits that class alone; presence bars it, because a
+    # boxless `present` leaves no box behind to make the class visible as held.
+    reviewed_absent = {k for k, v in corrections.items() if k[1] in wanted and not v.get("present")}
+    reviewed_present = {k for k, v in corrections.items() if k[1] in wanted and v.get("present")}
+    # The fold runs AFTER the anchor, not before it. On an anchored image COCO's
+    # labels replace VG's wholesale, so folding there was always discarded --
+    # the order is a no-op on what gets built (verified cell-by-cell in #3637)
+    # and is what lets `contested` be counted against the real pixel space, and
+    # only on the images that actually pay it.
+    folded, contested = canonicalise(labels, pc.SCALE_VG_NAMES, box_dims, pc.SCALE_FOLD_MODE)
+    designated: dict[tuple[int, str], list[list[float]]] = {}
+    unbanded = apply_corrections(labels, corrections, box_dims, exhaustive, designated=designated)
+    suppressed = lift_ambiguous(labels, pc.SCALE_VG_AMBIGUOUS, exhaustive)
+    unbanded |= suppressed
     log(
         f"  labels: {len(labels)} VG images, {n_anchored} repaired from COCO, "
         f"{len(exhaustive)} with a verified pair, {n_reframed} skipped as re-framed copies"
     )
+    if any(any(row.values()) for row in rebanded.values()):
+        # The anchor's half of the same ledger, and the larger half: it changes a
+        # third of the anchored images' band memberships against the fold's 2.1%
+        # off-COCO, and said nothing about it for a release (#3659). Read a class
+        # by the share of its row that is NOT `kept`: a class mostly un-banded
+        # here has a VG spelling that frames a different thing from COCO's, which
+        # is a defect in the name and not in the band.
+        totals = {k: sum(row[k] for row in rebanded.values()) for k in REBAND_OUTCOMES}
+        log(
+            "  COCO's boxes re-band the anchored half as `class "
+            + "/".join(REBAND_OUTCOMES)
+            + "` -- VG's own spelling banded these images and the anchor overwrote it: "
+            + ", ".join(f"{c}={'/'.join(str(row[k]) for k in REBAND_OUTCOMES)}" for c, row in sorted(rebanded.items()))
+            + f"; all classes={'/'.join(str(totals[k]) for k in REBAND_OUTCOMES)}"
+        )
+    if folded:
+        # Both halves of the ledger on one line. A class whose fold contests more
+        # images than it repairs is being made worse by its own name table, and
+        # `clock` was exactly that (+18 banded, -34 un-banded) for a release
+        # before anyone printed the second number (#3637).
+        verb = "un-bands" if pc.SCALE_FOLD_MODE == "fold" else "rescues"
+        log(
+            f"  merged VG spellings (mode={pc.SCALE_FOLD_MODE}) as `class+boxes folded/images it {verb}` -- "
+            "a merged union that scatters, or outgrows a region, leaves every band: "
+            + ", ".join(f"{c}+{n}/{contested[c]}" for c, n in sorted(folded.items()))
+        )
+    if suppressed:
+        by_class: dict[str, int] = defaultdict(int)
+        for _iid, c in suppressed:
+            by_class[c] += 1
+        log(
+            "  ambiguous spellings withheld from both bands and the pool: "
+            + ", ".join(f"{c}={n}" for c, n in sorted(by_class.items()))
+        )
+    unaudited = [c for c in pc.SCALE_CLASSES if c not in pc.SCALE_VG_NAMES_AUDITED]
+    if unaudited:
+        # Not a failure: the dataset this builds is the one #3156 published, and
+        # blocking a rebuild on unmeasured classes would strand it. But it is the
+        # one moment the fix is cheap, so it says so rather than passing quietly.
+        log(
+            f"  VG-NAME COVERAGE UNMEASURED for {len(unaudited)} of {len(pc.SCALE_CLASSES)} classes: "
+            + ", ".join(unaudited)
+        )
+        log("    run `coco_folds.py --classes <c>` and record the result in pile_config.SCALE_VG_NAMES_AUDITED (#3605)")
 
-    supply, boxes_for, clean = band_candidates(labels, box_dims, unbanded)
+    supply, boxes_for, clean = band_candidates(labels, box_dims, unbanded, designated=designated)
 
     roster = {}
     if pc.ROSTER.exists():
@@ -390,14 +989,62 @@ def load(dataset: str, medias: dict[int, dict], embedder_name: str) -> None:
 
     chosen = designate_cells(supply, corrections, roster)
     clean.sort()
-    negatives, spares = draw_negatives(clean, roster)
-    pc.ROSTER.write_text(json.dumps({"cells": chosen, "negatives": negatives, "spares": spares}, indent=1) + "\n")
+    # A rostered negative that is no longer clean has been DISQUALIFIED -- it
+    # holds one of the classes now, so it cannot be a negative and no rebuild
+    # could keep it. That is different in kind from an image lost to a reshuffle,
+    # and only this pass can tell them apart: by the time
+    # `check_review_coverage.py` runs, the reason is gone. Expanding C from 12 to
+    # 25 disqualified reviewed negatives at a stroke (#3588), and the coverage
+    # gate read every one of them as lost review.
+    disqualified = disqualified_negatives(roster, set(clean))
+    if disqualified:
+        log(f"  {len(disqualified)} rostered negatives disqualified: they can no longer be negatives")
+    # The target provenance mix. `provable` asks for an all-COCO-scored pool;
+    # `matched` asks for the positives' OWN share, measured on the images
+    # actually designated rather than on the much larger class supply.
+    pos_ids = {i for ids in chosen.values() for i in ids}
+    pos_frac = len(pos_ids & coco_scored) / len(pos_ids) if pos_ids else 1.0
+    if pc.SCALE_NEG_COMPOSITION == "provable":
+        coco_fraction = 1.0
+    elif pc.SCALE_NEG_COMPOSITION == "matched":
+        coco_fraction = pos_frac
+    else:
+        raise SystemExit(f"unknown SCALE_NEG_COMPOSITION {pc.SCALE_NEG_COMPOSITION!r}")
+    negatives, spares = draw_negatives(clean, roster, coco_scored, coco_fraction)
+    n_prov = len(set(negatives) & coco_scored)
+    log(
+        f"  negative pool composition={pc.SCALE_NEG_COMPOSITION}: {n_prov} provable "
+        f"({n_prov / len(negatives):.1%} of {len(negatives)}), "
+        f"positives are {pos_frac:.1%} COCO-scored"
+    )
+    pc.ROSTER.write_text(
+        json.dumps(
+            {"cells": chosen, "negatives": negatives, "spares": spares, "disqualified": disqualified},
+            indent=1,
+        )
+        + "\n"
+    )
     log(
         f"  {sum(len(v) for v in chosen.values())} positives over {len(cells)} cells, "
         f"{len(negatives)} shared negatives + {len(spares)} spares (from {len(clean)} clean images)"
     )
 
-    _emit_medias(medias, paths, chosen, negatives, spares, boxes_for, box_dims, exhaustive, cells, embedder_name)
+    _emit_medias(
+        medias,
+        paths,
+        chosen,
+        negatives,
+        spares,
+        boxes_for,
+        box_dims,
+        exhaustive,
+        cells,
+        embedder_name,
+        labels,
+        coco_scored,
+        reviewed_absent,
+        reviewed_present,
+    )
 
     # Refuse to embed a pickle whose boxes are impossible. `--verify` runs the
     # same check, but only after the GPU hours are spent and the cell is on

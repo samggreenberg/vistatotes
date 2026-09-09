@@ -62,6 +62,8 @@ def mods(_on_path):
         "roster": importlib.import_module("roster"),
         "shortlist": importlib.import_module("shortlist"),
         "audit": importlib.import_module("audit_to_corrections"),
+        "slate": importlib.import_module("make_audit_slate"),
+        "siglip": importlib.import_module("siglip_audit"),
         "report": importlib.import_module("make_report"),
     }
 
@@ -720,6 +722,224 @@ class TestMembershipAudit:
         assert "must be 'ok' or comma-separated indices" in problems[0]
 
 
+class TestMergeSlateOrdering:
+    """The slate's numbering is what the reviewer's answer refers to."""
+
+    def test_seriation_puts_near_identical_classes_next_to_each_other(self, mods):
+        # Three tight pairs, scrambled: 0~4, 1~3, 2~5.
+        far = 0.9
+        d = np.full((6, 6), far)
+        for a, b in ((0, 4), (1, 3), (2, 5)):
+            d[a, b] = d[b, a] = 0.01
+        np.fill_diagonal(d, 0.0)
+        order = mods["slate"].seriate(d)
+        assert sorted(order) == list(range(6))
+        adjacent = {frozenset(pair) for pair in zip(order, order[1:])}
+        for pair in ((0, 4), (1, 3), (2, 5)):
+            assert frozenset(pair) in adjacent, f"{pair} was split by the ordering"
+
+    def test_seriation_is_deterministic_including_ties(self, mods):
+        # An all-equal matrix is nothing but ties; a re-render must still
+        # produce the same numbering or a half-finished merges.txt goes stale.
+        d = np.full((8, 8), 0.5)
+        np.fill_diagonal(d, 0.0)
+        assert mods["slate"].seriate(d) == mods["slate"].seriate(d.copy())
+
+    def test_seriation_of_an_empty_or_single_slate(self, mods):
+        assert mods["slate"].seriate(np.zeros((0, 0))) == []
+        assert mods["slate"].seriate(np.zeros((1, 1))) == [0]
+
+    def test_near_pairs_are_the_closest_ones_nearest_first(self, mods):
+        d = np.array([[0.0, 0.3, 0.1], [0.3, 0.0, 0.2], [0.1, 0.2, 0.0]])
+        assert mods["slate"].near_pairs(d, 2) == [(0.1, 0, 2), (0.2, 1, 2)]
+
+
+class TestMergeAnswerParsing:
+    def test_a_group_is_a_line_of_indices(self, mods):
+        groups, reviewed, problems = mods["audit"].parse_merge_groups("3 8 12\n", 20)
+        assert not problems and reviewed is False
+        assert [g["indices"] for g in groups] == [[3, 8, 12]]
+
+    def test_commas_and_trailing_notes_are_accepted(self, mods):
+        groups, _reviewed, problems = mods["audit"].parse_merge_groups("3, 8   # same elephant, blue and red\n", 20)
+        assert not problems
+        assert groups[0]["indices"] == [3, 8]
+        assert groups[0]["note"] == "same elephant, blue and red"
+
+    def test_overlapping_groups_are_unioned_not_refused(self, mods):
+        # "3 8" and "8 12" are two observations of one equivalence class. A
+        # reviewer writing the same truth twice is redundant, not contradictory.
+        groups, _reviewed, problems = mods["audit"].parse_merge_groups("3 8\n8 12\n", 20)
+        assert not problems
+        assert [g["indices"] for g in groups] == [[3, 8, 12]]
+
+    def test_comments_and_blank_lines_are_ignored(self, mods):
+        groups, reviewed, problems = mods["audit"].parse_merge_groups("# a header\n\n   \n1 2\n", 5)
+        assert not problems and [g["indices"] for g in groups] == [[1, 2]]
+
+    def test_reviewed_all_is_a_line_of_its_own(self, mods):
+        _groups, reviewed, problems = mods["audit"].parse_merge_groups("REVIEWED-ALL\n", 5)
+        assert reviewed is True and not problems
+
+    @pytest.mark.parametrize(
+        "line, fragment",
+        [
+            ("99 1", "outside the slate"),
+            ("foo 2", "not a slate index"),
+            ("4", "fewer than two distinct classes"),
+            ("3 3", "fewer than two distinct classes"),
+        ],
+    )
+    def test_a_typo_is_refused_never_guessed_at(self, mods, line, fragment):
+        # Every one of these silently reinterpreted would write a permanent
+        # merge between classes nobody looked at.
+        groups, _reviewed, problems = mods["audit"].parse_merge_groups(line + "\n", 6)
+        assert groups == []
+        assert fragment in problems[0]
+
+
+class TestMergeVerdictCompilation:
+    def _index(self, n=6, near=((0, 1, 0.01), (2, 3, 0.02), (4, 5, 0.03))):
+        return {
+            "classes": [{"index": i, "class_id": f"spods/c{i}", "n_instances": 5} for i in range(n)],
+            "near_pairs": [
+                {"rank": r, "left_index": a, "right_index": b, "distance": d} for r, (a, b, d) in enumerate(near)
+            ],
+        }
+
+    def test_a_group_compiles_to_a_star_not_a_clique(self, mods):
+        # Sameness is transitive and apply_confusable merges outright, so n-1
+        # rows state the whole group; n(n-1)/2 would just restate it.
+        groups, reviewed, _ = mods["audit"].parse_merge_groups("0 1 2\n", 6)
+        rows, problems = mods["audit"].merge_verdicts(self._index(), groups, reviewed)
+        assert not problems
+        assert [(r["left_class_id"], r["right_class_id"]) for r in rows] == [
+            ("spods/c0", "spods/c1"),
+            ("spods/c0", "spods/c2"),
+        ]
+
+    def test_without_reviewed_all_only_merges_are_recorded(self, mods):
+        groups, reviewed, _ = mods["audit"].parse_merge_groups("0 1\n", 6)
+        rows, _problems = mods["audit"].merge_verdicts(self._index(), groups, reviewed)
+        assert {r["verdict"] for r in rows} == {"same"}
+
+    def test_reviewed_all_separates_the_appendix_pairs_and_only_those(self, mods):
+        # The closed world covers what the reviewer was actually shown: the
+        # near-pair sheets. Pairs that live only at the far end of the ranking
+        # were never compared and stay unadjudicated.
+        groups, reviewed, _ = mods["audit"].parse_merge_groups("REVIEWED-ALL\n", 6)
+        rows, _problems = mods["audit"].merge_verdicts(self._index(), groups, reviewed)
+        different = {(r["left_class_id"], r["right_class_id"]) for r in rows if r["verdict"] == "different"}
+        assert different == {("spods/c0", "spods/c1"), ("spods/c2", "spods/c3"), ("spods/c4", "spods/c5")}
+        assert ("spods/c0", "spods/c5") not in different
+
+    def test_a_merged_near_pair_is_never_also_separated(self, mods):
+        # save_adjudications refuses a pair ruled both ways outright, so this is
+        # a correctness gate rather than tidiness: without it, merging an
+        # appendix pair on a REVIEWED-ALL slate would abort the whole apply.
+        groups, reviewed, _ = mods["audit"].parse_merge_groups("0 1\nREVIEWED-ALL\n", 6)
+        rows, _problems = mods["audit"].merge_verdicts(self._index(), groups, reviewed)
+        ruled = {(r["left_class_id"], r["right_class_id"]): r["verdict"] for r in rows}
+        assert ruled[("spods/c0", "spods/c1")] == "same"
+        assert list(ruled.values()).count("same") == 1
+        assert ("spods/c1", "spods/c0") not in ruled
+
+    def test_transitively_merged_classes_do_not_separate_each_other(self, mods):
+        # 0~1 and 1~2 makes {0,1,2} one class, so an appendix pair (0,2) is
+        # inside the group even though no line named that pair.
+        index = self._index(near=((0, 2, 0.01),))
+        groups, reviewed, _ = mods["audit"].parse_merge_groups("0 1\n1 2\nREVIEWED-ALL\n", 6)
+        rows, _problems = mods["audit"].merge_verdicts(index, groups, reviewed)
+        assert [r["verdict"] for r in rows] == ["same", "same"]
+
+    def test_every_same_row_is_emitted_before_every_different_row(self, mods):
+        # apply_confusable merges as it goes and follows the chain afterwards;
+        # a separation pinned first would name a class about to stop existing.
+        groups, reviewed, _ = mods["audit"].parse_merge_groups("0 1\nREVIEWED-ALL\n", 6)
+        rows, _problems = mods["audit"].merge_verdicts(self._index(), groups, reviewed)
+        verdicts = [r["verdict"] for r in rows]
+        assert verdicts == sorted(verdicts, key=lambda v: v != "same")
+
+    def test_pairs_that_name_the_same_two_post_merge_classes_are_stated_once(self, mods):
+        # Once 0 and 1 are one class, the appendix pairs (0, 2) and (1, 2) are
+        # one statement about one pair of classes. Emitting both prints a
+        # contradiction-shaped log for a decision that was made once.
+        index = self._index(near=((0, 1, 0.01), (0, 2, 0.02), (1, 2, 0.03)))
+        groups, reviewed, _ = mods["audit"].parse_merge_groups("0 1\nREVIEWED-ALL\n", 6)
+        rows, _problems = mods["audit"].merge_verdicts(index, groups, reviewed)
+        different = [r for r in rows if r["verdict"] == "different"]
+        assert len(different) == 1
+        assert "rank 1" in different[0]["notes"], "the nearest of the redundant pairs is the one kept"
+
+    def test_an_index_missing_from_the_slate_is_reported(self, mods):
+        index = self._index()
+        index["classes"] = index["classes"][:3]
+        rows, problems = mods["audit"].merge_verdicts(index, [{"indices": [0, 5], "note": ""}], False)
+        assert rows == []
+        assert "not on the slate" in problems[0]
+
+
+class TestMergeSlateEndToEnd:
+    """The slate is an input format, not a second path through the ground truth."""
+
+    def _corpus(self, mods):
+        pages = [
+            _page(mods, f"spods/{c}{i}", "spods", [("logo", (0, 0, 200, 120), f"spods/{c}", "clustered")])
+            for c in "abcd"
+            for i in range(3)
+        ]
+        classes = {
+            f"spods/{c}": {
+                "class_id": f"spods/{c}",
+                "n_instances": 3,
+                "page_ids": [f"spods/{c}{i}" for i in range(3)],
+                "audit": {"membership_verified": False, "rejected_page_ids": []},
+            }
+            for c in "abcd"
+        }
+        return pages, classes
+
+    def _index(self, near):
+        return {
+            "classes": [{"index": i, "class_id": f"spods/{c}", "n_instances": 3} for i, c in enumerate("abcd")],
+            "near_pairs": [
+                {"rank": r, "left_index": a, "right_index": b, "distance": 0.01 * (r + 1)}
+                for r, (a, b) in enumerate(near)
+            ],
+        }
+
+    def test_a_slate_answer_merges_and_separates_through_the_pairwise_applier(self, mods):
+        pages, classes = self._corpus(mods)
+        groups, reviewed, _ = mods["audit"].parse_merge_groups("0 1\nREVIEWED-ALL\n", 4)
+        rows, _ = mods["audit"].merge_verdicts(self._index([(0, 1), (2, 3)]), groups, reviewed)
+        _changes, problems, separations, merges = mods["audit"].apply_confusable(pages, classes, rows)
+        assert not problems
+        assert "spods/b" not in classes
+        assert classes["spods/a"]["n_instances"] == 6
+        assert len(merges) == 1 and len(separations) == 1
+        assert classes["spods/c"]["distinct_from"] == ["spods/d"]
+
+    def test_the_resulting_adjudications_never_rule_a_pair_both_ways(self, mods, tmp_path):
+        # save_adjudications raises on a conflicting pair by design. Compiling a
+        # slate that merges one of its own appendix pairs must not trip it.
+        pages, classes = self._corpus(mods)
+        groups, reviewed, _ = mods["audit"].parse_merge_groups("0 1\n2 3\nREVIEWED-ALL\n", 4)
+        rows, _ = mods["audit"].merge_verdicts(self._index([(0, 1), (2, 3), (0, 2)]), groups, reviewed)
+        _c, _p, separations, merges = mods["audit"].apply_confusable(pages, classes, rows)
+        mods["cluster"].save_adjudications(merges, separations, tmp_path / "adjudications.json")
+        same, diff = mods["cluster"].load_adjudications(tmp_path / "adjudications.json")
+        assert not (set(map(frozenset, same)) & set(map(frozenset, diff)))
+        assert len(same) == 2 and len(diff) == 1
+
+    def test_separations_are_keyed_on_page_ids_so_they_survive_a_recluster(self, mods):
+        pages, classes = self._corpus(mods)
+        groups, reviewed, _ = mods["audit"].parse_merge_groups("REVIEWED-ALL\n", 4)
+        rows, _ = mods["audit"].merge_verdicts(self._index([(0, 1)]), groups, reviewed)
+        _c, _p, separations, _m = mods["audit"].apply_confusable(pages, classes, rows)
+        assert separations[0]["left_page_id"] == "spods/a0"
+        assert separations[0]["right_page_id"] == "spods/b0"
+
+
 # -------------------------------------------------------------------- tiers
 
 
@@ -974,6 +1194,125 @@ class TestClustering:
 
 
 # ---------------------------------------------------------------- synthesis
+
+
+class TestResplitRegistersItsPieces:
+    """A ``split`` verdict must leave the pieces somewhere the corpus can see.
+
+    ``resplit_classes`` relabels the marks and pops the parent.  Everything
+    downstream -- the slate, the roster, the embedder, the report -- reads
+    ``classes.json``, and the only other writer is ``build_corpus.py``, which
+    rebuilds from the sources and would discard the split.  So a piece that is
+    not registered here is not "deferred to the next sheet"; it is gone, with
+    its marks pointing at an id nothing knows.
+    """
+
+    def _two_marks_one_class(self, mods, tmp_path):
+        """Two visibly different stamps sharing one class id, on real pages."""
+        from PIL import Image
+
+        pages = []
+        for i in range(6):
+            arr = np.full((_PAGE_H, _PAGE_W), 255, dtype=np.uint8)
+            if i < 4:
+                arr[200:260, 200:400] = 0  # a solid bar
+            else:
+                for k in range(12):  # a comb, nothing like the bar
+                    arr[200:260, 200 + k * 16 : 204 + k * 16] = 0
+            path = tmp_path / f"p{i}.png"
+            Image.fromarray(arr).save(path)
+            pages.append(
+                _page(
+                    mods,
+                    f"src/{i:05d}",
+                    "src",
+                    marks=[("stamp", (200, 200, 200, 60), "src/stamp_00000_0", "clustered")],
+                    path=str(path),
+                )
+            )
+        return pages
+
+    def test_every_piece_lands_in_classes_and_keeps_all_instances(self, mods, tmp_path):
+        pages = self._two_marks_one_class(mods, tmp_path)
+        inventory = mods["build"].class_inventory(pages)
+        classes, _ = mods["build"].admit_classes(pages, inventory, min_instances=1, min_mark_px=1)
+        assert set(classes) == {"src/stamp_00000_0"}
+
+        notes = mods["audit"].resplit_classes(
+            pages,
+            classes,
+            ["src/stamp_00000_0"],
+            backend="phash",
+            threshold=0.20,
+            corpus=tmp_path,
+            min_mark_px=1,
+        )
+
+        # A piece takes its id from its own smallest page id, so the parent's id
+        # comes back as the id of whichever piece kept page 00000 -- what must
+        # not survive is the parent's *entry*, with all six instances on it.
+        assert len(classes) >= 2, f"pieces were not registered: {notes}"
+        assert classes["src/stamp_00000_0"]["n_instances"] == 4
+        assert sum(m["n_instances"] for m in classes.values()) == 6
+        assert sorted(m["n_instances"] for m in classes.values()) == [2, 4]
+        # Every relabelled mark resolves to a registered class.
+        for page in pages:
+            for mark in page.marks:
+                assert mark.class_id in classes
+
+    def test_a_singleton_piece_is_registered_rather_than_sized_out(self, mods, tmp_path):
+        # The reviewer already said this class holds more than one mark, so a
+        # one-instance piece is a finding.  Dropping it here would hide it from
+        # the roster, which is the only place that should decide it is too
+        # small to search.
+        pages = self._two_marks_one_class(mods, tmp_path)
+        pages = pages[:4] + pages[4:5]  # 4 bars, 1 comb
+        inventory = mods["build"].class_inventory(pages)
+        classes, _ = mods["build"].admit_classes(pages, inventory, min_instances=1, min_mark_px=1)
+        mods["audit"].resplit_classes(
+            pages,
+            classes,
+            ["src/stamp_00000_0"],
+            backend="phash",
+            threshold=0.20,
+            corpus=tmp_path,
+            min_mark_px=1,
+        )
+        sizes = sorted(m["n_instances"] for m in classes.values())
+        assert sizes == [1, 4], sizes
+
+
+class TestSiglipClusterBackend:
+    """The ``siglip`` cluster backend named symbols that do not exist.
+
+    It imported ``SiglipEmbedder`` (the class is ``ImageSiglipEmbedder``) and
+    then called ``embed_images`` (the in-memory entry point is
+    ``embed_pil_image``), so ``--cluster-backend siglip`` raised ImportError on
+    every path that reached it, from the corpus builder's first commit onward.
+    Both names are checked here rather than the clustering itself, because the
+    failure was never in the maths -- it was in code no test had executed.
+    """
+
+    def test_the_backend_names_the_embedder_that_exists(self, mods):
+        import inspect
+
+        src = inspect.getsource(mods["cluster"].describe_marks)
+        assert "ImageSiglipEmbedder" in src
+        assert "import SiglipEmbedder" not in src
+
+    def test_the_embedder_exposes_the_method_the_backend_calls(self, mods):
+        import inspect
+
+        from vtscore.media.image.embedder_siglip import ImageSiglipEmbedder
+
+        src = inspect.getsource(mods["cluster"].describe_marks)
+        assert "embed_pil_image" in src
+        assert hasattr(ImageSiglipEmbedder, "embed_pil_image")
+        assert not hasattr(ImageSiglipEmbedder, "embed_images")
+
+    def test_an_unknown_backend_still_says_so(self, mods):
+        with pytest.raises(ValueError, match="unknown cluster backend"):
+            mods["cluster"].describe_marks([], [], backend="nope")
 
 
 class TestSynthesis:
@@ -2018,3 +2357,320 @@ class TestUcsfBandsAreNotClustered:
         # and that was always 92% of what it was for.
         assert "ucsf" not in mods["cfg"].ANCHOR_SOURCES
         assert mods["cfg"].eligible_distractor("spods", "ucsf", "Opioids") is True
+
+
+class TestSiglipAuditVectors:
+    """The audit's second opinion, over cached vectors rather than a card."""
+
+    @staticmethod
+    def _cache(tmp_path, items, vecs, embedder="siglip2_l"):
+        import numpy as np
+
+        out = tmp_path / "audit" / "siglip"
+        out.mkdir(parents=True)
+        np.savez_compressed(tmp_path / "audit" / "siglip" / "vectors.npz", vecs=np.asarray(vecs, dtype=np.float32))
+        (out / "items.json").write_text(
+            json.dumps({"embedder": embedder, "max_per_class": 24, "items": items}), encoding="utf-8"
+        )
+        return tmp_path
+
+    def test_a_missing_cache_is_an_error_not_an_empty_answer(self, mods, tmp_path):
+        with pytest.raises(SystemExit, match="--embed"):
+            mods["siglip"].load_cache(tmp_path)
+
+    def test_a_centroid_is_the_normalised_mean_of_its_instances(self, mods, tmp_path):
+        items = [
+            {"class_id": "a", "page_id": "p1", "kind": "instance"},
+            {"class_id": "a", "page_id": "p2", "kind": "instance"},
+            {"class_id": "b", "page_id": "p3", "kind": "instance"},
+            # A query crop must not move the centroid it is going to be judged
+            # against, or the check is comparing the crop with itself.
+            {"class_id": "a", "page_id": "p9", "kind": "query"},
+        ]
+        vecs = np.array([[1.0, 0.0], [0.0, 1.0], [0.0, 1.0], [-1.0, 0.0]], dtype=np.float32)
+        order, centroids = mods["siglip"].class_centroids(items, vecs)
+        assert order == ["a", "b"]
+        assert centroids[0] == pytest.approx([2**-0.5, 2**-0.5], abs=1e-6)
+        assert np.linalg.norm(centroids[1]) == pytest.approx(1.0, abs=1e-6)
+
+    def test_split_uses_average_linkage_so_one_crop_cannot_bridge_two_marks(self, mods):
+        # Two tight groups plus a crop halfway between them.  Single linkage
+        # chains all three together through the bridge -- which is the exact
+        # defect this pass exists to detect, so it must not be the linkage.
+        a, b = np.array([1.0, 0.0]), np.array([0.0, 1.0])
+        bridge = (a + b) / np.linalg.norm(a + b)
+        vecs = np.vstack([a, a, a, b, b, b, bridge]).astype(np.float32)
+        labels = mods["siglip"].split_class(vecs, 0.4)
+        assert len(set(labels.tolist())) >= 2
+        assert labels[0] == labels[1] == labels[2]
+        assert labels[3] == labels[4] == labels[5]
+        assert labels[0] != labels[3]
+
+    def test_one_tight_class_stays_one_group(self, mods):
+        vecs = np.tile(np.array([1.0, 0.0], dtype=np.float32), (5, 1))
+        assert len(set(mods["siglip"].split_class(vecs, 0.2).tolist())) == 1
+
+    def test_the_query_check_reports_the_rank_of_the_class_own_centroid(self, mods):
+        # The eval searches with the query crop, so the question is what that
+        # crop retrieves -- not how far it is, which is the screen #3599
+        # records failing.
+        items = [
+            {"class_id": "a", "page_id": "p1", "kind": "instance"},
+            {"class_id": "b", "page_id": "p2", "kind": "instance"},
+            {"class_id": "a", "page_id": "p9", "kind": "query"},
+        ]
+        vecs = np.array([[1.0, 0.0], [0.0, 1.0], [0.0, 1.0]], dtype=np.float32)
+        order, centroids = mods["siglip"].class_centroids(items, vecs)
+        rows = mods["siglip"].query_check(items, vecs, order, centroids)
+        assert len(rows) == 1
+        assert rows[0]["class_id"] == "a"
+        assert rows[0]["rank_of_own_class"] == 1
+        assert rows[0]["nearest_class"] == "b"
+
+    def test_pairs_are_ranked_by_centroid_distance_nearest_first(self, mods):
+        order = ["a", "b", "c"]
+        centroids = np.array([[1.0, 0.0], [0.99, 0.141], [0.0, 1.0]], dtype=np.float32)
+        rows = mods["siglip"].pair_report(order, centroids, 3)
+        assert [(r["left"], r["right"]) for r in rows][0] == ("a", "b")
+        assert rows[0]["distance"] < rows[-1]["distance"]
+
+    def test_the_split_sweep_records_every_threshold_not_a_verdict(self, mods):
+        items = [{"class_id": "a", "page_id": f"p{i}", "kind": "instance"} for i in range(4)]
+        # Two pairs 0.5 apart: a tight threshold separates them, a loose one
+        # does not, and the file records both rather than choosing.
+        far = [0.5, 3**0.5 / 2]
+        vecs = np.array([[1.0, 0.0], [1.0, 0.0], far, far], dtype=np.float32)
+        rows = mods["siglip"].split_report(items, vecs, (0.1, 0.9))
+        assert rows[0]["sweep"]["0.10"] == [2, 2]
+        assert rows[0]["sweep"]["0.90"] == [4]
+
+
+class TestClassSamplingIsSpread:
+    """Which instances of a class the audit actually looks at (#3610).
+
+    Every pass that samples a class capped the sample by taking the head of the
+    page-id list, so a split proposal for a class larger than the cap was a
+    statement about its first ``max_per_class`` pages.  Page ids sort by source
+    and number, so that is the scanner's order: the two classes #3610 was filed
+    over are 27 and 30 instances against a cap of 24, and five of their marks
+    live only in the tail.
+    """
+
+    def test_a_short_sequence_is_taken_whole(self, mods):
+        assert mods["common"].spread(list(range(5)), 24) == list(range(5))
+
+    def test_the_sample_always_reaches_the_tail(self, mods):
+        # The regression that matters.  A `[::step]` stride computes
+        # `step = 27 // 24 == 1` and hands back the first 24 -- the head sample
+        # it was reached for to avoid.
+        picked = mods["common"].spread(list(range(27)), 24)
+        assert len(picked) == 24
+        assert picked[0] == 0
+        assert picked[-1] == 26
+
+    def test_the_sample_is_spread_and_ordered_and_distinct(self, mods):
+        picked = mods["common"].spread(list(range(30)), 24)
+        assert len(set(picked)) == 24
+        assert picked == sorted(picked)
+        assert max(b - a for a, b in zip(picked, picked[1:])) <= 2
+
+    def test_degenerate_limits(self, mods):
+        assert mods["common"].spread([], 5) == []
+        assert mods["common"].spread([1, 2, 3], 0) == []
+        assert mods["common"].spread([1, 2, 3], 1) == [1]
+
+    def test_collect_items_spreads_over_the_class_not_its_head(self, mods):
+        pages = [
+            _page(
+                mods,
+                f"spods/p{i:03d}",
+                "spods",
+                marks=(("stamp", (10, 10, 20, 20), "spods/c", ("clustered",)),),
+            )
+            for i in range(27)
+        ]
+        classes = {"spods/c": {"page_ids": [p.page_id for p in pages], "n_instances": 27}}
+        items = mods["siglip"].collect_items(pages, classes, max_per_class=24)
+        sampled = [it["page_id"] for it in items if it["kind"] == "instance"]
+        assert len(sampled) == 24
+        assert "spods/p026" in sampled
+
+    def test_the_cluster_sheet_renders_exactly_what_the_proposal_covers(self, mods, tmp_path):
+        # The sheet exists to adjudicate the proposal, and the two samples are
+        # drawn by different code paths -- an untagged cell would invite a
+        # verdict about a crop the clusterer never saw.
+        from PIL import Image
+
+        img = tmp_path / "p.png"
+        Image.new("RGB", (200, 200), "white").save(img)
+        pages = [
+            _page(
+                mods,
+                f"spods/p{i:03d}",
+                "spods",
+                marks=(("stamp", (10, 10, 20, 20), "spods/c", ("clustered",)),),
+                path=str(img),
+            )
+            for i in range(6)
+        ]
+        classes = {
+            "spods/c": {
+                "page_ids": [p.page_id for p in pages],
+                "n_instances": 6,
+                "provenance": ["clustered"],
+            }
+        }
+        proposals = {"spods/c": {"spods/p000": 1, "spods/p005": 2}}
+        verdicts = mods["slate"].task_cluster(pages, classes, tmp_path, proposals=proposals)
+        assert verdicts[0]["proposed_groups"] == [1, 1]
+
+
+class TestMixedClassScreen:
+    """The screen for a mixed *class*, beside the screens for an odd *crop*.
+
+    #3610: `staver/stamp_stampds-00156_0` holds five marks, and the query-crop
+    rank scores it in the healthiest tier of all 59 classes -- correctly, since
+    its query crop is a good instance of the 16-strong mark it was drawn from.
+    A rank of a crop cannot see the other four marks; nothing did.
+    """
+
+    @staticmethod
+    def _mixed(n_close=3, n_far=3):
+        # Two tight groups a right angle apart: max within-class distance 1.0,
+        # wider than any threshold in the sweep.
+        near, far = [1.0, 0.0], [0.0, 1.0]
+        items = [{"class_id": "a", "page_id": f"p{i}", "kind": "instance"} for i in range(n_close + n_far)]
+        vecs = np.array([near] * n_close + [far] * n_far, dtype=np.float32)
+        return items, vecs
+
+    def test_a_class_wider_than_the_loosest_sweep_threshold_is_flagged(self, mods):
+        items, vecs = self._mixed()
+        (row,) = mods["siglip"].split_report(items, vecs, (0.1, 0.4))
+        assert row["max_within"] == pytest.approx(1.0, abs=1e-3)
+        assert row["mixed"] is True
+
+    def test_a_tight_class_is_not(self, mods):
+        items = [{"class_id": "a", "page_id": f"p{i}", "kind": "instance"} for i in range(3)]
+        vecs = np.tile(np.array([1.0, 0.0], dtype=np.float32), (3, 1))
+        (row,) = mods["siglip"].split_report(items, vecs, (0.1, 0.4))
+        assert row["mixed"] is False
+
+    def test_the_flag_defaults_to_the_loosest_threshold_in_the_sweep(self, mods):
+        # Tied to the sweep on purpose: an independent number is one that can
+        # drift away from the sweep, which is how CLUSTER_THRESHOLD's 0.16
+        # outlived its decomposition (#3366).
+        assert mods["cfg"].AUDIT_MIXED_MAX_WITHIN == max(mods["cfg"].AUDIT_SPLIT_SWEEP)
+
+    def test_the_flag_records_the_threshold_it_was_taken_at(self, mods):
+        items, vecs = self._mixed()
+        (row,) = mods["siglip"].split_report(items, vecs, (0.4,), mixed_at=1.5)
+        assert row["mixed"] is False
+        assert row["mixed_at"] == 1.5
+
+    def test_a_query_crop_can_rank_first_and_still_reach_only_part_of_its_class(self, mods):
+        # The #3610 case in miniature: the crop is a good instance of the
+        # majority mark, so the centroid rank is 0 and says nothing about the
+        # instances that are a different mark.
+        items = [
+            {"class_id": "a", "page_id": "p0", "kind": "instance"},
+            {"class_id": "a", "page_id": "p1", "kind": "instance"},
+            {"class_id": "a", "page_id": "p2", "kind": "instance"},
+            {"class_id": "b", "page_id": "p3", "kind": "instance"},
+            {"class_id": "a", "page_id": "q", "kind": "query"},
+        ]
+        # `other` sits half-way to the query, so the cut-off the reach is
+        # measured against falls between the two marks inside class "a".
+        near, far, other = [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.5, 0.0, 3**0.5 / 2]
+        vecs = np.array([near, near, far, other, near], dtype=np.float32)
+        order, centroids = mods["siglip"].class_centroids(items, vecs)
+        (row,) = mods["siglip"].query_check(items, vecs, order, centroids)
+        assert row["rank_of_own_class"] == 0
+        assert row["own_instances"] == 3
+        assert row["own_instances_reached"] == 2
+        assert row["nearest_other_class"] == "b"
+
+    def test_a_representative_query_crop_reaches_its_whole_class(self, mods):
+        items = [
+            {"class_id": "a", "page_id": "p0", "kind": "instance"},
+            {"class_id": "a", "page_id": "p1", "kind": "instance"},
+            {"class_id": "b", "page_id": "p2", "kind": "instance"},
+            {"class_id": "a", "page_id": "q", "kind": "query"},
+        ]
+        vecs = np.array([[1.0, 0.0], [1.0, 0.0], [0.0, 1.0], [1.0, 0.0]], dtype=np.float32)
+        order, centroids = mods["siglip"].class_centroids(items, vecs)
+        (row,) = mods["siglip"].query_check(items, vecs, order, centroids)
+        assert row["own_instances_reached"] == row["own_instances"] == 2
+
+    def test_the_query_crop_is_not_counted_as_one_of_its_own_instances(self, mods):
+        items = [
+            {"class_id": "a", "page_id": "p0", "kind": "instance"},
+            {"class_id": "b", "page_id": "p1", "kind": "instance"},
+            {"class_id": "a", "page_id": "q", "kind": "query"},
+        ]
+        vecs = np.array([[1.0, 0.0], [0.0, 1.0], [1.0, 0.0]], dtype=np.float32)
+        order, centroids = mods["siglip"].class_centroids(items, vecs)
+        (row,) = mods["siglip"].query_check(items, vecs, order, centroids)
+        assert row["own_instances"] == 1
+
+
+class TestSlateDescriptorChoice:
+    """Which descriptor the slate is ordered by, and what it refuses."""
+
+    @staticmethod
+    def _items(class_ids):
+        return [{"class_id": c, "page_id": f"p{i}", "kind": "instance"} for i, c in enumerate(class_ids)]
+
+    def test_phash_needs_no_cache_and_is_the_default(self, mods, tmp_path):
+        from PIL import Image
+
+        images = [Image.new("RGB", (40, 40), c) for c in ("white", "black")]
+        dist = mods["slate"].class_distances(["a", "b"], images, "phash", tmp_path)
+        assert dist.shape == (2, 2)
+        assert dist[0, 0] == 0.0
+        assert mods["cfg"].SLATE_DESCRIPTOR == "phash"
+
+    def test_a_semantic_descriptor_orders_by_centroid_not_by_exemplar(self, mods, tmp_path):
+        from PIL import Image
+
+        TestSiglipAuditVectors._cache(
+            tmp_path,
+            self._items(["a", "a", "b"]),
+            [[1.0, 0.0], [1.0, 0.0], [0.0, 1.0]],
+        )
+        # Identical exemplars: a phash ordering would call these distance 0.
+        # The cache says the classes are orthogonal, and the cache is what a
+        # semantic descriptor is being asked for.
+        images = [Image.new("RGB", (40, 40), "white") for _ in range(2)]
+        dist = mods["slate"].class_distances(["a", "b"], images, "siglip2_l", tmp_path)
+        assert dist[0, 1] == pytest.approx(1.0, abs=1e-5)
+
+    def test_a_cache_from_another_embedder_is_refused_not_used(self, mods, tmp_path):
+        from PIL import Image
+
+        TestSiglipAuditVectors._cache(tmp_path, self._items(["a", "b"]), [[1.0, 0.0], [0.0, 1.0]], embedder="siglip")
+        images = [Image.new("RGB", (40, 40), "white") for _ in range(2)]
+        with pytest.raises(SystemExit, match="siglip2_l"):
+            mods["slate"].class_distances(["a", "b"], images, "siglip2_l", tmp_path)
+
+    def test_a_class_missing_from_the_cache_is_refused_not_dropped(self, mods, tmp_path):
+        from PIL import Image
+
+        TestSiglipAuditVectors._cache(tmp_path, self._items(["a"]), [[1.0, 0.0]])
+        images = [Image.new("RGB", (40, 40), "white") for _ in range(2)]
+        with pytest.raises(SystemExit, match="no vectors"):
+            mods["slate"].class_distances(["a", "b"], images, "siglip2_l", tmp_path)
+
+    def test_phash_proposes_no_subgroups_about_its_own_output(self, mods, tmp_path):
+        assert mods["slate"].subgroups(tmp_path, "phash", 0.2) == {}
+
+    def test_subgroups_are_numbered_largest_first(self, mods, tmp_path):
+        items = [
+            {"class_id": "a", "page_id": "p0", "kind": "instance"},
+            {"class_id": "a", "page_id": "p1", "kind": "instance"},
+            {"class_id": "a", "page_id": "p2", "kind": "instance"},
+            {"class_id": "a", "page_id": "p3", "kind": "instance"},
+        ]
+        TestSiglipAuditVectors._cache(tmp_path, items, [[1.0, 0.0], [1.0, 0.0], [1.0, 0.0], [0.0, 1.0]])
+        groups = mods["slate"].subgroups(tmp_path, "siglip2_l", 0.5)["a"]
+        assert groups["p0"] == groups["p1"] == groups["p2"] == 1
+        assert groups["p3"] == 2

@@ -1,0 +1,2401 @@
+pass,members,image_id,present,seeded,stratum,driver,exhaustive
+Backpack,backpack,655,0,0,random,boat,no
+Backpack,backpack,1490,0,0,random,bench,no
+Backpack,backpack,1556,0,0,random,car,no
+Backpack,backpack,1986,0,0,boundary,cell phone,no
+Backpack,backpack,2360,0,0,boundary,stop sign,no
+Backpack,backpack,3561,0,0,boundary,chair,no
+Backpack,backpack,3801,0,0,random,bench,no
+Backpack,backpack,4185,0,0,boundary,stop sign,no
+Backpack,backpack,4214,0,0,random,fork,no
+Backpack,backpack,61589,0,0,random,kite,no
+Backpack,backpack,497980,0,0,random,bench,no
+Backpack,backpack,498270,0,0,boundary,boat,no
+Backpack,backpack,1159420,0,0,boundary,truck,yes
+Backpack,backpack,1159799,0,0,random,bowl,no
+Backpack,backpack,1592013,0,0,boundary,bench,yes
+Backpack,backpack,1592557,0,0,random,fork,no
+Backpack,backpack,1593184,0,0,random,dog,yes
+Backpack,backpack,2315792,0,0,boundary,bench,yes
+Backpack,backpack,2315796,1,0,random,car,no
+Backpack,backpack,2316043,0,0,random,car,yes
+Backpack,backpack,2316125,0,0,boundary,kite,no
+Backpack,backpack,2316533,0,0,random,kite,yes
+Backpack,backpack,2318153,0,0,random,fork,yes
+Backpack,backpack,2320159,0,0,random,spoon,yes
+Backpack,backpack,2320550,0,0,random,bench,yes
+Backpack,backpack,2321487,0,0,random,bird,yes
+Backpack,backpack,2322248,0,0,boundary,kite,yes
+Backpack,backpack,2322535,0,0,boundary,kite,yes
+Backpack,backpack,2322849,0,0,boundary,backpack,no
+Backpack,backpack,2323085,0,0,random,kite,yes
+Backpack,backpack,2323658,0,0,boundary,dog,no
+Backpack,backpack,2323842,0,0,boundary,kite,no
+Backpack,backpack,2325332,0,0,boundary,truck,yes
+Backpack,backpack,2325379,0,0,boundary,kite,no
+Backpack,backpack,2325700,0,0,boundary,kite,yes
+Backpack,backpack,2326762,0,0,boundary,sink,no
+Backpack,backpack,2327098,0,0,boundary,sink,no
+Backpack,backpack,2327398,0,0,boundary,kite,yes
+Backpack,backpack,2327535,0,0,random,cup,no
+Backpack,backpack,2328476,0,0,random,bench,no
+Backpack,backpack,2329296,0,0,boundary,stop sign,yes
+Backpack,backpack,2329538,0,0,random,bench,no
+Backpack,backpack,2330568,0,0,boundary,bus,yes
+Backpack,backpack,2331220,0,0,boundary,kite,no
+Backpack,backpack,2332648,0,0,random,sink,no
+Backpack,backpack,2333001,0,0,boundary,kite,yes
+Backpack,backpack,2334397,0,0,random,bowl,no
+Backpack,backpack,2334729,0,0,random,bus,no
+Backpack,backpack,2334823,0,0,random,kite,yes
+Backpack,backpack,2334934,0,0,boundary,kite,yes
+Backpack,backpack,2335019,0,0,random,bench,no
+Backpack,backpack,2336335,0,0,random,car,no
+Backpack,backpack,2336569,0,0,boundary,stop sign,yes
+Backpack,backpack,2336745,0,0,boundary,bus,no
+Backpack,backpack,2338255,0,0,boundary,bench,yes
+Backpack,backpack,2338452,0,0,random,bird,yes
+Backpack,backpack,2339643,0,0,boundary,kite,yes
+Backpack,backpack,2340056,0,0,random,knife,yes
+Backpack,backpack,2340667,0,0,random,bicycle,no
+Backpack,backpack,2341076,0,0,random,bowl,yes
+Backpack,backpack,2341258,0,0,random,bench,no
+Backpack,backpack,2342757,0,0,random,car,no
+Backpack,backpack,2343133,0,0,random,bench,no
+Backpack,backpack,2343839,0,0,boundary,stop sign,yes
+Backpack,backpack,2346019,0,0,boundary,stop sign,yes
+Backpack,backpack,2346929,0,0,boundary,bus,no
+Backpack,backpack,2348108,0,0,boundary,stop sign,no
+Backpack,backpack,2350334,0,0,boundary,knife,yes
+Backpack,backpack,2350610,0,0,boundary,kite,yes
+Backpack,backpack,2352095,0,0,random,bus,yes
+Backpack,backpack,2352709,0,0,boundary,kite,no
+Backpack,backpack,2352911,0,0,random,bowl,no
+Backpack,backpack,2353402,0,0,random,bus,no
+Backpack,backpack,2353986,0,0,boundary,kite,no
+Backpack,backpack,2354790,0,0,boundary,bus,yes
+Backpack,backpack,2355650,0,0,boundary,stop sign,no
+Backpack,backpack,2355890,0,0,boundary,stop sign,yes
+Backpack,backpack,2357470,0,0,random,dog,yes
+Backpack,backpack,2357898,0,0,random,bench,no
+Backpack,backpack,2358000,0,0,boundary,cell phone,yes
+Backpack,backpack,2358239,0,0,random,bird,yes
+Backpack,backpack,2358316,0,0,boundary,sink,yes
+Backpack,backpack,2358419,0,0,random,bus,no
+Backpack,backpack,2359994,0,0,random,bus,no
+Backpack,backpack,2360117,0,0,boundary,kite,yes
+Backpack,backpack,2360975,0,0,boundary,kite,yes
+Backpack,backpack,2361029,0,0,boundary,cell phone,no
+Backpack,backpack,2361524,0,0,random,boat,yes
+Backpack,backpack,2362065,0,0,boundary,sink,yes
+Backpack,backpack,2362762,0,0,boundary,vase,yes
+Backpack,backpack,2363160,0,0,random,bird,yes
+Backpack,backpack,2363995,0,0,boundary,sink,no
+Backpack,backpack,2364216,0,0,random,bus,yes
+Backpack,backpack,2364952,0,0,random,bird,yes
+Backpack,backpack,2365421,0,0,boundary,cell phone,yes
+Backpack,backpack,2366442,0,0,random,bowl,yes
+Backpack,backpack,2367117,0,0,boundary,kite,no
+Backpack,backpack,2367901,0,0,boundary,stop sign,no
+Backpack,backpack,2368073,0,0,boundary,stop sign,no
+Backpack,backpack,2368814,0,0,random,bird,no
+Backpack,backpack,2368984,1,0,random,bus,no
+Backpack,backpack,2369018,0,0,boundary,kite,no
+Backpack,backpack,2370144,0,0,random,bowl,no
+Backpack,backpack,2370271,0,0,random,bird,yes
+Backpack,backpack,2370802,0,0,random,stop sign,yes
+Backpack,backpack,2372204,0,0,random,bowl,no
+Backpack,backpack,2372245,0,0,random,stop sign,no
+Backpack,backpack,2372457,0,0,boundary,spoon,no
+Backpack,backpack,2373243,0,0,random,bird,no
+Backpack,backpack,2374137,0,0,random,dog,no
+Backpack,backpack,2374487,0,0,boundary,stop sign,yes
+Backpack,backpack,2375949,0,0,random,cup,no
+Backpack,backpack,2376171,0,0,random,bicycle,no
+Backpack,backpack,2376806,0,0,boundary,stop sign,yes
+Backpack,backpack,2379036,0,0,random,kite,no
+Backpack,backpack,2379050,0,0,boundary,dog,yes
+Backpack,backpack,2379075,0,0,boundary,dog,no
+Backpack,backpack,2379254,0,0,random,dog,yes
+Backpack,backpack,2379377,0,0,random,bird,no
+Backpack,backpack,2379431,0,0,random,bus,yes
+Backpack,backpack,2380089,0,0,boundary,kite,yes
+Backpack,backpack,2380376,0,0,random,car,no
+Backpack,backpack,2380685,0,0,boundary,sink,no
+Backpack,backpack,2381000,0,0,random,cup,yes
+Backpack,backpack,2382264,0,0,random,dog,no
+Backpack,backpack,2382828,0,0,random,dog,yes
+Backpack,backpack,2383506,0,0,boundary,sink,yes
+Backpack,backpack,2383707,0,0,boundary,kite,no
+Backpack,backpack,2384185,0,0,random,backpack,no
+Backpack,backpack,2384924,0,0,boundary,truck,yes
+Backpack,backpack,2385477,0,0,random,kite,no
+Backpack,backpack,2385504,0,0,boundary,kite,yes
+Backpack,backpack,2386347,0,0,random,bowl,yes
+Backpack,backpack,2386624,0,0,random,dog,yes
+Backpack,backpack,2386652,0,0,random,bird,yes
+Backpack,backpack,2387068,0,0,boundary,kite,no
+Backpack,backpack,2387690,0,0,random,bus,yes
+Backpack,backpack,2388314,0,0,boundary,bench,yes
+Backpack,backpack,2388486,0,0,random,bowl,yes
+Backpack,backpack,2389518,0,0,random,boat,no
+Backpack,backpack,2391377,0,0,boundary,kite,no
+Backpack,backpack,2391765,0,0,boundary,chair,yes
+Backpack,backpack,2392094,0,0,random,truck,yes
+Backpack,backpack,2392128,0,0,boundary,stop sign,yes
+Backpack,backpack,2392264,0,0,boundary,stop sign,no
+Backpack,backpack,2392277,0,0,random,bowl,no
+Backpack,backpack,2392337,0,0,boundary,sink,yes
+Backpack,backpack,2392420,0,0,boundary,vase,yes
+Backpack,backpack,2392480,0,0,random,bowl,no
+Backpack,backpack,2392734,0,0,random,kite,yes
+Backpack,backpack,2392807,0,0,random,bus,yes
+Backpack,backpack,2393325,0,0,random,cup,yes
+Backpack,backpack,2393671,0,0,boundary,dog,yes
+Backpack,backpack,2393732,0,0,boundary,stop sign,no
+Backpack,backpack,2393864,0,0,boundary,fire hydrant,yes
+Backpack,backpack,2393952,0,0,boundary,sink,no
+Backpack,backpack,2394130,0,0,boundary,kite,yes
+Backpack,backpack,2394898,0,0,boundary,dog,no
+Backpack,backpack,2395379,0,0,random,sink,no
+Backpack,backpack,2395745,0,0,boundary,kite,no
+Backpack,backpack,2396098,0,0,random,bench,yes
+Backpack,backpack,2398287,0,0,boundary,bowl,yes
+Backpack,backpack,2398807,0,0,boundary,stop sign,no
+Backpack,backpack,2398852,0,0,random,knife,no
+Backpack,backpack,2399091,0,0,boundary,sink,no
+Backpack,backpack,2399434,0,0,random,bowl,no
+Backpack,backpack,2399496,0,0,random,kite,no
+Backpack,backpack,2399554,0,0,boundary,sink,no
+Backpack,backpack,2400101,0,0,boundary,kite,no
+Backpack,backpack,2400821,0,0,boundary,sink,yes
+Backpack,backpack,2402404,0,0,random,umbrella,no
+Backpack,backpack,2402410,0,0,boundary,stop sign,no
+Backpack,backpack,2403285,0,0,random,kite,yes
+Backpack,backpack,2404693,0,0,boundary,kite,no
+Backpack,backpack,2406950,0,0,random,bowl,no
+Backpack,backpack,2407502,0,0,boundary,spoon,yes
+Backpack,backpack,2407548,0,0,boundary,bus,no
+Backpack,backpack,2407927,0,0,boundary,bowl,no
+Backpack,backpack,2408671,0,0,random,bowl,yes
+Backpack,backpack,2409231,0,0,random,bowl,no
+Backpack,backpack,2410026,0,0,random,kite,no
+Backpack,backpack,2410237,0,0,random,fork,yes
+Backpack,backpack,2410471,0,0,random,bird,no
+Backpack,backpack,2410628,0,0,boundary,dog,no
+Backpack,backpack,2411277,0,0,random,bowl,no
+Backpack,backpack,2411445,0,0,random,bicycle,no
+Backpack,backpack,2411912,0,0,boundary,stop sign,yes
+Backpack,backpack,2413072,0,0,boundary,stop sign,no
+Backpack,backpack,2413407,0,0,random,spoon,no
+Backpack,backpack,2413495,0,0,boundary,stop sign,yes
+Backpack,backpack,2415129,0,0,random,kite,yes
+Backpack,backpack,2415598,0,0,boundary,sink,no
+Backpack,backpack,2416176,0,0,random,bus,no
+Backpack,backpack,2416246,0,0,boundary,stop sign,yes
+Backpack,backpack,2416293,0,0,random,kite,yes
+Backpack,backpack,2416508,0,0,random,bird,no
+Backpack,backpack,2416700,0,0,boundary,cell phone,yes
+Backpack,backpack,2417271,0,0,boundary,cell phone,yes
+Backpack,backpack,2417678,0,0,boundary,kite,no
+Backpack,backpack,2417852,0,0,boundary,boat,no
+Bench,bench,655,0,0,random,boat,no
+Bench,bench,1490,0,0,random,bench,no
+Bench,bench,1556,0,0,random,car,no
+Bench,bench,1986,0,0,boundary,cell phone,no
+Bench,bench,2360,0,0,boundary,stop sign,no
+Bench,bench,3561,0,0,boundary,chair,no
+Bench,bench,3801,0,0,random,bench,no
+Bench,bench,4185,0,0,boundary,stop sign,no
+Bench,bench,4214,0,0,random,fork,no
+Bench,bench,61589,0,0,random,kite,no
+Bench,bench,497980,0,0,random,bench,no
+Bench,bench,498270,1,0,boundary,boat,no
+Bench,bench,1159420,0,0,boundary,truck,yes
+Bench,bench,1159799,0,0,random,bowl,no
+Bench,bench,1592013,0,0,boundary,bench,yes
+Bench,bench,1592557,0,0,random,fork,no
+Bench,bench,1593184,0,0,random,dog,yes
+Bench,bench,2315792,0,0,boundary,bench,yes
+Bench,bench,2315796,0,0,random,car,no
+Bench,bench,2316043,0,0,random,car,yes
+Bench,bench,2316125,0,0,boundary,kite,no
+Bench,bench,2316533,0,0,random,kite,yes
+Bench,bench,2318153,0,0,random,fork,yes
+Bench,bench,2320159,0,0,random,spoon,yes
+Bench,bench,2320550,0,0,random,bench,yes
+Bench,bench,2321487,0,0,random,bird,yes
+Bench,bench,2322248,0,0,boundary,kite,yes
+Bench,bench,2322535,0,0,boundary,kite,yes
+Bench,bench,2322849,0,0,boundary,backpack,no
+Bench,bench,2323085,0,0,random,kite,yes
+Bench,bench,2323658,0,0,boundary,dog,no
+Bench,bench,2323842,0,0,boundary,kite,no
+Bench,bench,2325332,0,0,boundary,truck,yes
+Bench,bench,2325379,0,0,boundary,kite,no
+Bench,bench,2325700,0,0,boundary,kite,yes
+Bench,bench,2326762,0,0,boundary,sink,no
+Bench,bench,2327098,0,0,boundary,sink,no
+Bench,bench,2327398,0,0,boundary,kite,yes
+Bench,bench,2327535,0,0,random,cup,no
+Bench,bench,2328476,0,0,random,bench,no
+Bench,bench,2329296,0,0,boundary,stop sign,yes
+Bench,bench,2329538,0,0,random,bench,no
+Bench,bench,2330568,0,0,boundary,bus,yes
+Bench,bench,2331220,0,0,boundary,kite,no
+Bench,bench,2332648,0,0,random,sink,no
+Bench,bench,2333001,0,0,boundary,kite,yes
+Bench,bench,2334397,0,0,random,bowl,no
+Bench,bench,2334729,0,0,random,bus,no
+Bench,bench,2334823,0,0,random,kite,yes
+Bench,bench,2334934,0,0,boundary,kite,yes
+Bench,bench,2335019,0,0,random,bench,no
+Bench,bench,2336335,0,0,random,car,no
+Bench,bench,2336569,0,0,boundary,stop sign,yes
+Bench,bench,2336745,0,0,boundary,bus,no
+Bench,bench,2338255,1,0,boundary,bench,yes
+Bench,bench,2338452,0,0,random,bird,yes
+Bench,bench,2339643,0,0,boundary,kite,yes
+Bench,bench,2340056,0,0,random,knife,yes
+Bench,bench,2340667,0,0,random,bicycle,no
+Bench,bench,2341076,0,0,random,bowl,yes
+Bench,bench,2341258,0,0,random,bench,no
+Bench,bench,2342757,0,0,random,car,no
+Bench,bench,2343133,0,0,random,bench,no
+Bench,bench,2343839,0,0,boundary,stop sign,yes
+Bench,bench,2346019,0,0,boundary,stop sign,yes
+Bench,bench,2346929,0,0,boundary,bus,no
+Bench,bench,2348108,0,0,boundary,stop sign,no
+Bench,bench,2350334,0,0,boundary,knife,yes
+Bench,bench,2350610,0,0,boundary,kite,yes
+Bench,bench,2352095,0,0,random,bus,yes
+Bench,bench,2352709,0,0,boundary,kite,no
+Bench,bench,2352911,0,0,random,bowl,no
+Bench,bench,2353402,0,0,random,bus,no
+Bench,bench,2353986,0,0,boundary,kite,no
+Bench,bench,2354790,0,0,boundary,bus,yes
+Bench,bench,2355650,0,0,boundary,stop sign,no
+Bench,bench,2355890,0,0,boundary,stop sign,yes
+Bench,bench,2357470,0,0,random,dog,yes
+Bench,bench,2357898,0,0,random,bench,no
+Bench,bench,2358000,0,0,boundary,cell phone,yes
+Bench,bench,2358239,0,0,random,bird,yes
+Bench,bench,2358316,0,0,boundary,sink,yes
+Bench,bench,2358419,0,0,random,bus,no
+Bench,bench,2359994,0,0,random,bus,no
+Bench,bench,2360117,0,0,boundary,kite,yes
+Bench,bench,2360975,0,0,boundary,kite,yes
+Bench,bench,2361029,0,0,boundary,cell phone,no
+Bench,bench,2361524,0,0,random,boat,yes
+Bench,bench,2362065,0,0,boundary,sink,yes
+Bench,bench,2362762,0,0,boundary,vase,yes
+Bench,bench,2363160,0,0,random,bird,yes
+Bench,bench,2363995,0,0,boundary,sink,no
+Bench,bench,2364216,0,0,random,bus,yes
+Bench,bench,2364952,0,0,random,bird,yes
+Bench,bench,2365421,0,0,boundary,cell phone,yes
+Bench,bench,2366442,0,0,random,bowl,yes
+Bench,bench,2367117,0,0,boundary,kite,no
+Bench,bench,2367901,0,0,boundary,stop sign,no
+Bench,bench,2368073,0,0,boundary,stop sign,no
+Bench,bench,2368814,0,0,random,bird,no
+Bench,bench,2368984,0,0,random,bus,no
+Bench,bench,2369018,0,0,boundary,kite,no
+Bench,bench,2370144,0,0,random,bowl,no
+Bench,bench,2370271,0,0,random,bird,yes
+Bench,bench,2370802,0,0,random,stop sign,yes
+Bench,bench,2372204,0,0,random,bowl,no
+Bench,bench,2372245,0,0,random,stop sign,no
+Bench,bench,2372457,0,0,boundary,spoon,no
+Bench,bench,2373243,0,0,random,bird,no
+Bench,bench,2374137,0,0,random,dog,no
+Bench,bench,2374487,0,0,boundary,stop sign,yes
+Bench,bench,2375949,0,0,random,cup,no
+Bench,bench,2376171,0,0,random,bicycle,no
+Bench,bench,2376806,0,0,boundary,stop sign,yes
+Bench,bench,2379036,0,0,random,kite,no
+Bench,bench,2379050,0,0,boundary,dog,yes
+Bench,bench,2379075,0,0,boundary,dog,no
+Bench,bench,2379254,0,0,random,dog,yes
+Bench,bench,2379377,0,0,random,bird,no
+Bench,bench,2379431,0,0,random,bus,yes
+Bench,bench,2380089,0,0,boundary,kite,yes
+Bench,bench,2380376,0,0,random,car,no
+Bench,bench,2380685,0,0,boundary,sink,no
+Bench,bench,2381000,0,0,random,cup,yes
+Bench,bench,2382264,0,0,random,dog,no
+Bench,bench,2382828,0,0,random,dog,yes
+Bench,bench,2383506,0,0,boundary,sink,yes
+Bench,bench,2383707,0,0,boundary,kite,no
+Bench,bench,2384185,0,0,random,backpack,no
+Bench,bench,2384924,0,0,boundary,truck,yes
+Bench,bench,2385477,0,0,random,kite,no
+Bench,bench,2385504,0,0,boundary,kite,yes
+Bench,bench,2386347,1,0,random,bowl,yes
+Bench,bench,2386624,0,0,random,dog,yes
+Bench,bench,2386652,0,0,random,bird,yes
+Bench,bench,2387068,0,0,boundary,kite,no
+Bench,bench,2387690,0,0,random,bus,yes
+Bench,bench,2388314,0,0,boundary,bench,yes
+Bench,bench,2388486,0,0,random,bowl,yes
+Bench,bench,2389518,0,0,random,boat,no
+Bench,bench,2391377,0,0,boundary,kite,no
+Bench,bench,2391765,0,0,boundary,chair,yes
+Bench,bench,2392094,0,0,random,truck,yes
+Bench,bench,2392128,0,0,boundary,stop sign,yes
+Bench,bench,2392264,0,0,boundary,stop sign,no
+Bench,bench,2392277,0,0,random,bowl,no
+Bench,bench,2392337,0,0,boundary,sink,yes
+Bench,bench,2392420,0,0,boundary,vase,yes
+Bench,bench,2392480,0,0,random,bowl,no
+Bench,bench,2392734,0,0,random,kite,yes
+Bench,bench,2392807,0,0,random,bus,yes
+Bench,bench,2393325,0,0,random,cup,yes
+Bench,bench,2393671,0,0,boundary,dog,yes
+Bench,bench,2393732,0,0,boundary,stop sign,no
+Bench,bench,2393864,0,0,boundary,fire hydrant,yes
+Bench,bench,2393952,0,0,boundary,sink,no
+Bench,bench,2394130,0,0,boundary,kite,yes
+Bench,bench,2394898,0,0,boundary,dog,no
+Bench,bench,2395379,0,0,random,sink,no
+Bench,bench,2395745,0,0,boundary,kite,no
+Bench,bench,2396098,0,0,random,bench,yes
+Bench,bench,2398287,0,0,boundary,bowl,yes
+Bench,bench,2398807,0,0,boundary,stop sign,no
+Bench,bench,2398852,0,0,random,knife,no
+Bench,bench,2399091,0,0,boundary,sink,no
+Bench,bench,2399434,0,0,random,bowl,no
+Bench,bench,2399496,0,0,random,kite,no
+Bench,bench,2399554,0,0,boundary,sink,no
+Bench,bench,2400101,0,0,boundary,kite,no
+Bench,bench,2400821,0,0,boundary,sink,yes
+Bench,bench,2402404,0,0,random,umbrella,no
+Bench,bench,2402410,0,0,boundary,stop sign,no
+Bench,bench,2403285,0,0,random,kite,yes
+Bench,bench,2404693,0,0,boundary,kite,no
+Bench,bench,2406950,0,0,random,bowl,no
+Bench,bench,2407502,0,0,boundary,spoon,yes
+Bench,bench,2407548,0,0,boundary,bus,no
+Bench,bench,2407927,0,0,boundary,bowl,no
+Bench,bench,2408671,0,0,random,bowl,yes
+Bench,bench,2409231,1,0,random,bowl,no
+Bench,bench,2410026,0,0,random,kite,no
+Bench,bench,2410237,0,0,random,fork,yes
+Bench,bench,2410471,0,0,random,bird,no
+Bench,bench,2410628,0,0,boundary,dog,no
+Bench,bench,2411277,0,0,random,bowl,no
+Bench,bench,2411445,0,0,random,bicycle,no
+Bench,bench,2411912,0,0,boundary,stop sign,yes
+Bench,bench,2413072,0,0,boundary,stop sign,no
+Bench,bench,2413407,0,0,random,spoon,no
+Bench,bench,2413495,0,0,boundary,stop sign,yes
+Bench,bench,2415129,0,0,random,kite,yes
+Bench,bench,2415598,0,0,boundary,sink,no
+Bench,bench,2416176,0,0,random,bus,no
+Bench,bench,2416246,0,0,boundary,stop sign,yes
+Bench,bench,2416293,0,0,random,kite,yes
+Bench,bench,2416508,0,0,random,bird,no
+Bench,bench,2416700,0,0,boundary,cell phone,yes
+Bench,bench,2417271,0,0,boundary,cell phone,yes
+Bench,bench,2417678,0,0,boundary,kite,no
+Bench,bench,2417852,0,0,boundary,boat,no
+Book,book,655,0,0,random,boat,no
+Book,book,1490,0,0,random,bench,no
+Book,book,1556,0,0,random,car,no
+Book,book,1986,0,0,boundary,cell phone,no
+Book,book,2360,0,0,boundary,stop sign,no
+Book,book,3561,0,0,boundary,chair,no
+Book,book,3801,0,0,random,bench,no
+Book,book,4185,0,0,boundary,stop sign,no
+Book,book,4214,0,0,random,fork,no
+Book,book,61589,0,0,random,kite,no
+Book,book,497980,0,0,random,bench,no
+Book,book,498270,0,0,boundary,boat,no
+Book,book,1159420,0,0,boundary,truck,yes
+Book,book,1159799,0,0,random,bowl,no
+Book,book,1592013,0,0,boundary,bench,yes
+Book,book,1592557,0,0,random,fork,no
+Book,book,1593184,1,0,random,dog,yes
+Book,book,2315792,0,0,boundary,bench,yes
+Book,book,2315796,0,0,random,car,no
+Book,book,2316043,0,0,random,car,yes
+Book,book,2316125,0,0,boundary,kite,no
+Book,book,2316533,0,0,random,kite,yes
+Book,book,2318153,0,0,random,fork,yes
+Book,book,2320159,0,0,random,spoon,yes
+Book,book,2320550,0,0,random,bench,yes
+Book,book,2321487,0,0,random,bird,yes
+Book,book,2322248,0,0,boundary,kite,yes
+Book,book,2322535,0,0,boundary,kite,yes
+Book,book,2322849,0,0,boundary,backpack,no
+Book,book,2323085,0,0,random,kite,yes
+Book,book,2323658,0,0,boundary,dog,no
+Book,book,2323842,0,0,boundary,kite,no
+Book,book,2325332,0,0,boundary,truck,yes
+Book,book,2325379,0,0,boundary,kite,no
+Book,book,2325700,0,0,boundary,kite,yes
+Book,book,2326762,0,0,boundary,sink,no
+Book,book,2327098,0,0,boundary,sink,no
+Book,book,2327398,0,0,boundary,kite,yes
+Book,book,2327535,1,0,random,cup,no
+Book,book,2328476,0,0,random,bench,no
+Book,book,2329296,0,0,boundary,stop sign,yes
+Book,book,2329538,0,0,random,bench,no
+Book,book,2330568,0,0,boundary,bus,yes
+Book,book,2331220,0,0,boundary,kite,no
+Book,book,2332648,0,0,random,sink,no
+Book,book,2333001,0,0,boundary,kite,yes
+Book,book,2334397,0,0,random,bowl,no
+Book,book,2334729,0,0,random,bus,no
+Book,book,2334823,0,0,random,kite,yes
+Book,book,2334934,0,0,boundary,kite,yes
+Book,book,2335019,0,0,random,bench,no
+Book,book,2336335,0,0,random,car,no
+Book,book,2336569,0,0,boundary,stop sign,yes
+Book,book,2336745,0,0,boundary,bus,no
+Book,book,2338255,0,0,boundary,bench,yes
+Book,book,2338452,0,0,random,bird,yes
+Book,book,2339643,0,0,boundary,kite,yes
+Book,book,2340056,0,0,random,knife,yes
+Book,book,2340667,0,0,random,bicycle,no
+Book,book,2341076,0,0,random,bowl,yes
+Book,book,2341258,0,0,random,bench,no
+Book,book,2342757,0,0,random,car,no
+Book,book,2343133,0,0,random,bench,no
+Book,book,2343839,0,0,boundary,stop sign,yes
+Book,book,2346019,0,0,boundary,stop sign,yes
+Book,book,2346929,0,0,boundary,bus,no
+Book,book,2348108,0,0,boundary,stop sign,no
+Book,book,2350334,0,0,boundary,knife,yes
+Book,book,2350610,0,0,boundary,kite,yes
+Book,book,2352095,0,0,random,bus,yes
+Book,book,2352709,0,0,boundary,kite,no
+Book,book,2352911,0,0,random,bowl,no
+Book,book,2353402,0,0,random,bus,no
+Book,book,2353986,0,0,boundary,kite,no
+Book,book,2354790,0,0,boundary,bus,yes
+Book,book,2355650,0,0,boundary,stop sign,no
+Book,book,2355890,0,0,boundary,stop sign,yes
+Book,book,2357470,0,0,random,dog,yes
+Book,book,2357898,0,0,random,bench,no
+Book,book,2358000,0,0,boundary,cell phone,yes
+Book,book,2358239,0,0,random,bird,yes
+Book,book,2358316,0,0,boundary,sink,yes
+Book,book,2358419,0,0,random,bus,no
+Book,book,2359994,0,0,random,bus,no
+Book,book,2360117,0,0,boundary,kite,yes
+Book,book,2360975,0,0,boundary,kite,yes
+Book,book,2361029,0,0,boundary,cell phone,no
+Book,book,2361524,0,0,random,boat,yes
+Book,book,2362065,0,0,boundary,sink,yes
+Book,book,2362762,0,0,boundary,vase,yes
+Book,book,2363160,0,0,random,bird,yes
+Book,book,2363995,0,0,boundary,sink,no
+Book,book,2364216,0,0,random,bus,yes
+Book,book,2364952,0,0,random,bird,yes
+Book,book,2365421,0,0,boundary,cell phone,yes
+Book,book,2366442,0,0,random,bowl,yes
+Book,book,2367117,0,0,boundary,kite,no
+Book,book,2367901,0,0,boundary,stop sign,no
+Book,book,2368073,0,0,boundary,stop sign,no
+Book,book,2368814,0,0,random,bird,no
+Book,book,2368984,0,0,random,bus,no
+Book,book,2369018,0,0,boundary,kite,no
+Book,book,2370144,0,0,random,bowl,no
+Book,book,2370271,0,0,random,bird,yes
+Book,book,2370802,0,0,random,stop sign,yes
+Book,book,2372204,0,0,random,bowl,no
+Book,book,2372245,0,0,random,stop sign,no
+Book,book,2372457,0,0,boundary,spoon,no
+Book,book,2373243,0,0,random,bird,no
+Book,book,2374137,0,0,random,dog,no
+Book,book,2374487,0,0,boundary,stop sign,yes
+Book,book,2375949,0,0,random,cup,no
+Book,book,2376171,0,0,random,bicycle,no
+Book,book,2376806,0,0,boundary,stop sign,yes
+Book,book,2379036,0,0,random,kite,no
+Book,book,2379050,0,0,boundary,dog,yes
+Book,book,2379075,0,0,boundary,dog,no
+Book,book,2379254,0,0,random,dog,yes
+Book,book,2379377,0,0,random,bird,no
+Book,book,2379431,0,0,random,bus,yes
+Book,book,2380089,0,0,boundary,kite,yes
+Book,book,2380376,0,0,random,car,no
+Book,book,2380685,0,0,boundary,sink,no
+Book,book,2381000,0,0,random,cup,yes
+Book,book,2382264,0,0,random,dog,no
+Book,book,2382828,0,0,random,dog,yes
+Book,book,2383506,0,0,boundary,sink,yes
+Book,book,2383707,0,0,boundary,kite,no
+Book,book,2384185,0,0,random,backpack,no
+Book,book,2384924,0,0,boundary,truck,yes
+Book,book,2385477,0,0,random,kite,no
+Book,book,2385504,0,0,boundary,kite,yes
+Book,book,2386347,0,0,random,bowl,yes
+Book,book,2386624,0,0,random,dog,yes
+Book,book,2386652,0,0,random,bird,yes
+Book,book,2387068,0,0,boundary,kite,no
+Book,book,2387690,0,0,random,bus,yes
+Book,book,2388314,0,0,boundary,bench,yes
+Book,book,2388486,0,0,random,bowl,yes
+Book,book,2389518,0,0,random,boat,no
+Book,book,2391377,0,0,boundary,kite,no
+Book,book,2391765,0,0,boundary,chair,yes
+Book,book,2392094,0,0,random,truck,yes
+Book,book,2392128,0,0,boundary,stop sign,yes
+Book,book,2392264,0,0,boundary,stop sign,no
+Book,book,2392277,0,0,random,bowl,no
+Book,book,2392337,0,0,boundary,sink,yes
+Book,book,2392420,0,0,boundary,vase,yes
+Book,book,2392480,0,0,random,bowl,no
+Book,book,2392734,0,0,random,kite,yes
+Book,book,2392807,0,0,random,bus,yes
+Book,book,2393325,0,0,random,cup,yes
+Book,book,2393671,0,0,boundary,dog,yes
+Book,book,2393732,0,0,boundary,stop sign,no
+Book,book,2393864,0,0,boundary,fire hydrant,yes
+Book,book,2393952,0,0,boundary,sink,no
+Book,book,2394130,0,0,boundary,kite,yes
+Book,book,2394898,0,0,boundary,dog,no
+Book,book,2395379,0,0,random,sink,no
+Book,book,2395745,0,0,boundary,kite,no
+Book,book,2396098,0,0,random,bench,yes
+Book,book,2398287,0,0,boundary,bowl,yes
+Book,book,2398807,0,0,boundary,stop sign,no
+Book,book,2398852,0,0,random,knife,no
+Book,book,2399091,0,0,boundary,sink,no
+Book,book,2399434,0,0,random,bowl,no
+Book,book,2399496,0,0,random,kite,no
+Book,book,2399554,0,0,boundary,sink,no
+Book,book,2400101,0,0,boundary,kite,no
+Book,book,2400821,0,0,boundary,sink,yes
+Book,book,2402404,0,0,random,umbrella,no
+Book,book,2402410,0,0,boundary,stop sign,no
+Book,book,2403285,0,0,random,kite,yes
+Book,book,2404693,0,0,boundary,kite,no
+Book,book,2406950,0,0,random,bowl,no
+Book,book,2407502,0,0,boundary,spoon,yes
+Book,book,2407548,0,0,boundary,bus,no
+Book,book,2407927,0,0,boundary,bowl,no
+Book,book,2408671,0,0,random,bowl,yes
+Book,book,2409231,0,0,random,bowl,no
+Book,book,2410026,0,0,random,kite,no
+Book,book,2410237,0,0,random,fork,yes
+Book,book,2410471,0,0,random,bird,no
+Book,book,2410628,0,0,boundary,dog,no
+Book,book,2411277,0,0,random,bowl,no
+Book,book,2411445,0,0,random,bicycle,no
+Book,book,2411912,0,0,boundary,stop sign,yes
+Book,book,2413072,0,0,boundary,stop sign,no
+Book,book,2413407,0,0,random,spoon,no
+Book,book,2413495,0,0,boundary,stop sign,yes
+Book,book,2415129,0,0,random,kite,yes
+Book,book,2415598,0,0,boundary,sink,no
+Book,book,2416176,0,0,random,bus,no
+Book,book,2416246,0,0,boundary,stop sign,yes
+Book,book,2416293,0,0,random,kite,yes
+Book,book,2416508,0,0,random,bird,no
+Book,book,2416700,0,0,boundary,cell phone,yes
+Book,book,2417271,0,0,boundary,cell phone,yes
+Book,book,2417678,0,0,boundary,kite,no
+Book,book,2417852,0,0,boundary,boat,no
+Cell Phone,cell phone,655,0,0,random,boat,no
+Cell Phone,cell phone,1490,0,0,random,bench,no
+Cell Phone,cell phone,1556,0,0,random,car,no
+Cell Phone,cell phone,1986,0,0,boundary,cell phone,no
+Cell Phone,cell phone,2360,0,0,boundary,stop sign,no
+Cell Phone,cell phone,3561,0,0,boundary,chair,no
+Cell Phone,cell phone,3801,0,0,random,bench,no
+Cell Phone,cell phone,4185,0,0,boundary,stop sign,no
+Cell Phone,cell phone,4214,0,0,random,fork,no
+Cell Phone,cell phone,61589,0,0,random,kite,no
+Cell Phone,cell phone,497980,0,0,random,bench,no
+Cell Phone,cell phone,498270,0,0,boundary,boat,no
+Cell Phone,cell phone,1159420,0,0,boundary,truck,yes
+Cell Phone,cell phone,1159799,0,0,random,bowl,no
+Cell Phone,cell phone,1592013,0,0,boundary,bench,yes
+Cell Phone,cell phone,1592557,1,0,random,fork,no
+Cell Phone,cell phone,1593184,0,0,random,dog,yes
+Cell Phone,cell phone,2315792,0,0,boundary,bench,yes
+Cell Phone,cell phone,2315796,0,0,random,car,no
+Cell Phone,cell phone,2316043,0,0,random,car,yes
+Cell Phone,cell phone,2316125,0,0,boundary,kite,no
+Cell Phone,cell phone,2316533,0,0,random,kite,yes
+Cell Phone,cell phone,2318153,0,0,random,fork,yes
+Cell Phone,cell phone,2320159,0,0,random,spoon,yes
+Cell Phone,cell phone,2320550,0,0,random,bench,yes
+Cell Phone,cell phone,2321487,0,0,random,bird,yes
+Cell Phone,cell phone,2322248,0,0,boundary,kite,yes
+Cell Phone,cell phone,2322535,0,0,boundary,kite,yes
+Cell Phone,cell phone,2322849,0,0,boundary,backpack,no
+Cell Phone,cell phone,2323085,0,0,random,kite,yes
+Cell Phone,cell phone,2323658,0,0,boundary,dog,no
+Cell Phone,cell phone,2323842,0,0,boundary,kite,no
+Cell Phone,cell phone,2325332,0,0,boundary,truck,yes
+Cell Phone,cell phone,2325379,0,0,boundary,kite,no
+Cell Phone,cell phone,2325700,0,0,boundary,kite,yes
+Cell Phone,cell phone,2326762,0,0,boundary,sink,no
+Cell Phone,cell phone,2327098,0,0,boundary,sink,no
+Cell Phone,cell phone,2327398,0,0,boundary,kite,yes
+Cell Phone,cell phone,2327535,0,0,random,cup,no
+Cell Phone,cell phone,2328476,0,0,random,bench,no
+Cell Phone,cell phone,2329296,0,0,boundary,stop sign,yes
+Cell Phone,cell phone,2329538,0,0,random,bench,no
+Cell Phone,cell phone,2330568,0,0,boundary,bus,yes
+Cell Phone,cell phone,2331220,0,0,boundary,kite,no
+Cell Phone,cell phone,2332648,0,0,random,sink,no
+Cell Phone,cell phone,2333001,0,0,boundary,kite,yes
+Cell Phone,cell phone,2334397,0,0,random,bowl,no
+Cell Phone,cell phone,2334729,0,0,random,bus,no
+Cell Phone,cell phone,2334823,0,0,random,kite,yes
+Cell Phone,cell phone,2334934,0,0,boundary,kite,yes
+Cell Phone,cell phone,2335019,0,0,random,bench,no
+Cell Phone,cell phone,2336335,0,0,random,car,no
+Cell Phone,cell phone,2336569,0,0,boundary,stop sign,yes
+Cell Phone,cell phone,2336745,0,0,boundary,bus,no
+Cell Phone,cell phone,2338255,0,0,boundary,bench,yes
+Cell Phone,cell phone,2338452,0,0,random,bird,yes
+Cell Phone,cell phone,2339643,0,0,boundary,kite,yes
+Cell Phone,cell phone,2340056,0,0,random,knife,yes
+Cell Phone,cell phone,2340667,0,0,random,bicycle,no
+Cell Phone,cell phone,2341076,0,0,random,bowl,yes
+Cell Phone,cell phone,2341258,0,0,random,bench,no
+Cell Phone,cell phone,2342757,0,0,random,car,no
+Cell Phone,cell phone,2343133,0,0,random,bench,no
+Cell Phone,cell phone,2343839,0,0,boundary,stop sign,yes
+Cell Phone,cell phone,2346019,0,0,boundary,stop sign,yes
+Cell Phone,cell phone,2346929,0,0,boundary,bus,no
+Cell Phone,cell phone,2348108,0,0,boundary,stop sign,no
+Cell Phone,cell phone,2350334,0,0,boundary,knife,yes
+Cell Phone,cell phone,2350610,0,0,boundary,kite,yes
+Cell Phone,cell phone,2352095,0,0,random,bus,yes
+Cell Phone,cell phone,2352709,0,0,boundary,kite,no
+Cell Phone,cell phone,2352911,0,0,random,bowl,no
+Cell Phone,cell phone,2353402,0,0,random,bus,no
+Cell Phone,cell phone,2353986,0,0,boundary,kite,no
+Cell Phone,cell phone,2354790,0,0,boundary,bus,yes
+Cell Phone,cell phone,2355650,0,0,boundary,stop sign,no
+Cell Phone,cell phone,2355890,0,0,boundary,stop sign,yes
+Cell Phone,cell phone,2357470,0,0,random,dog,yes
+Cell Phone,cell phone,2357898,0,0,random,bench,no
+Cell Phone,cell phone,2358000,0,0,boundary,cell phone,yes
+Cell Phone,cell phone,2358239,0,0,random,bird,yes
+Cell Phone,cell phone,2358316,0,0,boundary,sink,yes
+Cell Phone,cell phone,2358419,0,0,random,bus,no
+Cell Phone,cell phone,2359994,0,0,random,bus,no
+Cell Phone,cell phone,2360117,0,0,boundary,kite,yes
+Cell Phone,cell phone,2360975,0,0,boundary,kite,yes
+Cell Phone,cell phone,2361029,0,0,boundary,cell phone,no
+Cell Phone,cell phone,2361524,0,0,random,boat,yes
+Cell Phone,cell phone,2362065,0,0,boundary,sink,yes
+Cell Phone,cell phone,2362762,0,0,boundary,vase,yes
+Cell Phone,cell phone,2363160,0,0,random,bird,yes
+Cell Phone,cell phone,2363995,0,0,boundary,sink,no
+Cell Phone,cell phone,2364216,0,0,random,bus,yes
+Cell Phone,cell phone,2364952,0,0,random,bird,yes
+Cell Phone,cell phone,2365421,0,0,boundary,cell phone,yes
+Cell Phone,cell phone,2366442,0,0,random,bowl,yes
+Cell Phone,cell phone,2367117,0,0,boundary,kite,no
+Cell Phone,cell phone,2367901,0,0,boundary,stop sign,no
+Cell Phone,cell phone,2368073,0,0,boundary,stop sign,no
+Cell Phone,cell phone,2368814,0,0,random,bird,no
+Cell Phone,cell phone,2368984,0,0,random,bus,no
+Cell Phone,cell phone,2369018,0,0,boundary,kite,no
+Cell Phone,cell phone,2370144,0,0,random,bowl,no
+Cell Phone,cell phone,2370271,0,0,random,bird,yes
+Cell Phone,cell phone,2370802,0,0,random,stop sign,yes
+Cell Phone,cell phone,2372204,0,0,random,bowl,no
+Cell Phone,cell phone,2372245,0,0,random,stop sign,no
+Cell Phone,cell phone,2372457,0,0,boundary,spoon,no
+Cell Phone,cell phone,2373243,0,0,random,bird,no
+Cell Phone,cell phone,2374137,0,0,random,dog,no
+Cell Phone,cell phone,2374487,0,0,boundary,stop sign,yes
+Cell Phone,cell phone,2375949,0,0,random,cup,no
+Cell Phone,cell phone,2376171,0,0,random,bicycle,no
+Cell Phone,cell phone,2376806,0,0,boundary,stop sign,yes
+Cell Phone,cell phone,2379036,0,0,random,kite,no
+Cell Phone,cell phone,2379050,0,0,boundary,dog,yes
+Cell Phone,cell phone,2379075,0,0,boundary,dog,no
+Cell Phone,cell phone,2379254,0,0,random,dog,yes
+Cell Phone,cell phone,2379377,0,0,random,bird,no
+Cell Phone,cell phone,2379431,0,0,random,bus,yes
+Cell Phone,cell phone,2380089,0,0,boundary,kite,yes
+Cell Phone,cell phone,2380376,0,0,random,car,no
+Cell Phone,cell phone,2380685,0,0,boundary,sink,no
+Cell Phone,cell phone,2381000,0,0,random,cup,yes
+Cell Phone,cell phone,2382264,0,0,random,dog,no
+Cell Phone,cell phone,2382828,0,0,random,dog,yes
+Cell Phone,cell phone,2383506,0,0,boundary,sink,yes
+Cell Phone,cell phone,2383707,0,0,boundary,kite,no
+Cell Phone,cell phone,2384185,0,0,random,backpack,no
+Cell Phone,cell phone,2384924,0,0,boundary,truck,yes
+Cell Phone,cell phone,2385477,0,0,random,kite,no
+Cell Phone,cell phone,2385504,0,0,boundary,kite,yes
+Cell Phone,cell phone,2386347,0,0,random,bowl,yes
+Cell Phone,cell phone,2386624,0,0,random,dog,yes
+Cell Phone,cell phone,2386652,0,0,random,bird,yes
+Cell Phone,cell phone,2387068,0,0,boundary,kite,no
+Cell Phone,cell phone,2387690,0,0,random,bus,yes
+Cell Phone,cell phone,2388314,0,0,boundary,bench,yes
+Cell Phone,cell phone,2388486,0,0,random,bowl,yes
+Cell Phone,cell phone,2389518,0,0,random,boat,no
+Cell Phone,cell phone,2391377,0,0,boundary,kite,no
+Cell Phone,cell phone,2391765,0,0,boundary,chair,yes
+Cell Phone,cell phone,2392094,0,0,random,truck,yes
+Cell Phone,cell phone,2392128,0,0,boundary,stop sign,yes
+Cell Phone,cell phone,2392264,0,0,boundary,stop sign,no
+Cell Phone,cell phone,2392277,0,0,random,bowl,no
+Cell Phone,cell phone,2392337,0,0,boundary,sink,yes
+Cell Phone,cell phone,2392420,0,0,boundary,vase,yes
+Cell Phone,cell phone,2392480,0,0,random,bowl,no
+Cell Phone,cell phone,2392734,0,0,random,kite,yes
+Cell Phone,cell phone,2392807,0,0,random,bus,yes
+Cell Phone,cell phone,2393325,0,0,random,cup,yes
+Cell Phone,cell phone,2393671,0,0,boundary,dog,yes
+Cell Phone,cell phone,2393732,0,0,boundary,stop sign,no
+Cell Phone,cell phone,2393864,1,1,boundary,fire hydrant,yes
+Cell Phone,cell phone,2393952,0,0,boundary,sink,no
+Cell Phone,cell phone,2394130,0,0,boundary,kite,yes
+Cell Phone,cell phone,2394898,0,0,boundary,dog,no
+Cell Phone,cell phone,2395379,0,0,random,sink,no
+Cell Phone,cell phone,2395745,0,0,boundary,kite,no
+Cell Phone,cell phone,2396098,0,0,random,bench,yes
+Cell Phone,cell phone,2398287,0,0,boundary,bowl,yes
+Cell Phone,cell phone,2398807,0,0,boundary,stop sign,no
+Cell Phone,cell phone,2398852,0,0,random,knife,no
+Cell Phone,cell phone,2399091,0,0,boundary,sink,no
+Cell Phone,cell phone,2399434,0,0,random,bowl,no
+Cell Phone,cell phone,2399496,0,0,random,kite,no
+Cell Phone,cell phone,2399554,0,0,boundary,sink,no
+Cell Phone,cell phone,2400101,0,0,boundary,kite,no
+Cell Phone,cell phone,2400821,0,0,boundary,sink,yes
+Cell Phone,cell phone,2402404,0,0,random,umbrella,no
+Cell Phone,cell phone,2402410,0,0,boundary,stop sign,no
+Cell Phone,cell phone,2403285,0,0,random,kite,yes
+Cell Phone,cell phone,2404693,0,0,boundary,kite,no
+Cell Phone,cell phone,2406950,0,0,random,bowl,no
+Cell Phone,cell phone,2407502,0,0,boundary,spoon,yes
+Cell Phone,cell phone,2407548,0,0,boundary,bus,no
+Cell Phone,cell phone,2407927,0,0,boundary,bowl,no
+Cell Phone,cell phone,2408671,0,0,random,bowl,yes
+Cell Phone,cell phone,2409231,0,0,random,bowl,no
+Cell Phone,cell phone,2410026,0,0,random,kite,no
+Cell Phone,cell phone,2410237,0,0,random,fork,yes
+Cell Phone,cell phone,2410471,0,0,random,bird,no
+Cell Phone,cell phone,2410628,0,0,boundary,dog,no
+Cell Phone,cell phone,2411277,0,0,random,bowl,no
+Cell Phone,cell phone,2411445,0,0,random,bicycle,no
+Cell Phone,cell phone,2411912,0,0,boundary,stop sign,yes
+Cell Phone,cell phone,2413072,0,0,boundary,stop sign,no
+Cell Phone,cell phone,2413407,0,0,random,spoon,no
+Cell Phone,cell phone,2413495,0,0,boundary,stop sign,yes
+Cell Phone,cell phone,2415129,0,0,random,kite,yes
+Cell Phone,cell phone,2415598,0,0,boundary,sink,no
+Cell Phone,cell phone,2416176,0,0,random,bus,no
+Cell Phone,cell phone,2416246,0,0,boundary,stop sign,yes
+Cell Phone,cell phone,2416293,0,0,random,kite,yes
+Cell Phone,cell phone,2416508,0,0,random,bird,no
+Cell Phone,cell phone,2416700,0,0,boundary,cell phone,yes
+Cell Phone,cell phone,2417271,0,0,boundary,cell phone,yes
+Cell Phone,cell phone,2417678,0,0,boundary,kite,no
+Cell Phone,cell phone,2417852,0,0,boundary,boat,no
+Chair,chair,655,0,0,random,boat,no
+Chair,chair,1490,0,0,random,bench,no
+Chair,chair,1556,0,0,random,car,no
+Chair,chair,1986,0,0,boundary,cell phone,no
+Chair,chair,2360,0,0,boundary,stop sign,no
+Chair,chair,3561,0,0,boundary,chair,no
+Chair,chair,3801,0,0,random,bench,no
+Chair,chair,4185,1,0,boundary,stop sign,no
+Chair,chair,4214,0,0,random,fork,no
+Chair,chair,61589,0,0,random,kite,no
+Chair,chair,497980,0,0,random,bench,no
+Chair,chair,498270,0,0,boundary,boat,no
+Chair,chair,1159420,0,0,boundary,truck,yes
+Chair,chair,1159799,0,0,random,bowl,no
+Chair,chair,1592013,0,0,boundary,bench,yes
+Chair,chair,1592557,0,0,random,fork,no
+Chair,chair,1593184,0,0,random,dog,yes
+Chair,chair,2315792,0,0,boundary,bench,yes
+Chair,chair,2315796,0,0,random,car,no
+Chair,chair,2316043,0,0,random,car,yes
+Chair,chair,2316125,0,0,boundary,kite,no
+Chair,chair,2316533,0,0,random,kite,yes
+Chair,chair,2318153,0,0,random,fork,yes
+Chair,chair,2320159,1,1,random,spoon,yes
+Chair,chair,2320550,0,0,random,bench,yes
+Chair,chair,2321487,0,0,random,bird,yes
+Chair,chair,2322248,0,0,boundary,kite,yes
+Chair,chair,2322535,0,0,boundary,kite,yes
+Chair,chair,2322849,0,0,boundary,backpack,no
+Chair,chair,2323085,0,0,random,kite,yes
+Chair,chair,2323658,0,0,boundary,dog,no
+Chair,chair,2323842,0,0,boundary,kite,no
+Chair,chair,2325332,0,0,boundary,truck,yes
+Chair,chair,2325379,0,0,boundary,kite,no
+Chair,chair,2325700,0,0,boundary,kite,yes
+Chair,chair,2326762,0,0,boundary,sink,no
+Chair,chair,2327098,0,0,boundary,sink,no
+Chair,chair,2327398,0,0,boundary,kite,yes
+Chair,chair,2327535,0,0,random,cup,no
+Chair,chair,2328476,0,0,random,bench,no
+Chair,chair,2329296,0,0,boundary,stop sign,yes
+Chair,chair,2329538,0,0,random,bench,no
+Chair,chair,2330568,0,0,boundary,bus,yes
+Chair,chair,2331220,0,0,boundary,kite,no
+Chair,chair,2332648,0,0,random,sink,no
+Chair,chair,2333001,0,0,boundary,kite,yes
+Chair,chair,2334397,0,0,random,bowl,no
+Chair,chair,2334729,0,0,random,bus,no
+Chair,chair,2334823,0,0,random,kite,yes
+Chair,chair,2334934,0,0,boundary,kite,yes
+Chair,chair,2335019,1,0,random,bench,no
+Chair,chair,2336335,0,0,random,car,no
+Chair,chair,2336569,0,0,boundary,stop sign,yes
+Chair,chair,2336745,0,0,boundary,bus,no
+Chair,chair,2338255,0,0,boundary,bench,yes
+Chair,chair,2338452,0,0,random,bird,yes
+Chair,chair,2339643,0,0,boundary,kite,yes
+Chair,chair,2340056,0,0,random,knife,yes
+Chair,chair,2340667,0,0,random,bicycle,no
+Chair,chair,2341076,0,0,random,bowl,yes
+Chair,chair,2341258,0,0,random,bench,no
+Chair,chair,2342757,0,0,random,car,no
+Chair,chair,2343133,0,0,random,bench,no
+Chair,chair,2343839,0,0,boundary,stop sign,yes
+Chair,chair,2346019,0,0,boundary,stop sign,yes
+Chair,chair,2346929,0,0,boundary,bus,no
+Chair,chair,2348108,0,0,boundary,stop sign,no
+Chair,chair,2350334,0,0,boundary,knife,yes
+Chair,chair,2350610,0,0,boundary,kite,yes
+Chair,chair,2352095,0,0,random,bus,yes
+Chair,chair,2352709,0,0,boundary,kite,no
+Chair,chair,2352911,0,0,random,bowl,no
+Chair,chair,2353402,0,0,random,bus,no
+Chair,chair,2353986,0,0,boundary,kite,no
+Chair,chair,2354790,0,0,boundary,bus,yes
+Chair,chair,2355650,0,0,boundary,stop sign,no
+Chair,chair,2355890,0,0,boundary,stop sign,yes
+Chair,chair,2357470,0,0,random,dog,yes
+Chair,chair,2357898,0,0,random,bench,no
+Chair,chair,2358000,0,0,boundary,cell phone,yes
+Chair,chair,2358239,0,0,random,bird,yes
+Chair,chair,2358316,0,0,boundary,sink,yes
+Chair,chair,2358419,0,0,random,bus,no
+Chair,chair,2359994,0,0,random,bus,no
+Chair,chair,2360117,0,0,boundary,kite,yes
+Chair,chair,2360975,0,0,boundary,kite,yes
+Chair,chair,2361029,0,0,boundary,cell phone,no
+Chair,chair,2361524,0,0,random,boat,yes
+Chair,chair,2362065,0,0,boundary,sink,yes
+Chair,chair,2362762,0,0,boundary,vase,yes
+Chair,chair,2363160,0,0,random,bird,yes
+Chair,chair,2363995,0,0,boundary,sink,no
+Chair,chair,2364216,0,0,random,bus,yes
+Chair,chair,2364952,0,0,random,bird,yes
+Chair,chair,2365421,0,0,boundary,cell phone,yes
+Chair,chair,2366442,0,0,random,bowl,yes
+Chair,chair,2367117,0,0,boundary,kite,no
+Chair,chair,2367901,0,0,boundary,stop sign,no
+Chair,chair,2368073,0,0,boundary,stop sign,no
+Chair,chair,2368814,0,0,random,bird,no
+Chair,chair,2368984,0,0,random,bus,no
+Chair,chair,2369018,0,0,boundary,kite,no
+Chair,chair,2370144,0,0,random,bowl,no
+Chair,chair,2370271,0,0,random,bird,yes
+Chair,chair,2370802,0,0,random,stop sign,yes
+Chair,chair,2372204,0,0,random,bowl,no
+Chair,chair,2372245,0,0,random,stop sign,no
+Chair,chair,2372457,0,0,boundary,spoon,no
+Chair,chair,2373243,0,0,random,bird,no
+Chair,chair,2374137,0,0,random,dog,no
+Chair,chair,2374487,0,0,boundary,stop sign,yes
+Chair,chair,2375949,0,0,random,cup,no
+Chair,chair,2376171,0,0,random,bicycle,no
+Chair,chair,2376806,0,0,boundary,stop sign,yes
+Chair,chair,2379036,0,0,random,kite,no
+Chair,chair,2379050,0,0,boundary,dog,yes
+Chair,chair,2379075,0,0,boundary,dog,no
+Chair,chair,2379254,0,0,random,dog,yes
+Chair,chair,2379377,0,0,random,bird,no
+Chair,chair,2379431,0,0,random,bus,yes
+Chair,chair,2380089,0,0,boundary,kite,yes
+Chair,chair,2380376,0,0,random,car,no
+Chair,chair,2380685,0,0,boundary,sink,no
+Chair,chair,2381000,0,0,random,cup,yes
+Chair,chair,2382264,0,0,random,dog,no
+Chair,chair,2382828,0,0,random,dog,yes
+Chair,chair,2383506,0,0,boundary,sink,yes
+Chair,chair,2383707,0,0,boundary,kite,no
+Chair,chair,2384185,0,0,random,backpack,no
+Chair,chair,2384924,0,0,boundary,truck,yes
+Chair,chair,2385477,0,0,random,kite,no
+Chair,chair,2385504,0,0,boundary,kite,yes
+Chair,chair,2386347,0,0,random,bowl,yes
+Chair,chair,2386624,0,0,random,dog,yes
+Chair,chair,2386652,0,0,random,bird,yes
+Chair,chair,2387068,0,0,boundary,kite,no
+Chair,chair,2387690,0,0,random,bus,yes
+Chair,chair,2388314,0,0,boundary,bench,yes
+Chair,chair,2388486,1,1,random,bowl,yes
+Chair,chair,2389518,0,0,random,boat,no
+Chair,chair,2391377,0,0,boundary,kite,no
+Chair,chair,2391765,0,0,boundary,chair,yes
+Chair,chair,2392094,0,0,random,truck,yes
+Chair,chair,2392128,0,0,boundary,stop sign,yes
+Chair,chair,2392264,0,0,boundary,stop sign,no
+Chair,chair,2392277,0,0,random,bowl,no
+Chair,chair,2392337,0,0,boundary,sink,yes
+Chair,chair,2392420,0,0,boundary,vase,yes
+Chair,chair,2392480,0,0,random,bowl,no
+Chair,chair,2392734,0,0,random,kite,yes
+Chair,chair,2392807,0,0,random,bus,yes
+Chair,chair,2393325,0,0,random,cup,yes
+Chair,chair,2393671,0,0,boundary,dog,yes
+Chair,chair,2393732,0,0,boundary,stop sign,no
+Chair,chair,2393864,0,0,boundary,fire hydrant,yes
+Chair,chair,2393952,0,0,boundary,sink,no
+Chair,chair,2394130,0,0,boundary,kite,yes
+Chair,chair,2394898,0,0,boundary,dog,no
+Chair,chair,2395379,0,0,random,sink,no
+Chair,chair,2395745,0,0,boundary,kite,no
+Chair,chair,2396098,0,0,random,bench,yes
+Chair,chair,2398287,0,0,boundary,bowl,yes
+Chair,chair,2398807,0,0,boundary,stop sign,no
+Chair,chair,2398852,0,0,random,knife,no
+Chair,chair,2399091,0,0,boundary,sink,no
+Chair,chair,2399434,0,0,random,bowl,no
+Chair,chair,2399496,0,0,random,kite,no
+Chair,chair,2399554,0,0,boundary,sink,no
+Chair,chair,2400101,0,0,boundary,kite,no
+Chair,chair,2400821,0,0,boundary,sink,yes
+Chair,chair,2402404,0,0,random,umbrella,no
+Chair,chair,2402410,0,0,boundary,stop sign,no
+Chair,chair,2403285,0,0,random,kite,yes
+Chair,chair,2404693,0,0,boundary,kite,no
+Chair,chair,2406950,0,0,random,bowl,no
+Chair,chair,2407502,0,0,boundary,spoon,yes
+Chair,chair,2407548,0,0,boundary,bus,no
+Chair,chair,2407927,0,0,boundary,bowl,no
+Chair,chair,2408671,0,0,random,bowl,yes
+Chair,chair,2409231,0,0,random,bowl,no
+Chair,chair,2410026,0,0,random,kite,no
+Chair,chair,2410237,0,0,random,fork,yes
+Chair,chair,2410471,0,0,random,bird,no
+Chair,chair,2410628,0,0,boundary,dog,no
+Chair,chair,2411277,0,0,random,bowl,no
+Chair,chair,2411445,0,0,random,bicycle,no
+Chair,chair,2411912,0,0,boundary,stop sign,yes
+Chair,chair,2413072,0,0,boundary,stop sign,no
+Chair,chair,2413407,1,0,random,spoon,no
+Chair,chair,2413495,0,0,boundary,stop sign,yes
+Chair,chair,2415129,0,0,random,kite,yes
+Chair,chair,2415598,0,0,boundary,sink,no
+Chair,chair,2416176,0,0,random,bus,no
+Chair,chair,2416246,0,0,boundary,stop sign,yes
+Chair,chair,2416293,0,0,random,kite,yes
+Chair,chair,2416508,0,0,random,bird,no
+Chair,chair,2416700,0,0,boundary,cell phone,yes
+Chair,chair,2417271,0,0,boundary,cell phone,yes
+Chair,chair,2417678,0,0,boundary,kite,no
+Chair,chair,2417852,0,0,boundary,boat,no
+Clock,clock,655,0,0,random,boat,no
+Clock,clock,1490,0,0,random,bench,no
+Clock,clock,1556,0,0,random,car,no
+Clock,clock,1986,0,0,boundary,cell phone,no
+Clock,clock,2360,0,0,boundary,stop sign,no
+Clock,clock,3561,0,0,boundary,chair,no
+Clock,clock,3801,0,0,random,bench,no
+Clock,clock,4185,0,0,boundary,stop sign,no
+Clock,clock,4214,0,0,random,fork,no
+Clock,clock,61589,0,0,random,kite,no
+Clock,clock,497980,0,0,random,bench,no
+Clock,clock,498270,0,0,boundary,boat,no
+Clock,clock,1159420,0,0,boundary,truck,yes
+Clock,clock,1159799,0,0,random,bowl,no
+Clock,clock,1592013,0,0,boundary,bench,yes
+Clock,clock,1592557,0,0,random,fork,no
+Clock,clock,1593184,0,0,random,dog,yes
+Clock,clock,2315792,0,0,boundary,bench,yes
+Clock,clock,2315796,0,0,random,car,no
+Clock,clock,2316043,0,0,random,car,yes
+Clock,clock,2316125,0,0,boundary,kite,no
+Clock,clock,2316533,0,0,random,kite,yes
+Clock,clock,2318153,0,0,random,fork,yes
+Clock,clock,2320159,0,0,random,spoon,yes
+Clock,clock,2320550,0,0,random,bench,yes
+Clock,clock,2321487,0,0,random,bird,yes
+Clock,clock,2322248,0,0,boundary,kite,yes
+Clock,clock,2322535,0,0,boundary,kite,yes
+Clock,clock,2322849,0,0,boundary,backpack,no
+Clock,clock,2323085,0,0,random,kite,yes
+Clock,clock,2323658,0,0,boundary,dog,no
+Clock,clock,2323842,0,0,boundary,kite,no
+Clock,clock,2325332,0,0,boundary,truck,yes
+Clock,clock,2325379,0,0,boundary,kite,no
+Clock,clock,2325700,0,0,boundary,kite,yes
+Clock,clock,2326762,0,0,boundary,sink,no
+Clock,clock,2327098,0,0,boundary,sink,no
+Clock,clock,2327398,0,0,boundary,kite,yes
+Clock,clock,2327535,0,0,random,cup,no
+Clock,clock,2328476,0,0,random,bench,no
+Clock,clock,2329296,0,0,boundary,stop sign,yes
+Clock,clock,2329538,0,0,random,bench,no
+Clock,clock,2330568,0,0,boundary,bus,yes
+Clock,clock,2331220,0,0,boundary,kite,no
+Clock,clock,2332648,0,0,random,sink,no
+Clock,clock,2333001,0,0,boundary,kite,yes
+Clock,clock,2334397,0,0,random,bowl,no
+Clock,clock,2334729,0,0,random,bus,no
+Clock,clock,2334823,0,0,random,kite,yes
+Clock,clock,2334934,0,0,boundary,kite,yes
+Clock,clock,2335019,0,0,random,bench,no
+Clock,clock,2336335,0,0,random,car,no
+Clock,clock,2336569,0,0,boundary,stop sign,yes
+Clock,clock,2336745,0,0,boundary,bus,no
+Clock,clock,2338255,0,0,boundary,bench,yes
+Clock,clock,2338452,0,0,random,bird,yes
+Clock,clock,2339643,0,0,boundary,kite,yes
+Clock,clock,2340056,0,0,random,knife,yes
+Clock,clock,2340667,0,0,random,bicycle,no
+Clock,clock,2341076,0,0,random,bowl,yes
+Clock,clock,2341258,0,0,random,bench,no
+Clock,clock,2342757,0,0,random,car,no
+Clock,clock,2343133,0,0,random,bench,no
+Clock,clock,2343839,0,0,boundary,stop sign,yes
+Clock,clock,2346019,0,0,boundary,stop sign,yes
+Clock,clock,2346929,0,0,boundary,bus,no
+Clock,clock,2348108,0,0,boundary,stop sign,no
+Clock,clock,2350334,0,0,boundary,knife,yes
+Clock,clock,2350610,0,0,boundary,kite,yes
+Clock,clock,2352095,0,0,random,bus,yes
+Clock,clock,2352709,0,0,boundary,kite,no
+Clock,clock,2352911,0,0,random,bowl,no
+Clock,clock,2353402,0,0,random,bus,no
+Clock,clock,2353986,0,0,boundary,kite,no
+Clock,clock,2354790,0,0,boundary,bus,yes
+Clock,clock,2355650,0,0,boundary,stop sign,no
+Clock,clock,2355890,0,0,boundary,stop sign,yes
+Clock,clock,2357470,0,0,random,dog,yes
+Clock,clock,2357898,0,0,random,bench,no
+Clock,clock,2358000,0,0,boundary,cell phone,yes
+Clock,clock,2358239,0,0,random,bird,yes
+Clock,clock,2358316,0,0,boundary,sink,yes
+Clock,clock,2358419,0,0,random,bus,no
+Clock,clock,2359994,0,0,random,bus,no
+Clock,clock,2360117,0,0,boundary,kite,yes
+Clock,clock,2360975,0,0,boundary,kite,yes
+Clock,clock,2361029,0,0,boundary,cell phone,no
+Clock,clock,2361524,0,0,random,boat,yes
+Clock,clock,2362065,0,0,boundary,sink,yes
+Clock,clock,2362762,0,0,boundary,vase,yes
+Clock,clock,2363160,0,0,random,bird,yes
+Clock,clock,2363995,0,0,boundary,sink,no
+Clock,clock,2364216,0,0,random,bus,yes
+Clock,clock,2364952,0,0,random,bird,yes
+Clock,clock,2365421,0,0,boundary,cell phone,yes
+Clock,clock,2366442,0,0,random,bowl,yes
+Clock,clock,2367117,0,0,boundary,kite,no
+Clock,clock,2367901,0,0,boundary,stop sign,no
+Clock,clock,2368073,0,0,boundary,stop sign,no
+Clock,clock,2368814,0,0,random,bird,no
+Clock,clock,2368984,0,0,random,bus,no
+Clock,clock,2369018,0,0,boundary,kite,no
+Clock,clock,2370144,0,0,random,bowl,no
+Clock,clock,2370271,0,0,random,bird,yes
+Clock,clock,2370802,0,0,random,stop sign,yes
+Clock,clock,2372204,0,0,random,bowl,no
+Clock,clock,2372245,0,0,random,stop sign,no
+Clock,clock,2372457,0,0,boundary,spoon,no
+Clock,clock,2373243,0,0,random,bird,no
+Clock,clock,2374137,0,0,random,dog,no
+Clock,clock,2374487,0,0,boundary,stop sign,yes
+Clock,clock,2375949,0,0,random,cup,no
+Clock,clock,2376171,0,0,random,bicycle,no
+Clock,clock,2376806,0,0,boundary,stop sign,yes
+Clock,clock,2379036,0,0,random,kite,no
+Clock,clock,2379050,0,0,boundary,dog,yes
+Clock,clock,2379075,0,0,boundary,dog,no
+Clock,clock,2379254,0,0,random,dog,yes
+Clock,clock,2379377,0,0,random,bird,no
+Clock,clock,2379431,0,0,random,bus,yes
+Clock,clock,2380089,0,0,boundary,kite,yes
+Clock,clock,2380376,0,0,random,car,no
+Clock,clock,2380685,0,0,boundary,sink,no
+Clock,clock,2381000,0,0,random,cup,yes
+Clock,clock,2382264,0,0,random,dog,no
+Clock,clock,2382828,0,0,random,dog,yes
+Clock,clock,2383506,0,0,boundary,sink,yes
+Clock,clock,2383707,0,0,boundary,kite,no
+Clock,clock,2384185,0,0,random,backpack,no
+Clock,clock,2384924,0,0,boundary,truck,yes
+Clock,clock,2385477,0,0,random,kite,no
+Clock,clock,2385504,0,0,boundary,kite,yes
+Clock,clock,2386347,0,0,random,bowl,yes
+Clock,clock,2386624,0,0,random,dog,yes
+Clock,clock,2386652,0,0,random,bird,yes
+Clock,clock,2387068,0,0,boundary,kite,no
+Clock,clock,2387690,0,0,random,bus,yes
+Clock,clock,2388314,0,0,boundary,bench,yes
+Clock,clock,2388486,0,0,random,bowl,yes
+Clock,clock,2389518,0,0,random,boat,no
+Clock,clock,2391377,0,0,boundary,kite,no
+Clock,clock,2391765,0,0,boundary,chair,yes
+Clock,clock,2392094,0,0,random,truck,yes
+Clock,clock,2392128,0,0,boundary,stop sign,yes
+Clock,clock,2392264,0,0,boundary,stop sign,no
+Clock,clock,2392277,0,0,random,bowl,no
+Clock,clock,2392337,0,0,boundary,sink,yes
+Clock,clock,2392420,0,0,boundary,vase,yes
+Clock,clock,2392480,0,0,random,bowl,no
+Clock,clock,2392734,0,0,random,kite,yes
+Clock,clock,2392807,1,0,random,bus,yes
+Clock,clock,2393325,1,0,random,cup,yes
+Clock,clock,2393671,0,0,boundary,dog,yes
+Clock,clock,2393732,0,0,boundary,stop sign,no
+Clock,clock,2393864,0,0,boundary,fire hydrant,yes
+Clock,clock,2393952,0,0,boundary,sink,no
+Clock,clock,2394130,0,0,boundary,kite,yes
+Clock,clock,2394898,0,0,boundary,dog,no
+Clock,clock,2395379,0,0,random,sink,no
+Clock,clock,2395745,0,0,boundary,kite,no
+Clock,clock,2396098,0,0,random,bench,yes
+Clock,clock,2398287,0,0,boundary,bowl,yes
+Clock,clock,2398807,0,0,boundary,stop sign,no
+Clock,clock,2398852,0,0,random,knife,no
+Clock,clock,2399091,0,0,boundary,sink,no
+Clock,clock,2399434,0,0,random,bowl,no
+Clock,clock,2399496,0,0,random,kite,no
+Clock,clock,2399554,0,0,boundary,sink,no
+Clock,clock,2400101,0,0,boundary,kite,no
+Clock,clock,2400821,0,0,boundary,sink,yes
+Clock,clock,2402404,0,0,random,umbrella,no
+Clock,clock,2402410,0,0,boundary,stop sign,no
+Clock,clock,2403285,0,0,random,kite,yes
+Clock,clock,2404693,0,0,boundary,kite,no
+Clock,clock,2406950,0,0,random,bowl,no
+Clock,clock,2407502,0,0,boundary,spoon,yes
+Clock,clock,2407548,0,0,boundary,bus,no
+Clock,clock,2407927,0,0,boundary,bowl,no
+Clock,clock,2408671,1,0,random,bowl,yes
+Clock,clock,2409231,0,0,random,bowl,no
+Clock,clock,2410026,0,0,random,kite,no
+Clock,clock,2410237,0,0,random,fork,yes
+Clock,clock,2410471,0,0,random,bird,no
+Clock,clock,2410628,0,0,boundary,dog,no
+Clock,clock,2411277,0,0,random,bowl,no
+Clock,clock,2411445,0,0,random,bicycle,no
+Clock,clock,2411912,0,0,boundary,stop sign,yes
+Clock,clock,2413072,0,0,boundary,stop sign,no
+Clock,clock,2413407,0,0,random,spoon,no
+Clock,clock,2413495,0,0,boundary,stop sign,yes
+Clock,clock,2415129,0,0,random,kite,yes
+Clock,clock,2415598,0,0,boundary,sink,no
+Clock,clock,2416176,0,0,random,bus,no
+Clock,clock,2416246,0,0,boundary,stop sign,yes
+Clock,clock,2416293,0,0,random,kite,yes
+Clock,clock,2416508,0,0,random,bird,no
+Clock,clock,2416700,0,0,boundary,cell phone,yes
+Clock,clock,2417271,0,0,boundary,cell phone,yes
+Clock,clock,2417678,0,0,boundary,kite,no
+Clock,clock,2417852,0,0,boundary,boat,no
+Fire Hydrant,fire hydrant,655,0,0,random,boat,no
+Fire Hydrant,fire hydrant,1490,0,0,random,bench,no
+Fire Hydrant,fire hydrant,1556,0,0,random,car,no
+Fire Hydrant,fire hydrant,1986,0,0,boundary,cell phone,no
+Fire Hydrant,fire hydrant,2360,0,0,boundary,stop sign,no
+Fire Hydrant,fire hydrant,3561,0,0,boundary,chair,no
+Fire Hydrant,fire hydrant,3801,0,0,random,bench,no
+Fire Hydrant,fire hydrant,4185,0,0,boundary,stop sign,no
+Fire Hydrant,fire hydrant,4214,0,0,random,fork,no
+Fire Hydrant,fire hydrant,61589,0,0,random,kite,no
+Fire Hydrant,fire hydrant,497980,0,0,random,bench,no
+Fire Hydrant,fire hydrant,498270,0,0,boundary,boat,no
+Fire Hydrant,fire hydrant,1159420,0,0,boundary,truck,yes
+Fire Hydrant,fire hydrant,1159799,0,0,random,bowl,no
+Fire Hydrant,fire hydrant,1592013,0,0,boundary,bench,yes
+Fire Hydrant,fire hydrant,1592557,0,0,random,fork,no
+Fire Hydrant,fire hydrant,1593184,0,0,random,dog,yes
+Fire Hydrant,fire hydrant,2315792,0,0,boundary,bench,yes
+Fire Hydrant,fire hydrant,2315796,0,0,random,car,no
+Fire Hydrant,fire hydrant,2316043,0,0,random,car,yes
+Fire Hydrant,fire hydrant,2316125,0,0,boundary,kite,no
+Fire Hydrant,fire hydrant,2316533,0,0,random,kite,yes
+Fire Hydrant,fire hydrant,2318153,0,0,random,fork,yes
+Fire Hydrant,fire hydrant,2320159,0,0,random,spoon,yes
+Fire Hydrant,fire hydrant,2320550,0,0,random,bench,yes
+Fire Hydrant,fire hydrant,2321487,0,0,random,bird,yes
+Fire Hydrant,fire hydrant,2322248,0,0,boundary,kite,yes
+Fire Hydrant,fire hydrant,2322535,0,0,boundary,kite,yes
+Fire Hydrant,fire hydrant,2322849,0,0,boundary,backpack,no
+Fire Hydrant,fire hydrant,2323085,0,0,random,kite,yes
+Fire Hydrant,fire hydrant,2323658,0,0,boundary,dog,no
+Fire Hydrant,fire hydrant,2323842,0,0,boundary,kite,no
+Fire Hydrant,fire hydrant,2325332,0,0,boundary,truck,yes
+Fire Hydrant,fire hydrant,2325379,0,0,boundary,kite,no
+Fire Hydrant,fire hydrant,2325700,0,0,boundary,kite,yes
+Fire Hydrant,fire hydrant,2326762,0,0,boundary,sink,no
+Fire Hydrant,fire hydrant,2327098,0,0,boundary,sink,no
+Fire Hydrant,fire hydrant,2327398,0,0,boundary,kite,yes
+Fire Hydrant,fire hydrant,2327535,0,0,random,cup,no
+Fire Hydrant,fire hydrant,2328476,0,0,random,bench,no
+Fire Hydrant,fire hydrant,2329296,0,0,boundary,stop sign,yes
+Fire Hydrant,fire hydrant,2329538,0,0,random,bench,no
+Fire Hydrant,fire hydrant,2330568,0,0,boundary,bus,yes
+Fire Hydrant,fire hydrant,2331220,0,0,boundary,kite,no
+Fire Hydrant,fire hydrant,2332648,0,0,random,sink,no
+Fire Hydrant,fire hydrant,2333001,0,0,boundary,kite,yes
+Fire Hydrant,fire hydrant,2334397,0,0,random,bowl,no
+Fire Hydrant,fire hydrant,2334729,0,0,random,bus,no
+Fire Hydrant,fire hydrant,2334823,0,0,random,kite,yes
+Fire Hydrant,fire hydrant,2334934,0,0,boundary,kite,yes
+Fire Hydrant,fire hydrant,2335019,0,0,random,bench,no
+Fire Hydrant,fire hydrant,2336335,0,0,random,car,no
+Fire Hydrant,fire hydrant,2336569,0,0,boundary,stop sign,yes
+Fire Hydrant,fire hydrant,2336745,0,0,boundary,bus,no
+Fire Hydrant,fire hydrant,2338255,0,0,boundary,bench,yes
+Fire Hydrant,fire hydrant,2338452,0,0,random,bird,yes
+Fire Hydrant,fire hydrant,2339643,0,0,boundary,kite,yes
+Fire Hydrant,fire hydrant,2340056,0,0,random,knife,yes
+Fire Hydrant,fire hydrant,2340667,0,0,random,bicycle,no
+Fire Hydrant,fire hydrant,2341076,0,0,random,bowl,yes
+Fire Hydrant,fire hydrant,2341258,0,0,random,bench,no
+Fire Hydrant,fire hydrant,2342757,0,0,random,car,no
+Fire Hydrant,fire hydrant,2343133,0,0,random,bench,no
+Fire Hydrant,fire hydrant,2343839,0,0,boundary,stop sign,yes
+Fire Hydrant,fire hydrant,2346019,0,0,boundary,stop sign,yes
+Fire Hydrant,fire hydrant,2346929,0,0,boundary,bus,no
+Fire Hydrant,fire hydrant,2348108,0,0,boundary,stop sign,no
+Fire Hydrant,fire hydrant,2350334,0,0,boundary,knife,yes
+Fire Hydrant,fire hydrant,2350610,0,0,boundary,kite,yes
+Fire Hydrant,fire hydrant,2352095,0,0,random,bus,yes
+Fire Hydrant,fire hydrant,2352709,0,0,boundary,kite,no
+Fire Hydrant,fire hydrant,2352911,0,0,random,bowl,no
+Fire Hydrant,fire hydrant,2353402,0,0,random,bus,no
+Fire Hydrant,fire hydrant,2353986,0,0,boundary,kite,no
+Fire Hydrant,fire hydrant,2354790,0,0,boundary,bus,yes
+Fire Hydrant,fire hydrant,2355650,0,0,boundary,stop sign,no
+Fire Hydrant,fire hydrant,2355890,0,0,boundary,stop sign,yes
+Fire Hydrant,fire hydrant,2357470,0,0,random,dog,yes
+Fire Hydrant,fire hydrant,2357898,0,0,random,bench,no
+Fire Hydrant,fire hydrant,2358000,0,0,boundary,cell phone,yes
+Fire Hydrant,fire hydrant,2358239,0,0,random,bird,yes
+Fire Hydrant,fire hydrant,2358316,0,0,boundary,sink,yes
+Fire Hydrant,fire hydrant,2358419,0,0,random,bus,no
+Fire Hydrant,fire hydrant,2359994,0,0,random,bus,no
+Fire Hydrant,fire hydrant,2360117,0,0,boundary,kite,yes
+Fire Hydrant,fire hydrant,2360975,0,0,boundary,kite,yes
+Fire Hydrant,fire hydrant,2361029,0,0,boundary,cell phone,no
+Fire Hydrant,fire hydrant,2361524,0,0,random,boat,yes
+Fire Hydrant,fire hydrant,2362065,0,0,boundary,sink,yes
+Fire Hydrant,fire hydrant,2362762,0,0,boundary,vase,yes
+Fire Hydrant,fire hydrant,2363160,0,0,random,bird,yes
+Fire Hydrant,fire hydrant,2363995,0,0,boundary,sink,no
+Fire Hydrant,fire hydrant,2364216,0,0,random,bus,yes
+Fire Hydrant,fire hydrant,2364952,0,0,random,bird,yes
+Fire Hydrant,fire hydrant,2365421,0,0,boundary,cell phone,yes
+Fire Hydrant,fire hydrant,2366442,0,0,random,bowl,yes
+Fire Hydrant,fire hydrant,2367117,0,0,boundary,kite,no
+Fire Hydrant,fire hydrant,2367901,0,0,boundary,stop sign,no
+Fire Hydrant,fire hydrant,2368073,0,0,boundary,stop sign,no
+Fire Hydrant,fire hydrant,2368814,0,0,random,bird,no
+Fire Hydrant,fire hydrant,2368984,0,0,random,bus,no
+Fire Hydrant,fire hydrant,2369018,0,0,boundary,kite,no
+Fire Hydrant,fire hydrant,2370144,0,0,random,bowl,no
+Fire Hydrant,fire hydrant,2370271,0,0,random,bird,yes
+Fire Hydrant,fire hydrant,2370802,0,0,random,stop sign,yes
+Fire Hydrant,fire hydrant,2372204,0,0,random,bowl,no
+Fire Hydrant,fire hydrant,2372245,0,0,random,stop sign,no
+Fire Hydrant,fire hydrant,2372457,0,0,boundary,spoon,no
+Fire Hydrant,fire hydrant,2373243,0,0,random,bird,no
+Fire Hydrant,fire hydrant,2374137,0,0,random,dog,no
+Fire Hydrant,fire hydrant,2374487,0,0,boundary,stop sign,yes
+Fire Hydrant,fire hydrant,2375949,0,0,random,cup,no
+Fire Hydrant,fire hydrant,2376171,0,0,random,bicycle,no
+Fire Hydrant,fire hydrant,2376806,0,0,boundary,stop sign,yes
+Fire Hydrant,fire hydrant,2379036,0,0,random,kite,no
+Fire Hydrant,fire hydrant,2379050,0,0,boundary,dog,yes
+Fire Hydrant,fire hydrant,2379075,0,0,boundary,dog,no
+Fire Hydrant,fire hydrant,2379254,0,0,random,dog,yes
+Fire Hydrant,fire hydrant,2379377,0,0,random,bird,no
+Fire Hydrant,fire hydrant,2379431,0,0,random,bus,yes
+Fire Hydrant,fire hydrant,2380089,0,0,boundary,kite,yes
+Fire Hydrant,fire hydrant,2380376,0,0,random,car,no
+Fire Hydrant,fire hydrant,2380685,0,0,boundary,sink,no
+Fire Hydrant,fire hydrant,2381000,0,0,random,cup,yes
+Fire Hydrant,fire hydrant,2382264,0,0,random,dog,no
+Fire Hydrant,fire hydrant,2382828,0,0,random,dog,yes
+Fire Hydrant,fire hydrant,2383506,0,0,boundary,sink,yes
+Fire Hydrant,fire hydrant,2383707,0,0,boundary,kite,no
+Fire Hydrant,fire hydrant,2384185,0,0,random,backpack,no
+Fire Hydrant,fire hydrant,2384924,0,0,boundary,truck,yes
+Fire Hydrant,fire hydrant,2385477,0,0,random,kite,no
+Fire Hydrant,fire hydrant,2385504,0,0,boundary,kite,yes
+Fire Hydrant,fire hydrant,2386347,0,0,random,bowl,yes
+Fire Hydrant,fire hydrant,2386624,0,0,random,dog,yes
+Fire Hydrant,fire hydrant,2386652,0,0,random,bird,yes
+Fire Hydrant,fire hydrant,2387068,0,0,boundary,kite,no
+Fire Hydrant,fire hydrant,2387690,0,0,random,bus,yes
+Fire Hydrant,fire hydrant,2388314,0,0,boundary,bench,yes
+Fire Hydrant,fire hydrant,2388486,0,0,random,bowl,yes
+Fire Hydrant,fire hydrant,2389518,0,0,random,boat,no
+Fire Hydrant,fire hydrant,2391377,0,0,boundary,kite,no
+Fire Hydrant,fire hydrant,2391765,0,0,boundary,chair,yes
+Fire Hydrant,fire hydrant,2392094,0,0,random,truck,yes
+Fire Hydrant,fire hydrant,2392128,0,0,boundary,stop sign,yes
+Fire Hydrant,fire hydrant,2392264,0,0,boundary,stop sign,no
+Fire Hydrant,fire hydrant,2392277,0,0,random,bowl,no
+Fire Hydrant,fire hydrant,2392337,0,0,boundary,sink,yes
+Fire Hydrant,fire hydrant,2392420,0,0,boundary,vase,yes
+Fire Hydrant,fire hydrant,2392480,0,0,random,bowl,no
+Fire Hydrant,fire hydrant,2392734,0,0,random,kite,yes
+Fire Hydrant,fire hydrant,2392807,0,0,random,bus,yes
+Fire Hydrant,fire hydrant,2393325,0,0,random,cup,yes
+Fire Hydrant,fire hydrant,2393671,0,0,boundary,dog,yes
+Fire Hydrant,fire hydrant,2393732,0,0,boundary,stop sign,no
+Fire Hydrant,fire hydrant,2393864,1,1,boundary,fire hydrant,yes
+Fire Hydrant,fire hydrant,2393952,0,0,boundary,sink,no
+Fire Hydrant,fire hydrant,2394130,0,0,boundary,kite,yes
+Fire Hydrant,fire hydrant,2394898,0,0,boundary,dog,no
+Fire Hydrant,fire hydrant,2395379,0,0,random,sink,no
+Fire Hydrant,fire hydrant,2395745,0,0,boundary,kite,no
+Fire Hydrant,fire hydrant,2396098,0,0,random,bench,yes
+Fire Hydrant,fire hydrant,2398287,0,0,boundary,bowl,yes
+Fire Hydrant,fire hydrant,2398807,0,0,boundary,stop sign,no
+Fire Hydrant,fire hydrant,2398852,0,0,random,knife,no
+Fire Hydrant,fire hydrant,2399091,0,0,boundary,sink,no
+Fire Hydrant,fire hydrant,2399434,0,0,random,bowl,no
+Fire Hydrant,fire hydrant,2399496,0,0,random,kite,no
+Fire Hydrant,fire hydrant,2399554,0,0,boundary,sink,no
+Fire Hydrant,fire hydrant,2400101,0,0,boundary,kite,no
+Fire Hydrant,fire hydrant,2400821,0,0,boundary,sink,yes
+Fire Hydrant,fire hydrant,2402404,0,0,random,umbrella,no
+Fire Hydrant,fire hydrant,2402410,0,0,boundary,stop sign,no
+Fire Hydrant,fire hydrant,2403285,0,0,random,kite,yes
+Fire Hydrant,fire hydrant,2404693,0,0,boundary,kite,no
+Fire Hydrant,fire hydrant,2406950,0,0,random,bowl,no
+Fire Hydrant,fire hydrant,2407502,0,0,boundary,spoon,yes
+Fire Hydrant,fire hydrant,2407548,0,0,boundary,bus,no
+Fire Hydrant,fire hydrant,2407927,0,0,boundary,bowl,no
+Fire Hydrant,fire hydrant,2408671,0,0,random,bowl,yes
+Fire Hydrant,fire hydrant,2409231,0,0,random,bowl,no
+Fire Hydrant,fire hydrant,2410026,0,0,random,kite,no
+Fire Hydrant,fire hydrant,2410237,0,0,random,fork,yes
+Fire Hydrant,fire hydrant,2410471,0,0,random,bird,no
+Fire Hydrant,fire hydrant,2410628,0,0,boundary,dog,no
+Fire Hydrant,fire hydrant,2411277,0,0,random,bowl,no
+Fire Hydrant,fire hydrant,2411445,0,0,random,bicycle,no
+Fire Hydrant,fire hydrant,2411912,0,0,boundary,stop sign,yes
+Fire Hydrant,fire hydrant,2413072,0,0,boundary,stop sign,no
+Fire Hydrant,fire hydrant,2413407,0,0,random,spoon,no
+Fire Hydrant,fire hydrant,2413495,0,0,boundary,stop sign,yes
+Fire Hydrant,fire hydrant,2415129,0,0,random,kite,yes
+Fire Hydrant,fire hydrant,2415598,0,0,boundary,sink,no
+Fire Hydrant,fire hydrant,2416176,0,0,random,bus,no
+Fire Hydrant,fire hydrant,2416246,0,0,boundary,stop sign,yes
+Fire Hydrant,fire hydrant,2416293,0,0,random,kite,yes
+Fire Hydrant,fire hydrant,2416508,0,0,random,bird,no
+Fire Hydrant,fire hydrant,2416700,0,0,boundary,cell phone,yes
+Fire Hydrant,fire hydrant,2417271,0,0,boundary,cell phone,yes
+Fire Hydrant,fire hydrant,2417678,0,0,boundary,kite,no
+Fire Hydrant,fire hydrant,2417852,0,0,boundary,boat,no
+Outdoor Objects,bird|kite|boat|dog,655,0,0,random,boat,no
+Outdoor Objects,bird|kite|boat|dog,1490,0,0,random,bench,no
+Outdoor Objects,bird|kite|boat|dog,1556,0,0,random,car,no
+Outdoor Objects,bird|kite|boat|dog,1986,0,0,boundary,cell phone,no
+Outdoor Objects,bird|kite|boat|dog,2360,0,0,boundary,stop sign,no
+Outdoor Objects,bird|kite|boat|dog,3561,0,0,boundary,chair,no
+Outdoor Objects,bird|kite|boat|dog,3801,0,0,random,bench,no
+Outdoor Objects,bird|kite|boat|dog,4185,0,0,boundary,stop sign,no
+Outdoor Objects,bird|kite|boat|dog,4214,0,0,random,fork,no
+Outdoor Objects,bird|kite|boat|dog,61589,0,0,random,kite,no
+Outdoor Objects,bird|kite|boat|dog,497980,0,0,random,bench,no
+Outdoor Objects,bird|kite|boat|dog,498270,1,0,boundary,boat,no
+Outdoor Objects,bird|kite|boat|dog,1159420,0,0,boundary,truck,yes
+Outdoor Objects,bird|kite|boat|dog,1159799,0,0,random,bowl,no
+Outdoor Objects,bird|kite|boat|dog,1592013,0,0,boundary,bench,yes
+Outdoor Objects,bird|kite|boat|dog,1592557,0,0,random,fork,no
+Outdoor Objects,bird|kite|boat|dog,1593184,0,0,random,dog,yes
+Outdoor Objects,bird|kite|boat|dog,2315792,0,0,boundary,bench,yes
+Outdoor Objects,bird|kite|boat|dog,2315796,0,0,random,car,no
+Outdoor Objects,bird|kite|boat|dog,2316043,0,0,random,car,yes
+Outdoor Objects,bird|kite|boat|dog,2316125,0,0,boundary,kite,no
+Outdoor Objects,bird|kite|boat|dog,2316533,0,0,random,kite,yes
+Outdoor Objects,bird|kite|boat|dog,2318153,0,0,random,fork,yes
+Outdoor Objects,bird|kite|boat|dog,2320159,0,0,random,spoon,yes
+Outdoor Objects,bird|kite|boat|dog,2320550,0,0,random,bench,yes
+Outdoor Objects,bird|kite|boat|dog,2321487,0,0,random,bird,yes
+Outdoor Objects,bird|kite|boat|dog,2322248,0,0,boundary,kite,yes
+Outdoor Objects,bird|kite|boat|dog,2322535,0,0,boundary,kite,yes
+Outdoor Objects,bird|kite|boat|dog,2322849,0,0,boundary,backpack,no
+Outdoor Objects,bird|kite|boat|dog,2323085,0,0,random,kite,yes
+Outdoor Objects,bird|kite|boat|dog,2323658,1,0,boundary,dog,no
+Outdoor Objects,bird|kite|boat|dog,2323842,0,0,boundary,kite,no
+Outdoor Objects,bird|kite|boat|dog,2325332,0,0,boundary,truck,yes
+Outdoor Objects,bird|kite|boat|dog,2325379,0,0,boundary,kite,no
+Outdoor Objects,bird|kite|boat|dog,2325700,0,0,boundary,kite,yes
+Outdoor Objects,bird|kite|boat|dog,2326762,0,0,boundary,sink,no
+Outdoor Objects,bird|kite|boat|dog,2327098,0,0,boundary,sink,no
+Outdoor Objects,bird|kite|boat|dog,2327398,0,0,boundary,kite,yes
+Outdoor Objects,bird|kite|boat|dog,2327535,0,0,random,cup,no
+Outdoor Objects,bird|kite|boat|dog,2328476,0,0,random,bench,no
+Outdoor Objects,bird|kite|boat|dog,2329296,0,0,boundary,stop sign,yes
+Outdoor Objects,bird|kite|boat|dog,2329538,0,0,random,bench,no
+Outdoor Objects,bird|kite|boat|dog,2330568,0,0,boundary,bus,yes
+Outdoor Objects,bird|kite|boat|dog,2331220,0,0,boundary,kite,no
+Outdoor Objects,bird|kite|boat|dog,2332648,0,0,random,sink,no
+Outdoor Objects,bird|kite|boat|dog,2333001,0,0,boundary,kite,yes
+Outdoor Objects,bird|kite|boat|dog,2334397,0,0,random,bowl,no
+Outdoor Objects,bird|kite|boat|dog,2334729,0,0,random,bus,no
+Outdoor Objects,bird|kite|boat|dog,2334823,0,0,random,kite,yes
+Outdoor Objects,bird|kite|boat|dog,2334934,0,0,boundary,kite,yes
+Outdoor Objects,bird|kite|boat|dog,2335019,0,0,random,bench,no
+Outdoor Objects,bird|kite|boat|dog,2336335,0,0,random,car,no
+Outdoor Objects,bird|kite|boat|dog,2336569,0,0,boundary,stop sign,yes
+Outdoor Objects,bird|kite|boat|dog,2336745,0,0,boundary,bus,no
+Outdoor Objects,bird|kite|boat|dog,2338255,0,0,boundary,bench,yes
+Outdoor Objects,bird|kite|boat|dog,2338452,0,0,random,bird,yes
+Outdoor Objects,bird|kite|boat|dog,2339643,0,0,boundary,kite,yes
+Outdoor Objects,bird|kite|boat|dog,2340056,0,0,random,knife,yes
+Outdoor Objects,bird|kite|boat|dog,2340667,0,0,random,bicycle,no
+Outdoor Objects,bird|kite|boat|dog,2341076,0,0,random,bowl,yes
+Outdoor Objects,bird|kite|boat|dog,2341258,0,0,random,bench,no
+Outdoor Objects,bird|kite|boat|dog,2342757,0,0,random,car,no
+Outdoor Objects,bird|kite|boat|dog,2343133,0,0,random,bench,no
+Outdoor Objects,bird|kite|boat|dog,2343839,0,0,boundary,stop sign,yes
+Outdoor Objects,bird|kite|boat|dog,2346019,0,0,boundary,stop sign,yes
+Outdoor Objects,bird|kite|boat|dog,2346929,0,0,boundary,bus,no
+Outdoor Objects,bird|kite|boat|dog,2348108,0,0,boundary,stop sign,no
+Outdoor Objects,bird|kite|boat|dog,2350334,0,0,boundary,knife,yes
+Outdoor Objects,bird|kite|boat|dog,2350610,0,0,boundary,kite,yes
+Outdoor Objects,bird|kite|boat|dog,2352095,0,0,random,bus,yes
+Outdoor Objects,bird|kite|boat|dog,2352709,0,0,boundary,kite,no
+Outdoor Objects,bird|kite|boat|dog,2352911,0,0,random,bowl,no
+Outdoor Objects,bird|kite|boat|dog,2353402,0,0,random,bus,no
+Outdoor Objects,bird|kite|boat|dog,2353986,0,0,boundary,kite,no
+Outdoor Objects,bird|kite|boat|dog,2354790,0,0,boundary,bus,yes
+Outdoor Objects,bird|kite|boat|dog,2355650,0,0,boundary,stop sign,no
+Outdoor Objects,bird|kite|boat|dog,2355890,0,0,boundary,stop sign,yes
+Outdoor Objects,bird|kite|boat|dog,2357470,0,0,random,dog,yes
+Outdoor Objects,bird|kite|boat|dog,2357898,0,0,random,bench,no
+Outdoor Objects,bird|kite|boat|dog,2358000,0,0,boundary,cell phone,yes
+Outdoor Objects,bird|kite|boat|dog,2358239,0,0,random,bird,yes
+Outdoor Objects,bird|kite|boat|dog,2358316,0,0,boundary,sink,yes
+Outdoor Objects,bird|kite|boat|dog,2358419,0,0,random,bus,no
+Outdoor Objects,bird|kite|boat|dog,2359994,0,0,random,bus,no
+Outdoor Objects,bird|kite|boat|dog,2360117,0,0,boundary,kite,yes
+Outdoor Objects,bird|kite|boat|dog,2360975,0,0,boundary,kite,yes
+Outdoor Objects,bird|kite|boat|dog,2361029,0,0,boundary,cell phone,no
+Outdoor Objects,bird|kite|boat|dog,2361524,0,0,random,boat,yes
+Outdoor Objects,bird|kite|boat|dog,2362065,0,0,boundary,sink,yes
+Outdoor Objects,bird|kite|boat|dog,2362762,0,0,boundary,vase,yes
+Outdoor Objects,bird|kite|boat|dog,2363160,0,0,random,bird,yes
+Outdoor Objects,bird|kite|boat|dog,2363995,0,0,boundary,sink,no
+Outdoor Objects,bird|kite|boat|dog,2364216,0,0,random,bus,yes
+Outdoor Objects,bird|kite|boat|dog,2364952,0,0,random,bird,yes
+Outdoor Objects,bird|kite|boat|dog,2365421,0,0,boundary,cell phone,yes
+Outdoor Objects,bird|kite|boat|dog,2366442,0,0,random,bowl,yes
+Outdoor Objects,bird|kite|boat|dog,2367117,0,0,boundary,kite,no
+Outdoor Objects,bird|kite|boat|dog,2367901,0,0,boundary,stop sign,no
+Outdoor Objects,bird|kite|boat|dog,2368073,0,0,boundary,stop sign,no
+Outdoor Objects,bird|kite|boat|dog,2368814,0,0,random,bird,no
+Outdoor Objects,bird|kite|boat|dog,2368984,0,0,random,bus,no
+Outdoor Objects,bird|kite|boat|dog,2369018,0,0,boundary,kite,no
+Outdoor Objects,bird|kite|boat|dog,2370144,0,0,random,bowl,no
+Outdoor Objects,bird|kite|boat|dog,2370271,0,0,random,bird,yes
+Outdoor Objects,bird|kite|boat|dog,2370802,0,0,random,stop sign,yes
+Outdoor Objects,bird|kite|boat|dog,2372204,0,0,random,bowl,no
+Outdoor Objects,bird|kite|boat|dog,2372245,0,0,random,stop sign,no
+Outdoor Objects,bird|kite|boat|dog,2372457,0,0,boundary,spoon,no
+Outdoor Objects,bird|kite|boat|dog,2373243,0,0,random,bird,no
+Outdoor Objects,bird|kite|boat|dog,2374137,0,0,random,dog,no
+Outdoor Objects,bird|kite|boat|dog,2374487,0,0,boundary,stop sign,yes
+Outdoor Objects,bird|kite|boat|dog,2375949,0,0,random,cup,no
+Outdoor Objects,bird|kite|boat|dog,2376171,0,0,random,bicycle,no
+Outdoor Objects,bird|kite|boat|dog,2376806,0,0,boundary,stop sign,yes
+Outdoor Objects,bird|kite|boat|dog,2379036,0,0,random,kite,no
+Outdoor Objects,bird|kite|boat|dog,2379050,0,0,boundary,dog,yes
+Outdoor Objects,bird|kite|boat|dog,2379075,0,0,boundary,dog,no
+Outdoor Objects,bird|kite|boat|dog,2379254,0,0,random,dog,yes
+Outdoor Objects,bird|kite|boat|dog,2379377,0,0,random,bird,no
+Outdoor Objects,bird|kite|boat|dog,2379431,0,0,random,bus,yes
+Outdoor Objects,bird|kite|boat|dog,2380089,0,0,boundary,kite,yes
+Outdoor Objects,bird|kite|boat|dog,2380376,0,0,random,car,no
+Outdoor Objects,bird|kite|boat|dog,2380685,0,0,boundary,sink,no
+Outdoor Objects,bird|kite|boat|dog,2381000,0,0,random,cup,yes
+Outdoor Objects,bird|kite|boat|dog,2382264,0,0,random,dog,no
+Outdoor Objects,bird|kite|boat|dog,2382828,0,0,random,dog,yes
+Outdoor Objects,bird|kite|boat|dog,2383506,0,0,boundary,sink,yes
+Outdoor Objects,bird|kite|boat|dog,2383707,0,0,boundary,kite,no
+Outdoor Objects,bird|kite|boat|dog,2384185,0,0,random,backpack,no
+Outdoor Objects,bird|kite|boat|dog,2384924,0,0,boundary,truck,yes
+Outdoor Objects,bird|kite|boat|dog,2385477,0,0,random,kite,no
+Outdoor Objects,bird|kite|boat|dog,2385504,0,0,boundary,kite,yes
+Outdoor Objects,bird|kite|boat|dog,2386347,0,0,random,bowl,yes
+Outdoor Objects,bird|kite|boat|dog,2386624,0,0,random,dog,yes
+Outdoor Objects,bird|kite|boat|dog,2386652,0,0,random,bird,yes
+Outdoor Objects,bird|kite|boat|dog,2387068,0,0,boundary,kite,no
+Outdoor Objects,bird|kite|boat|dog,2387690,0,0,random,bus,yes
+Outdoor Objects,bird|kite|boat|dog,2388314,0,0,boundary,bench,yes
+Outdoor Objects,bird|kite|boat|dog,2388486,0,0,random,bowl,yes
+Outdoor Objects,bird|kite|boat|dog,2389518,0,0,random,boat,no
+Outdoor Objects,bird|kite|boat|dog,2391377,0,0,boundary,kite,no
+Outdoor Objects,bird|kite|boat|dog,2391765,0,0,boundary,chair,yes
+Outdoor Objects,bird|kite|boat|dog,2392094,0,0,random,truck,yes
+Outdoor Objects,bird|kite|boat|dog,2392128,0,0,boundary,stop sign,yes
+Outdoor Objects,bird|kite|boat|dog,2392264,0,0,boundary,stop sign,no
+Outdoor Objects,bird|kite|boat|dog,2392277,0,0,random,bowl,no
+Outdoor Objects,bird|kite|boat|dog,2392337,0,0,boundary,sink,yes
+Outdoor Objects,bird|kite|boat|dog,2392420,0,0,boundary,vase,yes
+Outdoor Objects,bird|kite|boat|dog,2392480,0,0,random,bowl,no
+Outdoor Objects,bird|kite|boat|dog,2392734,0,0,random,kite,yes
+Outdoor Objects,bird|kite|boat|dog,2392807,0,0,random,bus,yes
+Outdoor Objects,bird|kite|boat|dog,2393325,0,0,random,cup,yes
+Outdoor Objects,bird|kite|boat|dog,2393671,0,0,boundary,dog,yes
+Outdoor Objects,bird|kite|boat|dog,2393732,0,0,boundary,stop sign,no
+Outdoor Objects,bird|kite|boat|dog,2393864,0,0,boundary,fire hydrant,yes
+Outdoor Objects,bird|kite|boat|dog,2393952,0,0,boundary,sink,no
+Outdoor Objects,bird|kite|boat|dog,2394130,0,0,boundary,kite,yes
+Outdoor Objects,bird|kite|boat|dog,2394898,1,0,boundary,dog,no
+Outdoor Objects,bird|kite|boat|dog,2395379,0,0,random,sink,no
+Outdoor Objects,bird|kite|boat|dog,2395745,0,0,boundary,kite,no
+Outdoor Objects,bird|kite|boat|dog,2396098,0,0,random,bench,yes
+Outdoor Objects,bird|kite|boat|dog,2398287,0,0,boundary,bowl,yes
+Outdoor Objects,bird|kite|boat|dog,2398807,0,0,boundary,stop sign,no
+Outdoor Objects,bird|kite|boat|dog,2398852,0,0,random,knife,no
+Outdoor Objects,bird|kite|boat|dog,2399091,0,0,boundary,sink,no
+Outdoor Objects,bird|kite|boat|dog,2399434,0,0,random,bowl,no
+Outdoor Objects,bird|kite|boat|dog,2399496,0,0,random,kite,no
+Outdoor Objects,bird|kite|boat|dog,2399554,0,0,boundary,sink,no
+Outdoor Objects,bird|kite|boat|dog,2400101,0,0,boundary,kite,no
+Outdoor Objects,bird|kite|boat|dog,2400821,0,0,boundary,sink,yes
+Outdoor Objects,bird|kite|boat|dog,2402404,0,0,random,umbrella,no
+Outdoor Objects,bird|kite|boat|dog,2402410,0,0,boundary,stop sign,no
+Outdoor Objects,bird|kite|boat|dog,2403285,0,0,random,kite,yes
+Outdoor Objects,bird|kite|boat|dog,2404693,0,0,boundary,kite,no
+Outdoor Objects,bird|kite|boat|dog,2406950,0,0,random,bowl,no
+Outdoor Objects,bird|kite|boat|dog,2407502,0,0,boundary,spoon,yes
+Outdoor Objects,bird|kite|boat|dog,2407548,0,0,boundary,bus,no
+Outdoor Objects,bird|kite|boat|dog,2407927,0,0,boundary,bowl,no
+Outdoor Objects,bird|kite|boat|dog,2408671,0,0,random,bowl,yes
+Outdoor Objects,bird|kite|boat|dog,2409231,0,0,random,bowl,no
+Outdoor Objects,bird|kite|boat|dog,2410026,0,0,random,kite,no
+Outdoor Objects,bird|kite|boat|dog,2410237,0,0,random,fork,yes
+Outdoor Objects,bird|kite|boat|dog,2410471,0,0,random,bird,no
+Outdoor Objects,bird|kite|boat|dog,2410628,0,0,boundary,dog,no
+Outdoor Objects,bird|kite|boat|dog,2411277,0,0,random,bowl,no
+Outdoor Objects,bird|kite|boat|dog,2411445,0,0,random,bicycle,no
+Outdoor Objects,bird|kite|boat|dog,2411912,0,0,boundary,stop sign,yes
+Outdoor Objects,bird|kite|boat|dog,2413072,0,0,boundary,stop sign,no
+Outdoor Objects,bird|kite|boat|dog,2413407,0,0,random,spoon,no
+Outdoor Objects,bird|kite|boat|dog,2413495,0,0,boundary,stop sign,yes
+Outdoor Objects,bird|kite|boat|dog,2415129,0,0,random,kite,yes
+Outdoor Objects,bird|kite|boat|dog,2415598,0,0,boundary,sink,no
+Outdoor Objects,bird|kite|boat|dog,2416176,0,0,random,bus,no
+Outdoor Objects,bird|kite|boat|dog,2416246,0,0,boundary,stop sign,yes
+Outdoor Objects,bird|kite|boat|dog,2416293,0,0,random,kite,yes
+Outdoor Objects,bird|kite|boat|dog,2416508,0,0,random,bird,no
+Outdoor Objects,bird|kite|boat|dog,2416700,0,0,boundary,cell phone,yes
+Outdoor Objects,bird|kite|boat|dog,2417271,0,0,boundary,cell phone,yes
+Outdoor Objects,bird|kite|boat|dog,2417678,1,0,boundary,kite,no
+Outdoor Objects,bird|kite|boat|dog,2417852,1,0,boundary,boat,no
+Stop Sign,stop sign,655,0,0,random,boat,no
+Stop Sign,stop sign,1490,0,0,random,bench,no
+Stop Sign,stop sign,1556,0,0,random,car,no
+Stop Sign,stop sign,1986,0,0,boundary,cell phone,no
+Stop Sign,stop sign,2360,0,0,boundary,stop sign,no
+Stop Sign,stop sign,3561,0,0,boundary,chair,no
+Stop Sign,stop sign,3801,0,0,random,bench,no
+Stop Sign,stop sign,4185,0,0,boundary,stop sign,no
+Stop Sign,stop sign,4214,0,0,random,fork,no
+Stop Sign,stop sign,61589,0,0,random,kite,no
+Stop Sign,stop sign,497980,0,0,random,bench,no
+Stop Sign,stop sign,498270,0,0,boundary,boat,no
+Stop Sign,stop sign,1159420,0,0,boundary,truck,yes
+Stop Sign,stop sign,1159799,0,0,random,bowl,no
+Stop Sign,stop sign,1592013,0,0,boundary,bench,yes
+Stop Sign,stop sign,1592557,0,0,random,fork,no
+Stop Sign,stop sign,1593184,0,0,random,dog,yes
+Stop Sign,stop sign,2315792,0,0,boundary,bench,yes
+Stop Sign,stop sign,2315796,0,0,random,car,no
+Stop Sign,stop sign,2316043,0,0,random,car,yes
+Stop Sign,stop sign,2316125,0,0,boundary,kite,no
+Stop Sign,stop sign,2316533,0,0,random,kite,yes
+Stop Sign,stop sign,2318153,0,0,random,fork,yes
+Stop Sign,stop sign,2320159,0,0,random,spoon,yes
+Stop Sign,stop sign,2320550,0,0,random,bench,yes
+Stop Sign,stop sign,2321487,0,0,random,bird,yes
+Stop Sign,stop sign,2322248,0,0,boundary,kite,yes
+Stop Sign,stop sign,2322535,0,0,boundary,kite,yes
+Stop Sign,stop sign,2322849,0,0,boundary,backpack,no
+Stop Sign,stop sign,2323085,0,0,random,kite,yes
+Stop Sign,stop sign,2323658,0,0,boundary,dog,no
+Stop Sign,stop sign,2323842,0,0,boundary,kite,no
+Stop Sign,stop sign,2325332,0,0,boundary,truck,yes
+Stop Sign,stop sign,2325379,0,0,boundary,kite,no
+Stop Sign,stop sign,2325700,0,0,boundary,kite,yes
+Stop Sign,stop sign,2326762,0,0,boundary,sink,no
+Stop Sign,stop sign,2327098,0,0,boundary,sink,no
+Stop Sign,stop sign,2327398,0,0,boundary,kite,yes
+Stop Sign,stop sign,2327535,0,0,random,cup,no
+Stop Sign,stop sign,2328476,0,0,random,bench,no
+Stop Sign,stop sign,2329296,0,0,boundary,stop sign,yes
+Stop Sign,stop sign,2329538,0,0,random,bench,no
+Stop Sign,stop sign,2330568,0,0,boundary,bus,yes
+Stop Sign,stop sign,2331220,0,0,boundary,kite,no
+Stop Sign,stop sign,2332648,0,0,random,sink,no
+Stop Sign,stop sign,2333001,0,0,boundary,kite,yes
+Stop Sign,stop sign,2334397,0,0,random,bowl,no
+Stop Sign,stop sign,2334729,0,0,random,bus,no
+Stop Sign,stop sign,2334823,0,0,random,kite,yes
+Stop Sign,stop sign,2334934,0,0,boundary,kite,yes
+Stop Sign,stop sign,2335019,0,0,random,bench,no
+Stop Sign,stop sign,2336335,0,0,random,car,no
+Stop Sign,stop sign,2336569,0,0,boundary,stop sign,yes
+Stop Sign,stop sign,2336745,0,0,boundary,bus,no
+Stop Sign,stop sign,2338255,0,0,boundary,bench,yes
+Stop Sign,stop sign,2338452,0,0,random,bird,yes
+Stop Sign,stop sign,2339643,0,0,boundary,kite,yes
+Stop Sign,stop sign,2340056,0,0,random,knife,yes
+Stop Sign,stop sign,2340667,0,0,random,bicycle,no
+Stop Sign,stop sign,2341076,0,0,random,bowl,yes
+Stop Sign,stop sign,2341258,0,0,random,bench,no
+Stop Sign,stop sign,2342757,0,0,random,car,no
+Stop Sign,stop sign,2343133,0,0,random,bench,no
+Stop Sign,stop sign,2343839,1,0,boundary,stop sign,yes
+Stop Sign,stop sign,2346019,0,0,boundary,stop sign,yes
+Stop Sign,stop sign,2346929,0,0,boundary,bus,no
+Stop Sign,stop sign,2348108,0,0,boundary,stop sign,no
+Stop Sign,stop sign,2350334,0,0,boundary,knife,yes
+Stop Sign,stop sign,2350610,0,0,boundary,kite,yes
+Stop Sign,stop sign,2352095,0,0,random,bus,yes
+Stop Sign,stop sign,2352709,0,0,boundary,kite,no
+Stop Sign,stop sign,2352911,0,0,random,bowl,no
+Stop Sign,stop sign,2353402,0,0,random,bus,no
+Stop Sign,stop sign,2353986,0,0,boundary,kite,no
+Stop Sign,stop sign,2354790,0,0,boundary,bus,yes
+Stop Sign,stop sign,2355650,0,0,boundary,stop sign,no
+Stop Sign,stop sign,2355890,0,0,boundary,stop sign,yes
+Stop Sign,stop sign,2357470,0,0,random,dog,yes
+Stop Sign,stop sign,2357898,0,0,random,bench,no
+Stop Sign,stop sign,2358000,0,0,boundary,cell phone,yes
+Stop Sign,stop sign,2358239,0,0,random,bird,yes
+Stop Sign,stop sign,2358316,0,0,boundary,sink,yes
+Stop Sign,stop sign,2358419,0,0,random,bus,no
+Stop Sign,stop sign,2359994,0,0,random,bus,no
+Stop Sign,stop sign,2360117,0,0,boundary,kite,yes
+Stop Sign,stop sign,2360975,0,0,boundary,kite,yes
+Stop Sign,stop sign,2361029,0,0,boundary,cell phone,no
+Stop Sign,stop sign,2361524,0,0,random,boat,yes
+Stop Sign,stop sign,2362065,0,0,boundary,sink,yes
+Stop Sign,stop sign,2362762,0,0,boundary,vase,yes
+Stop Sign,stop sign,2363160,0,0,random,bird,yes
+Stop Sign,stop sign,2363995,0,0,boundary,sink,no
+Stop Sign,stop sign,2364216,0,0,random,bus,yes
+Stop Sign,stop sign,2364952,0,0,random,bird,yes
+Stop Sign,stop sign,2365421,0,0,boundary,cell phone,yes
+Stop Sign,stop sign,2366442,0,0,random,bowl,yes
+Stop Sign,stop sign,2367117,0,0,boundary,kite,no
+Stop Sign,stop sign,2367901,0,0,boundary,stop sign,no
+Stop Sign,stop sign,2368073,0,0,boundary,stop sign,no
+Stop Sign,stop sign,2368814,0,0,random,bird,no
+Stop Sign,stop sign,2368984,0,0,random,bus,no
+Stop Sign,stop sign,2369018,0,0,boundary,kite,no
+Stop Sign,stop sign,2370144,0,0,random,bowl,no
+Stop Sign,stop sign,2370271,0,0,random,bird,yes
+Stop Sign,stop sign,2370802,0,0,random,stop sign,yes
+Stop Sign,stop sign,2372204,0,0,random,bowl,no
+Stop Sign,stop sign,2372245,0,0,random,stop sign,no
+Stop Sign,stop sign,2372457,0,0,boundary,spoon,no
+Stop Sign,stop sign,2373243,0,0,random,bird,no
+Stop Sign,stop sign,2374137,0,0,random,dog,no
+Stop Sign,stop sign,2374487,0,0,boundary,stop sign,yes
+Stop Sign,stop sign,2375949,0,0,random,cup,no
+Stop Sign,stop sign,2376171,0,0,random,bicycle,no
+Stop Sign,stop sign,2376806,0,0,boundary,stop sign,yes
+Stop Sign,stop sign,2379036,0,0,random,kite,no
+Stop Sign,stop sign,2379050,0,0,boundary,dog,yes
+Stop Sign,stop sign,2379075,0,0,boundary,dog,no
+Stop Sign,stop sign,2379254,0,0,random,dog,yes
+Stop Sign,stop sign,2379377,0,0,random,bird,no
+Stop Sign,stop sign,2379431,0,0,random,bus,yes
+Stop Sign,stop sign,2380089,0,0,boundary,kite,yes
+Stop Sign,stop sign,2380376,0,0,random,car,no
+Stop Sign,stop sign,2380685,0,0,boundary,sink,no
+Stop Sign,stop sign,2381000,0,0,random,cup,yes
+Stop Sign,stop sign,2382264,0,0,random,dog,no
+Stop Sign,stop sign,2382828,0,0,random,dog,yes
+Stop Sign,stop sign,2383506,0,0,boundary,sink,yes
+Stop Sign,stop sign,2383707,0,0,boundary,kite,no
+Stop Sign,stop sign,2384185,0,0,random,backpack,no
+Stop Sign,stop sign,2384924,0,0,boundary,truck,yes
+Stop Sign,stop sign,2385477,0,0,random,kite,no
+Stop Sign,stop sign,2385504,0,0,boundary,kite,yes
+Stop Sign,stop sign,2386347,0,0,random,bowl,yes
+Stop Sign,stop sign,2386624,0,0,random,dog,yes
+Stop Sign,stop sign,2386652,0,0,random,bird,yes
+Stop Sign,stop sign,2387068,0,0,boundary,kite,no
+Stop Sign,stop sign,2387690,0,0,random,bus,yes
+Stop Sign,stop sign,2388314,0,0,boundary,bench,yes
+Stop Sign,stop sign,2388486,0,0,random,bowl,yes
+Stop Sign,stop sign,2389518,0,0,random,boat,no
+Stop Sign,stop sign,2391377,0,0,boundary,kite,no
+Stop Sign,stop sign,2391765,0,0,boundary,chair,yes
+Stop Sign,stop sign,2392094,0,0,random,truck,yes
+Stop Sign,stop sign,2392128,0,0,boundary,stop sign,yes
+Stop Sign,stop sign,2392264,0,0,boundary,stop sign,no
+Stop Sign,stop sign,2392277,0,0,random,bowl,no
+Stop Sign,stop sign,2392337,0,0,boundary,sink,yes
+Stop Sign,stop sign,2392420,0,0,boundary,vase,yes
+Stop Sign,stop sign,2392480,0,0,random,bowl,no
+Stop Sign,stop sign,2392734,0,0,random,kite,yes
+Stop Sign,stop sign,2392807,0,0,random,bus,yes
+Stop Sign,stop sign,2393325,0,0,random,cup,yes
+Stop Sign,stop sign,2393671,0,0,boundary,dog,yes
+Stop Sign,stop sign,2393732,0,0,boundary,stop sign,no
+Stop Sign,stop sign,2393864,0,0,boundary,fire hydrant,yes
+Stop Sign,stop sign,2393952,0,0,boundary,sink,no
+Stop Sign,stop sign,2394130,0,0,boundary,kite,yes
+Stop Sign,stop sign,2394898,0,0,boundary,dog,no
+Stop Sign,stop sign,2395379,0,0,random,sink,no
+Stop Sign,stop sign,2395745,0,0,boundary,kite,no
+Stop Sign,stop sign,2396098,0,0,random,bench,yes
+Stop Sign,stop sign,2398287,0,0,boundary,bowl,yes
+Stop Sign,stop sign,2398807,0,0,boundary,stop sign,no
+Stop Sign,stop sign,2398852,0,0,random,knife,no
+Stop Sign,stop sign,2399091,0,0,boundary,sink,no
+Stop Sign,stop sign,2399434,0,0,random,bowl,no
+Stop Sign,stop sign,2399496,0,0,random,kite,no
+Stop Sign,stop sign,2399554,0,0,boundary,sink,no
+Stop Sign,stop sign,2400101,0,0,boundary,kite,no
+Stop Sign,stop sign,2400821,0,0,boundary,sink,yes
+Stop Sign,stop sign,2402404,0,0,random,umbrella,no
+Stop Sign,stop sign,2402410,0,0,boundary,stop sign,no
+Stop Sign,stop sign,2403285,0,0,random,kite,yes
+Stop Sign,stop sign,2404693,0,0,boundary,kite,no
+Stop Sign,stop sign,2406950,0,0,random,bowl,no
+Stop Sign,stop sign,2407502,0,0,boundary,spoon,yes
+Stop Sign,stop sign,2407548,0,0,boundary,bus,no
+Stop Sign,stop sign,2407927,0,0,boundary,bowl,no
+Stop Sign,stop sign,2408671,0,0,random,bowl,yes
+Stop Sign,stop sign,2409231,0,0,random,bowl,no
+Stop Sign,stop sign,2410026,0,0,random,kite,no
+Stop Sign,stop sign,2410237,0,0,random,fork,yes
+Stop Sign,stop sign,2410471,0,0,random,bird,no
+Stop Sign,stop sign,2410628,0,0,boundary,dog,no
+Stop Sign,stop sign,2411277,0,0,random,bowl,no
+Stop Sign,stop sign,2411445,0,0,random,bicycle,no
+Stop Sign,stop sign,2411912,0,0,boundary,stop sign,yes
+Stop Sign,stop sign,2413072,0,0,boundary,stop sign,no
+Stop Sign,stop sign,2413407,0,0,random,spoon,no
+Stop Sign,stop sign,2413495,0,0,boundary,stop sign,yes
+Stop Sign,stop sign,2415129,0,0,random,kite,yes
+Stop Sign,stop sign,2415598,0,0,boundary,sink,no
+Stop Sign,stop sign,2416176,0,0,random,bus,no
+Stop Sign,stop sign,2416246,0,0,boundary,stop sign,yes
+Stop Sign,stop sign,2416293,0,0,random,kite,yes
+Stop Sign,stop sign,2416508,0,0,random,bird,no
+Stop Sign,stop sign,2416700,0,0,boundary,cell phone,yes
+Stop Sign,stop sign,2417271,0,0,boundary,cell phone,yes
+Stop Sign,stop sign,2417678,0,0,boundary,kite,no
+Stop Sign,stop sign,2417852,0,0,boundary,boat,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,655,0,0,random,boat,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,1490,0,0,random,bench,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,1556,0,0,random,car,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,1986,0,0,boundary,cell phone,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2360,0,0,boundary,stop sign,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,3561,0,0,boundary,chair,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,3801,0,0,random,bench,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,4185,0,0,boundary,stop sign,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,4214,0,0,random,fork,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,61589,0,0,random,kite,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,497980,0,0,random,bench,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,498270,0,0,boundary,boat,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,1159420,0,0,boundary,truck,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,1159799,0,0,random,bowl,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,1592013,1,1,boundary,bench,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,1592557,0,0,random,fork,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,1593184,1,0,random,dog,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2315792,1,0,boundary,bench,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2315796,0,0,random,car,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2316043,0,0,random,car,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2316125,0,0,boundary,kite,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2316533,0,0,random,kite,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2318153,0,0,random,fork,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2320159,1,0,random,spoon,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2320550,0,0,random,bench,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2321487,0,0,random,bird,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2322248,0,0,boundary,kite,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2322535,0,0,boundary,kite,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2322849,0,0,boundary,backpack,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2323085,0,0,random,kite,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2323658,0,0,boundary,dog,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2323842,0,0,boundary,kite,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2325332,0,0,boundary,truck,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2325379,0,0,boundary,kite,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2325700,0,0,boundary,kite,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2326762,0,0,boundary,sink,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2327098,0,0,boundary,sink,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2327398,0,0,boundary,kite,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2327535,0,0,random,cup,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2328476,0,0,random,bench,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2329296,0,0,boundary,stop sign,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2329538,0,0,random,bench,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2330568,0,0,boundary,bus,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2331220,0,0,boundary,kite,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2332648,0,0,random,sink,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2333001,0,0,boundary,kite,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2334397,0,0,random,bowl,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2334729,0,0,random,bus,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2334823,0,0,random,kite,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2334934,0,0,boundary,kite,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2335019,0,0,random,bench,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2336335,0,0,random,car,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2336569,0,0,boundary,stop sign,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2336745,0,0,boundary,bus,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2338255,0,0,boundary,bench,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2338452,0,0,random,bird,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2339643,0,0,boundary,kite,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2340056,0,0,random,knife,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2340667,0,0,random,bicycle,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2341076,0,0,random,bowl,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2341258,0,0,random,bench,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2342757,0,0,random,car,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2343133,0,0,random,bench,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2343839,0,0,boundary,stop sign,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2346019,0,0,boundary,stop sign,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2346929,0,0,boundary,bus,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2348108,0,0,boundary,stop sign,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2350334,0,0,boundary,knife,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2350610,0,0,boundary,kite,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2352095,0,0,random,bus,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2352709,0,0,boundary,kite,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2352911,0,0,random,bowl,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2353402,0,0,random,bus,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2353986,0,0,boundary,kite,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2354790,0,0,boundary,bus,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2355650,0,0,boundary,stop sign,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2355890,0,0,boundary,stop sign,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2357470,0,0,random,dog,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2357898,0,0,random,bench,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2358000,0,0,boundary,cell phone,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2358239,0,0,random,bird,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2358316,0,0,boundary,sink,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2358419,0,0,random,bus,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2359994,0,0,random,bus,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2360117,0,0,boundary,kite,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2360975,0,0,boundary,kite,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2361029,0,0,boundary,cell phone,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2361524,0,0,random,boat,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2362065,1,1,boundary,sink,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2362762,1,1,boundary,vase,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2363160,0,0,random,bird,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2363995,0,0,boundary,sink,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2364216,0,0,random,bus,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2364952,0,0,random,bird,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2365421,0,0,boundary,cell phone,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2366442,0,0,random,bowl,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2367117,0,0,boundary,kite,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2367901,0,0,boundary,stop sign,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2368073,0,0,boundary,stop sign,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2368814,0,0,random,bird,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2368984,0,0,random,bus,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2369018,0,0,boundary,kite,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2370144,0,0,random,bowl,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2370271,0,0,random,bird,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2370802,0,0,random,stop sign,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2372204,0,0,random,bowl,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2372245,0,0,random,stop sign,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2372457,0,0,boundary,spoon,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2373243,0,0,random,bird,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2374137,0,0,random,dog,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2374487,0,0,boundary,stop sign,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2375949,0,0,random,cup,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2376171,0,0,random,bicycle,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2376806,0,0,boundary,stop sign,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2379036,0,0,random,kite,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2379050,0,0,boundary,dog,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2379075,0,0,boundary,dog,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2379254,0,0,random,dog,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2379377,0,0,random,bird,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2379431,0,0,random,bus,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2380089,0,0,boundary,kite,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2380376,0,0,random,car,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2380685,0,0,boundary,sink,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2381000,0,0,random,cup,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2382264,0,0,random,dog,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2382828,0,0,random,dog,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2383506,1,0,boundary,sink,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2383707,0,0,boundary,kite,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2384185,0,0,random,backpack,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2384924,0,0,boundary,truck,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2385477,0,0,random,kite,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2385504,0,0,boundary,kite,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2386347,1,1,random,bowl,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2386624,0,0,random,dog,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2386652,0,0,random,bird,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2387068,0,0,boundary,kite,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2387690,0,0,random,bus,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2388314,1,1,boundary,bench,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2388486,0,0,random,bowl,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2389518,0,0,random,boat,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2391377,0,0,boundary,kite,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2391765,0,0,boundary,chair,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2392094,0,0,random,truck,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2392128,0,0,boundary,stop sign,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2392264,0,0,boundary,stop sign,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2392277,0,0,random,bowl,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2392337,0,0,boundary,sink,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2392420,1,1,boundary,vase,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2392480,0,0,random,bowl,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2392734,0,0,random,kite,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2392807,0,0,random,bus,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2393325,0,0,random,cup,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2393671,0,0,boundary,dog,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2393732,0,0,boundary,stop sign,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2393864,0,0,boundary,fire hydrant,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2393952,0,0,boundary,sink,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2394130,0,0,boundary,kite,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2394898,0,0,boundary,dog,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2395379,0,0,random,sink,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2395745,0,0,boundary,kite,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2396098,0,0,random,bench,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2398287,0,0,boundary,bowl,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2398807,0,0,boundary,stop sign,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2398852,0,0,random,knife,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2399091,0,0,boundary,sink,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2399434,1,0,random,bowl,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2399496,0,0,random,kite,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2399554,0,0,boundary,sink,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2400101,0,0,boundary,kite,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2400821,0,0,boundary,sink,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2402404,0,0,random,umbrella,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2402410,0,0,boundary,stop sign,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2403285,0,0,random,kite,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2404693,0,0,boundary,kite,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2406950,0,0,random,bowl,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2407502,0,0,boundary,spoon,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2407548,0,0,boundary,bus,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2407927,0,0,boundary,bowl,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2408671,0,0,random,bowl,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2409231,0,0,random,bowl,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2410026,0,0,random,kite,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2410237,0,0,random,fork,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2410471,0,0,random,bird,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2410628,0,0,boundary,dog,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2411277,0,0,random,bowl,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2411445,1,0,random,bicycle,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2411912,0,0,boundary,stop sign,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2413072,0,0,boundary,stop sign,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2413407,1,0,random,spoon,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2413495,0,0,boundary,stop sign,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2415129,0,0,random,kite,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2415598,0,0,boundary,sink,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2416176,0,0,random,bus,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2416246,0,0,boundary,stop sign,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2416293,0,0,random,kite,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2416508,0,0,random,bird,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2416700,0,0,boundary,cell phone,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2417271,0,0,boundary,cell phone,yes
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2417678,0,0,boundary,kite,no
+Table Objects,bowl|cup|bottle|vase|fork|spoon|sink|knife,2417852,0,0,boundary,boat,no
+Umbrella,umbrella,655,0,0,random,boat,no
+Umbrella,umbrella,1490,0,0,random,bench,no
+Umbrella,umbrella,1556,0,0,random,car,no
+Umbrella,umbrella,1986,0,0,boundary,cell phone,no
+Umbrella,umbrella,2360,0,0,boundary,stop sign,no
+Umbrella,umbrella,3561,0,0,boundary,chair,no
+Umbrella,umbrella,3801,0,0,random,bench,no
+Umbrella,umbrella,4185,0,0,boundary,stop sign,no
+Umbrella,umbrella,4214,0,0,random,fork,no
+Umbrella,umbrella,61589,0,0,random,kite,no
+Umbrella,umbrella,497980,0,0,random,bench,no
+Umbrella,umbrella,498270,0,0,boundary,boat,no
+Umbrella,umbrella,1159420,0,0,boundary,truck,yes
+Umbrella,umbrella,1159799,0,0,random,bowl,no
+Umbrella,umbrella,1592013,0,0,boundary,bench,yes
+Umbrella,umbrella,1592557,0,0,random,fork,no
+Umbrella,umbrella,1593184,0,0,random,dog,yes
+Umbrella,umbrella,2315792,0,0,boundary,bench,yes
+Umbrella,umbrella,2315796,0,0,random,car,no
+Umbrella,umbrella,2316043,0,0,random,car,yes
+Umbrella,umbrella,2316125,0,0,boundary,kite,no
+Umbrella,umbrella,2316533,0,0,random,kite,yes
+Umbrella,umbrella,2318153,0,0,random,fork,yes
+Umbrella,umbrella,2320159,0,0,random,spoon,yes
+Umbrella,umbrella,2320550,0,0,random,bench,yes
+Umbrella,umbrella,2321487,0,0,random,bird,yes
+Umbrella,umbrella,2322248,0,0,boundary,kite,yes
+Umbrella,umbrella,2322535,0,0,boundary,kite,yes
+Umbrella,umbrella,2322849,0,0,boundary,backpack,no
+Umbrella,umbrella,2323085,0,0,random,kite,yes
+Umbrella,umbrella,2323658,0,0,boundary,dog,no
+Umbrella,umbrella,2323842,0,0,boundary,kite,no
+Umbrella,umbrella,2325332,0,0,boundary,truck,yes
+Umbrella,umbrella,2325379,0,0,boundary,kite,no
+Umbrella,umbrella,2325700,0,0,boundary,kite,yes
+Umbrella,umbrella,2326762,0,0,boundary,sink,no
+Umbrella,umbrella,2327098,0,0,boundary,sink,no
+Umbrella,umbrella,2327398,0,0,boundary,kite,yes
+Umbrella,umbrella,2327535,0,0,random,cup,no
+Umbrella,umbrella,2328476,0,0,random,bench,no
+Umbrella,umbrella,2329296,0,0,boundary,stop sign,yes
+Umbrella,umbrella,2329538,0,0,random,bench,no
+Umbrella,umbrella,2330568,0,0,boundary,bus,yes
+Umbrella,umbrella,2331220,0,0,boundary,kite,no
+Umbrella,umbrella,2332648,0,0,random,sink,no
+Umbrella,umbrella,2333001,0,0,boundary,kite,yes
+Umbrella,umbrella,2334397,0,0,random,bowl,no
+Umbrella,umbrella,2334729,0,0,random,bus,no
+Umbrella,umbrella,2334823,0,0,random,kite,yes
+Umbrella,umbrella,2334934,0,0,boundary,kite,yes
+Umbrella,umbrella,2335019,0,0,random,bench,no
+Umbrella,umbrella,2336335,0,0,random,car,no
+Umbrella,umbrella,2336569,0,0,boundary,stop sign,yes
+Umbrella,umbrella,2336745,0,0,boundary,bus,no
+Umbrella,umbrella,2338255,0,0,boundary,bench,yes
+Umbrella,umbrella,2338452,0,0,random,bird,yes
+Umbrella,umbrella,2339643,0,0,boundary,kite,yes
+Umbrella,umbrella,2340056,0,0,random,knife,yes
+Umbrella,umbrella,2340667,0,0,random,bicycle,no
+Umbrella,umbrella,2341076,0,0,random,bowl,yes
+Umbrella,umbrella,2341258,0,0,random,bench,no
+Umbrella,umbrella,2342757,0,0,random,car,no
+Umbrella,umbrella,2343133,0,0,random,bench,no
+Umbrella,umbrella,2343839,0,0,boundary,stop sign,yes
+Umbrella,umbrella,2346019,0,0,boundary,stop sign,yes
+Umbrella,umbrella,2346929,0,0,boundary,bus,no
+Umbrella,umbrella,2348108,0,0,boundary,stop sign,no
+Umbrella,umbrella,2350334,0,0,boundary,knife,yes
+Umbrella,umbrella,2350610,0,0,boundary,kite,yes
+Umbrella,umbrella,2352095,0,0,random,bus,yes
+Umbrella,umbrella,2352709,0,0,boundary,kite,no
+Umbrella,umbrella,2352911,0,0,random,bowl,no
+Umbrella,umbrella,2353402,0,0,random,bus,no
+Umbrella,umbrella,2353986,0,0,boundary,kite,no
+Umbrella,umbrella,2354790,0,0,boundary,bus,yes
+Umbrella,umbrella,2355650,0,0,boundary,stop sign,no
+Umbrella,umbrella,2355890,0,0,boundary,stop sign,yes
+Umbrella,umbrella,2357470,0,0,random,dog,yes
+Umbrella,umbrella,2357898,0,0,random,bench,no
+Umbrella,umbrella,2358000,0,0,boundary,cell phone,yes
+Umbrella,umbrella,2358239,0,0,random,bird,yes
+Umbrella,umbrella,2358316,0,0,boundary,sink,yes
+Umbrella,umbrella,2358419,0,0,random,bus,no
+Umbrella,umbrella,2359994,0,0,random,bus,no
+Umbrella,umbrella,2360117,0,0,boundary,kite,yes
+Umbrella,umbrella,2360975,0,0,boundary,kite,yes
+Umbrella,umbrella,2361029,0,0,boundary,cell phone,no
+Umbrella,umbrella,2361524,0,0,random,boat,yes
+Umbrella,umbrella,2362065,0,0,boundary,sink,yes
+Umbrella,umbrella,2362762,0,0,boundary,vase,yes
+Umbrella,umbrella,2363160,0,0,random,bird,yes
+Umbrella,umbrella,2363995,0,0,boundary,sink,no
+Umbrella,umbrella,2364216,0,0,random,bus,yes
+Umbrella,umbrella,2364952,0,0,random,bird,yes
+Umbrella,umbrella,2365421,0,0,boundary,cell phone,yes
+Umbrella,umbrella,2366442,0,0,random,bowl,yes
+Umbrella,umbrella,2367117,0,0,boundary,kite,no
+Umbrella,umbrella,2367901,0,0,boundary,stop sign,no
+Umbrella,umbrella,2368073,0,0,boundary,stop sign,no
+Umbrella,umbrella,2368814,0,0,random,bird,no
+Umbrella,umbrella,2368984,0,0,random,bus,no
+Umbrella,umbrella,2369018,0,0,boundary,kite,no
+Umbrella,umbrella,2370144,0,0,random,bowl,no
+Umbrella,umbrella,2370271,0,0,random,bird,yes
+Umbrella,umbrella,2370802,0,0,random,stop sign,yes
+Umbrella,umbrella,2372204,0,0,random,bowl,no
+Umbrella,umbrella,2372245,0,0,random,stop sign,no
+Umbrella,umbrella,2372457,0,0,boundary,spoon,no
+Umbrella,umbrella,2373243,0,0,random,bird,no
+Umbrella,umbrella,2374137,0,0,random,dog,no
+Umbrella,umbrella,2374487,0,0,boundary,stop sign,yes
+Umbrella,umbrella,2375949,0,0,random,cup,no
+Umbrella,umbrella,2376171,0,0,random,bicycle,no
+Umbrella,umbrella,2376806,0,0,boundary,stop sign,yes
+Umbrella,umbrella,2379036,0,0,random,kite,no
+Umbrella,umbrella,2379050,0,0,boundary,dog,yes
+Umbrella,umbrella,2379075,0,0,boundary,dog,no
+Umbrella,umbrella,2379254,0,0,random,dog,yes
+Umbrella,umbrella,2379377,0,0,random,bird,no
+Umbrella,umbrella,2379431,0,0,random,bus,yes
+Umbrella,umbrella,2380089,0,0,boundary,kite,yes
+Umbrella,umbrella,2380376,0,0,random,car,no
+Umbrella,umbrella,2380685,0,0,boundary,sink,no
+Umbrella,umbrella,2381000,0,0,random,cup,yes
+Umbrella,umbrella,2382264,0,0,random,dog,no
+Umbrella,umbrella,2382828,0,0,random,dog,yes
+Umbrella,umbrella,2383506,0,0,boundary,sink,yes
+Umbrella,umbrella,2383707,0,0,boundary,kite,no
+Umbrella,umbrella,2384185,0,0,random,backpack,no
+Umbrella,umbrella,2384924,0,0,boundary,truck,yes
+Umbrella,umbrella,2385477,0,0,random,kite,no
+Umbrella,umbrella,2385504,0,0,boundary,kite,yes
+Umbrella,umbrella,2386347,0,0,random,bowl,yes
+Umbrella,umbrella,2386624,0,0,random,dog,yes
+Umbrella,umbrella,2386652,0,0,random,bird,yes
+Umbrella,umbrella,2387068,0,0,boundary,kite,no
+Umbrella,umbrella,2387690,0,0,random,bus,yes
+Umbrella,umbrella,2388314,0,0,boundary,bench,yes
+Umbrella,umbrella,2388486,0,0,random,bowl,yes
+Umbrella,umbrella,2389518,0,0,random,boat,no
+Umbrella,umbrella,2391377,0,0,boundary,kite,no
+Umbrella,umbrella,2391765,0,0,boundary,chair,yes
+Umbrella,umbrella,2392094,0,0,random,truck,yes
+Umbrella,umbrella,2392128,0,0,boundary,stop sign,yes
+Umbrella,umbrella,2392264,0,0,boundary,stop sign,no
+Umbrella,umbrella,2392277,0,0,random,bowl,no
+Umbrella,umbrella,2392337,0,0,boundary,sink,yes
+Umbrella,umbrella,2392420,0,0,boundary,vase,yes
+Umbrella,umbrella,2392480,0,0,random,bowl,no
+Umbrella,umbrella,2392734,0,0,random,kite,yes
+Umbrella,umbrella,2392807,0,0,random,bus,yes
+Umbrella,umbrella,2393325,0,0,random,cup,yes
+Umbrella,umbrella,2393671,0,0,boundary,dog,yes
+Umbrella,umbrella,2393732,0,0,boundary,stop sign,no
+Umbrella,umbrella,2393864,0,0,boundary,fire hydrant,yes
+Umbrella,umbrella,2393952,0,0,boundary,sink,no
+Umbrella,umbrella,2394130,0,0,boundary,kite,yes
+Umbrella,umbrella,2394898,0,0,boundary,dog,no
+Umbrella,umbrella,2395379,0,0,random,sink,no
+Umbrella,umbrella,2395745,0,0,boundary,kite,no
+Umbrella,umbrella,2396098,0,0,random,bench,yes
+Umbrella,umbrella,2398287,1,0,boundary,bowl,yes
+Umbrella,umbrella,2398807,0,0,boundary,stop sign,no
+Umbrella,umbrella,2398852,0,0,random,knife,no
+Umbrella,umbrella,2399091,0,0,boundary,sink,no
+Umbrella,umbrella,2399434,0,0,random,bowl,no
+Umbrella,umbrella,2399496,0,0,random,kite,no
+Umbrella,umbrella,2399554,0,0,boundary,sink,no
+Umbrella,umbrella,2400101,0,0,boundary,kite,no
+Umbrella,umbrella,2400821,0,0,boundary,sink,yes
+Umbrella,umbrella,2402404,0,0,random,umbrella,no
+Umbrella,umbrella,2402410,0,0,boundary,stop sign,no
+Umbrella,umbrella,2403285,0,0,random,kite,yes
+Umbrella,umbrella,2404693,0,0,boundary,kite,no
+Umbrella,umbrella,2406950,0,0,random,bowl,no
+Umbrella,umbrella,2407502,0,0,boundary,spoon,yes
+Umbrella,umbrella,2407548,0,0,boundary,bus,no
+Umbrella,umbrella,2407927,0,0,boundary,bowl,no
+Umbrella,umbrella,2408671,0,0,random,bowl,yes
+Umbrella,umbrella,2409231,0,0,random,bowl,no
+Umbrella,umbrella,2410026,0,0,random,kite,no
+Umbrella,umbrella,2410237,0,0,random,fork,yes
+Umbrella,umbrella,2410471,0,0,random,bird,no
+Umbrella,umbrella,2410628,0,0,boundary,dog,no
+Umbrella,umbrella,2411277,0,0,random,bowl,no
+Umbrella,umbrella,2411445,0,0,random,bicycle,no
+Umbrella,umbrella,2411912,0,0,boundary,stop sign,yes
+Umbrella,umbrella,2413072,0,0,boundary,stop sign,no
+Umbrella,umbrella,2413407,0,0,random,spoon,no
+Umbrella,umbrella,2413495,0,0,boundary,stop sign,yes
+Umbrella,umbrella,2415129,0,0,random,kite,yes
+Umbrella,umbrella,2415598,0,0,boundary,sink,no
+Umbrella,umbrella,2416176,0,0,random,bus,no
+Umbrella,umbrella,2416246,0,0,boundary,stop sign,yes
+Umbrella,umbrella,2416293,0,0,random,kite,yes
+Umbrella,umbrella,2416508,0,0,random,bird,no
+Umbrella,umbrella,2416700,0,0,boundary,cell phone,yes
+Umbrella,umbrella,2417271,0,0,boundary,cell phone,yes
+Umbrella,umbrella,2417678,0,0,boundary,kite,no
+Umbrella,umbrella,2417852,0,0,boundary,boat,no
+Vehicles,car|truck|bus|bicycle,655,0,0,random,boat,no
+Vehicles,car|truck|bus|bicycle,1490,0,0,random,bench,no
+Vehicles,car|truck|bus|bicycle,1556,0,0,random,car,no
+Vehicles,car|truck|bus|bicycle,1986,0,0,boundary,cell phone,no
+Vehicles,car|truck|bus|bicycle,2360,0,0,boundary,stop sign,no
+Vehicles,car|truck|bus|bicycle,3561,0,0,boundary,chair,no
+Vehicles,car|truck|bus|bicycle,3801,0,0,random,bench,no
+Vehicles,car|truck|bus|bicycle,4185,1,0,boundary,stop sign,no
+Vehicles,car|truck|bus|bicycle,4214,0,0,random,fork,no
+Vehicles,car|truck|bus|bicycle,61589,0,0,random,kite,no
+Vehicles,car|truck|bus|bicycle,497980,0,0,random,bench,no
+Vehicles,car|truck|bus|bicycle,498270,0,0,boundary,boat,no
+Vehicles,car|truck|bus|bicycle,1159420,1,0,boundary,truck,yes
+Vehicles,car|truck|bus|bicycle,1159799,0,0,random,bowl,no
+Vehicles,car|truck|bus|bicycle,1592013,0,0,boundary,bench,yes
+Vehicles,car|truck|bus|bicycle,1592557,0,0,random,fork,no
+Vehicles,car|truck|bus|bicycle,1593184,0,0,random,dog,yes
+Vehicles,car|truck|bus|bicycle,2315792,0,0,boundary,bench,yes
+Vehicles,car|truck|bus|bicycle,2315796,0,0,random,car,no
+Vehicles,car|truck|bus|bicycle,2316043,0,0,random,car,yes
+Vehicles,car|truck|bus|bicycle,2316125,0,0,boundary,kite,no
+Vehicles,car|truck|bus|bicycle,2316533,0,0,random,kite,yes
+Vehicles,car|truck|bus|bicycle,2318153,0,0,random,fork,yes
+Vehicles,car|truck|bus|bicycle,2320159,0,0,random,spoon,yes
+Vehicles,car|truck|bus|bicycle,2320550,0,0,random,bench,yes
+Vehicles,car|truck|bus|bicycle,2321487,0,0,random,bird,yes
+Vehicles,car|truck|bus|bicycle,2322248,0,0,boundary,kite,yes
+Vehicles,car|truck|bus|bicycle,2322535,0,0,boundary,kite,yes
+Vehicles,car|truck|bus|bicycle,2322849,0,0,boundary,backpack,no
+Vehicles,car|truck|bus|bicycle,2323085,0,0,random,kite,yes
+Vehicles,car|truck|bus|bicycle,2323658,0,0,boundary,dog,no
+Vehicles,car|truck|bus|bicycle,2323842,0,0,boundary,kite,no
+Vehicles,car|truck|bus|bicycle,2325332,1,0,boundary,truck,yes
+Vehicles,car|truck|bus|bicycle,2325379,0,0,boundary,kite,no
+Vehicles,car|truck|bus|bicycle,2325700,0,0,boundary,kite,yes
+Vehicles,car|truck|bus|bicycle,2326762,0,0,boundary,sink,no
+Vehicles,car|truck|bus|bicycle,2327098,0,0,boundary,sink,no
+Vehicles,car|truck|bus|bicycle,2327398,0,0,boundary,kite,yes
+Vehicles,car|truck|bus|bicycle,2327535,0,0,random,cup,no
+Vehicles,car|truck|bus|bicycle,2328476,0,0,random,bench,no
+Vehicles,car|truck|bus|bicycle,2329296,0,0,boundary,stop sign,yes
+Vehicles,car|truck|bus|bicycle,2329538,0,0,random,bench,no
+Vehicles,car|truck|bus|bicycle,2330568,0,0,boundary,bus,yes
+Vehicles,car|truck|bus|bicycle,2331220,0,0,boundary,kite,no
+Vehicles,car|truck|bus|bicycle,2332648,0,0,random,sink,no
+Vehicles,car|truck|bus|bicycle,2333001,0,0,boundary,kite,yes
+Vehicles,car|truck|bus|bicycle,2334397,0,0,random,bowl,no
+Vehicles,car|truck|bus|bicycle,2334729,0,0,random,bus,no
+Vehicles,car|truck|bus|bicycle,2334823,0,0,random,kite,yes
+Vehicles,car|truck|bus|bicycle,2334934,0,0,boundary,kite,yes
+Vehicles,car|truck|bus|bicycle,2335019,0,0,random,bench,no
+Vehicles,car|truck|bus|bicycle,2336335,0,0,random,car,no
+Vehicles,car|truck|bus|bicycle,2336569,0,0,boundary,stop sign,yes
+Vehicles,car|truck|bus|bicycle,2336745,0,0,boundary,bus,no
+Vehicles,car|truck|bus|bicycle,2338255,0,0,boundary,bench,yes
+Vehicles,car|truck|bus|bicycle,2338452,0,0,random,bird,yes
+Vehicles,car|truck|bus|bicycle,2339643,0,0,boundary,kite,yes
+Vehicles,car|truck|bus|bicycle,2340056,0,0,random,knife,yes
+Vehicles,car|truck|bus|bicycle,2340667,0,0,random,bicycle,no
+Vehicles,car|truck|bus|bicycle,2341076,0,0,random,bowl,yes
+Vehicles,car|truck|bus|bicycle,2341258,0,0,random,bench,no
+Vehicles,car|truck|bus|bicycle,2342757,0,0,random,car,no
+Vehicles,car|truck|bus|bicycle,2343133,0,0,random,bench,no
+Vehicles,car|truck|bus|bicycle,2343839,0,0,boundary,stop sign,yes
+Vehicles,car|truck|bus|bicycle,2346019,0,0,boundary,stop sign,yes
+Vehicles,car|truck|bus|bicycle,2346929,0,0,boundary,bus,no
+Vehicles,car|truck|bus|bicycle,2348108,0,0,boundary,stop sign,no
+Vehicles,car|truck|bus|bicycle,2350334,0,0,boundary,knife,yes
+Vehicles,car|truck|bus|bicycle,2350610,0,0,boundary,kite,yes
+Vehicles,car|truck|bus|bicycle,2352095,0,0,random,bus,yes
+Vehicles,car|truck|bus|bicycle,2352709,0,0,boundary,kite,no
+Vehicles,car|truck|bus|bicycle,2352911,0,0,random,bowl,no
+Vehicles,car|truck|bus|bicycle,2353402,0,0,random,bus,no
+Vehicles,car|truck|bus|bicycle,2353986,0,0,boundary,kite,no
+Vehicles,car|truck|bus|bicycle,2354790,0,0,boundary,bus,yes
+Vehicles,car|truck|bus|bicycle,2355650,0,0,boundary,stop sign,no
+Vehicles,car|truck|bus|bicycle,2355890,0,0,boundary,stop sign,yes
+Vehicles,car|truck|bus|bicycle,2357470,0,0,random,dog,yes
+Vehicles,car|truck|bus|bicycle,2357898,0,0,random,bench,no
+Vehicles,car|truck|bus|bicycle,2358000,0,0,boundary,cell phone,yes
+Vehicles,car|truck|bus|bicycle,2358239,0,0,random,bird,yes
+Vehicles,car|truck|bus|bicycle,2358316,0,0,boundary,sink,yes
+Vehicles,car|truck|bus|bicycle,2358419,0,0,random,bus,no
+Vehicles,car|truck|bus|bicycle,2359994,0,0,random,bus,no
+Vehicles,car|truck|bus|bicycle,2360117,0,0,boundary,kite,yes
+Vehicles,car|truck|bus|bicycle,2360975,0,0,boundary,kite,yes
+Vehicles,car|truck|bus|bicycle,2361029,0,0,boundary,cell phone,no
+Vehicles,car|truck|bus|bicycle,2361524,0,0,random,boat,yes
+Vehicles,car|truck|bus|bicycle,2362065,0,0,boundary,sink,yes
+Vehicles,car|truck|bus|bicycle,2362762,0,0,boundary,vase,yes
+Vehicles,car|truck|bus|bicycle,2363160,0,0,random,bird,yes
+Vehicles,car|truck|bus|bicycle,2363995,0,0,boundary,sink,no
+Vehicles,car|truck|bus|bicycle,2364216,0,0,random,bus,yes
+Vehicles,car|truck|bus|bicycle,2364952,0,0,random,bird,yes
+Vehicles,car|truck|bus|bicycle,2365421,0,0,boundary,cell phone,yes
+Vehicles,car|truck|bus|bicycle,2366442,0,0,random,bowl,yes
+Vehicles,car|truck|bus|bicycle,2367117,0,0,boundary,kite,no
+Vehicles,car|truck|bus|bicycle,2367901,0,0,boundary,stop sign,no
+Vehicles,car|truck|bus|bicycle,2368073,0,0,boundary,stop sign,no
+Vehicles,car|truck|bus|bicycle,2368814,0,0,random,bird,no
+Vehicles,car|truck|bus|bicycle,2368984,0,0,random,bus,no
+Vehicles,car|truck|bus|bicycle,2369018,0,0,boundary,kite,no
+Vehicles,car|truck|bus|bicycle,2370144,0,0,random,bowl,no
+Vehicles,car|truck|bus|bicycle,2370271,0,0,random,bird,yes
+Vehicles,car|truck|bus|bicycle,2370802,0,0,random,stop sign,yes
+Vehicles,car|truck|bus|bicycle,2372204,0,0,random,bowl,no
+Vehicles,car|truck|bus|bicycle,2372245,0,0,random,stop sign,no
+Vehicles,car|truck|bus|bicycle,2372457,0,0,boundary,spoon,no
+Vehicles,car|truck|bus|bicycle,2373243,0,0,random,bird,no
+Vehicles,car|truck|bus|bicycle,2374137,0,0,random,dog,no
+Vehicles,car|truck|bus|bicycle,2374487,0,0,boundary,stop sign,yes
+Vehicles,car|truck|bus|bicycle,2375949,0,0,random,cup,no
+Vehicles,car|truck|bus|bicycle,2376171,0,0,random,bicycle,no
+Vehicles,car|truck|bus|bicycle,2376806,0,0,boundary,stop sign,yes
+Vehicles,car|truck|bus|bicycle,2379036,0,0,random,kite,no
+Vehicles,car|truck|bus|bicycle,2379050,0,0,boundary,dog,yes
+Vehicles,car|truck|bus|bicycle,2379075,0,0,boundary,dog,no
+Vehicles,car|truck|bus|bicycle,2379254,0,0,random,dog,yes
+Vehicles,car|truck|bus|bicycle,2379377,0,0,random,bird,no
+Vehicles,car|truck|bus|bicycle,2379431,0,0,random,bus,yes
+Vehicles,car|truck|bus|bicycle,2380089,0,0,boundary,kite,yes
+Vehicles,car|truck|bus|bicycle,2380376,0,0,random,car,no
+Vehicles,car|truck|bus|bicycle,2380685,0,0,boundary,sink,no
+Vehicles,car|truck|bus|bicycle,2381000,0,0,random,cup,yes
+Vehicles,car|truck|bus|bicycle,2382264,0,0,random,dog,no
+Vehicles,car|truck|bus|bicycle,2382828,0,0,random,dog,yes
+Vehicles,car|truck|bus|bicycle,2383506,0,0,boundary,sink,yes
+Vehicles,car|truck|bus|bicycle,2383707,0,0,boundary,kite,no
+Vehicles,car|truck|bus|bicycle,2384185,0,0,random,backpack,no
+Vehicles,car|truck|bus|bicycle,2384924,1,0,boundary,truck,yes
+Vehicles,car|truck|bus|bicycle,2385477,0,0,random,kite,no
+Vehicles,car|truck|bus|bicycle,2385504,0,0,boundary,kite,yes
+Vehicles,car|truck|bus|bicycle,2386347,0,0,random,bowl,yes
+Vehicles,car|truck|bus|bicycle,2386624,0,0,random,dog,yes
+Vehicles,car|truck|bus|bicycle,2386652,0,0,random,bird,yes
+Vehicles,car|truck|bus|bicycle,2387068,0,0,boundary,kite,no
+Vehicles,car|truck|bus|bicycle,2387690,0,0,random,bus,yes
+Vehicles,car|truck|bus|bicycle,2388314,0,0,boundary,bench,yes
+Vehicles,car|truck|bus|bicycle,2388486,0,0,random,bowl,yes
+Vehicles,car|truck|bus|bicycle,2389518,0,0,random,boat,no
+Vehicles,car|truck|bus|bicycle,2391377,0,0,boundary,kite,no
+Vehicles,car|truck|bus|bicycle,2391765,0,0,boundary,chair,yes
+Vehicles,car|truck|bus|bicycle,2392094,0,0,random,truck,yes
+Vehicles,car|truck|bus|bicycle,2392128,0,0,boundary,stop sign,yes
+Vehicles,car|truck|bus|bicycle,2392264,0,0,boundary,stop sign,no
+Vehicles,car|truck|bus|bicycle,2392277,0,0,random,bowl,no
+Vehicles,car|truck|bus|bicycle,2392337,0,0,boundary,sink,yes
+Vehicles,car|truck|bus|bicycle,2392420,0,0,boundary,vase,yes
+Vehicles,car|truck|bus|bicycle,2392480,0,0,random,bowl,no
+Vehicles,car|truck|bus|bicycle,2392734,0,0,random,kite,yes
+Vehicles,car|truck|bus|bicycle,2392807,0,0,random,bus,yes
+Vehicles,car|truck|bus|bicycle,2393325,0,0,random,cup,yes
+Vehicles,car|truck|bus|bicycle,2393671,0,0,boundary,dog,yes
+Vehicles,car|truck|bus|bicycle,2393732,0,0,boundary,stop sign,no
+Vehicles,car|truck|bus|bicycle,2393864,0,0,boundary,fire hydrant,yes
+Vehicles,car|truck|bus|bicycle,2393952,0,0,boundary,sink,no
+Vehicles,car|truck|bus|bicycle,2394130,0,0,boundary,kite,yes
+Vehicles,car|truck|bus|bicycle,2394898,0,0,boundary,dog,no
+Vehicles,car|truck|bus|bicycle,2395379,0,0,random,sink,no
+Vehicles,car|truck|bus|bicycle,2395745,0,0,boundary,kite,no
+Vehicles,car|truck|bus|bicycle,2396098,0,0,random,bench,yes
+Vehicles,car|truck|bus|bicycle,2398287,0,0,boundary,bowl,yes
+Vehicles,car|truck|bus|bicycle,2398807,0,0,boundary,stop sign,no
+Vehicles,car|truck|bus|bicycle,2398852,0,0,random,knife,no
+Vehicles,car|truck|bus|bicycle,2399091,0,0,boundary,sink,no
+Vehicles,car|truck|bus|bicycle,2399434,0,0,random,bowl,no
+Vehicles,car|truck|bus|bicycle,2399496,0,0,random,kite,no
+Vehicles,car|truck|bus|bicycle,2399554,0,0,boundary,sink,no
+Vehicles,car|truck|bus|bicycle,2400101,0,0,boundary,kite,no
+Vehicles,car|truck|bus|bicycle,2400821,0,0,boundary,sink,yes
+Vehicles,car|truck|bus|bicycle,2402404,0,0,random,umbrella,no
+Vehicles,car|truck|bus|bicycle,2402410,0,0,boundary,stop sign,no
+Vehicles,car|truck|bus|bicycle,2403285,0,0,random,kite,yes
+Vehicles,car|truck|bus|bicycle,2404693,0,0,boundary,kite,no
+Vehicles,car|truck|bus|bicycle,2406950,0,0,random,bowl,no
+Vehicles,car|truck|bus|bicycle,2407502,0,0,boundary,spoon,yes
+Vehicles,car|truck|bus|bicycle,2407548,0,0,boundary,bus,no
+Vehicles,car|truck|bus|bicycle,2407927,0,0,boundary,bowl,no
+Vehicles,car|truck|bus|bicycle,2408671,0,0,random,bowl,yes
+Vehicles,car|truck|bus|bicycle,2409231,0,0,random,bowl,no
+Vehicles,car|truck|bus|bicycle,2410026,0,0,random,kite,no
+Vehicles,car|truck|bus|bicycle,2410237,0,0,random,fork,yes
+Vehicles,car|truck|bus|bicycle,2410471,0,0,random,bird,no
+Vehicles,car|truck|bus|bicycle,2410628,0,0,boundary,dog,no
+Vehicles,car|truck|bus|bicycle,2411277,0,0,random,bowl,no
+Vehicles,car|truck|bus|bicycle,2411445,0,0,random,bicycle,no
+Vehicles,car|truck|bus|bicycle,2411912,0,0,boundary,stop sign,yes
+Vehicles,car|truck|bus|bicycle,2413072,0,0,boundary,stop sign,no
+Vehicles,car|truck|bus|bicycle,2413407,0,0,random,spoon,no
+Vehicles,car|truck|bus|bicycle,2413495,0,0,boundary,stop sign,yes
+Vehicles,car|truck|bus|bicycle,2415129,0,0,random,kite,yes
+Vehicles,car|truck|bus|bicycle,2415598,0,0,boundary,sink,no
+Vehicles,car|truck|bus|bicycle,2416176,0,0,random,bus,no
+Vehicles,car|truck|bus|bicycle,2416246,0,0,boundary,stop sign,yes
+Vehicles,car|truck|bus|bicycle,2416293,0,0,random,kite,yes
+Vehicles,car|truck|bus|bicycle,2416508,0,0,random,bird,no
+Vehicles,car|truck|bus|bicycle,2416700,0,0,boundary,cell phone,yes
+Vehicles,car|truck|bus|bicycle,2417271,0,0,boundary,cell phone,yes
+Vehicles,car|truck|bus|bicycle,2417678,0,0,boundary,kite,no
+Vehicles,car|truck|bus|bicycle,2417852,0,0,boundary,boat,no

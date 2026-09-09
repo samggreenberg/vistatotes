@@ -420,3 +420,155 @@ class TestExportOriginOnlyFallback:
         assert ghost["custom_metadata"]["shard"] == "elsewhere"
         assert "contentID" in data["available_columns"]
         assert "shard" in data["available_columns"]
+
+
+class TestExportNamedDetectorLabelset:
+    """``?detector_name=`` exports a *named* detector's persisted labelset.
+
+    The Dashboard's row action points at a detector in a list, so its export
+    must answer "what is detector X's labelset" rather than "what is labelled
+    in whatever pair the top-bar pulldown is on" — the mismatch behind issue
+    #3639, where the same row exported the right labels, then nothing, then
+    the entire dataset depending only on where the ambient context had been.
+    """
+
+    GHOST = {
+        "md5": "d" * 32,
+        "label": "good",
+        "origin": {"importer": "test", "params": {"shard": "elsewhere"}},
+        "origin_name": "ghost_named.wav",
+        "filename": "ghost_named.wav",
+        "metadata": {"contentID": "c-999"},
+    }
+
+    def _detector_with_labels(self, client, name="NamedExport"):
+        """Create + load a detector, vote one good and one bad, return its name."""
+        if len(medias) < 2:
+            pytest.skip("Need at least 2 medias")
+        ids = list(medias.keys())
+        good_cid, bad_cid = ids[0], ids[1]
+        res = client.post(
+            "/api/detectors/registry",
+            json={"name": name, "media_type": "audio", "text_query": "test"},
+        )
+        detector_id = res.get_json()["detector"]["id"]
+        _load_detector_and_wait(client, detector_id)
+        client.post(f"/api/medias/{good_cid}/vote", json={"target": "good"})
+        client.post(f"/api/medias/{bad_cid}/vote", json={"target": "bad"})
+        return name, detector_id, good_cid, bad_cid
+
+    def test_exports_the_named_detector_with_no_active_detector(self, client):
+        """The headline: the row action names the detector, and the ambient
+        pair is irrelevant. Symptom 2 of #3639 exported nothing here."""
+        name, _, good_cid, bad_cid = self._detector_with_labels(client)
+
+        # Fresh request with no X-Detector-Id at all, as a Dashboard visit
+        # after a page refresh sends.
+        from vtscore.state.core import get_active_detector_context
+
+        det_ctx = get_active_detector_context()
+        det_ctx.good_votes.clear()
+        det_ctx.bad_votes.clear()
+
+        data = client.get(f"/api/labels/export?detector_name={name}").get_json()
+        assert {e["label"] for e in data["labels"]} == {"good", "bad"}
+        assert {e["md5"] for e in data["labels"]} == {
+            medias[good_cid]["md5"],
+            medias[bad_cid]["md5"],
+        }
+
+    def test_live_find_session_does_not_leak_into_the_export(self, client):
+        """Symptom 3: Find fills the detector's votes with its own call for
+        every item in the dataset, flagged ``find_mode`` so they stay out of
+        the labelset. A labelset export must not resurrect them as labels."""
+        name, _, good_cid, _ = self._detector_with_labels(client)
+
+        from vtscore.state.core import get_active_detector_context
+
+        det_ctx = get_active_detector_context()
+        det_ctx.find_mode = True
+        # Find's presumptions: a call for *every* media in the dataset.
+        det_ctx.good_votes.clear()
+        det_ctx.bad_votes.clear()
+        det_ctx.good_votes.update({cid: None for cid in medias})
+        det_ctx.find_scores.update({cid: 0.9 for cid in medias})
+
+        # The session-scoped export sees the whole collection...
+        live = client.get("/api/labels/export").get_json()["labels"]
+        assert len(live) == len(medias)
+
+        # ...while the detector-scoped one stays the two real labels.
+        scoped = client.get(f"/api/labels/export?detector_name={name}").get_json()["labels"]
+        assert len(scoped) == 2
+        assert {e["label"] for e in scoped} == {"good", "bad"}
+        assert medias[good_cid]["md5"] in {e["md5"] for e in scoped}
+
+    def test_other_detectors_labelset_is_not_exported(self, client):
+        """Two detectors, one active: naming the other one exports the other
+        one's labels, not the active pair's."""
+        ids = list(medias.keys())
+        first, first_id, first_good, _ = self._detector_with_labels(client, "FirstDetector")
+        res = client.post(
+            "/api/detectors/registry",
+            json={"name": "SecondDetector", "media_type": "audio", "text_query": "test"},
+        )
+        second_id = res.get_json()["detector"]["id"]
+        _load_detector_and_wait(client, second_id)
+        second_good = ids[2] if len(ids) > 2 else ids[0]
+        client.post(f"/api/medias/{second_good}/vote", json={"target": "good"})
+
+        # SecondDetector is the active one now; ask for FirstDetector's.
+        data = client.get(f"/api/labels/export?detector_name={first}").get_json()
+        assert {e["md5"] for e in data["labels"]} == {
+            medias[first_good]["md5"],
+            medias[list(medias.keys())[1]]["md5"],
+        }
+        assert first_id != second_id
+
+    def test_good_and_bad_filters_apply(self, client):
+        name, _, good_cid, bad_cid = self._detector_with_labels(client)
+
+        goods = client.get(f"/api/labels/export?detector_name={name}&goods_only=true").get_json()
+        assert {e["md5"] for e in goods["labels"]} == {medias[good_cid]["md5"]}
+
+        bads = client.get(f"/api/labels/export?detector_name={name}&label_filter=bad").get_json()
+        assert {e["md5"] for e in bads["labels"]} == {medias[bad_cid]["md5"]}
+
+    def test_unresolvable_element_is_marked_origin_only(self, client):
+        from vtscore.detectors.dataset_sync import reset_mtime_cache_for_tests
+        from vtscore.detectors.store import _detector_path, _read_detector, _write_detector
+
+        name, _, _, _ = self._detector_with_labels(client)
+        path = _detector_path(name)
+        data = _read_detector(path)
+        assert data is not None
+        data.setdefault("labelset", {}).setdefault("labels", []).append(dict(self.GHOST))
+        _write_detector(path, data)
+        reset_mtime_cache_for_tests()
+
+        exported = client.get(f"/api/labels/export?detector_name={name}&enrich=true").get_json()
+        by_name = {e.get("origin_name"): e for e in exported["labels"]}
+        ghost = by_name["ghost_named.wav"]
+        assert ghost["origin_only"] is True
+        assert ghost["custom_metadata"]["contentID"] == "c-999"
+        # Elements the active dataset *can* see are ordinary labels.
+        resolved = [e for e in exported["labels"] if e.get("origin_name") != "ghost_named.wav"]
+        assert resolved and all("origin_only" not in e for e in resolved)
+
+    def test_ndjson_matches_the_buffered_export(self, client):
+        name, _, _, _ = self._detector_with_labels(client)
+        buffered = client.get(f"/api/labels/export?detector_name={name}").get_json()["labels"]
+        streamed = _read_ndjson(client.get(f"/api/labels/export?detector_name={name}&format=ndjson"))
+        assert streamed == buffered
+
+    def test_unknown_detector_is_404(self, client):
+        resp = client.get("/api/labels/export?detector_name=NoSuchDetector")
+        assert resp.status_code == 404
+
+    def test_vote_scoped_filters_are_refused(self, client):
+        """They partition the live session, which a persisted labelset has no
+        part in; refusing beats silently exporting something else."""
+        name, _, _, _ = self._detector_with_labels(client)
+        for label_filter in ("corrections", "unverified", "verified"):
+            resp = client.get(f"/api/labels/export?detector_name={name}&label_filter={label_filter}")
+            assert resp.status_code == 400, label_filter

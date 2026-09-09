@@ -46,7 +46,7 @@ def _fabricate(root: Path, *, safe_on: bool, rng: np.random.Generator, ramp_effe
                     "dataset": "visual_genome_m",
                     "category": cat,
                     "strategy": "autopilot",
-                    "trainer": "mlp",
+                    "trainer": "app",
                     "head": "linear",
                     "style": "max_patch",
                     "prevalence_arm": "natural",

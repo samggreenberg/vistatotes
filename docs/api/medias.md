@@ -770,6 +770,14 @@ GET /api/labels/export
   include `origin_only` fallback entries.
 - `?enrich=1` (optional): add per-entry `custom_metadata` and a top-level
   `available_columns` list (see the flattened `origin.params` note above).
+- `?detector_name=<name>` (optional): export **that** detector's persisted
+  labelset, read from its JSON file, instead of the active pair's live
+  labels. Independent of `X-Dataset-Id` / `X-Detector-Id` and of any live
+  Find session, so a caller naming a detector in a list (the Dashboard's row
+  action) gets that detector's labels whatever the app is pointed at. The
+  session-scoped `label_filter` modes are refused with 400 here — they
+  partition a session this export has no part in — and an unknown name is a
+  404.
 - `?format=ndjson` (optional): stream the response as newline-delimited JSON
   (`application/x-ndjson`), one label entry per line, instead of the buffered
   `{"labels": [...]}` object. Use for large exports that shouldn't be
@@ -797,7 +805,8 @@ region) appear when the underlying element has them. The export is a faithful
 rendering of the **detector's** labelset, not just the session's votes: elements
 that don't resolve into the active dataset are appended and marked
 `"origin_only": true`. Entries where the user changed the detector's original
-label carry `"is_correction": true`.
+label carry `"is_correction": true` (never under `detector_name`, whose rows
+belong to a detector the live session says nothing about).
 
 ### Import labels
 

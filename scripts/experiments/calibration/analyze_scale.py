@@ -1,11 +1,22 @@
 """Analyse the scale study: does cost rise as the target shrinks? (#3156)
 
 The contrast is the **band**, and the design makes it a paired one: the same
-twelve classes appear at all three sizes, against identical negatives at
-identical prevalence (0.0250 by construction). So every comparison here is
-within `(class, seed, embedder)` and differs only in band -- which is exactly
-what the published `vg_box_*` sets could not do, since their vocabularies are
-disjoint and a small-vs-large gap there confounds size with class identity.
+twelve classes appear at all three sizes, against identical negatives. So every
+comparison here is within `(class, seed, embedder)` and differs only in band --
+which is exactly what the published `vg_box_*` sets could not do, since their
+vocabularies are disjoint and a small-vs-large gap there confounds size with
+class identity.
+
+"Identical negatives" is now a within-class statement, and prevalence is no
+longer 0.0250. #3667 gave each class the other eleven's COCO-exhaustive
+positives as negatives, so the three bands of ONE class still share a negative
+set (asserted per media by `cross_class_negatives_rebuilt.py`) while two
+different classes no longer do, and the realised prevalence fell to **0.0172**.
+The paired design this file rests on is intact; the level is not.
+
+**Read the band effect measured here as a LOWER BOUND.** The negatives #3667
+admitted are 2.5x harder at `@small` and no harder at `@large`, so the old
+construction inflated exactly one end of this file's own axis (#3679).
 
 Reported paired, with a standard error, to two significant digits. A difference
 smaller than twice its SE is called unresolvable rather than dressed up: "not

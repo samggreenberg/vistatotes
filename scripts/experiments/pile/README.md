@@ -14,6 +14,48 @@ python build_pile.py --rebuildable            # check every cell could be REBUIL
 python build_pile.py --bands                  # voted-box scale bands (boxed datasets)
 ```
 
+**Rebuilding a cell that already exists is a different operation from filling a
+gap**, and it goes through the launcher so it keeps the rebuild canary and the
+`ATEN_CPU_CAPABILITY` pin — a cell rebuilt without the pin no longer matches its
+own fingerprint (#3160):
+
+```bash
+VTS_BUILD_ARGS=--force VTS_GPU_NODE=<node> bash launch_pile.sh vg_scale
+```
+
+Pin the node from the cell's own provenance (`--provenance`). Two things to know
+before you do it, both learned in #3667:
+
+- **A rebuild is from `dev`, not from the commit that built the cell.** It picks
+  up every `pile_config` ruling merged in between, so the membership can move
+  even when you changed nothing relevant. `vg_scale`'s September rebuild dropped
+  41 positives and 40 came in, across five merged rulings.
+- **Copy the cells first, and check your glob.** `vg_scale__*` does not match
+  `vg_scale_deep__*`.
+
+## Which checkout built it
+
+`launch_pile.sh` names the tree it will import before it submits anything, and
+refuses one more than `VTS_MAX_BEHIND` (default 100) commits behind `origin/dev`
+— `preflight.sh` check 4's bar, applied to the artifact every study reads:
+
+```
+=== code under launch ===
+repo:    /exp/sgreenberg/projects/VTSearch
+head:    a9dd62ff (dev)
+base:    level with origin/dev
+```
+
+`VTS_MAX_BEHIND=0` waives the refusal for a build that means to run old code.
+The same facts are stamped into each cell's sidecar under `code` (repo, commit,
+branch, dirty, and the commit the launcher saw — which differs if the worktree
+moved while the job queued), and `--provenance` calls out a pile whose cells came
+from more than one tree.
+
+This exists because the launcher used to build from a **fixed path**: run from
+any other worktree it embedded the pile out of a checkout 1,420 commits behind
+`dev`, predating `vg_scale` entirely, and printed nothing that said so (#3693).
+
 ## Where the code lives
 
 `build_pile.py` is the CLI and the per-cell build loop; everything it does
@@ -25,7 +67,7 @@ python build_pile.py --bands                  # voted-box scale bands (boxed dat
 | `pilebuild/vgsource.py`, `boxscan.py` | reading the VG source; choosing a band's categories from the box scan |
 | `pilebuild/corrections.py` | human verdicts, and the one place their boxes cross from normalised into pixel space |
 | `pilebuild/geometry.py` | geometry no honest region box can have; the derived-label digest |
-| `pilebuild/provenance.py` | which machine produced a cell, and its vector hash |
+| `pilebuild/provenance.py` | which machine **and which checkout** produced a cell, and its vector hash |
 | `pilebuild/audit.py`, `manifest.py`, `provenance_report.py` | the read-only modes |
 
 **Both halves of a dataset live in one module on purpose.** They used to be two
@@ -36,12 +78,140 @@ entirely intact. A new dataset kind therefore adds one module carrying both, and
 a kind with no module fails at dispatch instead of falling through to the demo
 loader. `tests_lib/meta/test_pile_loaders.py` pins that.
 
-The `vg_scale` build is six named passes rather than one long function, because
+The `vg_scale` build is eight named passes rather than one long function, because
 two of them are where this pile's expensive bugs have lived — `apply_corrections`
 (the single normalised→pixel crossing, #3281) and `designate_cells` (whether a
 rebuild keeps the images a human reviewed). Both are ordinary functions taking
 what they read and returning what they produce, so
 `tests_lib/meta/test_pile_vg_scale.py` exercises them without the VG source.
+
+**VG's vocabulary is free text, and the read matches an object's primary name
+only** — so a class is built from one spelling out of several, and on the ~52% of
+VG that COCO does not annotate the others become *negatives* for their own class,
+because there VG's silence is the only evidence of absence. `bicycle` shipped
+that way: the VG name `bike` carries 638 of COCO's 3,683 `bicycle` boxes against
+the `bicycle` spelling's 775 (#3605). There is no cheaper fix in the reader —
+every one of VG's 2,516,939 objects carries a `names` list of length **one**, so
+there is no synonym to read instead (#3618).
+
+Two config tables decide what happens to a spelling:
+
+| table | meaning | effect (`vg_scale.py`) |
+|---|---|---|
+| `SCALE_VG_NAMES` | the name is the class, **and its box is the object** | `canonicalise` folds the boxes onto the class name |
+| `SCALE_VG_AMBIGUOUS` | the class may be present; this box cannot be its positive | `lift_ambiguous` withholds the image from the class's bands **and** from the shared negative pool |
+
+Suppression applies only where the spelling is the last word: an image COCO
+annotates, or one a reviewer has ruled on, already answers the question. That is
+why `lift_ambiguous` runs after `anchor_to_coco` and `apply_corrections`.
+
+**Both tables are measured, and by the test that matches what the entry claims**
+(#3618). Which table a name goes in is *derived* by `name_evidence.py` from two
+numbers, not drafted:
+
+| number | what it decides | how it is measured |
+|---|---|---|
+| **repair precision** | act on this name at all | over the VG∩COCO overlap, take the images carrying the name and **not** the class name — the state that becomes a false negative on the other half — and ask COCO whether the class is present. Read it as a price, in the units of #3635: `1 / precision - 1` is **good hard negatives destroyed per contaminated negative retired** — not images withheld from the pool, which is 18x over-subscribed. Cut at 1/3, on the **Wilson lower bound**. |
+| **box agreement** | fold it, or only withhold it | the share of the name's boxes landing on a COCO box of the class (`coco_folds.py`'s fold-in, per name). Cut at 0.5 over ≥ 20 boxes, because folding claims *every* box under the name is the object and a band is a claim about one object's size (#3616). |
+
+The candidates come from two searches, and neither finds what the other does:
+`coco_folds.py` finds names that land on COCO's boxes, and `vg_name_families.py`
+enumerates a class's **head-noun family** over the whole of VG, which is where a
+spelling used mostly off the COCO half shows up. A family is a list of names to
+*measure*, never a list to fold: the largest member of `dog`'s is **`hot dog`**,
+405 images, which scores 0 of 181.
+
+**Box overlap between two names (`scan_name_overlap.py`) is not the instrument
+for this and cannot be.** It needs both names on one image, and an annotator who
+writes `back pack` does not also write `backpack`: 846 of 1,740 candidate pairs
+never co-occur, and `backpack`/`backpacks` scores **0.000 both ways**. It keeps
+its own job — the case where two names really do sit on one box
+(`clock`/`clock face`, 0.562/0.701) and refuting a lookalike, which is how `bus`
+survived matching 80 images annotated `bush`.
+
+**What a name withholds is never a random slice of the pool, and that is what
+the price is really counting** (#3635). `pool_contamination.py` measures the
+unconditioned question a name-conditioned rate cannot reach — *of the images that
+would enter the shared negative pool on VG's evidence alone, what share actually
+hold the class?* — by running the loader's own passes over the overlap with
+`exhaustive=set()`, i.e. as if those images were off-COCO, and holding COCO back
+as the answer key. It also prices the two exclusion rules against each other:
+today one ambiguous name costs **every** class in *C* the image, though
+`evaluable_categories` could make it cost one (#3655) -- a price that doubled at
+the #3588 promotion, since *C* went from twelve classes to twenty-five.
+
+`withheld_difficulty.py` then asks whether the withheld images are the pool's
+*hard* negatives, by ranking the drawn pool with the class's own text query. The
+answer is yes — for **every** ambiguous name, which is why concentration cannot
+discriminate between a good entry and a bad one and the ratio above must. `bike`
+takes 17.9x its base rate of the top 50 and `sign` 6.8x; what separates them is
+that `bike` destroys 31 good negatives to retire 30, and `sign` destroys 435 to
+retire 37.
+
+`name_coverage.py` then prices a proposed table before it ships: coverage against
+COCO, images repaired and withheld on the non-COCO half, and the **band ledger** —
+a fold merges boxes, so it can push an image the class already banded past the
+scatter guard and out of every band (248 across *C*; `clock` nets −16).
+
+**That is the right outcome, and the build now says so.** #3637 scored the three
+readings of it against COCO's exhaustive boxes: on the images they disagree
+about, the class really is scattered 88% of the time, and no cell is anywhere
+near needing the images back. `canonicalise` reports the count on the same line
+as the boxes folded, `SCALE_FOLD_MODE` selects the arm, and `band_fold.py`
+re-measures it. Full study:
+[`docs/experiments/2026-09-05-band-fold-3637/`](../../../docs/experiments/2026-09-05-band-fold-3637/REPORT.md).
+
+`SCALE_VG_NAMES_AUDITED` records which classes have actually had this measured,
+because "no spelling is listed" and "no spelling exists" are the same empty
+table. All twelve as of #3618, listed one by one rather than derived from
+`SCALE_CLASSES` so that a newly added class is not marked audited by arithmetic.
+A build names the classes that have not been, since a rebuild is the moment the
+fix is cheap. Full study:
+[`docs/experiments/2026-09-04-vg-name-coverage/`](../../../docs/experiments/2026-09-04-vg-name-coverage/REPORT.md).
+
+**A class's review rule is part of its definition, so it lives in the config
+too.** A reviewer votes on bare images — the slates name files by image id
+alone — which makes the dataset name the entire brief. For a class whose plain
+English name does not settle the question, `pile_config.SCALE_CLASS_RULES`
+carries both halves of the rule, and `review_name(cls, pass)` is what every
+slate maker builds its `detector` column from:
+
+| field | meaning |
+|---|---|
+| `name` | the few words the reviewer reads (`cell phone not landlines`) |
+| `test` | what that abbreviates — the near-misses two words cannot settle |
+
+Both are recorded because a name is not a definition. `book` split on the half
+that was never written down: COCO annotates magazines as `book`, the human pass
+read it narrowly, and 21 verdicts landed on one meaning against 49 on another.
+`cell phone`'s first slate then split on the `test` rather than the `name` — it
+read "anything with a cord or a base station is Bad", which discriminates on a
+base being *present* when what it means is that the handset is not itself the
+whole device, and so rejected a mobile phone sitting in a charging dock (#3612).
+A class absent from the table is its own definition and keeps the bare class
+name, which is what the manifests held before the table existed.
+
+## The one thing here that is not rebuildable
+
+Everything above is a cell, and a cell is purgeable: the pile lives on scratch
+precisely because any of it can be rebuilt from sources that are not. **Human
+verdicts cannot**, and until #3729 they sat on the same mount with nothing
+saying they were different in kind.
+
+`pile_config.HUMAN_RECORD` is the inventory — one row per artifact, each
+carrying the tier (`human`, `support`, `derived`) and the reason it is kept —
+and `verdict_store.py` keeps a canonical copy of it in
+[`human_record/`](human_record/README.md):
+
+```bash
+python verdict_store.py check      # do the working copies still match the repo?
+python verdict_store.py export     # update the repo from the working copies
+python verdict_store.py restore    # write them back out after a purge
+```
+
+`build_pile.py --verify` runs the check, because that is where a pile is
+declared healthy. A `human` divergence fails it; a `derived` one is a note,
+since every build rewrites those.
 
 ## Why this exists
 
@@ -194,6 +364,56 @@ labels with a perfectly healthy media count. It now stamps a digest of the
 parent's labels, `--verify` compares that against the live parent, and a run
 that rebuilds `vg_scale` pulls the derived dataset in with it.
 
+## A rebox can change the band, and that is a correction
+
+An image sits in `class@band` because of the box it arrived with, so a reviewer
+who redraws that box onto a different, more prominent instance of the same class
+moves it to another cell and vacates the one it was sampled to fill. Six of the
+first thirteen redrawn boxes did, two of them leaving `small` (#3616).
+
+The move is **kept**. VG's recall over *C* is 0.61, so an image holding a small
+annotated bowl and a large unannotated one was banded by the only box anyone had
+written down, and the reviewer is the first person to have seen the other one —
+the sampled band was the error, not the redraw. What was wrong is that it
+happened silently, so `verdicts_to_corrections.py` now prints every
+band-changing rebox with the band it left and the band it lands in.
+
+## A `present` the class cannot hold is refused, and named
+
+A boxless `present` on a negative excludes the image from every cell of its
+class; a boxed one turns it into a positive. Both are the wrong answer when the
+object the reviewer correctly saw is one the class's construction would never
+have admitted — a wristwatch for `clock`, a pop-up canopy for `umbrella`. #3666
+adjudicated nine such finds in the negative pass and **four** were exactly that,
+so applying them would have spent four good negatives on readings the build does
+not use.
+
+The gate is the adjudication file the positive side already reads, with the same
+two fields (`"claude": "absent"` plus `"reason": "definition"`), because it is
+the same sentence pointed the other way: *what the object is* settles it, and no
+amount of looking changes the answer. It is a **table of decided cases** and
+never a heuristic — a verdict carries no object identity, so nothing in the
+script can infer one — and `shipped_pool_error.py --adjudication-out` writes that
+table from the study's own adjudication. Every refusal is printed with its note,
+and a refused class with no entry in `SCALE_CLASS_RULES` is named as a ruling
+somebody owes (#3673).
+
+`audit_band_drift.py` asks how much of the same error the *un*-reviewed half is
+still hiding, without spending a human on it. The COCO-anchored half has both
+readings available — VG's boxes and COCO's exhaustive ones — so banding each
+anchored image twice and counting the disagreements measures the rate directly,
+and the roster says how many un-anchored seats that rate applies to:
+
+```
+python audit_band_drift.py                          # small + medium
+python audit_band_drift.py --bands small --out drift_small.json
+```
+
+Only the bottom bands are audited by default: the defect can only push an image
+*up* (a band can hide a larger instance), and `large` has nowhere to go. A
+disagreement in the other direction is an extent error in VG's box, which is a
+different problem and is counted separately.
+
 ## Voted-box scale bands (`--bands`)
 
 Orthogonal to the `_s`/`_m`/`_l` suffix, which is a **dataset size tier** (a
@@ -273,6 +493,46 @@ reports `REBUILD-BROKEN` on any difference. Verified against the live pile on
 2026-08-28: all three bands reproduce exactly, 40/40 categories, agreeing
 across all three cells present at the time (#3299).
 
+## What a rebuilt cell reproduces (#3683)
+
+Three different guarantees, and the difference between them is the difference
+between a rebuild you can ignore and one that redefines a study's inputs. All
+three are measured in
+[the #3667 report](../../../docs/experiments/2026-09-06-cross-class-negatives-3667/REPORT.md).
+
+| Rebuild | Agreement | Measured |
+|---|---|---|
+| same node, same code, **same membership** | **bit-identical** | 0 of 7,746 vectors differ, `siglip2_l` and `dinov3_patch`, twice each |
+| different host, different device, same membership | **~3e-07** max abs | `clip` 2.53e-07, `clip_l` 3.16e-07 across two parts of one `gres/gpu:v100` |
+| same node, **membership moved by one image** | **~1e-4** on a handful of images | `siglip2_l` 3.21e-04, `dinov3_patch` 3.03e-04, August → September |
+
+The third row is the one to know about, because it looks like the first. A
+membership change is **not** a relabel: a merged `pile_config` ruling that drops
+one image shifts every later image's position in the batch stream, and a
+per-image embedding turns out not to be independent of what it was batched
+with. Rebuilding `siglip2_l` at batch 31 instead of 32 — same images, same node
+— reproduces the signature: 27 of 7,746 vectors move, median difference 0,
+maximum **1.6e-04**. The batched GEMM's reduction order is what does it, in
+fp32, on hardware that is otherwise producing bit-identical results.
+
+That is the guarantee to state rather than to engineer away. Removing one image
+necessarily shifts every later one, so the only way to keep the vectors fixed
+across a ruling would be to stop the rulings — and 1e-4 on ~30 of 7,746 images
+is small. It is *not* nothing: it is 400× the same-node floor and larger than
+the fp16 difference #3143
+measured and rejected. Whether it changes any study's conclusion is a separate
+question that needs a paired re-run, not an opinion; file it if the answer starts
+to matter.
+
+What did need fixing is that nothing recorded the batch size.
+`VTSEARCH_EMBED_BATCH_SIZE` is a build parameter that changes the output — the
+same class of gap as the un-pinned CPU dispatch in #3160 — so the per-cell
+sidecar now carries `embed_batch_size`, and `--provenance` shows it in a `batch`
+column. A `-` there means the cell predates the key. Two cells of one
+`(dataset, embedder)` built at different sizes disagree by ~1e-4 with every
+other recorded field identical, which is exactly the comparison the sidecar
+exists to make possible.
+
 ## Building on the GRID
 
 ```bash
@@ -308,3 +568,193 @@ a hardcoded `a100` wearing a query, which sent the #3299 build into a 24-hour
 queue with 109 V100s idle. It now reads `AllocTRES` where `GresUsed` is absent
 and refuses to count a node whose usage it cannot read; see
 [the lesson](../lessons/2026-08-28-the-gpu-picker-reported-every-gpu-free.md).
+
+## Considering a new class for `vg_scale` (#3588)
+
+Five scripts, in the order they answer questions. None of them changes
+`SCALE_CLASSES`; they produce the evidence for doing so.
+
+```bash
+python shortlist_scale_classes.py --compact --floor 100 --n 80   # what VG supports
+python coco_folds.py --classes cup,bowl --out folds.json         # what the name MEANS
+python make_class_slate.py --supply-only                         # what a build would get
+python make_class_slate.py --out .../slates                      # the review material
+python import_slates.py --slates .../slates                      # datasets + empty detectors
+```
+
+**A cleared review is not yet a promotion, and the step between them is the name
+audit.** #3588 reviewed thirteen classes at 300 images each and cleared all
+thirteen; none of that says which VG spellings the class is *built* from, which
+is the next section's question and a separate measurement. `bicycle` shipped for
+the whole of #3156 built from one spelling with every structural check passing,
+which is why `SCALE_VG_NAMES_AUDITED` exists and why the suite refuses a class in
+*C* that is missing from it. Promotion is therefore four edits, not one:
+
+1. the class into `SCALE_CLASSES`;
+2. its measured spellings into `SCALE_VG_NAMES` / `SCALE_VG_AMBIGUOUS`, out of the
+   candidate tables and minus the class name itself;
+3. the class into `SCALE_VG_NAMES_AUDITED`, **after** running the audit below —
+   whatever the verdict, since an audit that found nothing is the result the flag
+   exists to record;
+4. the negative pool redrawn and the pile rebuilt, because a new class evicts
+   whatever the pool holds of it (#3604).
+
+## Auditing a class's VG names (#3618)
+
+Four scripts, in the order they answer questions. The first two search, the
+third decides, the fourth prices what it decided.
+
+```bash
+python coco_folds.py --min-count 1 --out folds.json               # names on the class's COCO boxes
+python vg_name_families.py --min-images 3 --out families.json     # names sharing its head noun
+python name_evidence.py --candidates cands.json \
+    --propose-out proposal.json --out evidence.json               # precision, box, verdict
+python name_coverage.py --propose proposal.json --out cov.json    # repaired, withheld, band ledger
+```
+
+Two more when the question is the **pool** rather than a name (#3635) — the first
+needs no proposal at all, and the shipped tables are worth scoring with it about
+once a rebuild:
+
+```bash
+python pool_contamination.py --out contam.json                    # per-class pool false-negative rate
+python pool_contamination.py --propose prop.json --out c2.json    # what a proposed name buys and costs
+python pool_contamination.py --drop bicycle:bike --out c3.json    # the counterfactual for an entry that SHIPS
+python withheld_difficulty.py --class "stop sign" --names sign \
+    --out hard.json                                               # are the withheld images the hard ones?
+```
+
+`--drop` exists because `--propose` can only add: scoring `bike` means comparing
+the pool *without* it against the shipped pool, and without that the control in
+#3635 would have been an estimate rather than a measurement.
+
+What a **human** says about the same pool is `shipped_pool_error.py` (#3666),
+which reads the negative pass back out per class and scores it against
+`pool_contamination.py`'s prediction:
+
+```bash
+python shipped_pool_error.py                  # the ORIGINAL twelve, from the committed verdicts
+python shipped_pool_error.py --rebank         # re-distil verdicts.csv from the passes on scratch
+python shipped_pool_error.py --figures        # + the report's figures (needs the VG pixels)
+```
+
+**A group pass is not a per-class rate**, and that is the whole reason this
+script is not three lines. A *clean* verdict on "none of these four" is a
+negative for every member; a *present* verdict names no member. Attributing the
+group finds is what turns one pass into twelve numbers, and it cost 9 images
+because COCO settles every find on its own half for free.
+
+Its `ADJUDICATION` table carries the study's actual result: what each find is,
+and whether the class's own names would ever have admitted it. Six of nine
+were boundary calls on rules that do not exist for the shipped twelve (#3673),
+which at a 1% rate moves the estimate further than another 3,000 draws per class
+would.
+
+Four when the question is **what a change to the evaluation frame is worth**
+(#3667). They are ordered by what they can answer, and the order matters — each
+can only be checked by the next:
+
+```bash
+python cross_class_negatives_effect.py                            # PRICE it, off the shipped cell, before any GPU
+python cross_class_negatives_rebuilt.py --json out.json           # what the rebuild actually moved, vs that price
+python cross_class_negatives_difficulty.py --json d.json          # are the new negatives nearer the class?
+python cross_class_negatives_shortcut.py --json s.json            # ...or was the OLD contrast a shortcut?
+```
+
+The *price* reads `categories`, because that is all a cell pickle carries; the
+*build* reads the labels, and an image can hold a class without being designated
+a positive for it, so the two disagree by design (0.8% here). The last two are a
+pair on purpose: a **text query cannot learn a shortcut** and a **trained head
+can**, so the difference between what each loses on the new negatives is the
+size of the shortcut. Running only one of them halves the effect and invites the
+wrong conclusion.
+
+Four more when the question is **what the negative pool should be made of**
+(#3670). The order is the argument: supply, then whether provenance is visible,
+then whether a head would use it, then what the choice costs the review.
+
+```bash
+python negpool_supply.py supply.json                     # can an all-provable 9,900 be drawn at all?
+python provenance_probe.py probe.json                    # is COCO-vs-YFCC even readable? (AUC 0.53-0.56)
+python provenance_shortcut.py short.json siglip,clip     # would a head USE it? (reverse arm: 1.1x)
+VTS_SCALE_ROSTER=<pre-change roster> \
+    python negpool_coverage.py cov.json                  # what it costs the review, and the REALISED prevalence
+```
+
+Two traps live in this group. **`provenance_shortcut.py` needs a pool holding
+both provenance strata, and the composition it argues for leaves only one** — so
+after the rebuild it must be pointed at an archived pre-change cell (third
+argument), not at the live pile, which would silently measure a population where
+the question is vacuous. And **`negpool_coverage.py` redraws the pool rather
+than reading one**: `draw_negatives` is hash-ranked and roster-pinned, so the
+draw is the build's draw with no pixels read — which is what let #3670 be
+measured after a parallel study's rebuild overwrote its cells. Point
+`VTS_SCALE_ROSTER` at the roster the change starts *from*; the live one is
+whatever built last.
+
+Its **realised** prevalence block is the one to read before quoting a number.
+`SCALE_PREVALENCE` describes the designated pool, and since #3667 a cell also
+scores the other classes' COCO-scored positives — so 9,900 shared negatives
+deliver a realised **0.85%**, not the designed 1.00% (#3681).
+
+[`figures_3670.py`](figures_3670.py) draws the four of them.
+
+Run `name_coverage.py` with no `--propose` to score the tables that are actually
+shipped, which is what says whether `pile_config` still does what its comment
+claims. Every cut is a flag (`--min-precision`, `--min-box`, `--min-sole`), so a
+different appetite for withheld negatives is a re-run, not a re-argument.
+
+**`coco_folds.py` is the one that is easy to skip and should not be.** It asks,
+over the ~51k images that are both VG and COCO, which VG names land on a COCO
+class's boxes (fold-in: what a reviewer must accept) and which COCO class sits
+under a VG box of a given name (fold-out: what the VG name denotes). Run against
+`book` it prints `magazine` and `magazines` — i.e. it would have caught the split
+that cost the `book` pass 49 verdicts, before a human saw one image.
+
+Its fold-out column doubles as a **definition-risk score**: the share of a name's
+boxes landing on *no* COCO class, on images COCO annotated exhaustively. The
+mechanical floor is ~7-15%; `book`, the class that actually broke, scores 43%.
+Anything near that is a class whose rule has to be settled before review, not
+during it.
+
+`--classes` scopes the *question*, never the COCO vocabulary the answer is read
+against: fold-out always tests a VG box against every COCO class, so the score
+for a name does not move when you ask about it alongside different company. It
+did once — a class nobody named carried no boxes, so `bike` read 100% "means
+nothing" against a recorded 40.1% (#3640) — and 100% is the reading that sends a
+good spelling to `SCALE_VG_AMBIGUOUS` and costs the class half its positives.
+
+That rule then travels in `pile_config.SCALE_CLASS_RULES`, whose value is the
+**dataset and detector name** — the only string the app shows while voting. A
+rule in a manifest is a rule the reviewer never reads.
+
+**All twenty-five classes now carry one, and the long form for the shipped
+twelve is [`ANNOTATION-GUIDE.md`](ANNOTATION-GUIDE.md)** (#3673). Read it before
+issuing any slate of those classes: #3666 measured that six of the nine pool
+errors found in the negative pass were boundary calls on rules that did not
+exist, and at a ~1% rate one ruling moves a class further than 3,000 extra
+uniform draws would. It also records the trap that nearly wrote two of those
+rules the wrong way — a fold-in count is a *box* test and the pool asks an
+*image* question, so `watch` (11% against a 4.5% base) and `canopy` (7% against
+3.7%) are refused despite landing on 35 and 32 COCO boxes.
+
+A candidate's measured spellings go in `SCALE_CANDIDATE_VG_NAMES`, not in the
+`SCALE_VG_NAMES` table above: that one widens the `vg_scale` **read** and is
+folded on every build, so an entry there for a class outside *C* would change the
+built dataset before anything has been decided. A candidate promoted into *C*
+moves its row across, **minus the class name itself** — the candidate table lists
+it because the slate builder has no separate class-name read to add it to, and a
+row carried over whole would list `cup` among `cup`'s alternate spellings. Both
+candidate tables are empty since the #3588 promotion; read either side through
+`pile_config.scale_names_for()` / `scale_ambiguous_for()`, which look in both, so
+that a slate rebuilt after a promotion cannot silently lose the spellings.
+
+`make_class_slate.py` differs from `make_audit_slate.py` in what it can assume:
+the audit slate reads a class the pickle already holds, while a candidate has
+neither banded positives nor a checked negative pool. Positives come from the VG
+source through the loader's own `band_candidates`, so the banding is the one a
+build would use; negatives come from the built pickle's shared pool, **minus any
+image that holds the candidate**. That subtraction is not hygiene: the shared
+pool was drawn as "holds none of the current twelve", so 34% of it holds at least
+one of the thirteen classes #3588 added, and that count is the rebuild cost the
+promotion paid (#3604).

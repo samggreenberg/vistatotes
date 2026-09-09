@@ -22,6 +22,28 @@ gather data, and both produce the same file:
 When disarmed the cost is one ``os.environ`` lookup per task and a couple of
 no-op method calls; there is no tracker subscription and no file handle.
 
+**Branches.** A step's cost often forks on a cache the row does not otherwise
+record, and a fitter that cannot see the fork averages the two. Two markers
+carry the fork:
+
+- ``cold_model`` is a property of the **run**: whether it was the first in the
+  process to need its ``(media_type, embedder)`` encoder (#3520, below).
+- ``branch`` is a property of one **step**: which path that step took, named by
+  the code that chose it via :func:`note_branch`. The vocabulary lives in
+  :mod:`vtscore.timing.tasks` (``CHEAP_BRANCHES`` / ``DEAR_BRANCHES``).
+
+The second exists because the first cannot see the caches that are not the
+encoder, and those are on **disk**, so they outlive the process a cold/warm
+ledger is scoped to. #3345 measured two: a ``dataset_open`` whose coverage step
+restored the atlas cached in its pickle on all 16 opens and never once rebuilt
+it, and a ``dataset_load``/``dataset_stage`` embed that read the demo
+embeddings pkl instead of embedding. (The ``dataset_stage`` half of that second
+one turned out to be a misdiagnosis: its embed step read 0.000–0.002 s across
+all four image tiers because the importer's embedding was being recorded under
+``acquire``, not because a cache was hit. #3521 §5 cleared the cache and the
+step still read zero; #3593 moved the boundary. The branch marker is what made
+that legible in one look.)
+
 **Cold vs warm.** Every row also carries ``cold_model``: whether this run was
 the first in the process to need its ``(media_type, embedder)`` encoder, and so
 the one that paid to download and instantiate it. Without that marker the rows
@@ -76,6 +98,47 @@ _seen_models: set[tuple[str, str]] = set()
 _seen_lock = threading.Lock()
 
 
+#: Recorder bound to the current worker thread, so code far below the task's
+#: entry point can name the branch a step took without threading a recorder
+#: argument through every stage. Mirrors ``_load_profiler``'s ``_active``, which
+#: exists for the same reason and is bound at the same place.
+_active = threading.local()
+
+
+def _active_recorder() -> Optional["TaskTimingRecorder"]:
+    return getattr(_active, "recorder", None)
+
+
+def note_branch(step: str, branch: str) -> None:
+    """Record which path *step* took on the run recording this thread.
+
+    A no-op when nothing is recording, which is the usual case — the call sites
+    are ordinary product code (``load_demo_dataset``'s cache hit, the dataset
+    open's atlas restore) and must not care whether a sweep is running.
+
+    *branch* is one of the names in :data:`vtscore.timing.tasks.CHEAP_BRANCHES`
+    or :data:`~vtscore.timing.tasks.DEAR_BRANCHES`. The vocabulary is shared
+    rather than free-text because the fitter reads it: an unrecognised name is
+    recorded faithfully and then treated as unclassifiable, which is the safe
+    direction — it neither licenses a fit nor silently blocks one.
+    """
+    rec = _active_recorder()
+    if rec is not None:
+        rec.mark_branch(step, branch)
+
+
+def note_no_encoder_load() -> None:
+    """Declare that the run recording this thread instantiated no encoder.
+
+    A no-op when nothing is recording. See
+    :meth:`TaskTimingRecorder.disclaim_encoder` for why a run that skipped the
+    load must not claim the residency key.
+    """
+    rec = _active_recorder()
+    if rec is not None:
+        rec.disclaim_encoder()
+
+
 def reset_seen_models_for_tests() -> None:
     """Forget every encoder this process has recorded a load for.
 
@@ -124,10 +187,17 @@ class TaskTimingRecorder:
         embedder: str = "",
         status_phases: Optional[dict[str, str]] = None,
         auto_finish: bool = False,
+        only_phases: Optional[tuple[str, ...]] = None,
     ) -> None:
         self._tracker = tracker
         self._task = task
         self._spec = task_spec(task)
+        # A run that performs only part of the task's step structure — the
+        # on-demand coverage-atlas rebuild is a ``dataset_open``'s second step
+        # and nothing else. Without this the emit below would write a 0.0 row
+        # for every step the run never had the chance to take, and those zeros
+        # are indistinguishable from measurements of a step that really is free.
+        self._only_phases = tuple(only_phases) if only_phases else ()
         self._media_type = media_type or ""
         self._embedder = embedder or ""
         # Maps a status string onto a phase name, for tasks where one tracker
@@ -139,11 +209,14 @@ class TaskTimingRecorder:
         self._lock = threading.Lock()
         self._phase_start: dict[str, float] = {}
         self._phase_order: list[str] = []
+        self._branches: dict[str, str] = {}
+        self._loaded_encoder = True
         self._last_seen: Any = None
         self._n = 0.0
         self._size_mb = 0.0
         self._ok = True
         self._subscribed = False
+        self._bound = False
 
     # -- lifecycle ----------------------------------------------------------
     def __enter__(self) -> "TaskTimingRecorder":
@@ -166,6 +239,44 @@ class TaskTimingRecorder:
             logger.debug("timing recorder: tracker for %s has no subscribe()", self._task)
             return
         self._subscribed = True
+
+    def bind_thread(self) -> None:
+        """Make this recorder the target of :func:`note_branch` on this thread.
+
+        Called from inside the worker, not from :meth:`start`: a task is armed
+        on the request thread and then runs on a background one, and it is the
+        background thread whose stages make the branch decisions.
+        """
+        _active.recorder = self
+        self._bound = True
+
+    def _unbind_thread(self) -> None:
+        if getattr(_active, "recorder", None) is self:
+            _active.recorder = None
+        self._bound = False
+
+    def mark_branch(self, step: str, branch: str) -> None:
+        """Name the path *step* took. Last call wins; safe from any thread."""
+        if not step or not branch:
+            return
+        with self._lock:
+            self._branches[str(step)] = str(branch)
+
+    def disclaim_encoder(self) -> None:
+        """Declare that this run never instantiated an encoder.
+
+        A task marked ``loads_encoder`` normally claims its ``(media_type,
+        embedder)`` key in the residency ledger when it emits. A run that
+        satisfied itself from a cache did no such thing — a demo import that
+        reads the embeddings pkl embeds nothing and so never touches the model —
+        and letting it claim the key would stamp the *next* run warm when that
+        run is the one that genuinely pays the load. That is exactly the
+        mislabel #3345 measured on the other recorder, arriving by a different
+        route: there two blank embedder names collided, here a cache hit stands
+        in front of a real load.
+        """
+        with self._lock:
+            self._loaded_encoder = False
 
     def set_scale(
         self,
@@ -263,6 +374,12 @@ class TaskTimingRecorder:
         """
         if self._spec is None or not self._spec.loads_encoder:
             return None
+        if not self._loaded_encoder:
+            # Ran, but never instantiated a model (see ``disclaim_encoder``).
+            # Neither cold nor warm: the field would be a claim about a load
+            # that did not happen, and claiming the key would mislabel the run
+            # that does happen next.
+            return None
         key = (self._media_type, self._embedder)
         with _seen_lock:
             cold = key not in _seen_models
@@ -271,11 +388,14 @@ class TaskTimingRecorder:
 
     def _emit(self) -> None:
         end = time.monotonic()
+        if self._bound:
+            self._unbind_thread()
         if not self._path:
             return
         with self._lock:
             order = list(self._phase_order)
             starts = dict(self._phase_start)
+            branches = dict(self._branches)
             n, size_mb, ok = self._n, self._size_mb, self._ok
         if not order:
             return
@@ -286,7 +406,7 @@ class TaskTimingRecorder:
         # good cost samples. What is *not* a sample is a run that gave up
         # partway, because its final recorded step's duration runs to whenever
         # the task bailed rather than to a real phase boundary.
-        declared = self._spec.steps if self._spec is not None else tuple(order)
+        declared = self._only_phases or (self._spec.steps if self._spec is not None else tuple(order))
         complete = bool(declared) and declared[-1] in starts
         base = {
             "task": self._task,
@@ -311,7 +431,12 @@ class TaskTimingRecorder:
         # that this deployment's warm model loads are free, not silently drop
         # every warm run's evidence and over-budget the phase forever.
         rows = [
-            {**base, "step": phase, "seconds": round(durations.get(phase, 0.0), 4)}
+            {
+                **base,
+                "step": phase,
+                "seconds": round(durations.get(phase, 0.0), 4),
+                **({"branch": branches[phase]} if phase in branches else {}),
+            }
             for phase in (declared if complete else order)
         ]
         try:
@@ -335,6 +460,15 @@ class _NullRecorder:
         return False
 
     def start(self) -> None:
+        pass
+
+    def bind_thread(self) -> None:
+        pass
+
+    def mark_branch(self, step: str, branch: str) -> None:
+        pass
+
+    def disclaim_encoder(self) -> None:
         pass
 
     def set_scale(
@@ -366,6 +500,7 @@ def record_task(
     embedder: str = "",
     status_phases: Optional[dict[str, str]] = None,
     auto_finish: bool = False,
+    only_phases: Optional[tuple[str, ...]] = None,
 ):
     """Return a recorder for one run of *task*, or a no-op when disarmed.
 
@@ -376,6 +511,12 @@ def record_task(
     tracker that it parks at ``"idle"`` on the way out (every exit path,
     including aborts). The recorder then closes itself on that signal, so a
     route handler with a dozen early ``abort()``s needs no ``finally``.
+
+    Set *only_phases* for an entry point that runs part of a task's step
+    structure rather than all of it — the on-demand coverage-atlas rebuild is
+    a ``dataset_open``'s coverage step arriving on its own. The run is then
+    recorded against only those phases instead of writing a zero for every step
+    it was never in a position to take.
     """
     if not recording_enabled():
         return _NULL_RECORDER
@@ -386,4 +527,5 @@ def record_task(
         embedder=embedder,
         status_phases=status_phases,
         auto_finish=auto_finish,
+        only_phases=only_phases,
     )

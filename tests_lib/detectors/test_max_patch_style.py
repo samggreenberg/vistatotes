@@ -684,7 +684,7 @@ class TestStyleVotingSimulation:
 
     def test_style_rejects_svm_trainer(self):
         medias, _ = _planted_dataset(n_per_cat=10, seed=10)
-        with pytest.raises(ValueError, match="MLP trainer"):
+        with pytest.raises(ValueError, match="only apply to trainer='app'"):
             simulate_voting_iterations(
                 medias,
                 target_category="cat0",

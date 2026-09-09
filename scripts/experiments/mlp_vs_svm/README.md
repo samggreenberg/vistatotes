@@ -39,7 +39,7 @@ sbatch --array=0-$((N-1))%24 ... --wrap "... python stage_b_autopilot.py"
 | `MLPSVM_N_SEEDS` | `8` | Seeds (paired across trainers) |
 | `MLPSVM_MAX_STEPS` | `200` | Vote budget per trajectory |
 | `MLPSVM_RARE_PREVALENCE` | `0.01` | Rare-arm target prevalence |
-| `MLPSVM_TRAINERS` | `mlp,svm_linear,svm_rbf` | Trainers in the definitive run |
+| `MLPSVM_TRAINERS` | `app,svm_linear,svm_rbf` | Trainers in the definitive run |
 
 ## Notes / gotchas
 

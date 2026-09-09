@@ -5,7 +5,9 @@ then the linear (logistic) head; the live detector now trains a **linear SVM**.
 Measuring a shipped default like ``safe_thresholds`` on the wrong head measures
 the wrong product, so an unspecified ``head`` resolves to
 :data:`~vtscore.eval.voting_iterations.PRODUCTION_HEAD` and ``head="linear"`` /
-``head="mlp"`` are the explicitly-named legacy arms.
+``head="mlp"`` are the explicitly-named legacy arms.  (``head`` picks what the
+app-pipeline trainer fits; the ``trainer`` knob beside it picks the pipeline -
+see issue #3764.)
 
 These tests pin the three things that make a default run faithful:
 
@@ -49,6 +51,19 @@ def test_resolve_hidden_dim_maps_heads_to_sentinels():
         step_model.resolve_hidden_dim("logreg", 40)
 
 
+def test_resolve_trainer_name_normalises_the_retired_mlp_spelling():
+    """#3764: ``"mlp"`` named the app pipeline, whose default head is the SVM.
+
+    The alias is accepted on input so archived launch scripts keep running;
+    everything downstream sees exactly one spelling.
+    """
+    assert step_model.resolve_trainer_name("mlp") == step_model.APP_TRAINER == "app"
+    assert step_model.resolve_trainer_name("app") == "app"
+    # Standalone estimators pass through untouched - they are not the app arm.
+    assert step_model.resolve_trainer_name("svm_linear") == "svm_linear"
+    assert step_model.resolve_trainer_name("svm_rbf@C=3") == "svm_rbf@C=3"
+
+
 def test_the_default_head_is_the_head_the_app_trains(monkeypatch):
     """#2916: ``PRODUCTION_HEAD`` must track ``train_and_threshold``'s own width.
 
@@ -86,9 +101,9 @@ def test_unknown_head_is_rejected_early():
         vi.simulate_voting_iterations(medias, target_category="cat0", seed=0, head="logreg", max_steps=1)
 
 
-def test_head_does_not_apply_to_the_svm_trainer():
+def test_head_does_not_apply_to_a_standalone_estimator():
     medias, _ = _planted_dataset(n_per_cat=6, seed=0)
-    with pytest.raises(ValueError, match="only applies to the production trainer"):
+    with pytest.raises(ValueError, match="only applies to trainer='app'"):
         vi.simulate_voting_iterations(
             medias, target_category="cat0", seed=0, trainer="svm_linear", head="linear", max_steps=1
         )
@@ -121,7 +136,7 @@ def test_linear_head_reaches_the_final_model_and_the_calibration_folds(style, he
     style_obj = None if style is None else resolve_style(style)
 
     step, threshold, _n, _timings, _details = step_trainers._train_and_calibrate(
-        "mlp",
+        "app",
         good_votes,
         bad_votes,
         medias,
@@ -151,7 +166,7 @@ def test_linear_head_reaches_the_final_model_and_the_calibration_folds(style, he
 def _default_arm_step(medias):
     good_votes, bad_votes = _votes(medias)
     return step_trainers._train_and_calibrate(
-        "mlp",
+        "app",
         good_votes,
         bad_votes,
         medias,
@@ -181,7 +196,7 @@ def test_the_mlp_arm_is_still_reachable_by_name():
     good_votes, bad_votes = _votes(medias)
 
     step, _threshold, n_labels, _t, _d = step_trainers._train_and_calibrate(
-        "mlp",
+        "app",
         good_votes,
         bad_votes,
         medias,

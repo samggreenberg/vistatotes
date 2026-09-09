@@ -79,7 +79,7 @@ def _calibrate_and_blend(clips, good_votes, bad_votes):
     X_all = np.array([clips[cid]["embeddings"]["siglip"] for cid in sim_ids], dtype=np.float32)
 
     step, threshold, n_labels, _timings, details = _train_and_calibrate(
-        "mlp",
+        "app",
         good_votes,
         bad_votes,
         clips,

@@ -46,7 +46,7 @@ surface a programmatic consumer calls into.
 | `vtscore/eval/cut_rules.py`             | Score-cut rules and their oracle decomposition           |
 | `vtscore/eval/evt_mixture.py`           | Gumbel + Normal score mixture behind the `gumbel_*` cut rules |
 | `vtscore/eval/calibration_metrics.py`   | Pure-numpy calibration metrics and pooling variants      |
-| `vtscore/eval/trainers.py`              | Shared trainer registry for the learned-sort comparisons |
+| `vtscore/eval/sweep_trainers.py`        | Standalone-estimator registry for the label-curve and timing sweeps |
 | `vtscore/eval/label_curve.py`           | MLP-vs-SVM label-curve sweep (`run_label_curve_eval`)    |
 | `vtscore/eval/label_curve_main.py`      | CLI for the label-curve sweep                            |
 | `vtscore/eval/timing_benchmark.py`      | GPU microbenchmark: MLP (torch) vs SVM (cuML)            |
@@ -353,7 +353,7 @@ columns.
 ## Label curve
 
 `vtscore/eval/label_curve.py` is a separate sweep that compares the
-MLP and SVM trainers head-to-head as a function of training-set size.
+MLP and SVM estimators head-to-head as a function of training-set size.
 The sweep iterates over `dataset × target_category × trainer ×
 label_count × seed` and writes one row per cell to a tidy DataFrame.
 
@@ -363,7 +363,7 @@ via cross-calibration. So `AUROC`, `AP`, and the production-path
 `f1_at_xcal` (which uses
 `conformal_threshold` on a held-out calibration slice) are what
 matter; Brier and F1@0.5 are kept as diagnostics. See
-`TRAINERS` for the plug-in registry of trainer functions.
+`SWEEP_TRAINERS` for the plug-in registry of estimator functions.
 
 `label_curve_main.py` is the CLI:
 
@@ -442,6 +442,44 @@ generated `Path`s. They apply a clean default matplotlib style
 (`white` facecolor, grid on, top/right spines off) before plotting.
 matplotlib is not in the library's core dependencies - installing
 `matplotlib` separately is required to use these helpers.
+
+---
+
+## `trainer` vs `head`: two knobs, two registries
+
+The eval framework carries two things called a *trainer*. They answer different
+questions, and until issue #3764 they also shared the string `"mlp"`, which named
+an MLP in one of them and the app's pipeline in the other. Read a `trainer`
+column against the sweep that produced it:
+
+| | Voting simulation | Label curve / timing |
+|---|---|---|
+| Entry point | `simulate_voting_iterations` | `run_label_curve_eval`, `run_timing_benchmark` |
+| Registry | `vtscore/eval/step_trainers.py` | `vtscore/eval/sweep_trainers.py` |
+| A "trainer" is | a whole **pipeline**: fit + threshold calibration | a bare **estimator**: `(X, y, seed) -> predict_fn` |
+| Values | `app` (VTSearch's own pipeline; the default), `svm_linear`, `svm_rbf`, `svm_<kernel>@<params>` | `mlp`, `svm_linear`, `svm_rbf`, `mlp_ens<N>`, `svm_<kernel>@<params>` |
+| Is `"mlp"` an MLP? | n/a — the arm is spelled `app`, and `"mlp"` is accepted only as its retired alias | yes, `train_model` with an auto-sized hidden layer |
+
+The voting simulation's `head` knob is the one that picks a *model*, and it
+applies to the `app` trainer alone, because only that arm fits one of VTSearch's
+heads:
+
+| `head` | What the app pipeline fits |
+|---|---|
+| `linear_svm` | `Linear(d, 1)` fitted by liblinear. **The shipped detector head**; `head=None` resolves here. |
+| `linear` | The same `Linear(d, 1)` fitted by balanced BCE — the logistic head the SVM replaced. |
+| `mlp` | An auto-sized hidden layer, BCE — the head VTSearch shipped before #2790. |
+
+So `trainer="app", head="linear_svm"` is the shipped detector; `trainer="app",
+head="mlp"` is the app's pipeline around a legacy head; and `trainer="svm_rbf"`
+is a standalone estimator that has no head at all (its rows carry an empty
+`head` column). Passing `head=` with any `svm_*` trainer is an error.
+
+`svm_linear` and `linear_svm` are also easy to swap by eye and are not the same
+thing: the first is a standalone sklearn/cuML SVM scored through its own
+`predict_proba` and thresholded by the harness's trainer-agnostic
+cross-calibration port; the second is the app's `Linear(d, 1)` whose weights come
+from liblinear, scored and thresholded exactly as production does.
 
 ---
 

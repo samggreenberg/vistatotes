@@ -53,16 +53,20 @@ if TYPE_CHECKING:
 
 
 # ---------------------------------------------------------------------------
-# Trainer plugin registry
+# Sweep-trainer registry
 # ---------------------------------------------------------------------------
 #
 # The registry, its adapter helpers, and the trainer-agnostic cross-calibration
-# threshold now live in :mod:`vtscore.eval.trainers` so the voting-iterations
-# sweep can dispatch through the identical set without importing this whole
-# module.  They are re-exported here unchanged for backward compatibility.
+# threshold live in :mod:`vtscore.eval.sweep_trainers` so the voting-iterations
+# sweep can share the parameterised-SVM parser and the threshold without
+# importing this whole module.  They are re-exported here unchanged.
+#
+# Every arm in that registry is a **standalone estimator**, so this sweep's
+# ``trainer`` column is not the voting simulation's: there, ``trainer="app"``
+# names the shipped detector pipeline (issue #3764).
 
-from vtscore.eval.trainers import (  # noqa: E402
-    TRAINERS,  # noqa: F401  - re-exported: label_curve_main's CLI imports it from here
+from vtscore.eval.sweep_trainers import (  # noqa: E402
+    SWEEP_TRAINERS,  # noqa: F401  - re-exported: label_curve_main's CLI imports it from here
     _as_scores,  # noqa: F401  - re-exported for tests / backward compatibility
     _cross_calibrated_threshold,
     resolve_trainer,
@@ -431,7 +435,8 @@ def run_label_curve_eval(  # noqa: C901
         dataset_clips: Mapping of dataset name to a preloaded medias dict.
             Each media must carry a resolvable embedding in the per-embedder
             ``"embeddings"`` store and a ``"category"`` (str).
-        trainers: Trainer names to compare (keys of :data:`TRAINERS`).
+        trainers: Sweep-trainer names to compare (keys of
+            :data:`~vtscore.eval.sweep_trainers.SWEEP_TRAINERS`).
         label_counts: How many training labels to feed each trainer.
         seeds: Random seeds.  The split/sample is fully determined by the
             (dataset, category, seed) triple, so different trainers see

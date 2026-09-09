@@ -646,7 +646,9 @@ FOLD_COUNT_SCHEDULE = os.environ.get("CALIB_FOLD_COUNT_SCHEDULE", "").strip() or
 #: open on #3321; the harness warns and skips there rather than improvising one).
 SKYLINE_ARMS = [a.strip() for a in os.environ.get("CALIB_SKYLINE_ARMS", "").split(",") if a.strip()]
 
-#: Which head each step trains (``vtscore.eval.voting_iterations.HEADS``).
+#: Which head each step trains (``vtscore.eval.step_model.HEADS``).  This is the
+#: head the app-pipeline trainer fits, not a choice of pipeline: these studies
+#: always run ``trainer="app"`` (issue #3764).
 #: Unset (the default) hands ``head=None`` to the harness, which resolves it to
 #: the head the live detector actually trains — ``linear_svm``.  That is the
 #: only setting a study's headline numbers can be read off, because questions

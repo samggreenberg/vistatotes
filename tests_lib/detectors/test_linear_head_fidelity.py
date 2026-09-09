@@ -165,7 +165,7 @@ class TestSVMFidelity:
 
     def _svm_linear_arm_scores(self, X_train, y_train, X_score) -> np.ndarray:
         """Exactly what ``TRAINERS["svm_linear"]`` computes for these labels."""
-        from vtscore.eval.trainers import resolve_trainer  # noqa: PLC0415
+        from vtscore.eval.sweep_trainers import resolve_trainer  # noqa: PLC0415
 
         predict = resolve_trainer("svm_linear")(X_train, y_train, 0)
         return np.asarray(predict(X_score), dtype=np.float64)

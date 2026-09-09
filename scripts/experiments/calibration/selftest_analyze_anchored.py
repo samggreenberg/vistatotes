@@ -62,7 +62,7 @@ def _fabricate(results: Path, rng: np.random.Generator) -> None:
                     "dataset": "visual_genome_m",
                     "category": cat,
                     "strategy": "autopilot",
-                    "trainer": "mlp",
+                    "trainer": "app",
                     "head": "linear",
                     "style": "max_patch",
                     "prevalence_arm": "natural",

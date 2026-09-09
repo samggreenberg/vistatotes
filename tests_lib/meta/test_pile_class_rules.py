@@ -53,18 +53,16 @@ def pc():
 def test_review_name_falls_back_to_the_bare_class(pc):
     """A class without a rule is its own definition, and keeps the old name.
 
-    `dog` is the example because it is the *measured* one: of the shipped
-    twelve it has the cleanest reading of its own name -- 87.7% of COCO's dog
-    boxes carry a VG box called `dog`, and only 9.9% of VG `dog` boxes land on
-    no COCO class at all, against `book`'s 43.1% -- and its one near-miss is a
-    hot dog, at 8 boxes in the whole overlap. Every other class of the
-    twenty-five now carries a rule (#3673), so if a rule is added for `dog`
-    this test needs a new example rather than a deletion: the fallback branch
-    of `review_name` is what it exists to hold.
+    `dog` used to be the example, as the last of the twenty-five with no
+    written rule; #3771 ruled its wolf boundary and gave it one, so every
+    class *in the table* now has a name of its own. The fallback branch is
+    still live -- `review_name` is called for any class, and a COCO class
+    outside *C* has no entry -- so the example moved rather than the test
+    going away.
     """
-    assert "dog" not in pc.SCALE_CLASS_RULES
-    assert pc.review_name("dog") == "dog"
-    assert pc.review_name("dog", "positives") == "dog positives"
+    assert "cat" not in pc.SCALE_CLASS_RULES
+    assert pc.review_name("cat") == "cat"
+    assert pc.review_name("cat", "positives") == "cat positives"
 
 
 def test_review_name_carries_the_rule_through_every_pass(pc):
@@ -115,6 +113,27 @@ def test_the_cell_phone_rule_admits_a_docked_mobile(pc):
     assert "needs the base" in test, "the Bad clause must turn on dependency, not presence"
     assert "dock" in test and "cradle" in test, "the near-miss must be settled explicitly"
     assert "landline" in test, "the clause still has to exclude landlines"
+
+
+def test_the_dog_rule_turns_on_wild_versus_domestic(pc):
+    """#3771's ruling, pinned as the discrimination it actually is.
+
+    A husky and a wolf are the same silhouette, so a rule that read `not a
+    wolf` and stopped would reject the pet husky it was never meant to. The
+    ruling is *obviously wild*, on the same "obvious is the operative word"
+    footing as the protocol's toy rule -- and the figurine and depiction cases
+    the issue raised are deliberately NOT restated here, because they are
+    already binding on every class.
+    """
+    rule = pc.SCALE_CLASS_RULES["dog"]
+    test = rule.test.lower()
+    assert "obviously wild" in test, "the Bad clause must turn on wildness, not on looks"
+    assert "husky" in test, "the wolf-like breed the ruling protects has to be named"
+    assert "domestic" in test
+    # The generic rules stay generic: the entry may point at them, but it must
+    # not re-rule them, which is how one class's wording starts to drift from
+    # the protocol every other class is voted under.
+    assert "depiction is not the object" in test and "obvious toy is not the object" in test
 
 
 def test_every_slate_maker_names_its_detector_from_the_table():

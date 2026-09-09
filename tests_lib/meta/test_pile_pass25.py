@@ -112,7 +112,12 @@ class TestDetectorName:
         assert pass25.detector_name(ruled) == pc.SCALE_CLASS_RULES[ruled].name
 
     def test_an_unruled_class_falls_back_to_its_bare_name(self, pass25):
-        """`dog` has no written rule; that is a ruling owed (#3673), not a crash."""
+        """An unruled class falls back rather than crashing (#3673).
+
+        Every class of the twenty-five carries a rule now that #3771 ruled
+        `dog`'s wolf boundary, so the fallback is exercised with a name that
+        is not one of them.
+        """
         assert pass25.detector_name("nonesuch") == "nonesuch"
 
     def test_every_class_yields_a_non_empty_name(self, pass25, pc):

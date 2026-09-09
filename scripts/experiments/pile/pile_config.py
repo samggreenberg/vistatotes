@@ -2002,6 +2002,26 @@ SCALE_CLASS_RULES: dict[str, ClassRule] = {
             "should vote Good."
         ),
     ),
+    "dog": ClassRule(
+        name="dog not wolves",
+        test=(
+            "Good: any live DOMESTIC dog, of any breed, size or life stage -- on a lead, "
+            "loose, working, being carried, in a vehicle, or partly hidden. A puppy is a "
+            "dog. Breed appearance is NOT the test: a husky, malamute or shepherd is a Dog "
+            "however wolf-like it looks. Bad: an OBVIOUSLY WILD canid -- a wolf, coyote, "
+            "fox, jackal or dingo -- and a HOT DOG, which is a trap for a name rather than "
+            "for an eye (405 images on this name's head-noun family, 8 boxes in the whole "
+            "COCO overlap). One test: wild or domestic, not what the coat looks like. "
+            "`Obviously` is the operative word, exactly as in the toy rule: a wolf-like "
+            "canid you have to squint at is somebody's husky, so vote Good. Excluding wild "
+            "canids is COCO's own reading -- it annotates domestic dogs alone -- and it is "
+            "the whole of what this rule adds. A dog FIGURINE, ornament or soft toy, and a "
+            "dog in a photo, on a sign, a logo or a screen, are already Bad under the "
+            "protocol's `a depiction is not the object` and `an obvious toy is not the "
+            "object`, which bind every class here; they are deliberately not restated, "
+            "because a generic rule restated per class is a generic rule that will drift."
+        ),
+    ),
     "boat": ClassRule(
         name="boat any watercraft",
         test=(

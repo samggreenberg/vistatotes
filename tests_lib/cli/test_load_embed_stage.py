@@ -66,9 +66,8 @@ class _StubImporter:
 
     name = "stub"
 
-    def __init__(self, medias: list[dict[str, Any]], chunk_size: int = 0) -> None:
+    def __init__(self, medias: list[dict[str, Any]]) -> None:
         self._medias = medias
-        self._chunk_size = chunk_size
 
     def validate_cli_field_values(self, field_values: dict[str, Any]) -> None:
         return None

@@ -272,6 +272,7 @@ converged_training  # noqa: F821 - pins training hyperparameters to convergence
 degenerate_gmm  # noqa: F821 - forces the GMM to degenerate
 restore_resolvers  # noqa: F821 - re-binds the resolver globals via monkeypatch so teardown restores them
 clean_paths  # noqa: F821 - saves/restores sys.path and sys.meta_path around setup_env
+restore_stdlib  # noqa: F821 - re-installs the stdlib packages_distributions via monkeypatch for the test
 
 # ---------------------------------------------------------------------------
 # Mock function signatures that must match a real API but whose body

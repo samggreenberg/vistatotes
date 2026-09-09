@@ -9528,11 +9528,24 @@
    "region_box": null,
    "score": -1.0,
    "time": -1.0
+  },
+  {
+   "cid": null,
+   "filename": "2318011.jpg",
+   "id": "c0f28cc0f925432f",
+   "label": "bad",
+   "md5": "560adfd04c96afc57383523c19c2ce5f",
+   "media_type": "image",
+   "name": "2318011.jpg",
+   "origin_name": "2318011.jpg",
+   "region_box": null,
+   "score": -1.0,
+   "time": -1.0
   }
  ],
  "class": "bicycle",
  "detector_name": "bicycle incl trikes not motorcycles",
- "exported": "2026-09-08",
+ "exported": "2026-09-09",
  "good": [
   {
    "cid": null,
@@ -13180,6 +13193,19 @@
     0.7739127314170379,
     1.0
    ],
+   "score": -1.0,
+   "time": -1.0
+  },
+  {
+   "cid": null,
+   "filename": "2389554.jpg",
+   "id": "bcd970e54f0cb003",
+   "label": "good",
+   "md5": "0074e2577ec056f31f226df03351d76f",
+   "media_type": "image",
+   "name": "2389554.jpg",
+   "origin_name": "2389554.jpg",
+   "region_box": null,
    "score": -1.0,
    "time": -1.0
   }
